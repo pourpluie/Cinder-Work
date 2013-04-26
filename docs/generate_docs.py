@@ -2,6 +2,7 @@
 import sys
 import os
 import codecs
+import shutil
 from xml.dom.minidom import parse
 from bs4 import BeautifulSoup
 
@@ -50,21 +51,35 @@ def processHtml( html, symbolMap, doxyHtmlPath ):
 			searchString = link.contents[0]
 		fileName = getFilePathForSymbol( symbolMap, searchString )
 		if fileName == None:
-			print "*** Error: Could not find Doxygen tag for " + searchString
+			print "   ** Warning: Could not find Doxygen tag for " + searchString
 		else:
 			link.name = 'a'
 			link['href'] = doxyHtmlPath + fileName
-			print link
 			
 	return soup.prettify()
 
 def processHtmlFile( inPath, symbolMap, doxygenHtmlPath, outPath ):
-	outFile = codecs.open( outPath, "w", "utf-8" )
-	outFile.write( processHtml( codecs.open( inPath, "r", "utf-8" ), symbolMap, doxygenHtmlPath ) )
+	outFile = codecs.open( outPath, "w", "ISO-8859-1" )
+	outFile.write( processHtml( codecs.open( inPath, "r", "ISO-8859-1" ), symbolMap, doxygenHtmlPath ) )
+
+# walks all files in 'htmlSourceDir' and process in .html, copies/outputs to htmlOutDir 
+def processHtmlDir( htmlSourceDir, symbolMap, doxygenHtmlPath ):
+	for root, subFolders, files in os.walk( htmlSourceDir ):
+		for fileName in files:
+			inPath = os.path.join( root, fileName )
+			outPath = os.path.join( doxygenHtmlPath, fileName )
+			if os.path.splitext( fileName )[1] == '.html':
+				print "[ " + fileName + "->" + outPath
+				processHtmlFile( inPath, symbolMap, doxygenHtmlPath, outPath )
+			else:
+				shutil.copyfile( inPath, outPath )
 
 doxygenHtmlPath = os.path.dirname( os.path.realpath(__file__) ) + os.sep + 'html' + os.sep
-if len( sys.argv ) == 2: # default; generate all docs
-	classMap = getSymbolToFileMap( "doxygen/cinder.tag" )
+htmlSourcePath = os.path.dirname( os.path.realpath(__file__) ) + os.sep + 'htmlsource' + os.sep
+
+if len( sys.argv ) == 1: # default; generate all docs
+	symbolMap = getSymbolToFileMap( "doxygen/cinder.tag" )
+	processHtmlDir( htmlSourcePath, symbolMap, doxygenHtmlPath )
 elif len( sys.argv ) == 3:
 	symbolMap = getSymbolToFileMap( "doxygen/cinder.tag" )
 	processHtmlFile( sys.argv[1], symbolMap, doxygenHtmlPath, sys.argv[2] )
