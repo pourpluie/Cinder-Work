@@ -67,11 +67,20 @@ def processHtmlDir( htmlSourceDir, symbolMap, doxygenHtmlPath ):
 	for root, subFolders, files in os.walk( htmlSourceDir ):
 		for fileName in files:
 			inPath = os.path.join( root, fileName )
-			outPath = os.path.join( doxygenHtmlPath, fileName )
-			if os.path.splitext( fileName )[1] == '.html':
-				print "[ " + fileName + "->" + outPath
+			relativePath = inPath[len(htmlSourceDir):] # path relative to 'htmlSourceDir'
+			outPath = os.path.join( doxygenHtmlPath, relativePath )
+			name,ext = os.path.splitext( fileName )
+		
+			# create destination directory if necessary
+			outParentPath = os.path.abspath(os.path.join( outPath,"..") )
+			if not os.path.exists( outParentPath ):
+				os.makedirs( outParentPath )
+			
+			if ext == '.html':
+				print "[" + outPath + "]"
 				processHtmlFile( inPath, symbolMap, doxygenHtmlPath, outPath )
 			else:
+				print fileName + "->" + outPath
 				shutil.copyfile( inPath, outPath )
 
 doxygenHtmlPath = os.path.dirname( os.path.realpath(__file__) ) + os.sep + 'html' + os.sep
