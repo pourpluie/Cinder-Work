@@ -201,13 +201,13 @@ void multProjection( const ci::Matrix44f& mtx )
 Matrix44f getModelView()
 {
 	ManagerRef manager	= Manager::get();
-	return manager->mModelView.front();
+	return manager->mModelView.back();
 }
 
 Matrix44f getProjection()
 {
 	ManagerRef manager	= Manager::get();
-	return manager->mProjection.front();
+	return manager->mProjection.back();
 }
 
 void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees, float nearPlane, float farPlane, bool originUpperLeft )
