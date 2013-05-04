@@ -246,7 +246,7 @@ void setMatricesWindow( const ci::Vec2i& screenSize, bool originUpperLeft )
 void rotate( const ci::Vec3f& v )
 {
 	ManagerRef manager	= Manager::get();
-	manager->mModelView.back().rotate( v );
+	manager->mModelView.back().rotate( Vec3f( toRadians( v.x ), toRadians( v.y ), toRadians( v.z ) ) );
 }
 	
 void scale( const ci::Vec3f& v )
