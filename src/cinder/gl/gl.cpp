@@ -210,6 +210,14 @@ Matrix44f getProjection()
 	return manager->mProjection.back();
 }
 
+Matrix33f calcNormalMatrix()
+{
+	Matrix33f mv = getModelView().subMatrix33( 0, 0 );
+	mv.invert( FLT_MIN );
+	mv.transpose();
+	return mv;
+}
+
 void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees, float nearPlane, float farPlane, bool originUpperLeft )
 {
 	// TODO add perspective
