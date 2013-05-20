@@ -1,5 +1,6 @@
 /*
  Copyright (c) 2012, The Cinder Project, All rights reserved.
+ Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 
  This code is intended for use with the Cinder C++ library: http://libcinder.org
 
@@ -28,10 +29,13 @@
 #include "cinder/app/Renderer.h"
 #include "cinder/Vector.h"
 #include "cinder/Function.h"
+#include "cinder/Rect.h"
 #include "cinder/app/MouseEvent.h"
 #include "cinder/app/TouchEvent.h"
 #include "cinder/app/KeyEvent.h"
 #include "cinder/app/FileDropEvent.h"
+#include "cinder/Exception.h"
+
 
 namespace cinder { namespace app {
 
@@ -79,6 +83,10 @@ typedef std::shared_ptr<Window>		WindowRef;
 	#if defined( CINDER_COCOA_TOUCH )
 		class UIViewController;
 	#endif
+#elif defined( CINDER_WINRT )
+	namespace cinder { namespace app {
+		class WindowImplWinRT;
+	} } // namespace cinder::app
 #elif defined( CINDER_MSW )
 	namespace cinder { namespace app {
 		class WindowImplMsw;
@@ -132,7 +140,8 @@ class Window : public std::enable_shared_from_this<Window> {
 	struct Format {
 		Format( RendererRef renderer = RendererRef(), DisplayRef display = Display::getMainDisplay(), bool fullScreen = false, Vec2i size = Vec2i( 640, 480 ), Vec2i pos = Vec2i::zero() )
 			: mRenderer( renderer ), mFullScreen( fullScreen ), mDisplay( display ), mSize( size ), mPos( pos ), mPosSpecified( false ),
-			mResizable( true ), mBorderless( false ), mAlwaysOnTop( false ), mFullScreenButtonEnabled( false )
+			mResizable( true ), mBorderless( false ), mAlwaysOnTop( false ), mFullScreenButtonEnabled( false ),
+			mTitleSpecified( false ), mTitle( "" )
 #if defined( CINDER_COCOA_TOUCH )
 			, mRootViewController( NULL )
 #endif
@@ -177,7 +186,7 @@ class Window : public std::enable_shared_from_this<Window> {
 		Format&		pos( int32_t x, int32_t y ) { mPos = Vec2i( x, y ); mPosSpecified = true; return *this; }
 		//! Returns whether a non-default position has been requested for the Window.
 		bool		isPosSpecified() const { return mPosSpecified; }
-		//! Unspecifies a non-default position for the window, effectively requestion the deafault position.
+		//! Unspecifies a non-default position for the window, effectively requestion the default position.
 		void		unspecifyPos() { mPosSpecified = false; }
 
 		//! Returns the Renderer which will be instantiated for the Window. Defaults to an instance of the App's default renderer (specified in the app-instantiation macro).
@@ -224,9 +233,14 @@ class Window : public std::enable_shared_from_this<Window> {
 		//! Returns the title of the Window as a UTF-8 string.
 		std::string getTitle() const { return mTitle; }
 		//! Sets the title of the Window as a UTF-8 string.
-		void		setTitle( const std::string &title ) { mTitle = title; }
+		void		setTitle( const std::string &title ) { mTitle = title; mTitleSpecified = true; }
 		//! Sets the title of the Window as a UTF-8 string.
-		Format&		title( const std::string &t ) { mTitle = t; return *this; }
+		Format&		title( const std::string &t ) { setTitle( t ); return *this; }
+		//! Returns whether a non-default title has been requested for the Window.
+		bool		isTitleSpecified() const { return mTitleSpecified; }
+		//! Unspecifies a non-default title for the window, effectively requestion the default title.
+		void		unspecifyTitle() { mTitleSpecified = false; }
+
 
 	  private:
 		RendererRef				mRenderer;
@@ -237,6 +251,7 @@ class Window : public std::enable_shared_from_this<Window> {
 		bool					mPosSpecified;
 		bool					mResizable, mBorderless, mAlwaysOnTop, mFullScreenButtonEnabled;
 		std::string				mTitle;
+		bool					mTitleSpecified;
 
 #if defined( CINDER_COCOA_TOUCH )
 		UIViewController *mRootViewController;
@@ -328,6 +343,8 @@ class Window : public std::enable_shared_from_this<Window> {
 #if defined( CINDER_COCOA_TOUCH )
 	//! Returns the UIViewController instance that manages the assoicated UIView on iOS
 	UIViewController* getNativeViewController();
+#elif defined( CINDER_WINRT )
+	DX_WINDOW_TYPE getNativeCoreWindow();
 #endif
 #if defined( CINDER_MSW )
 	//! Returns the Window's HDC on MSW. Suitable for GDI+ calls with Renderer2d.
@@ -442,6 +459,8 @@ class Window : public std::enable_shared_from_this<Window> {
 	static WindowRef		privateCreate__( id<WindowImplCocoa> impl, App *app )
 #elif defined( CINDER_MSW )
 	static WindowRef		privateCreate__( WindowImplMsw *impl, App *app )
+#elif defined( CINDER_WINRT )
+	static WindowRef		privateCreate__( WindowImplWinRT *impl, App *app )
 #else
 	static WindowRef		privateCreate__( WindowImplCocoa *impl, App *app )
 #endif
@@ -474,6 +493,8 @@ class Window : public std::enable_shared_from_this<Window> {
   #endif
 #elif defined( CINDER_MSW )
 	void		setImpl( WindowImplMsw *impl ) { mImpl = impl; }
+#elif defined( CINDER_WINRT )
+	void		setImpl( WindowImplWinRT *impl ) { mImpl = impl; }
 #endif
 
 	App							*mApp;
@@ -494,6 +515,8 @@ class Window : public std::enable_shared_from_this<Window> {
   #endif
 #elif defined( CINDER_MSW )
 	WindowImplMsw		*mImpl;
+#elif defined( CINDER_WINRT )
+	WindowImplWinRT *mImpl;
 #endif
 };
 
