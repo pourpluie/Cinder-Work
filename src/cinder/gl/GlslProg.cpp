@@ -1,15 +1,15 @@
 /*
  Copyright (c) 2010, The Barbarian Group
  All rights reserved.
-
+ 
  Redistribution and use in source and binary forms, with or without modification, are permitted provided that
  the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-	the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-	the following disclaimer in the documentation and/or other materials provided with the distribution.
-
+ 
+ * Redistributions of source code must retain the above copyright notice, this list of conditions and
+ the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ the following disclaimer in the documentation and/or other materials provided with the distribution.
+ 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
  PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
@@ -18,7 +18,7 @@
  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 #include "cinder/gl/gl.h"
 #include "cinder/gl/GlslProg.h"
@@ -27,65 +27,61 @@ using namespace std;
 
 namespace cinder { namespace gl {
 
-GlslProg::Obj::~Obj()
+GlslProgRef GlslProg::create( DataSourceRef vertexShader, DataSourceRef fragmentShader )
 {
-	if( mHandle )
+	return GlslProgRef( new GlslProg( vertexShader, fragmentShader ) );
+}
+
+GlslProgRef GlslProg::create( const char *vertexShader, const char *fragmentShader )
+{
+	return GlslProgRef( new GlslProg( vertexShader, fragmentShader ) );
+}
+	
+GlslProg::~GlslProg()
+{
+	if ( mHandle ) {
 		glDeleteProgram( (GLuint)mHandle );
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // GlslProg
-    GlslProg::GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader, DataSourceRef geometryShader, GLint geometryInputType, GLint geometryOutputType, GLint geometryOutputVertices)
-	: mObj( shared_ptr<Obj>( new Obj ) )
+
+GlslProg::GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader )
 {
-	mObj->mHandle = glCreateProgram();
+	mHandle = glCreateProgram();
 	
-	if ( vertexShader )
-		loadShader( vertexShader->getBuffer(), GL_VERTEX_SHADER_ARB );
-    
-	if( fragmentShader )
-		loadShader( fragmentShader->getBuffer(), GL_FRAGMENT_SHADER_ARB );
-    
-	if( geometryShader ) {
-		loadShader( geometryShader->getBuffer(), GL_GEOMETRY_SHADER_EXT );
-        
-        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_INPUT_TYPE_EXT, geometryInputType);
-        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_OUTPUT_TYPE_EXT, geometryOutputType);
-        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_VERTICES_OUT_EXT, geometryOutputVertices);
-    }
-    
+	if ( vertexShader ) {
+		loadShader( vertexShader->getBuffer(), GL_VERTEX_SHADER );
+	}
+	if ( fragmentShader ) {
+		loadShader( fragmentShader->getBuffer(), GL_FRAGMENT_SHADER );
+	}
+	
 	link();
 }
 
-GlslProg::GlslProg( const char *vertexShader, const char *fragmentShader, const char *geometryShader, GLint geometryInputType, GLint geometryOutputType, GLint geometryOutputVertices)
-	: mObj( shared_ptr<Obj>( new Obj ) )
+GlslProg::GlslProg( const char* vertexShader, const char* fragmentShader)
 {
-	mObj->mHandle = glCreateProgram();
+	mHandle = glCreateProgram();
 	
-	if ( vertexShader )
-		loadShader( vertexShader, GL_VERTEX_SHADER_ARB );
-    
-	if( fragmentShader )
-		loadShader( fragmentShader, GL_FRAGMENT_SHADER_ARB );
-    
-	if( geometryShader ) {
-		loadShader( geometryShader, GL_GEOMETRY_SHADER_EXT );
-        
-        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_INPUT_TYPE_EXT, geometryInputType);
-        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_OUTPUT_TYPE_EXT, geometryOutputType);
-        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_VERTICES_OUT_EXT, geometryOutputVertices);
-    }
-    
+	if ( vertexShader ) {
+		loadShader( vertexShader, GL_VERTEX_SHADER );
+	}
+	if ( fragmentShader ) {
+		loadShader( fragmentShader, GL_FRAGMENT_SHADER );
+	}
+	
 	link();
 }
 
 void GlslProg::loadShader( Buffer shaderSourceBuffer, GLint shaderType )
 {
 	// we need to duplicate the contents of the buffer and append a null-terminator
-	shared_ptr<char> sourceBlock( new char[shaderSourceBuffer.getDataSize() + 1], checked_array_deleter<char>() );
+	std::shared_ptr<char> sourceBlock( new char[ shaderSourceBuffer.getDataSize() + 1 ], checked_array_deleter<char>() );
 	memcpy( sourceBlock.get(), shaderSourceBuffer.getData(), shaderSourceBuffer.getDataSize() );
-	sourceBlock.get()[shaderSourceBuffer.getDataSize()] = 0; // null terminate
-	const char *sourceBlockPtr = sourceBlock.get();
+	sourceBlock.get()[ shaderSourceBuffer.getDataSize() ] = 0; // null terminate
+	const char* sourceBlockPtr = sourceBlock.get();
 	loadShader( sourceBlockPtr, shaderType );
 }
 
@@ -101,17 +97,17 @@ void GlslProg::loadShader( const char *shaderSource, GLint shaderType )
 		std::string log = getShaderLog( (GLuint)handle );
 		throw GlslProgCompileExc( log, shaderType );
 	}
-	glAttachShader( mObj->mHandle, handle );
+	glAttachShader( mHandle, handle );
 }
 
 void GlslProg::link()
 {
-	glLinkProgram( mObj->mHandle );	
+	glLinkProgram( mHandle );
 }
 
 void GlslProg::bind() const
 {
-	glUseProgram( mObj->mHandle );
+	glUseProgram( mHandle );
 }
 
 void GlslProg::unbind()
@@ -121,14 +117,15 @@ void GlslProg::unbind()
 
 std::string GlslProg::getShaderLog( GLuint handle ) const
 {
-	std::string log;
+	string log;
 	
-	GLchar *debugLog;
-	GLint debugLength = 0, charsWritten = 0;
+	GLchar* debugLog;
+	GLint charsWritten	= 0;
+	GLint debugLength	= 0;
 	glGetShaderiv( handle, GL_INFO_LOG_LENGTH, &debugLength );
-
-	if( debugLength > 0 ) {
-		debugLog = new GLchar[debugLength];
+	
+	if ( debugLength > 0 ) {
+		debugLog = new GLchar[ debugLength ];
 		glGetShaderInfoLog( handle, debugLength, &charsWritten, debugLog );
 		log.append( debugLog, 0, debugLength );
 		delete [] debugLog;
@@ -137,154 +134,144 @@ std::string GlslProg::getShaderLog( GLuint handle ) const
 	return log;
 }
 
-void GlslProg::uniform( const std::string &name, int data )
+void GlslProg::uniform( const std::string &name, int data ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform1i( loc, data );
 }
 
-void GlslProg::uniform( const std::string &name, const Vec2i &data )
+void GlslProg::uniform( const std::string &name, const Vec2i &data ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform2i( loc, data.x, data.y );
 }
 
-void GlslProg::uniform( const std::string &name, const int *data, int count )
+void GlslProg::uniform( const std::string &name, const int *data, int count ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform1iv( loc, count, data );
 }
 
-void GlslProg::uniform( const std::string &name, const Vec2i *data, int count )
+void GlslProg::uniform( const std::string &name, const Vec2i *data, int count ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform2iv( loc, count, &data[0].x );
 }
 
-void GlslProg::uniform( const std::string &name, float data )
+void GlslProg::uniform( const std::string &name, float data ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform1f( loc, data );
 }
 
-void GlslProg::uniform( const std::string &name, const Vec2f &data )
+void GlslProg::uniform( const std::string &name, const Vec2f &data ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform2f( loc, data.x, data.y );
 }
 
-void GlslProg::uniform( const std::string &name, const Vec3f &data )
+void GlslProg::uniform( const std::string &name, const Vec3f &data ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform3f( loc, data.x, data.y, data.z );
 }
 
-void GlslProg::uniform( const std::string &name, const Vec4f &data )
+void GlslProg::uniform( const std::string &name, const Vec4f &data ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform4f( loc, data.x, data.y, data.z, data.w );
 }
 
-void GlslProg::uniform( const std::string &name, const Color &data )
+void GlslProg::uniform( const std::string &name, const Color &data ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform3f( loc, data.r, data.g, data.b );
 }
 
-void GlslProg::uniform( const std::string &name, const ColorA &data )
+void GlslProg::uniform( const std::string &name, const ColorA &data ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform4f( loc, data.r, data.g, data.b, data.a );
 }
 
-void GlslProg::uniform( const std::string &name, const float *data, int count )
+void GlslProg::uniform( const std::string &name, const float *data, int count ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform1fv( loc, count, data );
 }
 
-void GlslProg::uniform( const std::string &name, const Vec2f *data, int count )
+void GlslProg::uniform( const std::string &name, const Vec2f *data, int count ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform2fv( loc, count, &data[0].x );
 }
 
-void GlslProg::uniform( const std::string &name, const Vec3f *data, int count )
+void GlslProg::uniform( const std::string &name, const Vec3f *data, int count ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform3fv( loc, count, &data[0].x );
 }
 
-void GlslProg::uniform( const std::string &name, const Vec4f *data, int count )
+void GlslProg::uniform( const std::string &name, const Vec4f *data, int count ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniform4fv( loc, count, &data[0].x );
 }
 
-void GlslProg::uniform( const std::string &name, const Matrix22f &data, bool transpose )
-{
-	GLint loc = getUniformLocation( name );
-	glUniformMatrix2fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
-}
-
-void GlslProg::uniform( const std::string &name, const Matrix33f &data, bool transpose )
+void GlslProg::uniform( const std::string &name, const Matrix33f &data, bool transpose ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniformMatrix3fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
 }
 
-void GlslProg::uniform( const std::string &name, const Matrix44f &data, bool transpose )
+void GlslProg::uniform( const std::string &name, const Matrix44f &data, bool transpose ) const
 {
 	GLint loc = getUniformLocation( name );
 	glUniformMatrix4fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
 }
 
-void GlslProg::uniform( const std::string &name, const Matrix22f *data, int count, bool transpose )
-{
-	GLint loc = getUniformLocation( name );
-	glUniformMatrix2fv( loc, count, ( transpose ) ? GL_TRUE : GL_FALSE, data->m );
-}
-
-void GlslProg::uniform( const std::string &name, const Matrix33f *data, int count, bool transpose )
-{
-	GLint loc = getUniformLocation( name );
-	glUniformMatrix3fv( loc, count, ( transpose ) ? GL_TRUE : GL_FALSE, data->m );
-}
-
-void GlslProg::uniform( const std::string &name, const Matrix44f *data, int count, bool transpose )
-{
-	GLint loc = getUniformLocation( name );
-	glUniformMatrix4fv( loc, count, ( transpose ) ? GL_TRUE : GL_FALSE, data->m );
-}
-
 GLint GlslProg::getUniformLocation( const std::string &name )
 {
-	map<string,int>::const_iterator uniformIt = mObj->mUniformLocs.find( name );
-	if( uniformIt == mObj->mUniformLocs.end() ) {
-		GLint loc = glGetUniformLocation( mObj->mHandle, name.c_str() );
-		mObj->mUniformLocs[name] = loc;
+	map<string,int>::const_iterator uniformIt = mUniformLocs.find( name );
+	if ( uniformIt == mUniformLocs.end() ) {
+		GLint loc = glGetUniformLocation( mHandle, name.c_str() );
+		mUniformLocs.at( name ) = loc;
 		return loc;
-	}
-	else
+	} else {
 		return uniformIt->second;
+	}
 }
 
-GLint GlslProg::getAttribLocation( const std::string &name )
+GLint GlslProg::getUniformLocation( const std::string &name ) const
 {
-	return glGetAttribLocation( mObj->mHandle, name.c_str() );
+	map<string,int>::const_iterator uniformIt = mUniformLocs.find( name );
+	if ( uniformIt == mUniformLocs.end() ) {
+		GLint loc = glGetUniformLocation( mHandle, name.c_str() );
+		return loc;
+	} else {
+		return uniformIt->second;
+	}
+}
+
+void GlslProg::bindAttribLocation( const std::string &name, GLuint index )
+{
+	glBindAttribLocation( mHandle, index, name.c_str() );
+}
+
+GLint GlslProg::getAttribLocation( const std::string &name ) const
+{
+	return glGetAttribLocation( mHandle, name.c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////
 // GlslProgCompileExc
 GlslProgCompileExc::GlslProgCompileExc( const std::string &log, GLint aShaderType ) throw()
-	: mShaderType( aShaderType )
+: mShaderType( aShaderType )
 {
-	if( mShaderType == GL_VERTEX_SHADER_ARB )
+	if( mShaderType == GL_VERTEX_SHADER )
 		strncpy( mMessage, "VERTEX: ", 1000 );
-	else if( mShaderType == GL_FRAGMENT_SHADER_ARB )
+	else if( mShaderType == GL_FRAGMENT_SHADER )
 		strncpy( mMessage, "FRAGMENT: ", 1000 );
-	else if( mShaderType == GL_GEOMETRY_SHADER_EXT )
-		strncpy( mMessage, "GEOMETRY: ", 1000 );
 	else
 		strncpy( mMessage, "UNKNOWN: ", 1000 );
 	strncat( mMessage, log.c_str(), 15000 );

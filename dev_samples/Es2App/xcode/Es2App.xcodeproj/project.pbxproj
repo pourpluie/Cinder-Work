@@ -1,0 +1,437 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00611D2F174AC6B600BE54C2 /* BufferObj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D2E174AC6B600BE54C2 /* BufferObj.cpp */; };
+		00611D36174AC6FF00BE54C2 /* Fog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D30174AC6F900BE54C2 /* Fog.cpp */; };
+		00611D37174AC6FF00BE54C2 /* Manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D31174AC6F900BE54C2 /* Manager.cpp */; };
+		00611D38174AC6FF00BE54C2 /* Pbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D32174AC6F900BE54C2 /* Pbo.cpp */; };
+		00611D39174AC6FF00BE54C2 /* Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D33174AC6FA00BE54C2 /* Shader.cpp */; };
+		00611D3A174AC6FF00BE54C2 /* Vao.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D34174AC6FB00BE54C2 /* Vao.cpp */; };
+		00611D3B174AC6FF00BE54C2 /* VboMesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D35174AC6FD00BE54C2 /* VboMesh.cpp */; };
+		00611D43174AC72B00BE54C2 /* Fbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D3C174AC72B00BE54C2 /* Fbo.cpp */; };
+		00611D44174AC72B00BE54C2 /* gl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D3D174AC72B00BE54C2 /* gl.cpp */; };
+		00611D45174AC72B00BE54C2 /* GlslProg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D3E174AC72B00BE54C2 /* GlslProg.cpp */; };
+		00611D46174AC72B00BE54C2 /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D3F174AC72B00BE54C2 /* Light.cpp */; };
+		00611D47174AC72B00BE54C2 /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D40174AC72B00BE54C2 /* Material.cpp */; };
+		00611D48174AC72B00BE54C2 /* Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D41174AC72B00BE54C2 /* Texture.cpp */; };
+		00611D49174AC72B00BE54C2 /* Vbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D42174AC72B00BE54C2 /* Vbo.cpp */; };
+		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
+		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
+		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
+		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
+		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
+		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
+		8A87B7E56F314043A005DB3B /* CinderApp_ios.png in Resources */ = {isa = PBXBuildFile; fileRef = 2BC783E980294FBC9465C2B9 /* CinderApp_ios.png */; };
+		94F806911C224023A2ED1E45 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56594A18A4D54DECA4F988F2 /* CoreLocation.framework */; };
+		AE164EED16D836C300E65814 /* frag.glsl in Resources */ = {isa = PBXBuildFile; fileRef = AE164EEB16D836C300E65814 /* frag.glsl */; };
+		AE164EEE16D836C300E65814 /* vert.glsl in Resources */ = {isa = PBXBuildFile; fileRef = AE164EEC16D836C300E65814 /* vert.glsl */; };
+		AE1D10D71694EBF8001FDFBD /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AE1D10D61694EBF8001FDFBD /* Default-568h@2x.png */; };
+		AE1D10D91694EC6A001FDFBD /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE1D10D81694EC6A001FDFBD /* ImageIO.framework */; };
+		AE1D10DB1694EC97001FDFBD /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE1D10DA1694EC97001FDFBD /* MobileCoreServices.framework */; };
+		AED0523116E67F3700F9D3A0 /* texture.jpg in Resources */ = {isa = PBXBuildFile; fileRef = AED0523016E67F3700F9D3A0 /* texture.jpg */; };
+		C725DFFE121DAC7F00FA186B /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C727C02B121B400300192073 /* CoreMedia.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		C725E001121DAC8F00FA186B /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C725E000121DAC8F00FA186B /* AVFoundation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		C727C02E121B400300192073 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C727C02D121B400300192073 /* CoreVideo.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		C7EE47CBF6554E3A926DAB3E /* Es2App.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E6261C3FBAE1448A95F30542 /* Es2App.cpp */; };
+		C7FB19D6124BC0D70045AFD2 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7FB19D5124BC0D70045AFD2 /* AudioToolbox.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		00611D1D174AC26000BE54C2 /* BufferObj.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BufferObj.h; path = ../../../include/cinder/gl/BufferObj.h; sourceTree = "<group>"; };
+		00611D1E174AC26000BE54C2 /* Fbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fbo.h; path = ../../../include/cinder/gl/Fbo.h; sourceTree = "<group>"; };
+		00611D1F174AC26000BE54C2 /* Fog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fog.h; path = ../../../include/cinder/gl/Fog.h; sourceTree = "<group>"; };
+		00611D20174AC26000BE54C2 /* gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl.h; path = ../../../include/cinder/gl/gl.h; sourceTree = "<group>"; };
+		00611D21174AC26000BE54C2 /* GlslProg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlslProg.h; path = ../../../include/cinder/gl/GlslProg.h; sourceTree = "<group>"; };
+		00611D22174AC26000BE54C2 /* Light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Light.h; path = ../../../include/cinder/gl/Light.h; sourceTree = "<group>"; };
+		00611D23174AC26000BE54C2 /* Manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Manager.h; path = ../../../include/cinder/gl/Manager.h; sourceTree = "<group>"; };
+		00611D24174AC26000BE54C2 /* Material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Material.h; path = ../../../include/cinder/gl/Material.h; sourceTree = "<group>"; };
+		00611D25174AC26000BE54C2 /* Pbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Pbo.h; path = ../../../include/cinder/gl/Pbo.h; sourceTree = "<group>"; };
+		00611D26174AC26000BE54C2 /* Shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Shader.h; path = ../../../include/cinder/gl/Shader.h; sourceTree = "<group>"; };
+		00611D27174AC26000BE54C2 /* Texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Texture.h; path = ../../../include/cinder/gl/Texture.h; sourceTree = "<group>"; };
+		00611D28174AC26000BE54C2 /* Vao.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vao.h; path = ../../../include/cinder/gl/Vao.h; sourceTree = "<group>"; };
+		00611D29174AC26000BE54C2 /* Vbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vbo.h; path = ../../../include/cinder/gl/Vbo.h; sourceTree = "<group>"; };
+		00611D2A174AC26000BE54C2 /* VboMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VboMesh.h; path = ../../../include/cinder/gl/VboMesh.h; sourceTree = "<group>"; };
+		00611D2E174AC6B600BE54C2 /* BufferObj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BufferObj.cpp; path = ../../../src/cinder/gl/BufferObj.cpp; sourceTree = "<group>"; };
+		00611D30174AC6F900BE54C2 /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fog.cpp; path = ../../../src/cinder/gl/Fog.cpp; sourceTree = "<group>"; };
+		00611D31174AC6F900BE54C2 /* Manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Manager.cpp; path = ../../../src/cinder/gl/Manager.cpp; sourceTree = "<group>"; };
+		00611D32174AC6F900BE54C2 /* Pbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pbo.cpp; path = ../../../src/cinder/gl/Pbo.cpp; sourceTree = "<group>"; };
+		00611D33174AC6FA00BE54C2 /* Shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shader.cpp; path = ../../../src/cinder/gl/Shader.cpp; sourceTree = "<group>"; };
+		00611D34174AC6FB00BE54C2 /* Vao.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vao.cpp; path = ../../../src/cinder/gl/Vao.cpp; sourceTree = "<group>"; };
+		00611D35174AC6FD00BE54C2 /* VboMesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VboMesh.cpp; path = ../../../src/cinder/gl/VboMesh.cpp; sourceTree = "<group>"; };
+		00611D3C174AC72B00BE54C2 /* Fbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fbo.cpp; path = ../../../src/cinder/gl/Fbo.cpp; sourceTree = "<group>"; };
+		00611D3D174AC72B00BE54C2 /* gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gl.cpp; path = ../../../src/cinder/gl/gl.cpp; sourceTree = "<group>"; };
+		00611D3E174AC72B00BE54C2 /* GlslProg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GlslProg.cpp; path = ../../../src/cinder/gl/GlslProg.cpp; sourceTree = "<group>"; };
+		00611D3F174AC72B00BE54C2 /* Light.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Light.cpp; path = ../../../src/cinder/gl/Light.cpp; sourceTree = "<group>"; };
+		00611D40174AC72B00BE54C2 /* Material.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Material.cpp; path = ../../../src/cinder/gl/Material.cpp; sourceTree = "<group>"; };
+		00611D41174AC72B00BE54C2 /* Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Texture.cpp; path = ../../../src/cinder/gl/Texture.cpp; sourceTree = "<group>"; };
+		00611D42174AC72B00BE54C2 /* Vbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vbo.cpp; path = ../../../src/cinder/gl/Vbo.cpp; sourceTree = "<group>"; };
+		00692BCF14FF149000D0A05E /* Es2App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Es2App.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0087D25412CD809F002CD69F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
+		00CFDF6A1138442D0091E310 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		017CF1E2842A4910946736DB /* Es2App_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Es2App_Prefix.pch; sourceTree = "<group>"; };
+		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		28FD14FF0DC6FC520079059D /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		28FD15070DC6FC5B0079059D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		2BC783E980294FBC9465C2B9 /* CinderApp_ios.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; name = CinderApp_ios.png; path = ../resources/CinderApp_ios.png; sourceTree = "<group>"; };
+		51969EFAFB35449F81ECEC1A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		56594A18A4D54DECA4F988F2 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		AE164EEB16D836C300E65814 /* frag.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = frag.glsl; path = ../resources/frag.glsl; sourceTree = "<group>"; };
+		AE164EEC16D836C300E65814 /* vert.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = vert.glsl; path = ../resources/vert.glsl; sourceTree = "<group>"; };
+		AE1D10D61694EBF8001FDFBD /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "../resources/Default-568h@2x.png"; sourceTree = "<group>"; };
+		AE1D10D81694EC6A001FDFBD /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
+		AE1D10DA1694EC97001FDFBD /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
+		AE6B7BA3169602FC00B97126 /* Resources.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
+		AED0523016E67F3700F9D3A0 /* texture.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = texture.jpg; path = ../resources/texture.jpg; sourceTree = "<group>"; };
+		C725E000121DAC8F00FA186B /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		C727C02B121B400300192073 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		C727C02D121B400300192073 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
+		C7FB19D5124BC0D70045AFD2 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		E6261C3FBAE1448A95F30542 /* Es2App.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Es2App.cpp; path = ../src/Es2App.cpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		00692BCC14FF149000D0A05E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE1D10DB1694EC97001FDFBD /* MobileCoreServices.framework in Frameworks */,
+				AE1D10D91694EC6A001FDFBD /* ImageIO.framework in Frameworks */,
+				C725E001121DAC8F00FA186B /* AVFoundation.framework in Frameworks */,
+				C725DFFE121DAC7F00FA186B /* CoreMedia.framework in Frameworks */,
+				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
+				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
+				28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */,
+				28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */,
+				00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */,
+				C727C02E121B400300192073 /* CoreVideo.framework in Frameworks */,
+				C7FB19D6124BC0D70045AFD2 /* AudioToolbox.framework in Frameworks */,
+				0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */,
+				94F806911C224023A2ED1E45 /* CoreLocation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		00692BC414FF149000D0A05E = {
+			isa = PBXGroup;
+			children = (
+				99692BD914FF149000D0A05F /* Headers */,
+				00692BD914FF149000D0A05E /* Source */,
+				00692BD914FF149000D0FFFF /* Resources */,
+				00692BD214FF149000D0A05E /* Frameworks */,
+				00692BD014FF149000D0A05E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		00692BD014FF149000D0A05E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				00692BCF14FF149000D0A05E /* Es2App.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		00692BD214FF149000D0A05E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AE1D10DA1694EC97001FDFBD /* MobileCoreServices.framework */,
+				AE1D10D81694EC6A001FDFBD /* ImageIO.framework */,
+				C7FB19D5124BC0D70045AFD2 /* AudioToolbox.framework */,
+				C727C02B121B400300192073 /* CoreMedia.framework */,
+				C727C02D121B400300192073 /* CoreVideo.framework */,
+				28FD15070DC6FC5B0079059D /* QuartzCore.framework */,
+				28FD14FF0DC6FC520079059D /* OpenGLES.framework */,
+				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
+				1D30AB110D05D00D00671497 /* Foundation.framework */,
+				00CFDF6A1138442D0091E310 /* CoreGraphics.framework */,
+				C725E000121DAC8F00FA186B /* AVFoundation.framework */,
+				0087D25412CD809F002CD69F /* CoreText.framework */,
+				56594A18A4D54DECA4F988F2 /* CoreLocation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		00692BD914FF149000D0A05E /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				00611D3C174AC72B00BE54C2 /* Fbo.cpp */,
+				00611D3D174AC72B00BE54C2 /* gl.cpp */,
+				00611D3E174AC72B00BE54C2 /* GlslProg.cpp */,
+				00611D3F174AC72B00BE54C2 /* Light.cpp */,
+				00611D40174AC72B00BE54C2 /* Material.cpp */,
+				00611D41174AC72B00BE54C2 /* Texture.cpp */,
+				00611D42174AC72B00BE54C2 /* Vbo.cpp */,
+				00611D30174AC6F900BE54C2 /* Fog.cpp */,
+				00611D31174AC6F900BE54C2 /* Manager.cpp */,
+				00611D32174AC6F900BE54C2 /* Pbo.cpp */,
+				00611D33174AC6FA00BE54C2 /* Shader.cpp */,
+				00611D34174AC6FB00BE54C2 /* Vao.cpp */,
+				00611D35174AC6FD00BE54C2 /* VboMesh.cpp */,
+				00611D2E174AC6B600BE54C2 /* BufferObj.cpp */,
+				E6261C3FBAE1448A95F30542 /* Es2App.cpp */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		00692BD914FF149000D0FFFF /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AED0523016E67F3700F9D3A0 /* texture.jpg */,
+				AE164EEB16D836C300E65814 /* frag.glsl */,
+				AE164EEC16D836C300E65814 /* vert.glsl */,
+				AE1D10D61694EBF8001FDFBD /* Default-568h@2x.png */,
+				2BC783E980294FBC9465C2B9 /* CinderApp_ios.png */,
+				51969EFAFB35449F81ECEC1A /* Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		99692BD914FF149000D0A05F /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				00611D1D174AC26000BE54C2 /* BufferObj.h */,
+				00611D1E174AC26000BE54C2 /* Fbo.h */,
+				00611D1F174AC26000BE54C2 /* Fog.h */,
+				00611D20174AC26000BE54C2 /* gl.h */,
+				00611D21174AC26000BE54C2 /* GlslProg.h */,
+				00611D22174AC26000BE54C2 /* Light.h */,
+				00611D23174AC26000BE54C2 /* Manager.h */,
+				00611D24174AC26000BE54C2 /* Material.h */,
+				00611D25174AC26000BE54C2 /* Pbo.h */,
+				00611D26174AC26000BE54C2 /* Shader.h */,
+				00611D27174AC26000BE54C2 /* Texture.h */,
+				00611D28174AC26000BE54C2 /* Vao.h */,
+				00611D29174AC26000BE54C2 /* Vbo.h */,
+				00611D2A174AC26000BE54C2 /* VboMesh.h */,
+				AE6B7BA3169602FC00B97126 /* Resources.h */,
+				017CF1E2842A4910946736DB /* Es2App_Prefix.pch */,
+			);
+			name = Headers;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		00692BCE14FF149000D0A05E /* Es2App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00692BF514FF149000D0A05E /* Build configuration list for PBXNativeTarget "Es2App" */;
+			buildPhases = (
+				00692BCB14FF149000D0A05E /* Sources */,
+				00692BCC14FF149000D0A05E /* Frameworks */,
+				00692BCD14FF149000D0A05E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Es2App;
+			productName = LocationManager;
+			productReference = 00692BCF14FF149000D0A05E /* Es2App.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		00692BC614FF149000D0A05E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+			};
+			buildConfigurationList = 00692BC914FF149000D0A05E /* Build configuration list for PBXProject "Es2App" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 00692BC414FF149000D0A05E;
+			productRefGroup = 00692BD014FF149000D0A05E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				00692BCE14FF149000D0A05E /* Es2App */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		00692BCD14FF149000D0A05E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8A87B7E56F314043A005DB3B /* CinderApp_ios.png in Resources */,
+				AE1D10D71694EBF8001FDFBD /* Default-568h@2x.png in Resources */,
+				AE164EED16D836C300E65814 /* frag.glsl in Resources */,
+				AE164EEE16D836C300E65814 /* vert.glsl in Resources */,
+				AED0523116E67F3700F9D3A0 /* texture.jpg in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		00692BCB14FF149000D0A05E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7EE47CBF6554E3A926DAB3E /* Es2App.cpp in Sources */,
+				00611D2F174AC6B600BE54C2 /* BufferObj.cpp in Sources */,
+				00611D36174AC6FF00BE54C2 /* Fog.cpp in Sources */,
+				00611D37174AC6FF00BE54C2 /* Manager.cpp in Sources */,
+				00611D38174AC6FF00BE54C2 /* Pbo.cpp in Sources */,
+				00611D39174AC6FF00BE54C2 /* Shader.cpp in Sources */,
+				00611D3A174AC6FF00BE54C2 /* Vao.cpp in Sources */,
+				00611D3B174AC6FF00BE54C2 /* VboMesh.cpp in Sources */,
+				00611D43174AC72B00BE54C2 /* Fbo.cpp in Sources */,
+				00611D44174AC72B00BE54C2 /* gl.cpp in Sources */,
+				00611D45174AC72B00BE54C2 /* GlslProg.cpp in Sources */,
+				00611D46174AC72B00BE54C2 /* Light.cpp in Sources */,
+				00611D47174AC72B00BE54C2 /* Material.cpp in Sources */,
+				00611D48174AC72B00BE54C2 /* Texture.cpp in Sources */,
+				00611D49174AC72B00BE54C2 /* Vbo.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		00692BF314FF149000D0A05E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				"OTHER_LDFLAGS[sdk=iphoneos*][arch=*]" = (
+					"\"$(CINDER_PATH)/lib/libcinder-iphone_d.a\"",
+					"-lz",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" = (
+					"\"$(CINDER_PATH)/lib/libcinder-iphone-sim_d.a\"",
+					"-lz",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		00692BF414FF149000D0A05E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				"OTHER_LDFLAGS[sdk=iphoneos*][arch=*]" = (
+					"\"$(CINDER_PATH)/lib/libcinder-iphone.a\"",
+					"-lz",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" = (
+					"\"$(CINDER_PATH)/lib/libcinder-iphone-sim.a\"",
+					"-lz",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		00692BF614FF149000D0A05E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CINDER_PATH = ../../..;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				GCC_C_LANGUAGE_STANDARD = "compiler-default";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = Es2App_Prefix.pch;
+				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/boost\"";
+				INFOPLIST_FILE = Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				PRODUCT_NAME = Es2App;
+				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include";
+				VALID_ARCHS = "armv7 armv7s";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		00692BF714FF149000D0A05E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CINDER_PATH = ../../..;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				GCC_C_LANGUAGE_STANDARD = "compiler-default";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = Es2App_Prefix.pch;
+				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/boost\"";
+				INFOPLIST_FILE = Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				PRODUCT_NAME = Es2App;
+				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include";
+				VALID_ARCHS = "armv7 armv7s";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		00692BC914FF149000D0A05E /* Build configuration list for PBXProject "Es2App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00692BF314FF149000D0A05E /* Debug */,
+				00692BF414FF149000D0A05E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00692BF514FF149000D0A05E /* Build configuration list for PBXNativeTarget "Es2App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00692BF614FF149000D0A05E /* Debug */,
+				00692BF714FF149000D0A05E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 00692BC614FF149000D0A05E /* Project object */;
+}

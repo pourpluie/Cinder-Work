@@ -147,9 +147,9 @@ class TriMesh {
 	//! Calculates the bounding box of all vertices as transformed by \a transform
 	AxisAlignedBox3f	calcBoundingBox( const Matrix44f &transform ) const;
 
-	//! This reads a TriMesh in from a data file that was serialized using the write() function.
+	//! This allows you read a TriMesh in from a data file, for instance an .obj file. At present .obj and .dat files are supported
 	void		read( DataSourceRef in );
-	//! This writes a TriMesh to a proprietary file format to be read using the read() function.
+	//! This allows to you write a mesh out to a data file. At present .obj and .dat files are supported.
 	void		write( DataTargetRef out ) const;
 
 	//! Adds or replaces normals by calculating them from the vertices and faces.
@@ -162,6 +162,43 @@ class TriMesh {
 	std::vector<ColorA>		mColorsRGBA;
 	std::vector<Vec2f>		mTexCoords;
 	std::vector<uint32_t>	mIndices;
+public:
+	//! Create TriMesh from vectors of vertex data.
+	static TriMesh		create( std::vector<uint32_t> &indices, const std::vector<ColorAf> &colors,
+							   const std::vector<Vec3f> &normals, const std::vector<Vec3f> &positions,
+							   const std::vector<Vec2f> &texCoords );
+	/*! Subdivide vectors of vertex data into a TriMesh \a division times. Division less
+	 than 2 returns the original mesh. */
+	static TriMesh		subdivide( std::vector<uint32_t> &indices, const std::vector<ci::ColorAf>& colors, 
+								  const std::vector<Vec3f> &normals, const std::vector<Vec3f> &positions,
+								  const std::vector<Vec2f> &texCoords,
+								  uint32_t division = 2, bool normalize = false );
+	//! Subdivide a TriMesh \a division times. Division less than 2 returns the original mesh.
+	static TriMesh		subdivide( const TriMesh &triMesh, uint32_t division = 2, bool normalize = false );
+	
+	//! Create circle TriMesh with a radius of 1.0 and \a resolution segments.
+	static TriMesh		createCircle( const Vec2i &resolution = Vec2i( 12, 1 ) );
+	//! Create cube TriMesh with an edge length of 1.0 divided into \a resolution segments.
+	static TriMesh		createCube( const Vec3i &resolution = Vec3i::one() );
+	/*! Create cylinder TriMesh with a height of 1.0, top radius of \a topRadius, base radius
+	 of \a baseRadius and \a resolution segments. Top and base are closed with \a closeTop and
+	 \a closeBase flags. */
+	static TriMesh		createCylinder( const Vec2i &resolution = Vec2i( 12, 6 ),
+									   float topRadius = 1.0f, float baseRadius = 1.0f, bool closeTop = true, bool closeBase = true );
+	//! Creates icosahedron where each face is subdivided \b division times.
+	static TriMesh		createIcosahedron( uint32_t division = 1 );
+	/*! Create ring TriMesh with a radius of 1.0, \a resolution segments, and second radius
+	 of \a ratio. */
+	static TriMesh		createRing( const Vec2i &resolution = Vec2i( 12, 1 ),
+								   float ratio = 0.5f );
+	//! Create sphere TriMesh with a radius of 1.0 and \a resolution segments.
+	static TriMesh		createSphere( const Vec2i &resolution = Vec2i( 12, 6 ) );
+	//! Create square TriMesh with an edge length of 1.0 divided into \a resolution segments.
+	static TriMesh		createSquare( const Vec2i &resolution = Vec2i::one() );
+	/*! Create torus TriMesh with a radius of 1.0, \a resolution segments, and second radius
+	 of \a ratio. */
+	static TriMesh		createTorus( const Vec2i &resolution = Vec2i( 12, 6 ),
+									float ratio = 0.5f );
 };
 
 class TriMesh2d {
