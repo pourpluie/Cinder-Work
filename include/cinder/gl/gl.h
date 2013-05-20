@@ -1,5 +1,7 @@
 #pragma once
 
+#include "cinder/Cinder.h"
+
 #if defined( CINDER_MAC )
 	#include <OpenGL/gl.h>
 	#include <OpenGL/glext.h>

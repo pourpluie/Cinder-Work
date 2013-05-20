@@ -175,6 +175,16 @@
 		005C0CED14CBB47500A12CD2 /* Base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005C0CEC14CBB47500A12CD2 /* Base64.cpp */; };
 		005C0CEE14CBB47500A12CD2 /* Base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005C0CEC14CBB47500A12CD2 /* Base64.cpp */; };
 		005C0CEF14CBB47500A12CD2 /* Base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005C0CEC14CBB47500A12CD2 /* Base64.cpp */; };
+		00611D52174AD29D00BE54C2 /* MovieWriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D4F174AD29D00BE54C2 /* MovieWriter.h */; };
+		00611D53174AD29D00BE54C2 /* MovieWriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D4F174AD29D00BE54C2 /* MovieWriter.h */; };
+		00611D54174AD29D00BE54C2 /* MovieWriter.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D4F174AD29D00BE54C2 /* MovieWriter.h */; };
+		00611D55174AD29D00BE54C2 /* QuickTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D50174AD29D00BE54C2 /* QuickTime.h */; };
+		00611D56174AD29D00BE54C2 /* QuickTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D50174AD29D00BE54C2 /* QuickTime.h */; };
+		00611D57174AD29D00BE54C2 /* QuickTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D50174AD29D00BE54C2 /* QuickTime.h */; };
+		00611D58174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */; };
+		00611D59174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */; };
+		00611D5A174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */; };
+		00611D5C174AD2C400BE54C2 /* QuickTimeGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D5B174AD2C400BE54C2 /* QuickTimeGl.h */; };
 		006228E210C8248800A8191C /* DataSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 006228E110C8248800A8191C /* DataSource.h */; };
 		006228E410C8273C00A8191C /* DataSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 006228E310C8273C00A8191C /* DataSource.cpp */; };
 		0062484F122F607500039A7A /* Filesystem.h in Headers */ = {isa = PBXBuildFile; fileRef = 0062484D122F607500039A7A /* Filesystem.h */; };
@@ -804,6 +814,10 @@
 		005B02FA152CD16E00F2C237 /* json_writer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = json_writer.cpp; path = ../src/jsoncpp/json_writer.cpp; sourceTree = "<group>"; };
 		005C0CE814CBB3DB00A12CD2 /* Base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Base64.h; sourceTree = "<group>"; };
 		005C0CEC14CBB47500A12CD2 /* Base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Base64.cpp; sourceTree = "<group>"; };
+		00611D4F174AD29D00BE54C2 /* MovieWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MovieWriter.h; path = qtime/MovieWriter.h; sourceTree = "<group>"; };
+		00611D50174AD29D00BE54C2 /* QuickTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTime.h; path = qtime/QuickTime.h; sourceTree = "<group>"; };
+		00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeUtils.h; path = qtime/QuickTimeUtils.h; sourceTree = "<group>"; };
+		00611D5B174AD2C400BE54C2 /* QuickTimeGl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeGl.h; path = qtime/QuickTimeGl.h; sourceTree = "<group>"; };
 		006228E110C8248800A8191C /* DataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataSource.h; sourceTree = "<group>"; };
 		006228E310C8273C00A8191C /* DataSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataSource.cpp; sourceTree = "<group>"; };
 		0062484D122F607500039A7A /* Filesystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Filesystem.h; sourceTree = "<group>"; };
@@ -1174,6 +1188,17 @@
 			name = jsoncpp;
 			sourceTree = "<group>";
 		};
+		00611D4E174AD27700BE54C2 /* qtime */ = {
+			isa = PBXGroup;
+			children = (
+				00611D4F174AD29D00BE54C2 /* MovieWriter.h */,
+				00611D50174AD29D00BE54C2 /* QuickTime.h */,
+				00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */,
+				00611D5B174AD2C400BE54C2 /* QuickTimeGl.h */,
+			);
+			name = qtime;
+			sourceTree = "<group>";
+		};
 		007CE1F1127BB11200799071 /* rapidxml */ = {
 			isa = PBXGroup;
 			children = (
@@ -1262,6 +1287,7 @@
 		00BAE6C50E7EDD7F0018A608 /* cinder */ = {
 			isa = PBXGroup;
 			children = (
+				00611D4E174AD27700BE54C2 /* qtime */,
 				008B439914F5F37200B55B07 /* svg */,
 				003ADB5F1038844300ACF6F2 /* params */,
 				00C07D8D0FFF1E43004801EA /* ip */,
@@ -1706,6 +1732,9 @@
 				007A7B18158D09A600BEAD18 /* Window.h in Headers */,
 				0053819B15A8CDF90019BA91 /* Event.h in Headers */,
 				00782615171CD91400B47F9C /* ConvexHull.h in Headers */,
+				00611D53174AD29D00BE54C2 /* MovieWriter.h in Headers */,
+				00611D56174AD29D00BE54C2 /* QuickTime.h in Headers */,
+				00611D59174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1827,6 +1856,9 @@
 				0053819C15A8CDF90019BA91 /* Event.h in Headers */,
 				00E5A41C163F5A2B00AACB3A /* CaptureImplCocoaDummy.h in Headers */,
 				00782616171CD91400B47F9C /* ConvexHull.h in Headers */,
+				00611D54174AD29D00BE54C2 /* MovieWriter.h in Headers */,
+				00611D57174AD29D00BE54C2 /* QuickTime.h in Headers */,
+				00611D5A174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1972,6 +2004,10 @@
 				003C0CE715A34D3F00FF29F5 /* AppCocoaView.h in Headers */,
 				0053819A15A8CDF90019BA91 /* Event.h in Headers */,
 				00782614171CD91400B47F9C /* ConvexHull.h in Headers */,
+				00611D52174AD29D00BE54C2 /* MovieWriter.h in Headers */,
+				00611D55174AD29D00BE54C2 /* QuickTime.h in Headers */,
+				00611D58174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */,
+				00611D5C174AD2C400BE54C2 /* QuickTimeGl.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

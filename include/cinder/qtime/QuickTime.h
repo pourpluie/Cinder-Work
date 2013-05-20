@@ -26,9 +26,7 @@
 #if ! defined( __LP64__ )
 
 #include "cinder/Cinder.h"
-#include "cinder/gl/gl.h"
 #include "cinder/Surface.h"
-#include "cinder/gl/Texture.h"
 #include "cinder/Display.h"
 #include "cinder/Url.h"
 #include "cinder/DataSource.h"
@@ -252,60 +250,6 @@ class MovieSurface : public MovieBase {
 	operator unspecified_bool_type() const { return ( mObj.get() == 0 ) ? 0 : &MovieSurface::mObj; }
 	void reset() { mObj.reset(); }
 	//@}
-};
-
-class MovieGl;
-typedef std::shared_ptr<MovieGl>	MovieGlRef;
-/** \brief QuickTime movie playback as OpenGL textures
- *	Textures are always bound to the \c GL_TEXTURE_RECTANGLE_ARB target
- *	\remarks On Mac OS X, the destination CGLContext must be the current context when the MovieGl is constructed. If that doesn't mean anything to you, you should be fine. A call to app::restoreWindowContext() can be used to force this to be the case.
-**/
-class MovieGl : public MovieBase {
-  public:
-	MovieGl() : MovieBase() {}
-	MovieGl( const fs::path &path );
-	MovieGl( const class MovieLoader &loader );
-	//! Constructs a MovieGl from a block of memory of size \a dataSize pointed to by \a data, which must not be disposed of during the lifetime of the movie.
-	/** \a fileNameHint and \a mimeTypeHint provide important hints to QuickTime about the contents of the file. Omit both of them at your peril. "video/quicktime" is often a good choice for \a mimeTypeHint. **/
-	MovieGl( const void *data, size_t dataSize, const std::string &fileNameHint, const std::string &mimeTypeHint = "" );
-	MovieGl( DataSourceRef dataSource, const std::string mimeTypeHint = "" );
-
-	static MovieGlRef create( const fs::path &path ) { return std::shared_ptr<MovieGl>( new MovieGl( path ) ); }
-	static MovieGlRef create( const MovieLoaderRef &loader );
-	static MovieGlRef create( const void *data, size_t dataSize, const std::string &fileNameHint, const std::string &mimeTypeHint = "" )
-		 { return std::shared_ptr<MovieGl>( new MovieGl( data, dataSize, fileNameHint, mimeTypeHint ) ); }
-	static MovieGlRef create( DataSourceRef dataSource, const std::string mimeTypeHint = "" )
-		 { return std::shared_ptr<MovieGl>( new MovieGl( dataSource, mimeTypeHint ) ); }
-
-	//! Returns the gl::Texture representing the Movie's current frame, bound to the \c GL_TEXTURE_RECTANGLE_ARB target
-	const gl::Texture	getTexture();
-
-  protected:
-	void				allocateVisualContext();
-
-	struct Obj : public MovieBase::Obj {
-		Obj();
-		~Obj();
-
-		virtual void		releaseFrame();
-		virtual void		newFrame( CVImageBufferRef cvImage );
-		
-		gl::Texture			mTexture;
-#if defined( CINDER_MSW )
-		gl::TextureCache	mTextureCache;
-#endif
-	};
- 	
-	std::shared_ptr<Obj>				mObj;
-	virtual MovieBase::Obj*		getObj() const { return mObj.get(); }
-
-  public:
-	//@{
-	//! Emulates shared_ptr-like behavior
-	typedef std::shared_ptr<Obj> MovieGl::*unspecified_bool_type;
-	operator unspecified_bool_type() const { return ( mObj.get() == 0 ) ? 0 : &MovieGl::mObj; }
-	void reset() { mObj.reset(); }
-	//@}  
 };
 
 class MovieLoader {
