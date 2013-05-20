@@ -3,7 +3,7 @@
 // For 
 #if defined( GL_PIXEL_UNPACK_BUFFER )
 
-#include "gl/BufferObj.h"
+#include "cinder/gl/BufferObj.h"
 
 namespace cinder { namespace gl {
 	

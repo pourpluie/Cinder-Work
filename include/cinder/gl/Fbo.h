@@ -11,15 +11,10 @@ namespace cinder { namespace gl {
 
 typedef std::shared_ptr<class Fbo> FboRef;
 
-class Fbo
-{
-	
-public:
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+class Fbo {
+  public:
 	//! Creates a FBO
-	static FboRef   create( int32_t width, int32_t height, int32_t msaaSamples = 0 );
-	
+	static FboRef   create( int32_t width, int32_t height, int32_t msaaSamples = 0 );	
 	~Fbo();
 	
 	void            bindFramebuffer();
@@ -45,7 +40,7 @@ public:
 	ci::Vec2i       getSize();
 	ci::Vec2i       getSize() const;
 	
-private:
+  private:
 	Fbo( int32_t width, int32_t height, int32_t msaaSamples );
 	
 	void            checkStatus();

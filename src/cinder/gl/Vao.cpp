@@ -105,12 +105,20 @@ VaoRef Vao::create()
 Vao::Vao()
 {
 	mId	= 0;
+#if defined( CINDER_GLES )	
 	glGenVertexArraysOES( 1, &mId );
+#else
+	glGenVertexArrays( 1, &mId );
+#endif
 }
 
 Vao::~Vao()
 {
+#if defined( CINDER_GLES )	
 	glDeleteVertexArraysOES( 1, &mId );
+#else
+	glDeleteVertexArrays( 1, &mId );
+#endif
 }
 
 void Vao::addAttribute( const Vao::Attribute &attr )
@@ -124,7 +132,11 @@ void Vao::addAttribute( const Vao::Attribute &attr )
 	
 void Vao::bind() const
 {
+#if defined( CINDER_GLES )
 	glBindVertexArrayOES( mId );
+#else
+	glBindVertexArray( mId );
+#endif
 }
 	
 vector<Vao::Attribute>& Vao::getAttributes()
@@ -151,7 +163,11 @@ void Vao::removeAttribute( GLuint index )
 
 void Vao::unbind() const
 {
+#if defined( CINDER_GLES )	
 	glBindVertexArrayOES( 0 );
+#else
+	glBindVertexArray( 0 );
+#endif
 }
 	
 } }

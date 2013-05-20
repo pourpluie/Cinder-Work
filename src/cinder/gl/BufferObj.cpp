@@ -39,13 +39,21 @@ void BufferObj::bufferSubData( const GLvoid* data, GLsizeiptr size, GLintptr off
 uint8_t* BufferObj::map( GLenum access ) const
 {
 	bind();
+#if defined( CINDER_GLES )
 	return reinterpret_cast<uint8_t*>( glMapBufferOES( mTarget, access ) );
+#else
+	return reinterpret_cast<uint8_t*>( glMapBuffer( mTarget, access ) );
+#endif
 }
 
 void BufferObj::unmap() const
 {
 	bind();
+#if defined( CINDER_GLES )	
 	GLboolean result = glUnmapBufferOES( mTarget );
+#else
+	GLboolean result = glUnmapBuffer( mTarget );
+#endif
 	if ( result != GL_TRUE ) {
 		//throw BufferFailedUnmapExc();
 	}

@@ -146,9 +146,9 @@ struct Format;
 		
 		//! Specifies the texture's target. The default is \c GL_TEXTURE_2D
 		void	setTarget( GLenum target ) { mTarget = target; }
-		//! Sets the texture's target to be \c GL_TEXTURE_RECTANGLE_ARB. Not available in OpenGL ES.
+		//! Sets the texture's target to be \c GL_TEXTURE_RECTANGLE. Not available in OpenGL ES.
 #ifndef CINDER_GLES
-		void	setTargetRect() { mTarget = GL_TEXTURE_RECTANGLE_ARB; }
+		void	setTargetRect() { mTarget = GL_TEXTURE_RECTANGLE; }
 #endif
 		
 		//! Enables or disables mipmapping. Default is disabled.

@@ -4,6 +4,11 @@
 #include "cinder/gl/Manager.h"
 #include <stdio.h>
 
+#if ! defined( CINDER_GLES )
+#define GL_LUMINANCE GL_RED
+#define GL_LUMINANCE_ALPHA GL_RG
+#endif
+
 using namespace std;
 
 namespace cinder { namespace gl {

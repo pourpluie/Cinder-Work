@@ -32,9 +32,17 @@ Fbo::Fbo( int32_t width, int32_t height, int32_t msaaSamples )
 	glGenRenderbuffers( 1, &mColorBuffer );
 	glBindRenderbuffer( GL_RENDERBUFFER, mColorBuffer );
 	if ( mMsaaSamples > 0 ) {
+#if defined( CINDER_GLES )
 		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGBA8_OES, mWidth, mHeight );
+#else
+//		glRenderbufferStorageMultisample( GL_RENDERBUFFER, mMsaaSamples, GL_RGBA8_OES, mWidth, mHeight );
+#endif
 	} else {
+#if defined( CINDER_GLES )
 		glRenderbufferStorage( GL_RENDERBUFFER, GL_RGBA8_OES, mWidth, mHeight );
+#else
+		glRenderbufferStorage( GL_RENDERBUFFER, GL_RGBA8, mWidth, mHeight );
+#endif
 	}
 	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mColorBuffer );
 	
@@ -51,7 +59,11 @@ Fbo::Fbo( int32_t width, int32_t height, int32_t msaaSamples )
 	glGenRenderbuffers( 1, &mDepthBuffer );
 	glBindRenderbuffer( GL_RENDERBUFFER, mDepthBuffer );
 	if ( mMsaaSamples > 0 ) {
+#if defined( CINDER_GLES )
 		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH_COMPONENT16, mWidth, mHeight );
+#else
+		glRenderbufferStorageMultisample( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH_COMPONENT16, mWidth, mHeight );
+#endif
 	} else {
 		glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, mWidth, mHeight );
 	}
@@ -115,11 +127,16 @@ void Fbo::bindFramebuffer() const
 void Fbo::unbindFramebuffer()
 {
 	if ( mMsaaSamples > 0 ) {
-		glBindFramebuffer( GL_DRAW_FRAMEBUFFER_APPLE, mResolveBuffer );
+		const GLenum discards[] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT };
+#if defined( CINDER_GLES )
 		glBindFramebuffer( GL_READ_FRAMEBUFFER_APPLE, mFrameBuffer );
 		glResolveMultisampleFramebufferAPPLE();
-		const GLenum discards[] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT };
 		glDiscardFramebufferEXT( GL_READ_FRAMEBUFFER_APPLE, 2, discards );
+#else
+//		glBindFramebuffer( GL_READ_FRAMEBUFFER, mFrameBuffer );
+//		glResolveMultisampleFramebuffer();
+//		glDiscardFramebufferEXT( GL_READ_FRAMEBUFFER, 2, discards );
+#endif
 	}
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 }
@@ -127,11 +144,19 @@ void Fbo::unbindFramebuffer() const
 {
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 	if ( mMsaaSamples > 0 ) {
+#if defined( CINDER_GLES )
 		glBindFramebuffer( GL_DRAW_FRAMEBUFFER_APPLE, mResolveBuffer );
 		glBindFramebuffer( GL_READ_FRAMEBUFFER_APPLE, mFrameBuffer );
 		glResolveMultisampleFramebufferAPPLE();
 		const GLenum discards[] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT };
 		glDiscardFramebufferEXT( GL_READ_FRAMEBUFFER_APPLE, 2, discards );
+#else
+//		glBindFramebuffer( GL_DRAW_FRAMEBUFFER_APPLE, mResolveBuffer );
+//		glBindFramebuffer( GL_READ_FRAMEBUFFER_APPLE, mFrameBuffer );
+//		glResolveMultisampleFramebufferAPPLE();
+//		const GLenum discards[] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT };
+//		glDiscardFramebufferEXT( GL_READ_FRAMEBUFFER_APPLE, 2, discards );
+#endif
 	}
 }
 

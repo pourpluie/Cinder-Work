@@ -120,6 +120,49 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		00611D79174ADAAB00BE54C2 /* gl */ = {
+			isa = PBXGroup;
+			children = (
+				00611D3C174AC72B00BE54C2 /* Fbo.cpp */,
+				00611D3D174AC72B00BE54C2 /* gl.cpp */,
+				00611D3E174AC72B00BE54C2 /* GlslProg.cpp */,
+				00611D3F174AC72B00BE54C2 /* Light.cpp */,
+				00611D40174AC72B00BE54C2 /* Material.cpp */,
+				00611D41174AC72B00BE54C2 /* Texture.cpp */,
+				00611D42174AC72B00BE54C2 /* Vbo.cpp */,
+				00611D30174AC6F900BE54C2 /* Fog.cpp */,
+				00611D31174AC6F900BE54C2 /* Manager.cpp */,
+				00611D32174AC6F900BE54C2 /* Pbo.cpp */,
+				00611D33174AC6FA00BE54C2 /* Shader.cpp */,
+				00611D34174AC6FB00BE54C2 /* Vao.cpp */,
+				00611D35174AC6FD00BE54C2 /* VboMesh.cpp */,
+				00611D2E174AC6B600BE54C2 /* BufferObj.cpp */,
+			);
+			name = gl;
+			sourceTree = "<group>";
+		};
+		00611D7B174ADABC00BE54C2 /* gl */ = {
+			isa = PBXGroup;
+			children = (
+				00611D1D174AC26000BE54C2 /* BufferObj.h */,
+				00611D1E174AC26000BE54C2 /* Fbo.h */,
+				00611D1F174AC26000BE54C2 /* Fog.h */,
+				00611D20174AC26000BE54C2 /* gl.h */,
+				00611D21174AC26000BE54C2 /* GlslProg.h */,
+				00611D22174AC26000BE54C2 /* Light.h */,
+				00611D23174AC26000BE54C2 /* Manager.h */,
+				00611D24174AC26000BE54C2 /* Material.h */,
+				00611D25174AC26000BE54C2 /* Pbo.h */,
+				00611D26174AC26000BE54C2 /* Shader.h */,
+				00611D27174AC26000BE54C2 /* Texture.h */,
+				00611D28174AC26000BE54C2 /* Vao.h */,
+				00611D29174AC26000BE54C2 /* Vbo.h */,
+				00611D2A174AC26000BE54C2 /* VboMesh.h */,
+				AE6B7BA3169602FC00B97126 /* Resources.h */,
+			);
+			name = gl;
+			sourceTree = "<group>";
+		};
 		00692BC414FF149000D0A05E = {
 			isa = PBXGroup;
 			children = (
@@ -162,20 +205,7 @@
 		00692BD914FF149000D0A05E /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				00611D3C174AC72B00BE54C2 /* Fbo.cpp */,
-				00611D3D174AC72B00BE54C2 /* gl.cpp */,
-				00611D3E174AC72B00BE54C2 /* GlslProg.cpp */,
-				00611D3F174AC72B00BE54C2 /* Light.cpp */,
-				00611D40174AC72B00BE54C2 /* Material.cpp */,
-				00611D41174AC72B00BE54C2 /* Texture.cpp */,
-				00611D42174AC72B00BE54C2 /* Vbo.cpp */,
-				00611D30174AC6F900BE54C2 /* Fog.cpp */,
-				00611D31174AC6F900BE54C2 /* Manager.cpp */,
-				00611D32174AC6F900BE54C2 /* Pbo.cpp */,
-				00611D33174AC6FA00BE54C2 /* Shader.cpp */,
-				00611D34174AC6FB00BE54C2 /* Vao.cpp */,
-				00611D35174AC6FD00BE54C2 /* VboMesh.cpp */,
-				00611D2E174AC6B600BE54C2 /* BufferObj.cpp */,
+				00611D79174ADAAB00BE54C2 /* gl */,
 				E6261C3FBAE1448A95F30542 /* Es2App.cpp */,
 			);
 			name = Source;
@@ -197,21 +227,7 @@
 		99692BD914FF149000D0A05F /* Headers */ = {
 			isa = PBXGroup;
 			children = (
-				00611D1D174AC26000BE54C2 /* BufferObj.h */,
-				00611D1E174AC26000BE54C2 /* Fbo.h */,
-				00611D1F174AC26000BE54C2 /* Fog.h */,
-				00611D20174AC26000BE54C2 /* gl.h */,
-				00611D21174AC26000BE54C2 /* GlslProg.h */,
-				00611D22174AC26000BE54C2 /* Light.h */,
-				00611D23174AC26000BE54C2 /* Manager.h */,
-				00611D24174AC26000BE54C2 /* Material.h */,
-				00611D25174AC26000BE54C2 /* Pbo.h */,
-				00611D26174AC26000BE54C2 /* Shader.h */,
-				00611D27174AC26000BE54C2 /* Texture.h */,
-				00611D28174AC26000BE54C2 /* Vao.h */,
-				00611D29174AC26000BE54C2 /* Vbo.h */,
-				00611D2A174AC26000BE54C2 /* VboMesh.h */,
-				AE6B7BA3169602FC00B97126 /* Resources.h */,
+				00611D7B174ADABC00BE54C2 /* gl */,
 				017CF1E2842A4910946736DB /* Es2App_Prefix.pch */,
 			);
 			name = Headers;

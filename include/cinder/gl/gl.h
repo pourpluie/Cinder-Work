@@ -3,8 +3,8 @@
 #include "cinder/Cinder.h"
 
 #if defined( CINDER_MAC )
-	#include <OpenGL/gl.h>
-	#include <OpenGL/glext.h>
+	#include <OpenGL/gl3.h>
+	#include <OpenGL/gl3ext.h>
 #elif defined( CINDER_MSW )
 	#include "cinder/gl/GLee.h"
 #else
