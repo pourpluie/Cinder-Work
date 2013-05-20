@@ -23,7 +23,7 @@
 #import <UIKit/UIKit.h>
 
 #import "cinder/app/App.h"
-#import "cinder/app/Renderer.h"
+#import "cinder/app/RendererGl.h"
 
 @interface AppImplCocoaTouchRendererGl : NSObject
 {

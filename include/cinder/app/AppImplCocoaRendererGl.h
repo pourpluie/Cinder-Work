@@ -23,7 +23,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import "cinder/app/App.h"
-#import "cinder/app/Renderer.h"
+#import "cinder/app/RendererGl.h"
 
 @class AppImplCocoa;
 @class CinderView;

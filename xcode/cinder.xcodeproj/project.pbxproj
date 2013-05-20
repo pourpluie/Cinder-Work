@@ -185,6 +185,12 @@
 		00611D59174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */; };
 		00611D5A174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */; };
 		00611D5C174AD2C400BE54C2 /* QuickTimeGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D5B174AD2C400BE54C2 /* QuickTimeGl.h */; };
+		00611D69174AD72700BE54C2 /* RendererGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D68174AD72700BE54C2 /* RendererGl.h */; };
+		00611D6A174AD72700BE54C2 /* RendererGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D68174AD72700BE54C2 /* RendererGl.h */; };
+		00611D6B174AD72700BE54C2 /* RendererGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D68174AD72700BE54C2 /* RendererGl.h */; };
+		00611D6E174AD7F800BE54C2 /* RendererGl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D6C174AD7F800BE54C2 /* RendererGl.cpp */; };
+		00611D6F174AD7F800BE54C2 /* RendererGl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D6C174AD7F800BE54C2 /* RendererGl.cpp */; };
+		00611D70174AD7F800BE54C2 /* RendererGl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D6C174AD7F800BE54C2 /* RendererGl.cpp */; };
 		006228E210C8248800A8191C /* DataSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 006228E110C8248800A8191C /* DataSource.h */; };
 		006228E410C8273C00A8191C /* DataSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 006228E310C8273C00A8191C /* DataSource.cpp */; };
 		0062484F122F607500039A7A /* Filesystem.h in Headers */ = {isa = PBXBuildFile; fileRef = 0062484D122F607500039A7A /* Filesystem.h */; };
@@ -818,6 +824,8 @@
 		00611D50174AD29D00BE54C2 /* QuickTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTime.h; path = qtime/QuickTime.h; sourceTree = "<group>"; };
 		00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeUtils.h; path = qtime/QuickTimeUtils.h; sourceTree = "<group>"; };
 		00611D5B174AD2C400BE54C2 /* QuickTimeGl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeGl.h; path = qtime/QuickTimeGl.h; sourceTree = "<group>"; };
+		00611D68174AD72700BE54C2 /* RendererGl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RendererGl.h; path = app/RendererGl.h; sourceTree = "<group>"; };
+		00611D6C174AD7F800BE54C2 /* RendererGl.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = RendererGl.cpp; path = app/RendererGl.cpp; sourceTree = "<group>"; };
 		006228E110C8248800A8191C /* DataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataSource.h; sourceTree = "<group>"; };
 		006228E310C8273C00A8191C /* DataSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataSource.cpp; sourceTree = "<group>"; };
 		0062484D122F607500039A7A /* Filesystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Filesystem.h; sourceTree = "<group>"; };
@@ -1060,6 +1068,7 @@
 			children = (
 				0053819915A8CDF90019BA91 /* Event.h */,
 				0049C1B31010E5A40015B4B9 /* Renderer.h */,
+				00611D68174AD72700BE54C2 /* RendererGl.h */,
 				0088773B0F96671600FD55C5 /* FileDropEvent.h */,
 				5391FD670E957646002A13D5 /* KeyEvent.h */,
 				00241ABA0E830DC7004D34EB /* MouseEvent.h */,
@@ -1099,6 +1108,7 @@
 				0005630A11513B9400ECFD91 /* AppImplCocoaTouchRendererQuartz.mm */,
 				009D6AF01157FB860037C77C /* AppImplCocoaTouchRendererGl.mm */,
 				0049C1B61010E5B10015B4B9 /* Renderer.cpp */,
+				00611D6C174AD7F800BE54C2 /* RendererGl.cpp */,
 				00DCBA940F7932F400D88D86 /* CinderView.mm */,
 				009D6AFD1157FC8B0037C77C /* CinderViewCocoaTouch.mm */,
 				007A7B12158D098D00BEAD18 /* Window.cpp */,
@@ -1735,6 +1745,7 @@
 				00611D53174AD29D00BE54C2 /* MovieWriter.h in Headers */,
 				00611D56174AD29D00BE54C2 /* QuickTime.h in Headers */,
 				00611D59174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */,
+				00611D6A174AD72700BE54C2 /* RendererGl.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1859,6 +1870,7 @@
 				00611D54174AD29D00BE54C2 /* MovieWriter.h in Headers */,
 				00611D57174AD29D00BE54C2 /* QuickTime.h in Headers */,
 				00611D5A174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */,
+				00611D6B174AD72700BE54C2 /* RendererGl.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2008,6 +2020,7 @@
 				00611D55174AD29D00BE54C2 /* QuickTime.h in Headers */,
 				00611D58174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */,
 				00611D5C174AD2C400BE54C2 /* QuickTimeGl.h in Headers */,
+				00611D69174AD72700BE54C2 /* RendererGl.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2193,6 +2206,7 @@
 				1161C977165C7DFB00268A5E /* ImageTargetFileQuartz.cpp in Sources */,
 				1161C979165C847200268A5E /* ImageSourceFileQuartz.cpp in Sources */,
 				0078261A171CD9D800B47F9C /* ConvexHull.cpp in Sources */,
+				00611D6F174AD7F800BE54C2 /* RendererGl.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2293,6 +2307,7 @@
 				1161C978165C7DFC00268A5E /* ImageTargetFileQuartz.cpp in Sources */,
 				1161C97A165C847400268A5E /* ImageSourceFileQuartz.cpp in Sources */,
 				0078261B171CD9D800B47F9C /* ConvexHull.cpp in Sources */,
+				00611D70174AD7F800BE54C2 /* RendererGl.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2408,6 +2423,7 @@
 				00954492167D2A3E008ECA02 /* QuickTime.cpp in Sources */,
 				00954493167D2A3E008ECA02 /* QuickTimeUtils.cpp in Sources */,
 				00782619171CD9D800B47F9C /* ConvexHull.cpp in Sources */,
+				00611D6E174AD7F800BE54C2 /* RendererGl.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

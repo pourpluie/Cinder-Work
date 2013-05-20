@@ -1,0 +1,112 @@
+/*
+ Copyright (c) 2013, The Cinder Project, All rights reserved.
+
+ This code is intended for use with the Cinder C++ library: http://libcinder.org
+
+ Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+	the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+	the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#pragma once
+
+#include "cinder/app/Renderer.h"
+#include "cinder/gl/gl.h"
+
+#if defined( CINDER_MAC )
+	#if defined __OBJC__
+		@class AppImplCocoaRendererGl;
+		@class NSOpenGLContext;
+	#else
+		class AppImplCocoaRendererGl;
+		class NSOpenGLContext;
+	#endif
+	typedef struct _CGLContextObject       *CGLContextObj;
+	typedef struct _CGLPixelFormatObject   *CGLPixelFormatObj;
+#elif defined( CINDER_COCOA_TOUCH )
+	#if defined __OBJC__
+		typedef struct CGContext * CGContextRef;
+		@class AppImplCocoaTouchRendererGl;
+		@class EAGLContext;
+	#else
+		typedef struct CGContext * CGContextRef;
+		class AppImplCocoaTouchRendererGl;
+		class EAGLContext;
+	#endif
+#endif
+
+namespace cinder { namespace app {
+
+typedef std::shared_ptr<class RendererGl>	RendererGlRef;
+class RendererGl : public Renderer {
+  public:
+#if defined( CINDER_COCOA_TOUCH )
+	RendererGl( int aAntiAliasing = AA_MSAA_4 );
+#else
+	RendererGl( int aAntiAliasing = AA_MSAA_16 );
+#endif
+	~RendererGl();
+
+	static RendererGlRef	create( int antiAliasing = AA_MSAA_16 ) { return RendererGlRef( new RendererGl( antiAliasing ) ); }
+	virtual RendererRef		clone() const { return RendererGlRef( new RendererGl( *this ) ); }
+ 
+#if defined( CINDER_COCOA )
+	#if defined( CINDER_MAC )
+		virtual void setup( App *aApp, CGRect frame, NSView *cinderView, RendererRef sharedRenderer, bool retinaEnabled );
+		virtual CGLContextObj			getCglContext();
+		virtual CGLPixelFormatObj		getCglPixelFormat();
+		virtual NSOpenGLContext*		getNsOpenGlContext();		
+	#elif defined( CINDER_COCOA_TOUCH )
+		virtual void 	setup( App *aApp, const Area &frame, UIView *cinderView, RendererRef sharedRenderer );
+		virtual bool 	isEaglLayer() const { return true; }
+		EAGLContext*	getEaglContext() const;
+	#endif
+	virtual void	setFrameSize( int width, int height );
+#elif defined( CINDER_MSW )
+	virtual void	setup( App *aApp, HWND wnd, HDC dc, RendererRef sharedRenderer );
+	virtual void	kill();
+	virtual HWND	getHwnd() { return mWnd; }
+	virtual void	prepareToggleFullScreen();
+	virtual void	finishToggleFullScreen();
+#endif
+
+	enum	{ AA_NONE = 0, AA_MSAA_2, AA_MSAA_4, AA_MSAA_6, AA_MSAA_8, AA_MSAA_16, AA_MSAA_32 };
+	static const int	sAntiAliasingSamples[];
+	void				setAntiAliasing( int aAntiAliasing );
+	int					getAntiAliasing() const { return mAntiAliasing; }
+
+	virtual void	startDraw();
+	virtual void	finishDraw();
+	virtual void	defaultResize();
+	virtual void	makeCurrentContext();
+	virtual Surface	copyWindowSurface( const Area &area );
+	
+ protected:
+	RendererGl( const RendererGl &renderer );
+
+	int			mAntiAliasing;
+#if defined( CINDER_MAC )
+	AppImplCocoaRendererGl		*mImpl;
+#elif defined( CINDER_COCOA_TOUCH )
+	AppImplCocoaTouchRendererGl	*mImpl;
+#elif defined( CINDER_MSW )
+	class AppImplMswRendererGl	*mImpl;
+	HWND						mWnd;
+	friend class				AppImplMswRendererGl;
+#endif
+};
+
+} } // namespace cinder::app
