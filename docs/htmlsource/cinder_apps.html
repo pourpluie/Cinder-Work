@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=iso-8859-1"><title>Cinder</title>
+		<title>Understanding Cinder Apps</title>
+		<link rel="stylesheet" href="cinder_doxygen.css" type="text/css" media="screen" />
+	</head>
+<body>
+
+<div class="contents">
+	<h2>Understanding Cinder Apps</h2>
+	<p>In general, Cinder users want to create apps. They may create a standard desktop application, an iOS or Windows Store app, a screensaver, or a number of other types of project. Cinder provides a framework for each of these, and more specifically it provides a C++ base class derived from <d>ci::App</d>.</p>
+
+	<p>Here's a (nonsense) code sample which demonstrates the majority of the formatting guidelines:</p>
+<pre>
+<code>
+#include &lt;math.h&gt;
+
+namespace cinder { <span class="expl">use namespace <em>cinder::</em> rather than <em>ci::</em> in the library itself</span>
+
+class Example { <span class="expl">left brace { on <em>class</em> declaration on same line</span>
+  public:<span class="expl"><em>public:</em> and <em>private:</em> signifiers indented 2 spaces</span>
+    Example( float varA, int varB )
+        : mVarA( var A ), mVarB( varB )<span class="expl">Prefer initialization lists</span>
+    {}
+    
+    double 	calculate() const;
+    double	calculate2() const;  <span class="expl">tab-align groups of member function declarations</span>
+        
+  private:
+    float 	mVarA, mVarB;  <span class="expl">class member vars have an <em>m</em>-prefix</span>
+    bool	mCached;  <span class="expl">tab-align member variable declarations as appropriate</span>
+};
+
+template&lt;typename T, typename Y&gt; <span class="expl">no spaces adjacent to angle brackets on templates</span>
+void bar( const Surface &alpha )<span class="expl">& and * adjacent to var name, not type.</span>
+{
+    return arr[i]; // <span class="expl">index operator[] has no spaces</span>
+}
+
+} // namespace cinder
+
+<hr />
+#include "cinder/Example.h"
+
+namespace cinder {
+
+double Example::calculate() const <span class="expl">parameterless functions have no spaces between parens</span>
+{ <span class="expl">{ on a new line for function definition</span>
+    return sqrt( mVar * mVarB );
+}
+
+void foo( int a, int *result ) <span class="expl">Use pointers for parameters modified by the function</span>
+{
+    bool alreadyReady = true;
+	
+    switch( mode ) { <span class="expl">{ on the same line as <em>switch</em></span>
+        case MODE_0: <span class="expl"><em>case</em> tab-indented relative to <em>switch</em></span>
+            doSomething(); <span class="expl">body of <em>case</em> indented</span>
+            doSomethingToo();
+        break; <span class="expl"><em>break</em> aligned to corresponding <em>case</em></span>
+    }
+	
+    for( int i = 0; i < a; i++ ) { <span class="expl"><em>for</em> statement has spaces between arguments</span>
+        if( ! alreadyDone ) <span class="expl">always put a space to separate <em>!</em></span>
+            bar( i );
+        else { <span class="expl">curly braces are only required when there are multiple statements in the block</span>
+            bar( i );
+            bar( b, alpha ); <span class="expl">spaces separate arguments to function calls and parens</span>
+        }
+    }
+    
+    *result = a * bar( c );
+}
+
+} // namespace cinder <span class="expl">comment to give context to } for a long-running namespace block</span>
+</code>
+</pre>
+
+<ul>
+<li>Use tabs corresponding to 4 spaces</li>
+</div>
+
