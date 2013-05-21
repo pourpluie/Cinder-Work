@@ -26,8 +26,6 @@
 #include "cinder/app/Window.h"
 #import "cinder/cocoa/CinderCocoa.h"
 
-#import <OpenGL/OpenGL.h>
-
 // This seems to be missing for unknown reasons
 @interface NSApplication(MissingFunction)
 	- (void)setAppleMenu:(NSMenu *)menu;

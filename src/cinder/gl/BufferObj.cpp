@@ -1,16 +1,23 @@
 #include "cinder/gl/BufferObj.h"
+#include "cinder/gl/gl.h"
 
 namespace cinder { namespace gl {
 
-BufferObjRef BufferObj::create( GLenum target )
-{
-	return BufferObjRef( new BufferObj( target ) );
-}
-
 BufferObj::BufferObj( GLenum target )
-: mId( 0 ), mSize( 0 ), mTarget( target )
+	: mId( 0 ), mSize( 0 ), mTarget( target )
 {
 	glGenBuffers( 1, &mId );
+}
+
+BufferObj::BufferObj( GLenum target, GLsizeiptr allocationSize )
+	: mId( 0 ), mTarget( target ), mSize( allocationSize )
+{
+	glGenBuffers( 1, &mId );
+	if( allocationSize > 0 ) {
+		bind();
+		glBufferData( mTarget, allocationSize, NULL, GL_DYNAMIC_DRAW );
+		unbind();
+	}
 }
 
 BufferObj::~BufferObj()
@@ -23,17 +30,19 @@ void BufferObj::bind() const
 	glBindBuffer( mTarget, mId );
 }
 
-void BufferObj::bufferData( const GLvoid* data, GLuint size, GLenum usage )
+void BufferObj::bufferData( const GLvoid *data, GLsizeiptr size, GLenum usage )
 {
 	bind();
 	mSize = size;
 	glBufferData( mTarget, mSize, data, usage );
+	unbind();
 }
 	
-void BufferObj::bufferSubData( const GLvoid* data, GLsizeiptr size, GLintptr offset ) const
+void BufferObj::bufferSubData( const GLvoid *data, GLsizeiptr size, GLintptr offset )
 {
 	bind();
 	glBufferSubData( mTarget, offset, size, data );
+	unbind();
 }
 	
 uint8_t* BufferObj::map( GLenum access ) const

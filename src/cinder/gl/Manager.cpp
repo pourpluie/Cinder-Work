@@ -49,7 +49,6 @@ void Manager::clear()
 void Manager::draw()
 {
 	if( ! mVertices.empty() ) {
-		
 		// Choose shader
 		Shader::UniformOptions options;
 		options.enableColor();
@@ -81,9 +80,10 @@ void Manager::draw()
 		// Buffer data
 		GLsizei stride = (GLsizei)sizeof( Manager::Vertex );
 		if ( ! mVbo ) {
-			mVbo = Vbo::create();
+			mVbo = Vbo::create( GL_ARRAY_BUFFER );
 			mVbo->setUsage( GL_DYNAMIC_DRAW );
 		}
+		mVbo->bind();		
 		mVbo->bufferData( &mVertices[ 0 ], ( GLuint )( mVertices.size() * stride ), GL_DYNAMIC_DRAW );
 	
 		// Create VAO. All shader variations have the same attribute
@@ -156,4 +156,4 @@ void Manager::pushBack( const ci::Vec4f &v )
 	mVertices.push_back( vertex );
 }
 
-} }
+} } // namespace cinder::gl

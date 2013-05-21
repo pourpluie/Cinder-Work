@@ -53,14 +53,35 @@ namespace cinder { namespace app {
 typedef std::shared_ptr<class RendererGl>	RendererGlRef;
 class RendererGl : public Renderer {
   public:
-#if defined( CINDER_COCOA_TOUCH )
-	RendererGl( int aAntiAliasing = AA_MSAA_4 );
-#else
-	RendererGl( int aAntiAliasing = AA_MSAA_16 );
-#endif
+	struct Options {
+	  public:
+		Options();
+
+		Options&	coreProfile( bool enable = true ) { mCoreProfile = enable; return *this; }
+		bool		getCoreProfile() const { return mCoreProfile; }
+		void		setCoreProfile( bool enable ) { mCoreProfile = enable; }
+		
+		Options&			version( int major, int minor ) { mVersion = std::make_pair( major, minor ); return *this; }
+		Options&			version( std::pair<int,int> version ) { mVersion = version; return *this; }
+		std::pair<int,int>	getVersion() const { return mVersion; }
+		void				setVersion( int major, int minor ) { mVersion = std::make_pair( major, minor ); }
+		void				setVersion( std::pair<int,int> version ) { mVersion = version; }
+		
+		Options&	antiAliasing( int amount ) { mAntiAliasing = amount; return *this; }
+		int			getAntiAliasing() const { return mAntiAliasing; }
+		void		setAntiAliasing( int amount ) { mAntiAliasing = amount; }
+		
+	  protected:
+		bool					mCoreProfile;
+		std::pair<int,int>		mVersion;
+		int						mAntiAliasing;
+	};
+
+
+	RendererGl( const Options &options = Options() );
 	~RendererGl();
 
-	static RendererGlRef	create( int antiAliasing = AA_MSAA_16 ) { return RendererGlRef( new RendererGl( antiAliasing ) ); }
+	static RendererGlRef	create( const Options &options = Options() ) { return RendererGlRef( new RendererGl( options ) ); }
 	virtual RendererRef		clone() const { return RendererGlRef( new RendererGl( *this ) ); }
  
 #if defined( CINDER_COCOA )
@@ -83,10 +104,9 @@ class RendererGl : public Renderer {
 	virtual void	finishToggleFullScreen();
 #endif
 
+	static const int sAntiAliasingSamples[];
 	enum	{ AA_NONE = 0, AA_MSAA_2, AA_MSAA_4, AA_MSAA_6, AA_MSAA_8, AA_MSAA_16, AA_MSAA_32 };
-	static const int	sAntiAliasingSamples[];
-	void				setAntiAliasing( int aAntiAliasing );
-	int					getAntiAliasing() const { return mAntiAliasing; }
+	const Options&	getOptions() const { return mOptions; }
 
 	virtual void	startDraw();
 	virtual void	finishDraw();
@@ -97,7 +117,7 @@ class RendererGl : public Renderer {
  protected:
 	RendererGl( const RendererGl &renderer );
 
-	int			mAntiAliasing;
+	Options		mOptions;
 #if defined( CINDER_MAC )
 	AppImplCocoaRendererGl		*mImpl;
 #elif defined( CINDER_COCOA_TOUCH )

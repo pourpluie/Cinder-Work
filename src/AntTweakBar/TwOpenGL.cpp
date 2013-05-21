@@ -12,6 +12,7 @@
 #include "LoadOGL.h"
 #include "TwOpenGL.h"
 #include "TwMgr.h"
+#include <OpenGL/gl.h>
 
 using namespace std;
 

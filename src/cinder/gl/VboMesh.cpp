@@ -203,7 +203,7 @@ void VboMesh::initializeBuffers()
 			mLayout.getPositionUsage() == Layout::Usage::STATIC || mLayout.getTexCoordUsage() == Layout::Usage::STATIC;
 		
 		if ( hasDynamic ) {
-			mVboVerticesDynamic = Vbo::create();
+			mVboVerticesDynamic = Vbo::create( GL_ARRAY_BUFFER );
 			
 			size_t offset = 0;
 			if ( mLayout.getColorUsage() == Layout::Usage::DYNAMIC ) {
@@ -228,7 +228,7 @@ void VboMesh::initializeBuffers()
 		}
 		
 		if ( hasStatic ) {
-			mVboVerticesStatic = Vbo::create();
+			mVboVerticesStatic = Vbo::create( GL_ARRAY_BUFFER );
 			
 			size_t offset = 0;
 			if ( mLayout.getColorUsage() == Layout::Usage::STATIC ) {

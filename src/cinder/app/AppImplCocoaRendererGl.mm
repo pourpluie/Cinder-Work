@@ -59,11 +59,11 @@
 	cinderView = aCinderView;
 	
 	renderer = aRenderer;
-	
-	NSOpenGLPixelFormat* fmt = [AppImplCocoaRendererGl defaultPixelFormat:renderer->getAntiAliasing()];
+
+	cinder::app::RendererGl::Options options = renderer->getOptions();
+	NSOpenGLPixelFormat* fmt = [AppImplCocoaRendererGl defaultPixelFormat:options.getAntiAliasing() legacy:(options.getCoreProfile()==false)];
 	GLint aaSamples;
 	[fmt getValues:&aaSamples forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
-	renderer->setAntiAliasing( aaSamples );
 
 	NSRect bounds = NSMakeRect( 0, 0, frame.size.width, frame.size.height );
 	view = [[AppImplCocoaTransparentGlView alloc] initWithFrame:bounds pixelFormat:fmt];
@@ -169,13 +169,13 @@ if( ! view )
 	return YES;
 }
 
-+ (NSOpenGLPixelFormat*)defaultPixelFormat:(int)antialiasLevel
++ (NSOpenGLPixelFormat*)defaultPixelFormat:(int)antialiasLevel legacy:(BOOL)legacy
 {
 	NSOpenGLPixelFormat *result = nil;
 	if( antialiasLevel == cinder::app::RendererGl::AA_NONE ) {
-		NSOpenGLPixelFormatAttribute attributes [] = {
-			NSOpenGLPFAWindow,
+		NSOpenGLPixelFormatAttribute attributes[] = {
 			NSOpenGLPFADoubleBuffer,
+			NSOpenGLPFAOpenGLProfile, (legacy)?NSOpenGLProfileVersionLegacy:NSOpenGLProfileVersion3_2Core,
 			NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute)24,
 /*kCGLPFAStencilSize, (CGLPixelFormatAttribute) 8,*/
 			(NSOpenGLPixelFormatAttribute)0
@@ -184,15 +184,14 @@ if( ! view )
 		result = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
 	}
 	else {
-		NSOpenGLPixelFormatAttribute attributes [] = {
-			NSOpenGLPFAWindow,
+		NSOpenGLPixelFormatAttribute attributes[] = {
 			NSOpenGLPFADoubleBuffer,
+			NSOpenGLPFAOpenGLProfile, (legacy)?NSOpenGLProfileVersionLegacy:NSOpenGLProfileVersion3_2Core,			
 			NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute)24,
 /*	kCGLPFAStencilSize, (CGLPixelFormatAttribute) 8,*/
 	        NSOpenGLPFASampleBuffers, (NSOpenGLPixelFormatAttribute)1, 
 			NSOpenGLPFASamples, (NSOpenGLPixelFormatAttribute)cinder::app::RendererGl::sAntiAliasingSamples[antialiasLevel],
 			NSOpenGLPFAMultisample,
-//			(NSOpenGLPixelFormatAttribute)1,
 			(NSOpenGLPixelFormatAttribute)0
 		};
 		

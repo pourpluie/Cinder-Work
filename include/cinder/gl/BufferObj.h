@@ -5,19 +5,17 @@
 
 namespace cinder { namespace gl {
 
-typedef std::shared_ptr<class BufferObj> BufferObjRef;
+typedef std::shared_ptr<class BufferObj>	BufferObjRef;
 
-class BufferObj
-{
-public:
-	static BufferObjRef	create( GLenum target = GL_ARRAY_BUFFER );
+class BufferObj {
+  public:
 	~BufferObj();
 
 	void				bind() const;
 	void				unbind() const;
 	
-	void				bufferData( const GLvoid* data, GLuint size, GLenum usage );
-	void				bufferSubData( const GLvoid* data, GLsizeiptr size, GLintptr offset = 0 ) const;
+	void				bufferData( const GLvoid *data, GLsizeiptr size, GLenum usage );
+	void				bufferSubData( const GLvoid *data, GLsizeiptr size, GLintptr offset );
 	
 	uint8_t*			map( GLenum access ) const;
 	void				unmap() const;
@@ -31,8 +29,9 @@ public:
 	GLenum				getUsage() const;
 	void				setUsage( GLenum usage );
 	
-protected:
-	explicit BufferObj( GLenum target );
+  protected:
+	BufferObj( GLenum target );
+	BufferObj( GLenum target, GLsizeiptr allocationSize );
 	
 	GLuint				mId;
 	size_t				mSize;

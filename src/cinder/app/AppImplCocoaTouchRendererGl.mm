@@ -41,7 +41,7 @@
 	
 	mBackingWidth = 0;
 	mBackingHeight = 0;
-	mMsaaSamples = cinder::app::RendererGl::sAntiAliasingSamples[aRenderer->getAntiAliasing()];
+	mMsaaSamples = cinder::app::RendererGl::sAntiAliasingSamples[aRenderer->getOptions().getAntiAliasing()];
 	mUsingMsaa = mMsaaSamples > 0;
 	
 	[self allocateGraphics:sharedRenderer];

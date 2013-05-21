@@ -316,7 +316,7 @@ void Es2App::setup()
 	}
 
 	// VBO
-	mVboData = gl::Vbo::create();
+	mVboData = gl::Vbo::create( GL_ARRAY_BUFFER );
 	mVboData->bufferData( &verts[ 0 ], (GLuint)( verts.size() * sizeof( Vertex ) ), GL_STATIC_DRAW );
 	mVboIndices = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER );
 	mVboIndices->bufferData( &indices[ 0 ], (GLuint)( indices.size() * sizeof( GLuint ) ), GL_STATIC_DRAW );

@@ -10,6 +10,7 @@
 
 #include "TwPrecomp.h"
 #include "LoadOGL.h"
+#include <OpenGL/gl.h>
 
 
 //  ---------------------------------------------------------------------------
