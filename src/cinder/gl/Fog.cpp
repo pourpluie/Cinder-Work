@@ -1,6 +1,6 @@
 #include "cinder/gl/Fog.h"
 
-#include "cinder/gl/Manager.h"
+#include "cinder/gl/Context.h"
 
 namespace cinder { namespace gl {
 	
@@ -12,9 +12,9 @@ Fog::Fog()
 
 void Fog::enable( bool enabled )
 {
-	ManagerRef manager		= Manager::get();
-	manager->mFogEnabled	= enabled;
-	manager->mFog			= enabled ? *this : Fog();
+	auto ctx		= gl::context();
+	ctx->mFogEnabled	= enabled;
+	ctx->mFog			= enabled ? *this : Fog();
 }
 
 const ColorAf& Fog::getColor() const

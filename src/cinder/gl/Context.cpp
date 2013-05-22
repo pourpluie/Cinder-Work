@@ -1,5 +1,5 @@
 #include "cinder/gl/gl.h"
-#include "cinder/gl/Manager.h"
+#include "cinder/gl/Context.h"
 #include "cinder/gl/fog.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Light.h"
@@ -15,16 +15,7 @@ namespace cinder { namespace gl {
 
 using namespace std;
 	
-ManagerRef Manager::get()
-{
-	static ManagerRef manager;
-	if ( !manager ) {
-		manager = ManagerRef( new Manager() );
-	}
-	return manager;
-}
-
-Manager::Manager()
+Context::Context()
 : mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
 mTextureUnit( -1 ), mWireframe( false )
@@ -36,17 +27,17 @@ mTextureUnit( -1 ), mWireframe( false )
 	mProjection.back().setToIdentity();
 }
 
-Manager::~Manager()
+Context::~Context()
 {
 	clear();
 }
 
-void Manager::clear()
+void Context::clear()
 {
 	mVertices.clear();
 }
 
-void Manager::draw()
+void Context::draw()
 {
 	if( ! mVertices.empty() ) {
 		// Choose shader
@@ -78,13 +69,13 @@ void Manager::draw()
 		}
 		
 		// Buffer data
-		GLsizei stride = (GLsizei)sizeof( Manager::Vertex );
+		GLsizei stride = (GLsizei)sizeof( Context::Vertex );
 		if ( ! mVbo ) {
 			mVbo = Vbo::create( GL_ARRAY_BUFFER );
 			mVbo->setUsage( GL_DYNAMIC_DRAW );
 		}
-		mVbo->bind();		
 		mVbo->bufferData( &mVertices[ 0 ], ( GLuint )( mVertices.size() * stride ), GL_DYNAMIC_DRAW );
+		mVbo->bind();
 	
 		// Create VAO. All shader variations have the same attribute
 		// layout, so we only need to this once
@@ -145,7 +136,7 @@ void Manager::draw()
 	clear();
 }
 	
-void Manager::pushBack( const ci::Vec4f &v )
+void Context::pushBack( const ci::Vec4f &v )
 {
 	Vertex vertex;		
 	vertex.mColor		= mColor;

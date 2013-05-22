@@ -121,6 +121,20 @@ Vao::~Vao()
 #endif
 }
 
+void Vao::vertexAttribPointer( const VboRef &vbo, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
+{
+/*	auto ctx = gl::context();
+	auto vaoBind = ctx->pushBind( this );
+	auto vboBind = ctx->pushBind( vbo );
+	if( gl::env()->supportsVao() ) {
+		gl::env()->vertexAttribPointer( index, size, type, normalized, stride, pointer );
+		gl::env()->enableVertexAttrib( index );
+	}
+	else {
+		
+	}*/
+}
+
 void Vao::addAttribute( const Vao::Attribute &attr )
 {
 	bind();

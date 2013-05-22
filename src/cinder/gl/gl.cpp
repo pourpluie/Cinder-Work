@@ -1,5 +1,5 @@
 #include "cinder/gl/gl.h"
-#include "cinder/gl/Manager.h"
+#include "cinder/gl/Context.h"
 #include "cinder/gl/VboMesh.h"
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
@@ -8,9 +8,18 @@
 #include "cinder/Utilities.h"
 #include <vector>
 
-namespace cinder { namespace gl {
-	
 using namespace std;
+
+namespace cinder { namespace gl {
+
+Context* context()
+{
+	static Context *sContext = NULL;
+	if( ! sContext ) {
+		sContext = new Context();
+	}
+	return sContext;
+}
 
 bool isExtensionAvailable( const std::string& extName )
 {
@@ -109,105 +118,105 @@ void disableDepthWrite()
 
 void enableLighting( bool enable )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mLighting	= enable;
+	auto ctx	= gl::context();
+	ctx->mLighting	= enable;
 }
 
 void disableLighting()
 {
-	ManagerRef manager	= Manager::get();
-	manager->mLighting	= false;
+	auto ctx	= gl::context();
+	ctx->mLighting	= false;
 }
 	
 void enableWireframe( bool enable )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mWireframe = enable;
+	auto ctx	= gl::context();
+	ctx->mWireframe = enable;
 }
 
 void disableWireframe()
 {
-	ManagerRef manager	= Manager::get();
-	manager->mWireframe = false;
+	auto ctx	= gl::context();
+	ctx->mWireframe = false;
 }
 	
 void setMatrices( const ci::Camera& cam )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mModelView.back() = cam.getModelViewMatrix();
-	manager->mProjection.back() = cam.getProjectionMatrix();
+	auto ctx	= gl::context();
+	ctx->mModelView.back() = cam.getModelViewMatrix();
+	ctx->mProjection.back() = cam.getProjectionMatrix();
 }
 
 void setModelView( const ci::Camera& cam )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mModelView.back() = cam.getModelViewMatrix();
+	auto ctx	= gl::context();
+	ctx->mModelView.back() = cam.getModelViewMatrix();
 }
 
 void setProjection( const ci::Camera& cam )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mProjection.back() = cam.getProjectionMatrix();
+	auto ctx	= gl::context();
+	ctx->mProjection.back() = cam.getProjectionMatrix();
 }
 
 void pushModelView()
 {
-	ManagerRef manager	= Manager::get();
-	manager->mModelView.push_back( manager->mModelView.back() );
+	auto ctx	= gl::context();
+	ctx->mModelView.push_back( ctx->mModelView.back() );
 }
 
 void popModelView()
 {
-	ManagerRef manager	= Manager::get();
-	manager->mModelView.pop_back();
+	auto ctx	= gl::context();
+	ctx->mModelView.pop_back();
 }
 
 void pushProjection( const ci::Camera& cam )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mProjection.push_back( cam.getProjectionMatrix().m );
+	auto ctx	= gl::context();
+	ctx->mProjection.push_back( cam.getProjectionMatrix().m );
 }
 
 void pushMatrices()
 {
-	ManagerRef manager		= Manager::get();
-	Matrix44f modelView		= manager->mModelView.back();
-	Matrix44f projection	= manager->mProjection.back();
-	manager->mModelView.push_back( modelView );
-	manager->mProjection.push_back( projection );
+	auto ctx		= gl::context();
+	Matrix44f modelView		= ctx->mModelView.back();
+	Matrix44f projection	= ctx->mProjection.back();
+	ctx->mModelView.push_back( modelView );
+	ctx->mProjection.push_back( projection );
 }
 
 void popMatrices()
 {
-	ManagerRef manager	= Manager::get();
-	if ( manager->mModelView.size() > 1 && manager->mProjection.size() > 1 ) {
-		manager->mModelView.pop_back();
-		manager->mProjection.pop_back();
+	auto ctx	= gl::context();
+	if ( ctx->mModelView.size() > 1 && ctx->mProjection.size() > 1 ) {
+		ctx->mModelView.pop_back();
+		ctx->mProjection.pop_back();
 	}
 }
 
 void multModelView( const ci::Matrix44f& mtx )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mModelView.back() *= mtx;
+	auto ctx	= gl::context();
+	ctx->mModelView.back() *= mtx;
 }
 
 void multProjection( const ci::Matrix44f& mtx )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mProjection.back() *= mtx;
+	auto ctx	= gl::context();
+	ctx->mProjection.back() *= mtx;
 }
 
 Matrix44f getModelView()
 {
-	ManagerRef manager	= Manager::get();
-	return manager->mModelView.back();
+	auto ctx	= gl::context();
+	return ctx->mModelView.back();
 }
 
 Matrix44f getProjection()
 {
-	ManagerRef manager	= Manager::get();
-	return manager->mProjection.back();
+	auto ctx	= gl::context();
+	return ctx->mProjection.back();
 }
 
 Matrix33f calcNormalMatrix()
@@ -222,9 +231,9 @@ void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees
 {
 	// TODO add perspective
 	// TODO enable origin
-	ManagerRef manager	= Manager::get();
-	manager->mModelView.back().setToIdentity();
-	manager->mProjection.back().setRows( Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
+	auto ctx	= gl::context();
+	ctx->mModelView.back().setToIdentity();
+	ctx->mProjection.back().setRows( Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
 										Vec4f( 0.0f, 2.0f / -(float)screenHeight, 0.0f, 1.0f ),
 										Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
 										Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
@@ -238,9 +247,9 @@ void setMatricesWindowPersp( const ci::Vec2i& screenSize, float fovDegrees, floa
 void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft )
 {
 	// TODO enable origin
-	ManagerRef manager	= Manager::get();
-	manager->mModelView.back().setToIdentity();
-	manager->mProjection.back().setRows( Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
+	auto ctx	= gl::context();
+	ctx->mModelView.back().setToIdentity();
+	ctx->mProjection.back().setRows( Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
 										Vec4f( 0.0f, 2.0f / -(float)screenHeight, 0.0f, 1.0f ),
 										Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
 										Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
@@ -253,153 +262,153 @@ void setMatricesWindow( const ci::Vec2i& screenSize, bool originUpperLeft )
 
 void rotate( const ci::Vec3f& v )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mModelView.back().rotate( Vec3f( toRadians( v.x ), toRadians( v.y ), toRadians( v.z ) ) );
+	auto ctx	= gl::context();
+	ctx->mModelView.back().rotate( Vec3f( toRadians( v.x ), toRadians( v.y ), toRadians( v.z ) ) );
 }
 	
 void scale( const ci::Vec3f& v )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mModelView.back().scale( v );
+	auto ctx	= gl::context();
+	ctx->mModelView.back().scale( v );
 }
 
 void translate( const ci::Vec3f& v )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mModelView.back().translate( v );
+	auto ctx	= gl::context();
+	ctx->mModelView.back().translate( v );
 }
 	
 void begin( GLenum mode )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mMode		= mode;
-	manager->clear();
+	auto ctx	= gl::context();
+	ctx->mMode		= mode;
+	ctx->clear();
 }
 
 void end()
 {
-	ManagerRef manager = Manager::get();
-	manager->draw();
+	auto ctx = gl::context();
+	ctx->draw();
 }
 
 void color( float r, float g, float b )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mColor		= ColorAf( r, g, b, 1.0f );
+	auto ctx	= gl::context();
+	ctx->mColor		= ColorAf( r, g, b, 1.0f );
 }
 
 void color( float r, float g, float b, float a )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mColor		= ColorAf( r, g, b, a );
+	auto ctx	= gl::context();
+	ctx->mColor		= ColorAf( r, g, b, a );
 }
 
 void color( const ci::Color& c )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mColor		= ColorAf( c );
+	auto ctx	= gl::context();
+	ctx->mColor		= ColorAf( c );
 }
 
 void color( const ci::ColorA& c )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mColor		= ColorAf( c );
+	auto ctx	= gl::context();
+	ctx->mColor		= ColorAf( c );
 }
 
 void color( const ci::Color8u& c )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mColor		= ColorAf( c );
+	auto ctx	= gl::context();
+	ctx->mColor		= ColorAf( c );
 }
 
 void color( const ci::ColorA8u& c )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mColor		= ColorAf( c );
+	auto ctx	= gl::context();
+	ctx->mColor		= ColorAf( c );
 }
 
 void normal( const ci::Vec3f& v )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mNormal	= v;
+	auto ctx	= gl::context();
+	ctx->mNormal	= v;
 }
 
 void texCoord( float s )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mTexCoord	= Vec4f( s, 0.0f, 0.0f, 0.0f );
+	auto ctx	= gl::context();
+	ctx->mTexCoord	= Vec4f( s, 0.0f, 0.0f, 0.0f );
 }
 
 void texCoord( float s, float t )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mTexCoord	= Vec4f( s, t, 0.0f, 0.0f );
+	auto ctx	= gl::context();
+	ctx->mTexCoord	= Vec4f( s, t, 0.0f, 0.0f );
 }
 
 void texCoord( float s, float t, float r )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mTexCoord	= Vec4f( s, t, r, 0.0f );
+	auto ctx	= gl::context();
+	ctx->mTexCoord	= Vec4f( s, t, r, 0.0f );
 }
 
 void texCoord( float s, float t, float r, float q )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mTexCoord	= Vec4f( s, t, r, q );
+	auto ctx	= gl::context();
+	ctx->mTexCoord	= Vec4f( s, t, r, q );
 }
 
 void texCoord( const ci::Vec2f& v )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mTexCoord	= Vec4f( v.x, v.y, 0.0f, 0.0f );
+	auto ctx	= gl::context();
+	ctx->mTexCoord	= Vec4f( v.x, v.y, 0.0f, 0.0f );
 }
 
 void texCoord( const ci::Vec3f& v )
 {
-	ManagerRef manager	= Manager::get();
-	manager->mTexCoord	= Vec4f( v.x, v.y, v.z, 0.0f );
+	auto ctx	= gl::context();
+	ctx->mTexCoord	= Vec4f( v.x, v.y, v.z, 0.0f );
 }
 
 void texCoord( const ci::Vec4f& v )	
 {
-	ManagerRef manager	= Manager::get();
-	manager->mTexCoord	= v;
+	auto ctx	= gl::context();
+	ctx->mTexCoord	= v;
 }
 
 void vertex( float x, float y )
 {
-	ManagerRef manager	= Manager::get();
-	manager->pushBack( Vec4f( x, y, 0.0f, 0.0f ) );
+	auto ctx	= gl::context();
+	ctx->pushBack( Vec4f( x, y, 0.0f, 0.0f ) );
 }
 
 void vertex( float x, float y, float z )
 {
-	ManagerRef manager	= Manager::get();
-	manager->pushBack( Vec4f( x, y, z, 0.0f ) );
+	auto ctx	= gl::context();
+	ctx->pushBack( Vec4f( x, y, z, 0.0f ) );
 }
 
 void vertex( float x, float y, float z, float w )
 {
-	ManagerRef manager	= Manager::get();
-	manager->pushBack( Vec4f( x, y, z, w ) );
+	auto ctx	= gl::context();
+	ctx->pushBack( Vec4f( x, y, z, w ) );
 }
 
 void vertex( const ci::Vec2f& v )
 {
-	ManagerRef manager	= Manager::get();
-	manager->pushBack( Vec4f( v.x, v.y, 0.0f, 0.0f ) );
+	auto ctx	= gl::context();
+	ctx->pushBack( Vec4f( v.x, v.y, 0.0f, 0.0f ) );
 }
 
 void vertex( const ci::Vec3f& v )
 {
-	ManagerRef manager	= Manager::get();
-	manager->pushBack( Vec4f( v.x, v.y, v.z, 0.0f ) );
+	auto ctx	= gl::context();
+	ctx->pushBack( Vec4f( v.x, v.y, v.z, 0.0f ) );
 }
 	
 void vertex( const ci::Vec4f& v )
 {
-	ManagerRef manager	= Manager::get();
-	manager->pushBack( v );
+	auto ctx	= gl::context();
+	ctx->pushBack( v );
 }
 
 void draw( const VboRef& vbo )
@@ -409,9 +418,9 @@ void draw( const VboRef& vbo )
 
 void drawRange( const VboRef& vbo, GLint start, GLsizei count )
 {
-	ManagerRef manager	= Manager::get();
-	GLenum mode			= manager->mMode;
-	if ( manager->mWireframe && mode != GL_POINTS ) {
+	auto ctx	= gl::context();
+	GLenum mode			= ctx->mMode;
+	if ( ctx->mWireframe && mode != GL_POINTS ) {
 		mode = GL_LINE_STRIP;
 	}
 	

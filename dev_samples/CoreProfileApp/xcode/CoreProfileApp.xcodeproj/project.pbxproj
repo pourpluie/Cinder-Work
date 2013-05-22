@@ -13,7 +13,7 @@
 		002A0BAD174ADB680080C3CB /* gl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0B9F174ADB680080C3CB /* gl.cpp */; };
 		002A0BAE174ADB680080C3CB /* GlslProg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA0174ADB680080C3CB /* GlslProg.cpp */; };
 		002A0BAF174ADB680080C3CB /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA1174ADB680080C3CB /* Light.cpp */; };
-		002A0BB0174ADB680080C3CB /* Manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA2174ADB680080C3CB /* Manager.cpp */; };
+		002A0BB0174ADB680080C3CB /* Context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA2174ADB680080C3CB /* Context.cpp */; };
 		002A0BB1174ADB680080C3CB /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA3174ADB680080C3CB /* Material.cpp */; };
 		002A0BB2174ADB680080C3CB /* Pbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA4174ADB680080C3CB /* Pbo.cpp */; };
 		002A0BB3174ADB680080C3CB /* Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA5174ADB680080C3CB /* Shader.cpp */; };
@@ -39,15 +39,15 @@
 /* Begin PBXFileReference section */
 		002A0B9C174ADB680080C3CB /* BufferObj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BufferObj.cpp; path = ../../../src/cinder/gl/BufferObj.cpp; sourceTree = "<group>"; };
 		002A0B9D174ADB680080C3CB /* Fbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fbo.cpp; path = ../../../src/cinder/gl/Fbo.cpp; sourceTree = "<group>"; };
-		002A0B9E174ADB680080C3CB /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fog.cpp; path = ../../../src/cinder/gl/Fog.cpp; sourceTree = "<group>"; };
-		002A0B9F174ADB680080C3CB /* gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gl.cpp; path = ../../../src/cinder/gl/gl.cpp; sourceTree = "<group>"; };
+		002A0B9E174ADB680080C3CB /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Fog.cpp; path = ../../../src/cinder/gl/Fog.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		002A0B9F174ADB680080C3CB /* gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = gl.cpp; path = ../../../src/cinder/gl/gl.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		002A0BA0174ADB680080C3CB /* GlslProg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GlslProg.cpp; path = ../../../src/cinder/gl/GlslProg.cpp; sourceTree = "<group>"; };
 		002A0BA1174ADB680080C3CB /* Light.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Light.cpp; path = ../../../src/cinder/gl/Light.cpp; sourceTree = "<group>"; };
-		002A0BA2174ADB680080C3CB /* Manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Manager.cpp; path = ../../../src/cinder/gl/Manager.cpp; sourceTree = "<group>"; };
-		002A0BA3174ADB680080C3CB /* Material.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Material.cpp; path = ../../../src/cinder/gl/Material.cpp; sourceTree = "<group>"; };
+		002A0BA2174ADB680080C3CB /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Context.cpp; path = ../../../src/cinder/gl/Context.cpp; sourceTree = "<group>"; };
+		002A0BA3174ADB680080C3CB /* Material.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Material.cpp; path = ../../../src/cinder/gl/Material.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		002A0BA4174ADB680080C3CB /* Pbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pbo.cpp; path = ../../../src/cinder/gl/Pbo.cpp; sourceTree = "<group>"; };
 		002A0BA5174ADB680080C3CB /* Shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shader.cpp; path = ../../../src/cinder/gl/Shader.cpp; sourceTree = "<group>"; };
-		002A0BA6174ADB680080C3CB /* Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Texture.cpp; path = ../../../src/cinder/gl/Texture.cpp; sourceTree = "<group>"; };
+		002A0BA6174ADB680080C3CB /* Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Texture.cpp; path = ../../../src/cinder/gl/Texture.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		002A0BA7174ADB680080C3CB /* Vao.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vao.cpp; path = ../../../src/cinder/gl/Vao.cpp; sourceTree = "<group>"; };
 		002A0BA8174ADB680080C3CB /* Vbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vbo.cpp; path = ../../../src/cinder/gl/Vbo.cpp; sourceTree = "<group>"; };
 		002A0BA9174ADB680080C3CB /* VboMesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VboMesh.cpp; path = ../../../src/cinder/gl/VboMesh.cpp; sourceTree = "<group>"; };
@@ -57,7 +57,7 @@
 		002A0BBD174ADB890080C3CB /* gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl.h; path = ../../../include/cinder/gl/gl.h; sourceTree = "<group>"; };
 		002A0BBE174ADB890080C3CB /* GlslProg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlslProg.h; path = ../../../include/cinder/gl/GlslProg.h; sourceTree = "<group>"; };
 		002A0BBF174ADB890080C3CB /* Light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Light.h; path = ../../../include/cinder/gl/Light.h; sourceTree = "<group>"; };
-		002A0BC0174ADB890080C3CB /* Manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Manager.h; path = ../../../include/cinder/gl/Manager.h; sourceTree = "<group>"; };
+		002A0BC0174ADB890080C3CB /* Context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = Context.h; path = ../../../include/cinder/gl/Context.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		002A0BC1174ADB890080C3CB /* Material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Material.h; path = ../../../include/cinder/gl/Material.h; sourceTree = "<group>"; };
 		002A0BC2174ADB890080C3CB /* Pbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Pbo.h; path = ../../../include/cinder/gl/Pbo.h; sourceTree = "<group>"; };
 		002A0BC3174ADB890080C3CB /* Shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Shader.h; path = ../../../include/cinder/gl/Shader.h; sourceTree = "<group>"; };
@@ -114,7 +114,7 @@
 				002A0B9F174ADB680080C3CB /* gl.cpp */,
 				002A0BA0174ADB680080C3CB /* GlslProg.cpp */,
 				002A0BA1174ADB680080C3CB /* Light.cpp */,
-				002A0BA2174ADB680080C3CB /* Manager.cpp */,
+				002A0BA2174ADB680080C3CB /* Context.cpp */,
 				002A0BA3174ADB680080C3CB /* Material.cpp */,
 				002A0BA4174ADB680080C3CB /* Pbo.cpp */,
 				002A0BA5174ADB680080C3CB /* Shader.cpp */,
@@ -135,7 +135,7 @@
 				002A0BBD174ADB890080C3CB /* gl.h */,
 				002A0BBE174ADB890080C3CB /* GlslProg.h */,
 				002A0BBF174ADB890080C3CB /* Light.h */,
-				002A0BC0174ADB890080C3CB /* Manager.h */,
+				002A0BC0174ADB890080C3CB /* Context.h */,
 				002A0BC1174ADB890080C3CB /* Material.h */,
 				002A0BC2174ADB890080C3CB /* Pbo.h */,
 				002A0BC3174ADB890080C3CB /* Shader.h */,
@@ -310,7 +310,7 @@
 				002A0BAD174ADB680080C3CB /* gl.cpp in Sources */,
 				002A0BAE174ADB680080C3CB /* GlslProg.cpp in Sources */,
 				002A0BAF174ADB680080C3CB /* Light.cpp in Sources */,
-				002A0BB0174ADB680080C3CB /* Manager.cpp in Sources */,
+				002A0BB0174ADB680080C3CB /* Context.cpp in Sources */,
 				002A0BB1174ADB680080C3CB /* Material.cpp in Sources */,
 				002A0BB2174ADB680080C3CB /* Pbo.cpp in Sources */,
 				002A0BB3174ADB680080C3CB /* Shader.cpp in Sources */,

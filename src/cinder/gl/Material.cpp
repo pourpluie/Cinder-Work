@@ -1,6 +1,6 @@
 #include "cinder/gl/Material.h"
 
-#include "cinder/gl/Manager.h"
+#include "cinder/gl/Context.h"
 
 namespace cinder { namespace gl {
 
@@ -11,9 +11,9 @@ Material::Material( const ColorAf& color, float ambient, float diffuse, float sp
 	
 void Material::enable( bool enabled )
 {
-	ManagerRef manager			= Manager::get();
-	manager->mMaterialEnabled	= enabled;
-	manager->mMaterial			= enabled ? *this : Material();
+	auto ctx			= gl::context();
+	ctx->mMaterialEnabled	= enabled;
+	ctx->mMaterial			= enabled ? *this : Material();
 }
 
 float Material::getAmbient() const

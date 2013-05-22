@@ -61,6 +61,8 @@ public:
 	
 	void							bind() const;
 	void							unbind() const;
+
+	void	vertexAttribPointer( const VboRef &vbo, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
 	
 	void							addAttribute( const Attribute& attr );
 	std::vector<Attribute>&			getAttributes();

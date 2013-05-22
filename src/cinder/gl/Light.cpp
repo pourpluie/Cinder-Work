@@ -1,6 +1,6 @@
 #include "cinder/gl/Light.h"
 
-#include "cinder/gl/Manager.h"
+#include "cinder/gl/Context.h"
 
 namespace cinder { namespace gl {
 
@@ -16,13 +16,13 @@ mShine( shine ), mSpecular( specular ), mType( type )
 
 void Light::enable( bool enabled )
 {
-	ManagerRef manager	= Manager::get();
+	auto ctx = gl::context();
 	if ( enabled ) {
-		manager->mLights.push_back( *this );
+		ctx->mLights.push_back( *this );
 	} else {
-		for ( vector<Light>::iterator iter = manager->mLights.begin(); iter != manager->mLights.end(); ) {
+		for ( vector<Light>::iterator iter = ctx->mLights.begin(); iter != ctx->mLights.end(); ) {
 			if ( *iter == *this ) {
-				iter = manager->mLights.erase( iter );
+				iter = ctx->mLights.erase( iter );
 			} else {
 				++iter;
 			}

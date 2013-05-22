@@ -20,18 +20,14 @@ typedef std::shared_ptr<Vbo>			VboRef;
 class Vao;
 typedef std::shared_ptr<Vao>			VaoRef;
 
-typedef std::shared_ptr<class Manager>	ManagerRef;
-
 class Texture;
 	
-class Manager
-{
-public:
+class Context {
+  public:
 	typedef std::map<Shader::UniformOptions, ShaderRef> ShaderMap;
 	
-	static ManagerRef			get();
-	Manager();
-	~Manager();
+	Context();
+	~Context();
 	
 	struct Vertex
 	{
@@ -69,11 +65,11 @@ public:
 	std::vector<Matrix44f>		mProjection;
 	
 	GLenum						mMode;
-private:
+  private:
 	friend class				Fog;
 	friend class				Light;
 	friend class				Material;
 	friend class				Texture;
 };
 
-} }
+} } // namespace cinder::gl

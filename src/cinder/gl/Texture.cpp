@@ -1,7 +1,7 @@
 #include "cinder/gl/gl.h" // has to be first
 #include "cinder/ImageIo.h"
 #include "cinder/gl/Texture.h"
-#include "cinder/gl/Manager.h"
+#include "cinder/gl/Context.h"
 #include <stdio.h>
 
 #if ! defined( CINDER_GLES )
@@ -639,7 +639,7 @@ float Texture::getMaxV() const
 
 void Texture::bind( GLuint textureUnit ) const
 {
-	gl::Manager::get()->mTextureUnit = (int)textureUnit;
+	gl::context()->mTextureUnit = (int)textureUnit;
 	glActiveTexture( GL_TEXTURE0 + textureUnit );
 	glBindTexture( mTarget, mTextureID );
 	glActiveTexture( GL_TEXTURE0 );
@@ -647,7 +647,7 @@ void Texture::bind( GLuint textureUnit ) const
 
 void Texture::unbind( GLuint textureUnit ) const
 {
-	gl::Manager::get()->mTextureUnit = -1;
+	gl::context()->mTextureUnit = -1;
 	glActiveTexture( GL_TEXTURE0 + textureUnit );
 	glBindTexture( mTarget, 0 );
 	glActiveTexture( GL_TEXTURE0 );
@@ -655,7 +655,7 @@ void Texture::unbind( GLuint textureUnit ) const
 
 void Texture::enableAndBind() const
 {
-	gl::Manager::get()->mTextureUnit = mTextureID;
+	gl::context()->mTextureUnit = mTextureID;
 	glEnable( mTarget );
 	glBindTexture( mTarget, mTextureID );
 }

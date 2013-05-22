@@ -64,7 +64,9 @@ void CoreProfileApp::setup()
 	int tex = mShader->getAttribLocation( "aTexCoord" );
 	console() << "pos: " << pos << " " << " tex " << tex << std::endl;
 	
-	mVbo->bind();	
+	mVbo->bind();
+//	mVao->vertexAttribPointer( mVbo, pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
+//	mVao->vertexAttribPointer( mVbo, tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
 	glVertexAttribPointer( pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
 	glEnableVertexAttribArray( pos );
 	glVertexAttribPointer( tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );

@@ -27,6 +27,8 @@ typedef std::shared_ptr<Vbo>		VboRef;
 class VboMesh;
 typedef std::shared_ptr<VboMesh>	VboMeshRef;
 
+class Context* context();
+
 bool isExtensionAvailable( const std::string &extName );
 
 void clear( const ColorA &color = ColorA::black(), bool clearDepthBuffer = true );
