@@ -27,7 +27,7 @@ class CoreProfileApp : public AppNative {
 	ci::gl::GlslProgRef	mShader;
 	ci::gl::TextureRef	mTexture;
 	ci::gl::VboRef		mVbo;
-	GLuint				mVao;
+	ci::gl::VaoRef		mVao;
 };
 
 void CoreProfileApp::setup()
@@ -51,18 +51,19 @@ void CoreProfileApp::setup()
 	mVbo->bufferSubData( vVertices, sizeof(vVertices), 0 );
 	mVbo->bufferSubData( vTexCoords, sizeof(vTexCoords), sizeof(vVertices) );
 
+	mVao = gl::Vao::create();
+	mVao->bind();
+
 	mShader->bind();
 //	mShader->uniform( "uTexture", 0 );
 //	mShader->uniform( "uTexEnabled", true );
 	mShader->bindAttribLocation( "aPosition", 0 );
-	mShader->bindAttribLocation( "aTexCoord", 1 );
+	mShader->bindAttribLocation( "aTexCoord", 2 );
 
 	int pos = mShader->getAttribLocation( "aPosition" );
 	int tex = mShader->getAttribLocation( "aTexCoord" );
 	console() << "pos: " << pos << " " << " tex " << tex << std::endl;
 	
-	glGenVertexArrays( 1, &mVao );
-	glBindVertexArray( mVao );
 	mVbo->bind();	
 	glVertexAttribPointer( pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
 	glEnableVertexAttribArray( pos );
@@ -74,6 +75,7 @@ void CoreProfileApp::setup()
 
 void CoreProfileApp::update()
 {
+	gl::rotate( Vec3f( 0, 0, 0.1f ) );
 }
 
 void CoreProfileApp::draw()
@@ -83,12 +85,13 @@ void CoreProfileApp::draw()
 	mShader->bind();
 	mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
 //console() << gl::getProjection() * gl::getModelView() << std::endl;
+	mVao->bind();
 	mVbo->bind();
-	glBindVertexArray( mVao );
 
-	glDrawArrays( GL_TRIANGLES, 0, 3 );
+	gl::drawArrays( GL_TRIANGLES, 0, 3 );
 	mShader->unbind();
 	mVbo->unbind();
+	mVao->unbind();
 }
 
 auto renderOptions = RendererGl::Options().coreProfile();

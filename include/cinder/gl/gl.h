@@ -111,6 +111,8 @@ void draw( const VboMeshRef& mesh );
 void drawRange( const VboMeshRef& mesh, GLint start = 0, GLsizei count = 0 );
 void draw( const VboRef& vbo );
 void drawRange( const VboRef& vbo, GLint start = 0, GLsizei count = 0 );
+
+void drawArrays( GLenum mode, GLint first, GLsizei count );
 	
 GLenum getError();
 std::string getErrorString( GLenum err );

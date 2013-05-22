@@ -463,7 +463,12 @@ void drawRange( const VboMeshRef& mesh, GLint start, GLsizei count )
 	
 	mesh->mVao->unbind();
 }
-	
+
+void drawArrays( GLenum mode, GLint first, GLsizei count )
+{
+	glDrawArrays( mode, first, count );
+}
+
 GLenum getError()
 {
 	return glGetError();
