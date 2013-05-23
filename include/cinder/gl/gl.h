@@ -37,8 +37,8 @@ void clear( const ColorA &color = ColorA::black(), bool clearDepthBuffer = true 
 Area getViewport();
 void setViewport( const Area &area );
 
-inline void enable( GLenum state ) { glEnable( state ); }
-inline void disable( GLenum state ) { glDisable( state ); }
+void enable( GLenum state, bool enable = true );
+inline void disable( GLenum state ) { enable( state, false ); }
 
 void enableAlphaBlending( bool premultiplied = false );
 void disableAlphaBlending();
@@ -110,9 +110,9 @@ void vertex( const ci::Vec2f &v );
 void vertex( const ci::Vec3f &v );
 void vertex( const ci::Vec4f &v );
 
-void draw( const VboMeshRef& mesh );
+void draw( const VboMeshRef &mesh );
 void drawRange( const VboMeshRef& mesh, GLint start = 0, GLsizei count = 0 );
-void draw( const VboRef& vbo );
+void draw( const VboRef &vbo );
 void drawRange( const VboRef& vbo, GLint start = 0, GLsizei count = 0 );
 
 void drawArrays( GLenum mode, GLint first, GLsizei count );

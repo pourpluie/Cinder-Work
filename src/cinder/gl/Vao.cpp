@@ -24,9 +24,10 @@ void Vao::Attribute::buffer()
 	
 void Vao::Attribute::enable( bool enabled )
 {
-	if ( enabled ) {
+	if( enabled ) {
 		glEnableVertexAttribArray( mIndex );
-	} else {
+	}
+	else {
 		glDisableVertexAttribArray( mIndex );
 	}
 }
@@ -177,11 +178,7 @@ void Vao::removeAttribute( GLuint index )
 
 void Vao::unbind() const
 {
-#if defined( CINDER_GLES )	
-	glBindVertexArrayOES( 0 );
-#else
-	glBindVertexArray( 0 );
-#endif
+	context()->vaoBind( 0 );
 }
 	
 } }

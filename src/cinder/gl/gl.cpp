@@ -71,39 +71,41 @@ void setViewport( const Area& area )
 	glViewport( area.x1, area.y1, ( area.x2 - area.x1 ), ( area.y2 - area.y1 ) );
 }
 
+void enable( GLenum state, bool enable )
+{
+	context()->enable( state, enable );
+}
+
 void enableAlphaBlending( bool premultiplied )
 {
 	gl::enable( GL_BLEND );
-	if ( !premultiplied ) {
+	if( ! premultiplied ) {
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	} else {
+	}
+	else {
 		glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
 	}
 }
 
 void disableAlphaBlending()
 {
-	glDisable( GL_BLEND );
+	gl::disable( GL_BLEND );
 }
 
 void enableAdditiveBlending()
 {
-	glEnable( GL_BLEND );
+	gl::enable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 }
 
 void disableDepthRead()
 {
-	glDisable( GL_DEPTH_TEST );
+	gl::disable( GL_DEPTH_TEST );
 }
 
 void enableDepthRead( bool enable )
 {
-	if ( enable ) {
-		gl::enable( GL_DEPTH_TEST );
-	} else {
-		gl::disable( GL_DEPTH_TEST );
-	}
+	gl::enable( GL_DEPTH_TEST, enable );
 }
 
 void enableDepthWrite( bool enable )

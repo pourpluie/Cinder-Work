@@ -655,8 +655,9 @@ void Texture::unbind( GLuint textureUnit ) const
 
 void Texture::enableAndBind() const
 {
-	gl::context()->mTextureUnit = mTextureID;
-	glEnable( mTarget );
+	auto ctx = gl::context();
+	ctx->mTextureUnit = mTextureID;
+	ctx->enable( mTarget );
 	glBindTexture( mTarget, mTextureID );
 }
 

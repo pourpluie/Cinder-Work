@@ -113,7 +113,7 @@ struct Format;
 	void			setFlipped( bool aFlipped = true ) { mFlipped = aFlipped; }
 	
 	/**	\brief Enables the Texture's target and binds its associated texture.
-	 Equivalent to calling \code glEnable( target ); glBindTexture( target, textureID ); \endcode **/
+	 Equivalent to calling \code gl::enable( target ); glBindTexture( target, textureID ); \endcode **/
 	void			enableAndBind() const;
 	//!	Disables the Texture's target
 	void			disable() const;

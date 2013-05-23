@@ -1,5 +1,6 @@
 #include "cinder/gl/BufferObj.h"
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Context.h"
 
 namespace cinder { namespace gl {
 
@@ -14,9 +15,8 @@ BufferObj::BufferObj( GLenum target, GLsizeiptr allocationSize )
 {
 	glGenBuffers( 1, &mId );
 	if( allocationSize > 0 ) {
-		bind();
+		auto bufferBind( context()->bufferPush( mTarget, mId ) );
 		glBufferData( mTarget, allocationSize, NULL, GL_DYNAMIC_DRAW );
-		unbind();
 	}
 }
 
@@ -27,27 +27,25 @@ BufferObj::~BufferObj()
 
 void BufferObj::bind() const
 {
-	glBindBuffer( mTarget, mId );
+	context()->bufferBind( mTarget, mId );
 }
 
 void BufferObj::bufferData( const GLvoid *data, GLsizeiptr size, GLenum usage )
 {
-	bind();
+	auto bufferBind( context()->bufferPush( mTarget, mId ) );
 	mSize = size;
 	glBufferData( mTarget, mSize, data, usage );
-	unbind();
 }
 	
 void BufferObj::bufferSubData( const GLvoid *data, GLsizeiptr size, GLintptr offset )
 {
-	bind();
+	auto bufferBind( context()->bufferPush( mTarget, mId ) );
 	glBufferSubData( mTarget, offset, size, data );
-	unbind();
 }
 	
 uint8_t* BufferObj::map( GLenum access ) const
 {
-	bind();
+	auto bufferBind( context()->bufferPush( mTarget, mId ) );
 #if defined( CINDER_GLES )
 	return reinterpret_cast<uint8_t*>( glMapBufferOES( mTarget, access ) );
 #else
@@ -57,7 +55,7 @@ uint8_t* BufferObj::map( GLenum access ) const
 
 void BufferObj::unmap() const
 {
-	bind();
+	auto bufferBind( context()->bufferPush( mTarget, mId ) );
 #if defined( CINDER_GLES )	
 	GLboolean result = glUnmapBufferOES( mTarget );
 #else
@@ -90,7 +88,7 @@ void BufferObj::setUsage( GLenum usage )
 	
 void BufferObj::unbind() const
 {
-	glBindBuffer( mTarget, 0 );
+	context()->bufferBind( mTarget, 0 );
 }
 	
 } }

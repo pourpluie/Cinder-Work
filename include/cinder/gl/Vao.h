@@ -8,9 +8,8 @@ namespace cinder { namespace gl {
 
 typedef std::shared_ptr<class Vao> VaoRef;
 
-class Vao
-{
-public:
+class Vao {
+  public:
 	enum : GLuint
 	{
 		ATTRIB_POSITION, ATTRIB_NORMAL, ATTRIB_COLOR, ATTRIB_TEXCOORD
@@ -70,7 +69,8 @@ public:
 	std::vector<Attribute>&			getAttributes();
 	const std::vector<Attribute>&	getAttributes() const;
 	void							removeAttribute( GLuint index );
-protected:
+	
+  protected:
 	Vao();
 	
 	std::vector<Attribute>			mAttributes;

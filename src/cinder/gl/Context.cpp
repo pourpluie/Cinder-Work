@@ -55,6 +55,12 @@ VaoScope Context::vaoPush( const VaoRef &vao )
 	return vaoPush( vao->getId() );
 }
 
+void Context::vaoBind( GLuint id )
+{
+	mActiveVao = id;
+	vaoPrepareUse();
+}
+
 void Context::vaoRestore( GLuint id )
 {
 	mActiveVao = id;
@@ -95,6 +101,16 @@ BufferScope Context::bufferPush( const BufferObjRef &buffer )
 	return bufferPush( buffer->getTarget(), buffer->getId() );
 }
 
+void Context::bufferBind( GLenum target, GLuint id )
+{
+	mActiveBuffer[target] = id;
+	
+	if( mTrueBuffer[target] != mActiveBuffer[target] ) {
+		mTrueBuffer[target] = mActiveBuffer[target];
+		glBindBuffer( target, mTrueBuffer[target] );
+	}
+}
+
 void Context::bufferRestore( GLenum target, GLuint id )
 {
 	mActiveBuffer[target] = id;
@@ -113,12 +129,69 @@ void Context::bufferPrepareUse( GLenum target )
 	}
 }
 
+//////////////////////////////////////////////////////////////////
+// States
+StateScope Context::enablePush( GLenum cap, bool enable )
+{
+	if( mActiveState.find( cap ) == mActiveState.end() )
+		mTrueState[cap] = mActiveState[cap] = glIsEnabled( cap );
+
+	StateScope result( this, cap, mActiveState[cap] );
+	mActiveState[cap] = enable;
+	statePrepareUse( cap );
+	return result;
+}
+
+StateScope Context::disablePush( GLenum cap )
+{
+	return enablePush( cap, false );
+}
+
+void Context::enable( GLenum cap, bool enable )
+{
+	mActiveState[cap] = enable;
+	
+	if( mTrueState[cap] != mActiveState[cap] ) {
+		mTrueState[cap] = mActiveState[cap];
+		if( mTrueState[cap] )
+			glEnable( cap );
+		else
+			glDisable( cap );
+	}	
+}
+
+void Context::stateRestore( GLenum cap, bool enable )
+{
+	mActiveState[cap] = enable;
+}
+
+void Context::statePrepareUse( GLenum cap )
+{
+	if( (mActiveState.find( cap ) == mActiveState.end()) || (mTrueState.find( cap ) == mTrueState.end()) )
+		mTrueState[cap] = mActiveState[cap] = glIsEnabled( cap );
+		
+	if( mTrueState[cap] != mActiveState[cap] ) {
+		mTrueState[cap] = mActiveState[cap];
+		if( mTrueState[cap] )
+			glEnable( cap );
+		else
+			glDisable( cap );
+	}
+}
+
+void Context::statesPrepareUse()
+{
+	for( auto stateIt = mActiveState.cbegin(); stateIt != mActiveState.cend(); ++stateIt )
+		statePrepareUse( stateIt->first );
+}
+
 /////////////////////////////////////////////////////////////////////////////////////
 void Context::prepareDraw()
 {
 	vaoPrepareUse();
 	bufferPrepareUse( GL_ARRAY_BUFFER );
 	bufferPrepareUse( GL_ELEMENT_ARRAY_BUFFER );
+	statesPrepareUse();
 }
 
 void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
@@ -177,7 +250,6 @@ void Context::draw()
 			mImmVbo->setUsage( GL_DYNAMIC_DRAW );
 		}
 		mImmVbo->bufferData( &mVertices[ 0 ], ( GLuint )( mVertices.size() * stride ), GL_DYNAMIC_DRAW );
-		mImmVbo->bind();
 	
 		// Create VAO. All shader variations have the same attribute
 		// layout, so we only need to this once

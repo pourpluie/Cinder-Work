@@ -21,10 +21,12 @@ class Vao;
 typedef std::shared_ptr<Vao>			VaoRef;
 class BufferObj;
 typedef std::shared_ptr<BufferObj>		BufferObjRef;
-
 class Texture;
+typedef std::shared_ptr<Texture>		TextureRef;
+
 struct VaoScope;
 struct BufferScope;
+struct StateScope;
 
 class Context {
   public:
@@ -36,15 +38,24 @@ class Context {
 	VaoScope	vaoPush( GLuint id );
 	VaoScope	vaoPush( const Vao *vao );
 	VaoScope	vaoPush( const VaoRef &vao );
+	void		vaoBind( GLuint id );
 	void		vaoRestore( GLuint id );
 	void		vaoPrepareUse();
 
 	BufferScope		bufferPush( GLenum target, GLuint id );
 	BufferScope		bufferPush( const BufferObj *buffer );
 	BufferScope		bufferPush( const BufferObjRef &vbuffer );
+	void			bufferBind( GLenum target, GLuint id );
 	void			bufferRestore( GLenum target, GLuint id );
 	void			bufferPrepareUse( GLenum target );
 
+	StateScope		enablePush( GLenum cap, bool enable = true );
+	StateScope		disablePush( GLenum cap );
+	void			enable( GLenum cap, bool enable = true );
+	void			disable( GLenum cap ) { enable( cap, false ); }
+	void			stateRestore( GLenum cap, bool enable );
+	void			statePrepareUse( GLenum cap );
+	void			statesPrepareUse();
 	
 	void		prepareDraw();
 
@@ -53,7 +64,7 @@ class Context {
 
 	GLuint						mActiveVao, mTrueVao;
 	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;
-
+	std::map<GLenum,bool>		mActiveState, mTrueState;
 	
 	struct Vertex
 	{
@@ -101,25 +112,31 @@ class Context {
 };
 
 
-struct VaoScope {
-	VaoScope( Context *ctx, GLuint prevVao ) 
-		: mCtx( ctx ), mPrevVao( prevVao )
-	{
-	}
+struct VaoScope : public boost::noncopyable {
+	VaoScope( Context *ctx, GLuint prevId ) 
+		: mCtx( ctx ), mPrevId( prevId )
+	{}
+	
+	VaoScope( const VaoScope &&rhs )
+		: mCtx( rhs.mCtx ), mPrevId( rhs.mPrevId )
+	{}
 	
 	~VaoScope() {
-		mCtx->vaoRestore( mPrevVao );
+		mCtx->vaoRestore( mPrevId );
 	}
   private:
 	Context		*mCtx;
-	GLuint		mPrevVao;
+	GLuint		mPrevId;
 };
 
-struct BufferScope {
+struct BufferScope : public boost::noncopyable {
 	BufferScope( Context *ctx, GLenum target, GLuint prevValue )
 		: mCtx( ctx ), mTarget( target ), mPrevValue( prevValue )
-	{
-	}
+	{}
+
+	BufferScope( const BufferScope &&rhs )
+		: mCtx( rhs.mCtx ), mTarget( rhs.mTarget ), mPrevValue( rhs.mPrevValue )
+	{}
 	
 	~BufferScope() {
 		mCtx->bufferRestore( mTarget, mPrevValue );
@@ -128,6 +145,24 @@ struct BufferScope {
 	Context		*mCtx;
 	GLenum		mTarget;
 	GLuint		mPrevValue;
+};
+
+struct StateScope : public boost::noncopyable {
+	StateScope( Context *ctx, GLenum cap, GLuint prevValue )
+		: mCtx( ctx ), mCap( cap ), mPrevValue( prevValue )
+	{}
+
+	StateScope( const StateScope &&rhs )
+		: mCtx( rhs.mCtx ), mCap( rhs.mCap ), mPrevValue( rhs.mPrevValue )
+	{}
+	
+	~StateScope() {
+		mCtx->stateRestore( mCap, mPrevValue );
+	}
+  private:
+	Context		*mCtx;
+	GLenum		mCap;
+	bool		mPrevValue;
 };
 
 } } // namespace cinder::gl
