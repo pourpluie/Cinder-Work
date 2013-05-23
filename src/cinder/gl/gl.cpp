@@ -445,7 +445,7 @@ void draw( const VboMeshRef& mesh )
 
 void drawRange( const VboMeshRef& mesh, GLint start, GLsizei count )
 {
-	mesh->mVao->bind();
+	auto vaoBind( mesh->mVao );
 	
 	if ( mesh->mVboIndices ) {
 		if ( mesh->mVboVerticesDynamic ) {
@@ -475,6 +475,7 @@ void drawRange( const VboMeshRef& mesh, GLint start, GLsizei count )
 
 void drawArrays( GLenum mode, GLint first, GLsizei count )
 {
+	context()->prepareDraw();
 	glDrawArrays( mode, first, count );
 }
 
@@ -485,7 +486,7 @@ GLenum getError()
 
 std::string getErrorString( GLenum err )
 {
-	switch ( err ) {
+	switch( err ) {
 		case GL_NO_ERROR:
 			return "GL_NO_ERROR";;
 		case GL_INVALID_ENUM:
@@ -498,8 +499,9 @@ std::string getErrorString( GLenum err )
 			return "GL_INVALID_FRAMEBUFFER_OPERATION";
 		case GL_OUT_OF_MEMORY:
 			return "GL_OUT_OF_MEMORY";
+		default:
+			return "";
 	}
-	return "";
 }
 	
 SaveTextureBindState::SaveTextureBindState( GLint target )

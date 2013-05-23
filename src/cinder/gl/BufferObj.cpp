@@ -73,11 +73,6 @@ size_t BufferObj::getSize() const
 	return mSize;
 }
 	
-GLenum BufferObj::getTarget() const
-{
-	return mTarget;
-}
-
 void BufferObj::setTarget( GLenum target )
 {
 	mTarget = target;

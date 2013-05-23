@@ -59,8 +59,10 @@ public:
 	static VaoRef					create();
 	~Vao();
 	
-	void							bind() const;
+//	void							bind() const;
 	void							unbind() const;
+
+	GLuint							getId() const { return mId; }
 
 	void	vertexAttribPointer( const VboRef &vbo, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
 	

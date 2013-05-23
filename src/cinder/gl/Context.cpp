@@ -16,9 +16,9 @@ namespace cinder { namespace gl {
 using namespace std;
 	
 Context::Context()
-: mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
-mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
-mTextureUnit( -1 ), mWireframe( false )
+	: mActiveVao( 0 ), mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
+	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
+	mTextureUnit( -1 ), mWireframe( false )
 {
 	clear();
 	mModelView.push_back( Matrix44f() );
@@ -30,6 +30,116 @@ mTextureUnit( -1 ), mWireframe( false )
 Context::~Context()
 {
 	clear();
+}
+
+//////////////////////////////////////////////////////////////////
+// VAO
+VaoScope Context::vaoPush( GLuint id )
+{
+	mVaoStack.push_back( id );
+	if( mActiveVao != id ) {
+		mActiveVao = id;
+#if defined( CINDER_GLES )
+		glBindVertexArrayOES( mActiveVao );
+#else
+		glBindVertexArray( mActiveVao );
+#endif
+	}
+	return VaoScope( this );
+}
+
+VaoScope Context::vaoPush( const Vao *vao )
+{
+	return vaoPush( vao->getId() );
+}
+
+VaoScope Context::vaoPush( const VaoRef &vao )
+{
+	return vaoPush( vao->getId() );
+}
+
+void Context::vaoPop()
+{
+	mVaoStack.pop_back();
+}
+
+void Context::vaoPrepareUse()
+{
+	if( mVaoStack.back() != mActiveVao ) {
+		mActiveVao = mVaoStack.back();
+#if defined( CINDER_GLES )
+		glBindVertexArrayOES( mActiveVao );
+#else
+		glBindVertexArray( mActiveVao );
+#endif
+	}
+}
+
+//////////////////////////////////////////////////////////////////
+// Buffer
+BufferScope Context::bufferPush( GLenum target, GLuint id )
+{
+	mBufferStack[target].push_back( id );
+	if( mActiveBuffer[target] != id ) {
+		mActiveBuffer[target] = id;
+		glBindBuffer( target, id );
+	}
+	return BufferScope( this, id );
+}
+
+BufferScope Context::bufferPush( const BufferObj *buffer )
+{
+	return bufferPush( buffer->getTarget(), buffer->getId() );
+}
+
+BufferScope Context::bufferPush( const BufferObjRef &buffer )
+{
+	return bufferPush( buffer->getTarget(), buffer->getId() );
+}
+
+void Context::bufferPop( GLenum target )
+{
+	mBufferStack[target].pop_back();
+}
+
+void Context::bufferPrepareUse( GLenum target )
+{
+	if( mActiveBuffer.find( target ) == mActiveBuffer.end() )
+		mActiveBuffer[target] = 0;
+	if( mBufferStack.find( target ) == mBufferStack.end() ) {
+		mBufferStack[target] = vector<GLuint>();
+		mBufferStack[target].push_back( 0 );
+	}
+
+	if( mBufferStack[target].back() != mActiveBuffer[target] ) {
+		mActiveBuffer[target] = mBufferStack[target].back();
+#if defined( CINDER_GLES )
+		glBindVertexArrayOES( mActiveVao );
+#else
+		glBindVertexArray( mActiveVao );
+#endif
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+void Context::prepareDraw()
+{
+	vaoPrepareUse();
+	bufferPrepareUse( GL_ARRAY_BUFFER );
+	bufferPrepareUse( GL_ELEMENT_ARRAY_BUFFER );
+}
+
+void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
+{
+	vaoPrepareUse();
+	bufferPrepareUse( GL_ARRAY_BUFFER );
+	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
+}
+
+void Context::enableVertexAttribArray( GLuint index )
+{
+	vaoPrepareUse();
+	glEnableVertexAttribArray( index );
 }
 
 void Context::clear()
@@ -126,11 +236,9 @@ void Context::draw()
 		
 		// Draw
 		shader->bind();
-		mVao->bind();
-		mVbo->bind();
-		glDrawArrays( mode, 0, mVertices.size() );
-		mVbo->unbind();
-		mVao->unbind();
+		auto vaoBind( context()->vaoPush( mVao ) );
+		auto vboBind( context()->bufferPush( mVbo ) );
+		drawArrays( mode, 0, mVertices.size() );
 		shader->unbind();
 	}
 	clear();

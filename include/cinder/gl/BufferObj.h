@@ -20,10 +20,10 @@ class BufferObj {
 	uint8_t*			map( GLenum access ) const;
 	void				unmap() const;
 	
-	GLuint				getId() const;
+	GLuint				getId() const { return mId; }
 	size_t				getSize() const;
 	
-	GLenum				getTarget() const;
+	GLenum				getTarget() const { return mTarget; }
 	void				setTarget( GLenum target );
 	
 	GLenum				getUsage() const;

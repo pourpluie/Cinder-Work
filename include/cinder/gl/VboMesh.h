@@ -73,7 +73,7 @@ class VboMesh {
 	static VboMeshRef	create( size_t numIndices, size_t numVertices, const Layout& layout = Layout(), GLenum mode = GL_TRIANGLES );
 	static VboMeshRef	create( const ci::TriMesh& mesh, const Layout& layout = Layout() );
 	
-	void	bind() const;
+//	void	bind() const;
 	void	unbind() const;
 	
 	void	bufferIndices( const std::vector<GLuint>& indices );

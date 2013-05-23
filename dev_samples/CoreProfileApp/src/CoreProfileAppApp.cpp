@@ -52,7 +52,6 @@ void CoreProfileApp::setup()
 	mVbo->bufferSubData( vTexCoords, sizeof(vTexCoords), sizeof(vVertices) );
 
 	mVao = gl::Vao::create();
-	mVao->bind();
 
 	mShader->bind();
 //	mShader->uniform( "uTexture", 0 );
@@ -64,13 +63,12 @@ void CoreProfileApp::setup()
 	int tex = mShader->getAttribLocation( "aTexCoord" );
 	console() << "pos: " << pos << " " << " tex " << tex << std::endl;
 	
-	mVbo->bind();
-//	mVao->vertexAttribPointer( mVbo, pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
-//	mVao->vertexAttribPointer( mVbo, tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
-	glVertexAttribPointer( pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
-	glEnableVertexAttribArray( pos );
-	glVertexAttribPointer( tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
-	glEnableVertexAttribArray( tex );
+	mVao->vertexAttribPointer( mVbo, pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
+	mVao->vertexAttribPointer( mVbo, tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
+//	glVertexAttribPointer( pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
+//	glEnableVertexAttribArray( pos );
+//	glVertexAttribPointer( tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
+//	glEnableVertexAttribArray( tex );
 	
 	gl::setMatricesWindowPersp( getWindowSize() );
 }
@@ -87,13 +85,12 @@ void CoreProfileApp::draw()
 	mShader->bind();
 	mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
 //console() << gl::getProjection() * gl::getModelView() << std::endl;
-	mVao->bind();
+	auto vaoBind( gl::context()->vaoPush( mVao ) );
 	mVbo->bind();
 
 	gl::drawArrays( GL_TRIANGLES, 0, 3 );
 	mShader->unbind();
 	mVbo->unbind();
-	mVao->unbind();
 }
 
 auto renderOptions = RendererGl::Options().coreProfile();

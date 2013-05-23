@@ -160,7 +160,7 @@ mNumVertices( mesh.getNumVertices() )
 	}
 }
 
-void VboMesh::bind() const
+/*void VboMesh::bind() const
 {
 	mVao->bind();
 	if ( mVboIndices ) {
@@ -172,7 +172,7 @@ void VboMesh::bind() const
 	if ( mVboVerticesStatic ) {
 		mVboVerticesStatic->bind();
 	}
-}
+}*/
 
 void VboMesh::unbind() const
 {

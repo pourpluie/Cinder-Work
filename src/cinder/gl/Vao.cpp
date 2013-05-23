@@ -1,4 +1,6 @@
 #include "cinder/gl/Vao.h"
+#include "cinder/gl/Vbo.h"
+#include "cinder/gl/Context.h"
 
 namespace cinder { namespace gl {
 
@@ -123,35 +125,33 @@ Vao::~Vao()
 
 void Vao::vertexAttribPointer( const VboRef &vbo, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-/*	auto ctx = gl::context();
-	auto vaoBind = ctx->pushBind( this );
-	auto vboBind = ctx->pushBind( vbo );
-	if( gl::env()->supportsVao() ) {
-		gl::env()->vertexAttribPointer( index, size, type, normalized, stride, pointer );
-		gl::env()->enableVertexAttrib( index );
-	}
-	else {
-		
-	}*/
+	auto ctx = gl::context();
+	auto vaoBind = ctx->vaoPush( this );
+	auto vboBind = ctx->bufferPush( vbo );
+
+	ctx->vertexAttribPointer( index, size, type, normalized, stride, pointer );
+	ctx->enableVertexAttribArray( index );
 }
 
 void Vao::addAttribute( const Vao::Attribute &attr )
 {
-	bind();
+//	bind();
+	auto vaoBind( context()->vaoPush( this ) );
 	mAttributes.push_back( attr );
 	mAttributes.back().buffer();
 	mAttributes.back().enable();
-	unbind();
+//	unbind();
 }
 	
-void Vao::bind() const
+/*void Vao::bind() const
 {
+	context()->bind( this );
 #if defined( CINDER_GLES )
 	glBindVertexArrayOES( mId );
 #else
 	glBindVertexArray( mId );
 #endif
-}
+}*/
 	
 vector<Vao::Attribute>& Vao::getAttributes()
 {
