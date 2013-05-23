@@ -2,6 +2,7 @@
 #include "cinder/app/RendererGl.h"
 #include "cinder/Camera.h"
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Context.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Light.h"
 #include "cinder/gl/Material.h"

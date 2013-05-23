@@ -36,13 +36,13 @@ class Context {
 	VaoScope	vaoPush( GLuint id );
 	VaoScope	vaoPush( const Vao *vao );
 	VaoScope	vaoPush( const VaoRef &vao );
-	void		vaoPop();
+	void		vaoRestore( GLuint id );
 	void		vaoPrepareUse();
 
 	BufferScope		bufferPush( GLenum target, GLuint id );
 	BufferScope		bufferPush( const BufferObj *buffer );
 	BufferScope		bufferPush( const BufferObjRef &vbuffer );
-	void			bufferPop( GLenum target );
+	void			bufferRestore( GLenum target, GLuint id );
 	void			bufferPrepareUse( GLenum target );
 
 	
@@ -51,11 +51,8 @@ class Context {
 	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
 	void		enableVertexAttribArray( GLuint index );
 
-	GLuint				mActiveVao;
-	std::vector<GLuint>	mVaoStack;
-	
-	std::map<GLenum,GLuint>					mActiveBuffer;
-	std::map<GLenum,std::vector<GLuint>>	mBufferStack;
+	GLuint						mActiveVao, mTrueVao;
+	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;
 
 	
 	struct Vertex
@@ -80,21 +77,21 @@ class Context {
 	
 	void						clear();
 	void						draw();
-	
+
 	ci::ColorAf					mColor;
 	bool						mLighting;
 	ci::Vec3f					mNormal;
 	ci::Vec4f					mTexCoord;
 	bool						mWireframe;
-	
+
 	std::vector<Vertex>			mVertices;
 	void						pushBack( const Vec4f &v );
-	
+
 	std::vector<Matrix44f>		mModelView;
 	std::vector<Matrix44f>		mProjection;
-	
+
 	GLenum						mMode;
-	
+
   private:
 	friend class				Environment;
 	friend class				Fog;
@@ -105,29 +102,32 @@ class Context {
 
 
 struct VaoScope {
-	VaoScope( Context *ctx ) : mCtx( ctx )
+	VaoScope( Context *ctx, GLuint prevVao ) 
+		: mCtx( ctx ), mPrevVao( prevVao )
 	{
 	}
 	
 	~VaoScope() {
-		mCtx->vaoPop();
+		mCtx->vaoRestore( mPrevVao );
 	}
   private:
 	Context		*mCtx;
+	GLuint		mPrevVao;
 };
 
 struct BufferScope {
-	BufferScope( Context *ctx, GLenum target )
-		: mCtx( ctx ), mTarget( target )
+	BufferScope( Context *ctx, GLenum target, GLuint prevValue )
+		: mCtx( ctx ), mTarget( target ), mPrevValue( prevValue )
 	{
 	}
 	
 	~BufferScope() {
-		mCtx->bufferPop( mTarget );
+		mCtx->bufferRestore( mTarget, mPrevValue );
 	}
   private:
 	Context		*mCtx;
 	GLenum		mTarget;
+	GLuint		mPrevValue;
 };
 
 } } // namespace cinder::gl

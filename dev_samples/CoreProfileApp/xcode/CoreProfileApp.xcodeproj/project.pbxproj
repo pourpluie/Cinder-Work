@@ -29,6 +29,7 @@
 		00B784B40FF439BC000DE1D7 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */; };
 		00B784B50FF439BC000DE1D7 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B10FF439BC000DE1D7 /* AudioUnit.framework */; };
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
+		00F85D1C174DBE4300F1E23E /* Environment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F85D1B174DBE4300F1E23E /* Environment.cpp */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
 		5323E6B60EAFCA7E003A9687 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B50EAFCA7E003A9687 /* QTKit.framework */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -73,6 +74,8 @@
 		00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		00B784B10FF439BC000DE1D7 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		00B784B20FF439BC000DE1D7 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		00F85D1A174DBE2D00F1E23E /* Environment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Environment.h; path = ../../../include/cinder/gl/Environment.h; sourceTree = "<group>"; };
+		00F85D1B174DBE4300F1E23E /* Environment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Environment.cpp; path = ../../../src/cinder/gl/Environment.cpp; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		18CC64E66609466E9CD3A369 /* CoreProfileApp_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = CoreProfileApp_Prefix.pch; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -108,6 +111,7 @@
 		002A0BB9174ADB6C0080C3CB /* gl */ = {
 			isa = PBXGroup;
 			children = (
+				00F85D1B174DBE4300F1E23E /* Environment.cpp */,
 				002A0BA2174ADB680080C3CB /* Context.cpp */,
 				002A0B9C174ADB680080C3CB /* BufferObj.cpp */,
 				002A0B9D174ADB680080C3CB /* Fbo.cpp */,
@@ -129,6 +133,7 @@
 		002A0BC8174ADB900080C3CB /* gl */ = {
 			isa = PBXGroup;
 			children = (
+				00F85D1A174DBE2D00F1E23E /* Environment.h */,
 				002A0BC0174ADB890080C3CB /* Context.h */,
 				002A0BBA174ADB890080C3CB /* BufferObj.h */,
 				002A0BBB174ADB890080C3CB /* Fbo.h */,
@@ -318,6 +323,7 @@
 				002A0BB5174ADB680080C3CB /* Vao.cpp in Sources */,
 				002A0BB6174ADB680080C3CB /* Vbo.cpp in Sources */,
 				002A0BB7174ADB680080C3CB /* VboMesh.cpp in Sources */,
+				00F85D1C174DBE4300F1E23E /* Environment.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -39,16 +39,10 @@ Context::~Context()
 // VAO
 VaoScope Context::vaoPush( GLuint id )
 {
-	mVaoStack.push_back( id );
-	if( mActiveVao != id ) {
-		mActiveVao = id;
-#if defined( CINDER_GLES )
-		glBindVertexArrayOES( mActiveVao );
-#else
-		glBindVertexArray( mActiveVao );
-#endif
-	}
-	return VaoScope( this );
+	VaoScope result( this, mActiveVao );
+	mActiveVao = id;
+	vaoPrepareUse();
+	return result;
 }
 
 VaoScope Context::vaoPush( const Vao *vao )
@@ -61,19 +55,19 @@ VaoScope Context::vaoPush( const VaoRef &vao )
 	return vaoPush( vao->getId() );
 }
 
-void Context::vaoPop()
+void Context::vaoRestore( GLuint id )
 {
-	mVaoStack.pop_back();
+	mActiveVao = id;
 }
 
 void Context::vaoPrepareUse()
 {
-	if( mVaoStack.back() != mActiveVao ) {
-		mActiveVao = mVaoStack.back();
+	if( mTrueVao != mActiveVao ) {
+		mTrueVao = mActiveVao;
 #if defined( CINDER_GLES )
-		glBindVertexArrayOES( mActiveVao );
+		glBindVertexArrayOES( mTrueVao );
 #else
-		glBindVertexArray( mActiveVao );
+		glBindVertexArray( mTrueVao );
 #endif
 	}
 }
@@ -82,12 +76,13 @@ void Context::vaoPrepareUse()
 // Buffer
 BufferScope Context::bufferPush( GLenum target, GLuint id )
 {
-	mBufferStack[target].push_back( id );
-	if( mActiveBuffer[target] != id ) {
-		mActiveBuffer[target] = id;
-		glBindBuffer( target, id );
-	}
-	return BufferScope( this, id );
+	if( mActiveBuffer.find( target ) == mActiveBuffer.end() )
+		mActiveBuffer[target] = 0;
+
+	BufferScope result( this, target, mActiveBuffer[target] );
+	mActiveBuffer[target] = id;
+	bufferPrepareUse( id );
+	return result;
 }
 
 BufferScope Context::bufferPush( const BufferObj *buffer )
@@ -100,27 +95,21 @@ BufferScope Context::bufferPush( const BufferObjRef &buffer )
 	return bufferPush( buffer->getTarget(), buffer->getId() );
 }
 
-void Context::bufferPop( GLenum target )
+void Context::bufferRestore( GLenum target, GLuint id )
 {
-	mBufferStack[target].pop_back();
+	mActiveBuffer[target] = id;
 }
 
 void Context::bufferPrepareUse( GLenum target )
 {
 	if( mActiveBuffer.find( target ) == mActiveBuffer.end() )
 		mActiveBuffer[target] = 0;
-	if( mBufferStack.find( target ) == mBufferStack.end() ) {
-		mBufferStack[target] = vector<GLuint>();
-		mBufferStack[target].push_back( 0 );
-	}
+	if( mTrueBuffer.find( target ) == mTrueBuffer.end() )
+		mTrueBuffer[target] = 0;
 
-	if( mBufferStack[target].back() != mActiveBuffer[target] ) {
-		mActiveBuffer[target] = mBufferStack[target].back();
-#if defined( CINDER_GLES )
-		glBindVertexArrayOES( mActiveVao );
-#else
-		glBindVertexArray( mActiveVao );
-#endif
+	if( mTrueBuffer[target] != mActiveBuffer[target] ) {
+		mTrueBuffer[target] = mActiveBuffer[target];
+		glBindBuffer( target, mTrueBuffer[target] );
 	}
 }
 
