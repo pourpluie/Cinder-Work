@@ -23,6 +23,7 @@
 		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
 		00F85D15174D343F00F1E23E /* Context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F85D14174D343F00F1E23E /* Context.cpp */; };
+		00F85D19174DB85300F1E23E /* Environment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F85D17174DB85300F1E23E /* Environment.cpp */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
@@ -74,6 +75,8 @@
 		00CFDF6A1138442D0091E310 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00F85D13174D342F00F1E23E /* Context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Context.h; path = ../../../include/cinder/gl/Context.h; sourceTree = "<group>"; };
 		00F85D14174D343F00F1E23E /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Context.cpp; path = ../../../src/cinder/gl/Context.cpp; sourceTree = "<group>"; };
+		00F85D16174DB7E900F1E23E /* Environment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Environment.h; path = ../../../include/cinder/gl/Environment.h; sourceTree = "<group>"; };
+		00F85D17174DB85300F1E23E /* Environment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Environment.cpp; path = ../../../src/cinder/gl/Environment.cpp; sourceTree = "<group>"; };
 		017CF1E2842A4910946736DB /* Es2App_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Es2App_Prefix.pch; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -137,6 +140,7 @@
 				00611D34174AC6FB00BE54C2 /* Vao.cpp */,
 				00611D35174AC6FD00BE54C2 /* VboMesh.cpp */,
 				00611D2E174AC6B600BE54C2 /* BufferObj.cpp */,
+				00F85D17174DB85300F1E23E /* Environment.cpp */,
 			);
 			name = gl;
 			sourceTree = "<group>";
@@ -159,6 +163,7 @@
 				00611D29174AC26000BE54C2 /* Vbo.h */,
 				00611D2A174AC26000BE54C2 /* VboMesh.h */,
 				AE6B7BA3169602FC00B97126 /* Resources.h */,
+				00F85D16174DB7E900F1E23E /* Environment.h */,
 			);
 			name = gl;
 			sourceTree = "<group>";
@@ -313,6 +318,7 @@
 				00611D48174AC72B00BE54C2 /* Texture.cpp in Sources */,
 				00611D49174AC72B00BE54C2 /* Vbo.cpp in Sources */,
 				00F85D15174D343F00F1E23E /* Context.cpp in Sources */,
+				00F85D19174DB85300F1E23E /* Environment.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

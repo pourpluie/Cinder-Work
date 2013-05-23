@@ -28,6 +28,7 @@ class VboMesh;
 typedef std::shared_ptr<VboMesh>	VboMeshRef;
 
 class Context* context();
+class Environment* env();
 
 bool isExtensionAvailable( const std::string &extName );
 

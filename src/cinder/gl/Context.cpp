@@ -1,5 +1,6 @@
-#include "cinder/gl/gl.h"
 #include "cinder/gl/Context.h"
+#include "cinder/gl/gl.h"
+#include "cinder/gl/Environment.h"
 #include "cinder/gl/fog.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Light.h"
@@ -20,6 +21,8 @@ Context::Context()
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
 	mTextureUnit( -1 ), mWireframe( false )
 {
+	env()->initializeContextDefaults( this );
+
 	clear();
 	mModelView.push_back( Matrix44f() );
 	mModelView.back().setToIdentity();

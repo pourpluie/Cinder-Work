@@ -94,7 +94,9 @@ class Context {
 	std::vector<Matrix44f>		mProjection;
 	
 	GLenum						mMode;
+	
   private:
+	friend class				Environment;
 	friend class				Fog;
 	friend class				Light;
 	friend class				Material;
