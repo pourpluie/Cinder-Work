@@ -75,8 +75,8 @@ class Context {
 	int							mTextureUnit;
 	
 	ShaderMap					mShaders;
-	VaoRef						mVao;
-	VboRef						mVbo;
+	VaoRef						mImmVao; // Immediate-mode VAO
+	VboRef						mImmVbo; // Immediate-mode VBO
 	
 	void						clear();
 	void						draw();

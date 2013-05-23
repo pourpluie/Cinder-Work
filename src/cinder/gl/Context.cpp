@@ -183,38 +183,38 @@ void Context::draw()
 		
 		// Buffer data
 		GLsizei stride = (GLsizei)sizeof( Context::Vertex );
-		if ( ! mVbo ) {
-			mVbo = Vbo::create( GL_ARRAY_BUFFER );
-			mVbo->setUsage( GL_DYNAMIC_DRAW );
+		if ( ! mImmVbo ) {
+			mImmVbo = Vbo::create( GL_ARRAY_BUFFER );
+			mImmVbo->setUsage( GL_DYNAMIC_DRAW );
 		}
-		mVbo->bufferData( &mVertices[ 0 ], ( GLuint )( mVertices.size() * stride ), GL_DYNAMIC_DRAW );
-		mVbo->bind();
+		mImmVbo->bufferData( &mVertices[ 0 ], ( GLuint )( mVertices.size() * stride ), GL_DYNAMIC_DRAW );
+		mImmVbo->bind();
 	
 		// Create VAO. All shader variations have the same attribute
 		// layout, so we only need to this once
-		if ( !mVao ) {
-			mVao = Vao::create();
+		if( ! mImmVao ) {
+			mImmVao = Vao::create();
 			const GlslProgRef& glslProg = shader->getGlslProg();
 			
 			GLint offset	= 0;
 			GLint size		= 4;
 			Vao::Attribute attrColor( glslProg->getAttribLocation( "aColor" ), size, GL_FLOAT, false, stride, ( const GLvoid* )offset );
-			mVao->addAttribute( attrColor );
+			mImmVao->addAttribute( attrColor );
 			offset			+= size * sizeof( float );
 			
 			size			= 3;
 			Vao::Attribute attrNormal( glslProg->getAttribLocation( "aNormal" ), size, GL_FLOAT, false, stride, ( const GLvoid* )offset );
-			mVao->addAttribute( attrNormal );
+			mImmVao->addAttribute( attrNormal );
 			offset			+= size * sizeof( float );
 			
 			size			= 3;
 			Vao::Attribute attrPosition( glslProg->getAttribLocation( "aPosition" ), size, GL_FLOAT, false, stride, ( const GLvoid* )offset );
-			mVao->addAttribute( attrPosition );
+			mImmVao->addAttribute( attrPosition );
 			offset			+= size * sizeof( float );
 			
 			size			= 4;
 			Vao::Attribute attrTexCoord( glslProg->getAttribLocation( "aTexCoord" ), size, GL_FLOAT, false, stride, ( const GLvoid* )offset );
-			mVao->addAttribute( attrTexCoord );
+			mImmVao->addAttribute( attrTexCoord );
 			offset			+= size * sizeof( float );
 		}
 		
@@ -239,8 +239,8 @@ void Context::draw()
 		
 		// Draw
 		shader->bind();
-		auto vaoBind( context()->vaoPush( mVao ) );
-		auto vboBind( context()->bufferPush( mVbo ) );
+		auto vaoBind( context()->vaoPush( mImmVao ) );
+		auto vboBind( context()->bufferPush( mImmVbo ) );
 		drawArrays( mode, 0, mVertices.size() );
 		shader->unbind();
 	}
