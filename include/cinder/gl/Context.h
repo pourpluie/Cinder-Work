@@ -134,12 +134,15 @@ struct BufferScope : public boost::noncopyable {
 		: mCtx( ctx ), mTarget( target ), mPrevValue( prevValue )
 	{}
 
-	BufferScope( const BufferScope &&rhs )
+	BufferScope( BufferScope &&rhs )
 		: mCtx( rhs.mCtx ), mTarget( rhs.mTarget ), mPrevValue( rhs.mPrevValue )
-	{}
+	{
+		rhs.mTarget = 0;
+	}
 	
 	~BufferScope() {
-		mCtx->bufferRestore( mTarget, mPrevValue );
+		if( mTarget )
+			mCtx->bufferRestore( mTarget, mPrevValue );
 	}
   private:
 	Context		*mCtx;

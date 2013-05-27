@@ -87,7 +87,7 @@ BufferScope Context::bufferPush( GLenum target, GLuint id )
 
 	BufferScope result( this, target, mActiveBuffer[target] );
 	mActiveBuffer[target] = id;
-	bufferPrepareUse( id );
+	bufferPrepareUse( target );
 	return result;
 }
 
