@@ -80,35 +80,28 @@ void Context::vaoPrepareUse()
 
 //////////////////////////////////////////////////////////////////
 // Buffer
-BufferScope Context::bufferPush( GLenum target, GLuint id )
-{
-	if( mActiveBuffer.find( target ) == mActiveBuffer.end() )
-		mActiveBuffer[target] = 0;
-
-	BufferScope result( this, target, mActiveBuffer[target] );
-	mActiveBuffer[target] = id;
-	bufferPrepareUse( target );
-	return result;
-}
-
-BufferScope Context::bufferPush( const BufferObj *buffer )
-{
-	return bufferPush( buffer->getTarget(), buffer->getId() );
-}
-
-BufferScope Context::bufferPush( const BufferObjRef &buffer )
-{
-	return bufferPush( buffer->getTarget(), buffer->getId() );
-}
-
 void Context::bufferBind( GLenum target, GLuint id )
 {
 	mActiveBuffer[target] = id;
+
+	if( mTrueBuffer.find( target ) == mTrueBuffer.end() )
+		mTrueBuffer[target] = 0;
 	
 	if( mTrueBuffer[target] != mActiveBuffer[target] ) {
 		mTrueBuffer[target] = mActiveBuffer[target];
 		glBindBuffer( target, mTrueBuffer[target] );
 	}
+}
+
+GLuint Context::bufferGet( GLenum target )
+{
+	auto active = mActiveBuffer.find( target );
+	if( mActiveBuffer.find( target ) == mActiveBuffer.end() ) {
+		mActiveBuffer[target] = 0;
+		return 0;
+	}
+	else
+		return active->second;
 }
 
 void Context::bufferRestore( GLenum target, GLuint id )
@@ -301,7 +294,7 @@ void Context::draw()
 		// Draw
 		shader->bind();
 		auto vaoBind( context()->vaoPush( mImmVao ) );
-		auto vboBind( context()->bufferPush( mImmVbo ) );
+		BufferScope bufferBind( mImmVbo->getTarget(), mImmVbo->getId() );
 		drawArrays( mode, 0, mVertices.size() );
 		shader->unbind();
 	}

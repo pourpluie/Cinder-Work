@@ -42,10 +42,8 @@ class Context {
 	void		vaoRestore( GLuint id );
 	void		vaoPrepareUse();
 
-	BufferScope		bufferPush( GLenum target, GLuint id );
-	BufferScope		bufferPush( const BufferObj *buffer );
-	BufferScope		bufferPush( const BufferObjRef &vbuffer );
 	void			bufferBind( GLenum target, GLuint id );
+	GLuint			bufferGet( GLenum target );
 	void			bufferRestore( GLenum target, GLuint id );
 	void			bufferPrepareUse( GLenum target );
 
@@ -130,16 +128,13 @@ struct VaoScope : public boost::noncopyable {
 };
 
 struct BufferScope : public boost::noncopyable {
-	BufferScope( Context *ctx, GLenum target, GLuint prevValue )
-		: mCtx( ctx ), mTarget( target ), mPrevValue( prevValue )
-	{}
-
-	BufferScope( BufferScope &&rhs )
-		: mCtx( rhs.mCtx ), mTarget( rhs.mTarget ), mPrevValue( rhs.mPrevValue )
+	BufferScope( GLenum target, GLuint id )
+		: mCtx( gl::context() ), mTarget( target )
 	{
-		rhs.mTarget = 0;
+		mPrevValue = mCtx->bufferGet( target );
+		mCtx->bufferBind( target, id );
 	}
-	
+
 	~BufferScope() {
 		if( mTarget )
 			mCtx->bufferRestore( mTarget, mPrevValue );

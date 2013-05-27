@@ -15,7 +15,7 @@ BufferObj::BufferObj( GLenum target, GLsizeiptr allocationSize )
 {
 	glGenBuffers( 1, &mId );
 	if( allocationSize > 0 ) {
-		auto bufferBind( context()->bufferPush( mTarget, mId ) );
+		BufferScope bufferBind( mTarget, mId );
 		glBufferData( mTarget, allocationSize, NULL, GL_DYNAMIC_DRAW );
 	}
 }
@@ -32,20 +32,20 @@ void BufferObj::bind() const
 
 void BufferObj::bufferData( const GLvoid *data, GLsizeiptr size, GLenum usage )
 {
-	auto bufferBind( context()->bufferPush( mTarget, mId ) );
+	BufferScope bufferBind( mTarget, mId );
 	mSize = size;
 	glBufferData( mTarget, mSize, data, usage );
 }
 	
 void BufferObj::bufferSubData( const GLvoid *data, GLsizeiptr size, GLintptr offset )
 {
-	auto bufferBind( context()->bufferPush( mTarget, mId ) );
+	BufferScope bufferBind( mTarget, mId );
 	glBufferSubData( mTarget, offset, size, data );
 }
 	
 uint8_t* BufferObj::map( GLenum access ) const
 {
-	auto bufferBind( context()->bufferPush( mTarget, mId ) );
+	BufferScope bufferBind( mTarget, mId );
 #if defined( CINDER_GLES )
 	return reinterpret_cast<uint8_t*>( glMapBufferOES( mTarget, access ) );
 #else
@@ -55,7 +55,7 @@ uint8_t* BufferObj::map( GLenum access ) const
 
 void BufferObj::unmap() const
 {
-	auto bufferBind( context()->bufferPush( mTarget, mId ) );
+	BufferScope bufferBind( mTarget, mId );
 #if defined( CINDER_GLES )	
 	GLboolean result = glUnmapBufferOES( mTarget );
 #else

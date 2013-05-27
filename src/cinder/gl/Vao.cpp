@@ -128,7 +128,7 @@ void Vao::vertexAttribPointer( const VboRef &vbo, GLuint index, GLint size, GLen
 {
 	auto ctx = gl::context();
 	auto vaoBind = ctx->vaoPush( this );
-	auto vboBind = ctx->bufferPush( vbo );
+	BufferScope bufferBind( vbo->getTarget(), vbo->getId() );
 
 	ctx->vertexAttribPointer( index, size, type, normalized, stride, pointer );
 	ctx->enableVertexAttribArray( index );
