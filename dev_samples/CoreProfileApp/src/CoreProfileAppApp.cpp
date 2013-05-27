@@ -29,6 +29,7 @@ class CoreProfileApp : public AppNative {
 	ci::gl::TextureRef	mTexture;
 	ci::gl::VboRef		mVbo;
 	ci::gl::VaoRef		mVao;
+	float				mSecondTriRotation;
 };
 
 void CoreProfileApp::setup()
@@ -72,26 +73,39 @@ void CoreProfileApp::setup()
 //	glEnableVertexAttribArray( tex );
 	
 	gl::setMatricesWindowPersp( getWindowSize() );
+	
+	mSecondTriRotation = 0;
 }
 
 void CoreProfileApp::update()
 {
 	gl::rotate( Vec3f( 0, 0, 0.1f ) );
+	mSecondTriRotation += -0.15f;
 }
 
 void CoreProfileApp::draw()
 {
 	gl::clear();
 
-	mShader->bind();
-	mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
-//console() << gl::getProjection() * gl::getModelView() << std::endl;
-	gl::VaoScope vaoBind( mVao->getId() );
-	mVbo->bind();
+	gl::enableAdditiveBlending();
 
-	gl::drawArrays( GL_TRIANGLES, 0, 3 );
+	mShader->bind();
+	{
+		mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
+		gl::VaoScope vaoBind( mVao->getId() );
+		gl::BufferScope vboBind( mVbo->getTarget(), mVbo->getId() );
+		gl::drawArrays( GL_TRIANGLES, 0, 3 );
+	}
+	{
+		gl::pushModelView();
+		gl::rotate( Vec3f( 0, 0, mSecondTriRotation ) );
+		mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
+		gl::VaoScope vaoBind( mVao->getId() );
+		gl::BufferScope vboBind( mVbo->getTarget(), mVbo->getId() );
+		gl::drawArrays( GL_TRIANGLES, 0, 3 );
+		gl::popModelView();
+	}
 	mShader->unbind();
-	mVbo->unbind();
 }
 
 auto renderOptions = RendererGl::Options().coreProfile();

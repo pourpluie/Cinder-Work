@@ -144,13 +144,10 @@ if( ! view )
 	glViewport( 0, 0, backingSize.width, backingSize.height );
 	cinder::CameraPersp cam( nsSize.width, nsSize.height, 60.0f );
 
-	glMatrixMode( GL_PROJECTION );
-	glLoadMatrixf( cam.getProjectionMatrix().m );
-
-	glMatrixMode( GL_MODELVIEW );
-	glLoadMatrixf( cam.getModelViewMatrix().m );
-	glScalef( 1.0f, -1.0f, 1.0f );           // invert Y axis so increasing Y goes down.
-	glTranslatef( 0.0f, (float)-nsSize.height, 0.0f );       // shift origin up to upper-left corner.
+	ci::gl::setProjection( cam.getProjectionMatrix() );
+	ci::gl::setModelView( cam.getModelViewMatrix() );
+	ci::gl::scale( 1.0f, -1.0f, 1.0f );           // invert Y axis so increasing Y goes down.
+	ci::gl::translate( 0.0f, (float)-nsSize.height, 0.0f );       // shift origin up to upper-left corner.
 }
 
 - (BOOL)acceptsFirstResponder

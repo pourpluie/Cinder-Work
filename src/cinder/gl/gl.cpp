@@ -149,6 +149,11 @@ void setMatrices( const ci::Camera& cam )
 	ctx->mProjection.back() = cam.getProjectionMatrix();
 }
 
+void setModelView( const ci::Matrix44f &m )
+{
+	gl::context()->mModelView.back() = m;
+}
+
 void setModelView( const ci::Camera& cam )
 {
 	auto ctx	= gl::context();
@@ -159,6 +164,11 @@ void setProjection( const ci::Camera& cam )
 {
 	auto ctx	= gl::context();
 	ctx->mProjection.back() = cam.getProjectionMatrix();
+}
+
+void setProjection( const ci::Matrix44f &m )
+{
+	gl::context()->mProjection.back() = m;
 }
 
 void pushModelView()

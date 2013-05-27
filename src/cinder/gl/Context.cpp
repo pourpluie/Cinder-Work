@@ -111,48 +111,50 @@ void Context::bufferPrepareUse( GLenum target )
 
 //////////////////////////////////////////////////////////////////
 // States
-StateScope Context::enablePush( GLenum cap, bool enable )
+template<>
+void Context::stateSet<GLboolean>( GLenum cap, GLboolean value )
 {
-	if( mActiveState.find( cap ) == mActiveState.end() )
-		mTrueState[cap] = mActiveState[cap] = glIsEnabled( cap );
-
-	StateScope result( this, cap, mActiveState[cap] );
-	mActiveState[cap] = enable;
-	statePrepareUse( cap );
-	return result;
-}
-
-StateScope Context::disablePush( GLenum cap )
-{
-	return enablePush( cap, false );
-}
-
-void Context::enable( GLenum cap, bool enable )
-{
-	mActiveState[cap] = enable;
+	mActiveStateBoolean[cap] = value;
 	
-	if( mTrueState[cap] != mActiveState[cap] ) {
-		mTrueState[cap] = mActiveState[cap];
-		if( mTrueState[cap] )
+	if( mTrueStateBoolean[cap] != mActiveStateBoolean[cap] ) {
+		mTrueStateBoolean[cap] = mActiveStateBoolean[cap];
+		if( mTrueStateBoolean[cap] )
 			glEnable( cap );
 		else
 			glDisable( cap );
 	}	
 }
 
-void Context::stateRestore( GLenum cap, bool enable )
+void Context::enable( GLenum cap, GLboolean value )
 {
-	mActiveState[cap] = enable;
+	stateSet<GLboolean>( cap, value );
 }
 
-void Context::statePrepareUse( GLenum cap )
+template<>
+GLboolean Context::stateGet<GLboolean>( GLenum cap )
 {
-	if( (mActiveState.find( cap ) == mActiveState.end()) || (mTrueState.find( cap ) == mTrueState.end()) )
-		mTrueState[cap] = mActiveState[cap] = glIsEnabled( cap );
+	if( (mActiveStateBoolean.find( cap ) == mActiveStateBoolean.end()) || (mTrueStateBoolean.find( cap ) == mTrueStateBoolean.end()) )
+		mTrueStateBoolean[cap] = mActiveStateBoolean[cap] = glIsEnabled( cap );
 		
-	if( mTrueState[cap] != mActiveState[cap] ) {
-		mTrueState[cap] = mActiveState[cap];
-		if( mTrueState[cap] )
+	return mActiveStateBoolean[cap];
+}
+
+
+template<>
+void Context::stateRestore<GLboolean>( GLenum cap, GLboolean value )
+{
+	mActiveStateBoolean[cap] = value;
+}
+
+template<>
+void Context::statePrepareUse<GLboolean>( GLenum cap )
+{
+	if( (mActiveStateBoolean.find( cap ) == mActiveStateBoolean.end()) || (mTrueStateBoolean.find( cap ) == mTrueStateBoolean.end()) )
+		mTrueStateBoolean[cap] = mActiveStateBoolean[cap] = glIsEnabled( cap );
+		
+	if( mTrueStateBoolean[cap] != mActiveStateBoolean[cap] ) {
+		mTrueStateBoolean[cap] = mActiveStateBoolean[cap];
+		if( mTrueStateBoolean[cap] )
 			glEnable( cap );
 		else
 			glDisable( cap );
@@ -161,8 +163,8 @@ void Context::statePrepareUse( GLenum cap )
 
 void Context::statesPrepareUse()
 {
-	for( auto stateIt = mActiveState.cbegin(); stateIt != mActiveState.cend(); ++stateIt )
-		statePrepareUse( stateIt->first );
+	for( auto stateIt = mActiveStateBoolean.cbegin(); stateIt != mActiveStateBoolean.cend(); ++stateIt )
+		statePrepareUse<GLboolean>( stateIt->first );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

@@ -24,10 +24,6 @@ typedef std::shared_ptr<BufferObj>		BufferObjRef;
 class Texture;
 typedef std::shared_ptr<Texture>		TextureRef;
 
-struct VaoScope;
-struct BufferScope;
-struct StateScope;
-
 class Context {
   public:
 	typedef std::map<Shader::UniformOptions, ShaderRef> ShaderMap;
@@ -45,11 +41,14 @@ class Context {
 	void			bufferRestore( GLenum target, GLuint id );
 	void			bufferPrepareUse( GLenum target );
 
-	StateScope		enablePush( GLenum cap, bool enable = true );
-	StateScope		disablePush( GLenum cap );
-	void			enable( GLenum cap, bool enable = true );
-	void			disable( GLenum cap ) { enable( cap, false ); }
-	void			stateRestore( GLenum cap, bool enable );
+	template<typename T>
+	void			stateSet( GLenum cap, T value );
+	void			enable( GLenum cap, GLboolean value = true );
+	template<typename T>
+	T				stateGet( GLenum cap );
+	template<typename T>
+	void			stateRestore( GLenum cap, T value );
+	template<typename T>
 	void			statePrepareUse( GLenum cap );
 	void			statesPrepareUse();
 	
@@ -60,7 +59,7 @@ class Context {
 
 	GLuint						mActiveVao, mTrueVao;
 	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;
-	std::map<GLenum,bool>		mActiveState, mTrueState;
+	std::map<GLenum,GLboolean>	mActiveStateBoolean, mTrueStateBoolean;
 	
 	struct Vertex
 	{
@@ -141,22 +140,22 @@ struct BufferScope : public boost::noncopyable {
 	GLuint		mPrevId;
 };
 
+template<typename T>
 struct StateScope : public boost::noncopyable {
-	StateScope( Context *ctx, GLenum cap, GLuint prevValue )
-		: mCtx( ctx ), mCap( cap ), mPrevValue( prevValue )
-	{}
+	StateScope( GLenum cap, T value )
+		: mCtx( gl::context() ), mCap( cap )
+	{
+		mPrevValue = mCtx->stateGet<T>( cap );
+		mCtx->stateSet<T>( cap, value );
+	}
 
-	StateScope( const StateScope &&rhs )
-		: mCtx( rhs.mCtx ), mCap( rhs.mCap ), mPrevValue( rhs.mPrevValue )
-	{}
-	
 	~StateScope() {
-		mCtx->stateRestore( mCap, mPrevValue );
+		mCtx->stateRestore<T>( mCap, mPrevValue );
 	}
   private:
 	Context		*mCtx;
 	GLenum		mCap;
-	bool		mPrevValue;
+	T			mPrevValue;
 };
 
 } } // namespace cinder::gl

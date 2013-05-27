@@ -59,8 +59,10 @@ void enableDepthRead( bool enable = true );
 void enableDepthWrite( bool enable = true );
 
 void setMatrices( const ci::Camera &cam );
+void setModelView( const ci::Matrix44f &m );
 void setModelView( const ci::Camera &cam );
 void setProjection( const ci::Camera &cam );
+void setProjection( const ci::Matrix44f &m );
 void pushModelView();
 void popModelView();
 void pushModelView( const ci::Camera &cam );
@@ -81,7 +83,9 @@ void setMatricesWindow( const ci::Vec2i &screenSize, bool originUpperLeft = true
 
 void rotate( const ci::Vec3f& v );
 void scale( const ci::Vec3f& v );
+inline void scale( float x, float y, float z ) { scale( Vec3f( x, y, z ) ); }
 void translate( const ci::Vec3f& v );
+inline void translate( float x, float y, float z ) { translate( Vec3f( x, y, z ) ); }
 	
 void begin( GLenum mode );
 void end();
