@@ -127,7 +127,7 @@ Vao::~Vao()
 void Vao::vertexAttribPointer( const VboRef &vbo, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
 	auto ctx = gl::context();
-	auto vaoBind = ctx->vaoPush( this );
+	VaoScope vaoBind( mId );
 	BufferScope bufferBind( vbo->getTarget(), vbo->getId() );
 
 	ctx->vertexAttribPointer( index, size, type, normalized, stride, pointer );
@@ -137,7 +137,7 @@ void Vao::vertexAttribPointer( const VboRef &vbo, GLuint index, GLint size, GLen
 void Vao::addAttribute( const Vao::Attribute &attr )
 {
 //	bind();
-	auto vaoBind( context()->vaoPush( this ) );
+	VaoScope vaoBind( mId );
 	mAttributes.push_back( attr );
 	mAttributes.back().buffer();
 	mAttributes.back().enable();

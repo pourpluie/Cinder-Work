@@ -86,7 +86,7 @@ void CoreProfileApp::draw()
 	mShader->bind();
 	mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
 //console() << gl::getProjection() * gl::getModelView() << std::endl;
-	auto vaoBind( gl::context()->vaoPush( mVao ) );
+	gl::VaoScope vaoBind( mVao->getId() );
 	mVbo->bind();
 
 	gl::drawArrays( GL_TRIANGLES, 0, 3 );

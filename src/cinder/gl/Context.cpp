@@ -37,28 +37,15 @@ Context::~Context()
 
 //////////////////////////////////////////////////////////////////
 // VAO
-VaoScope Context::vaoPush( GLuint id )
-{
-	VaoScope result( this, mActiveVao );
-	mActiveVao = id;
-	vaoPrepareUse();
-	return result;
-}
-
-VaoScope Context::vaoPush( const Vao *vao )
-{
-	return vaoPush( vao->getId() );
-}
-
-VaoScope Context::vaoPush( const VaoRef &vao )
-{
-	return vaoPush( vao->getId() );
-}
-
 void Context::vaoBind( GLuint id )
 {
 	mActiveVao = id;
 	vaoPrepareUse();
+}
+
+GLuint Context::vaoGet()
+{
+	return mActiveVao;
 }
 
 void Context::vaoRestore( GLuint id )
@@ -293,7 +280,7 @@ void Context::draw()
 		
 		// Draw
 		shader->bind();
-		auto vaoBind( context()->vaoPush( mImmVao ) );
+		VaoScope vaoBind( mImmVao->getId() );
 		BufferScope bufferBind( mImmVbo->getTarget(), mImmVbo->getId() );
 		drawArrays( mode, 0, mVertices.size() );
 		shader->unbind();
