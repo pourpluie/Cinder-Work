@@ -68,6 +68,9 @@ namespace cinder { namespace gl {
 		void	uniform( const std::string &name, const Vec2f *data, int count ) const;
 		void	uniform( const std::string &name, const Vec3f *data, int count ) const;
 		void	uniform( const std::string &name, const Vec4f *data, int count ) const;
+
+		//! Returns a std::map from the uniform name to its type (GL_BOOL, GL_FLOAT_VEC3, etc)
+		const std::map<std::string,GLenum>&		getActiveUniforms() const;
 		
 		void	bindAttribLocation( const std::string &name, GLuint index );
 		GLint	getAttribLocation( const std::string &name ) const;
@@ -83,8 +86,10 @@ namespace cinder { namespace gl {
 		void			attachShaders();
 		void			link();
 		
-		GLuint								mHandle;
-		mutable std::map<std::string, int>	mUniformLocs;
+		GLuint									mHandle;
+		mutable std::map<std::string, int>		mUniformLocs;
+		mutable bool							mActiveUniformsCached;
+		mutable std::map<std::string, GLenum>	mActiveUniformTypes;
 	};
 	
 	class GlslProgCompileExc : public std::exception {

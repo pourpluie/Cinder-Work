@@ -48,29 +48,27 @@ GlslProg::~GlslProg()
 // GlslProg
 
 GlslProg::GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader )
+	: mActiveUniformsCached( false )
 {
 	mHandle = glCreateProgram();
 	
-	if ( vertexShader ) {
+	if( vertexShader )
 		loadShader( vertexShader->getBuffer(), GL_VERTEX_SHADER );
-	}
-	if ( fragmentShader ) {
+	if( fragmentShader )
 		loadShader( fragmentShader->getBuffer(), GL_FRAGMENT_SHADER );
-	}
 	
 	link();
 }
 
 GlslProg::GlslProg( const char* vertexShader, const char* fragmentShader)
+	: mActiveUniformsCached( false )
 {
 	mHandle = glCreateProgram();
 	
-	if ( vertexShader ) {
+	if( vertexShader )
 		loadShader( vertexShader, GL_VERTEX_SHADER );
-	}
-	if ( fragmentShader ) {
+	if( fragmentShader )
 		loadShader( fragmentShader, GL_FRAGMENT_SHADER );
-	}
 	
 	link();
 }
@@ -257,6 +255,25 @@ GLint GlslProg::getUniformLocation( const std::string &name ) const
 	else {
 		return uniformIt->second;
 	}
+}
+
+const std::map<std::string,GLenum>& GlslProg::getActiveUniforms() const
+{
+	if( ! mActiveUniformsCached ) {
+		GLint numActiveUniforms = 0;
+		glGetProgramiv( mHandle, GL_ACTIVE_UNIFORMS, &numActiveUniforms );
+		for( GLint i = 0; i < numActiveUniforms; ++i ) {
+			char name[512];
+			GLsizei nameLength;
+			GLint size;
+			GLenum type;
+			glGetActiveUniform( mHandle, (GLuint)i, 511, &nameLength, &size, &type, name );
+			name[nameLength] = 0;
+			mActiveUniformTypes[name] = type;
+		}
+		mActiveUniformsCached = true;
+	}
+	return mActiveUniformTypes;
 }
 
 void GlslProg::bindAttribLocation( const std::string &name, GLuint index )
