@@ -47,6 +47,8 @@ class Context {
 	template<typename T>
 	T				stateGet( GLenum cap );
 	template<typename T>
+	bool			stateIsDirty( GLenum pname );
+	template<typename T>
 	void			stateRestore( GLenum cap, T value );
 	template<typename T>
 	void			statePrepareUse( GLenum cap );
@@ -57,10 +59,27 @@ class Context {
 	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
 	void		enableVertexAttribArray( GLuint index );
 
+	//! Parallels glBlendFunc()
+	void		blendFunc( GLenum sfactor, GLenum dfactor );
+	//! Parallels glBlendFuncSeparate()
+	void		blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
+	//! Soft-sets the blend func
+	void		blendFuncSeparateRestore( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
+	//! Call before drawing
+	void		blendPrepareUse();
+
+  private:
 	GLuint						mActiveVao, mTrueVao;
 	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;
 	std::map<GLenum,GLboolean>	mActiveStateBoolean, mTrueStateBoolean;
+	std::map<GLenum,GLint>		mActiveStateInt, mTrueStateInt;
 	
+	
+	
+	
+	
+	
+  public:	
 	struct Vertex
 	{
 		ColorAf					mColor;
@@ -156,6 +175,21 @@ struct StateScope : public boost::noncopyable {
 	Context		*mCtx;
 	GLenum		mCap;
 	T			mPrevValue;
+};
+
+struct ScopeBlend : public boost::noncopyable
+{
+	ScopeBlend( GLboolean enable );
+	//! Parallels glBlendFunc(), implicitly enables blending
+	ScopeBlend( GLenum sfactor, GLenum dfactor );
+	//! Parallels glBlendFuncSeparate(), implicitly enables blending
+	ScopeBlend( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
+	~ScopeBlend();
+	
+  private:
+	Context		*mCtx;
+	bool		mSaveFactors; // whether we should also set th blend factors rather than just the blend state
+	GLint		mPrevBlend, mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha;
 };
 
 } } // namespace cinder::gl

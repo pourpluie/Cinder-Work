@@ -139,6 +139,29 @@ GLboolean Context::stateGet<GLboolean>( GLenum cap )
 	return mActiveStateBoolean[cap];
 }
 
+template<>
+GLint Context::stateGet<GLint>( GLenum pname )
+{
+	if( (mActiveStateInt.find( pname ) == mActiveStateInt.end()) || (mTrueStateInt.find( pname ) == mTrueStateInt.end()) ) {
+		GLint curValue;
+		glGetIntegerv( pname, &curValue );
+		mTrueStateInt[pname] = mActiveStateInt[pname] = curValue;
+	}
+		
+	return mActiveStateInt[pname];
+}
+
+template<>
+bool Context::stateIsDirty<GLboolean>( GLenum pname )
+{
+	return mTrueStateBoolean[pname] != mActiveStateBoolean[pname];
+}
+
+template<>
+bool Context::stateIsDirty<GLint>( GLenum pname )
+{
+	return mTrueStateInt[pname] != mActiveStateInt[pname];
+}
 
 template<>
 void Context::stateRestore<GLboolean>( GLenum cap, GLboolean value )
@@ -173,7 +196,7 @@ void Context::prepareDraw()
 	vaoPrepareUse();
 	bufferPrepareUse( GL_ARRAY_BUFFER );
 	bufferPrepareUse( GL_ELEMENT_ARRAY_BUFFER );
-	statesPrepareUse();
+	blendPrepareUse();
 }
 
 void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
@@ -187,6 +210,49 @@ void Context::enableVertexAttribArray( GLuint index )
 {
 	vaoPrepareUse();
 	glEnableVertexAttribArray( index );
+}
+
+void Context::blendFunc( GLenum sfactor, GLenum dfactor )
+{
+	blendFuncSeparateRestore( sfactor, dfactor, sfactor, dfactor );
+	blendPrepareUse();	
+}
+
+void Context::blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
+{
+	blendFuncSeparateRestore( srcRGB, dstRGB, srcAlpha, dstAlpha );
+	blendPrepareUse();
+}
+
+void Context::blendFuncSeparateRestore( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
+{
+	mActiveStateInt[GL_BLEND_SRC_RGB] = srcRGB;
+	mActiveStateInt[GL_BLEND_DST_RGB] = dstRGB;
+	mActiveStateInt[GL_BLEND_SRC_ALPHA] = srcAlpha;
+	mActiveStateInt[GL_BLEND_DST_ALPHA] = dstAlpha;
+}
+
+void Context::blendPrepareUse()
+{
+	statePrepareUse<GLboolean>( GL_BLEND );
+
+	if( stateIsDirty<GLint>( GL_BLEND_SRC_RGB ) ||
+		stateIsDirty<GLint>( GL_BLEND_DST_RGB ) ||
+		stateIsDirty<GLint>( GL_BLEND_SRC_ALPHA ) ||
+		stateIsDirty<GLint>( GL_BLEND_DST_ALPHA ) )
+	{
+		GLint srcRgb = stateGet<GLint>( GL_BLEND_SRC_RGB );
+		GLint dstRgb = stateGet<GLint>( GL_BLEND_DST_RGB );
+		GLint srcAlpha = stateGet<GLint>( GL_BLEND_SRC_ALPHA );
+		GLint dstAlpha = stateGet<GLint>( GL_BLEND_DST_ALPHA );						
+	
+		glBlendFuncSeparate( srcRgb, dstRgb, srcAlpha, dstAlpha );
+
+		mTrueStateInt[GL_BLEND_SRC_RGB] = srcRgb;
+		mTrueStateInt[GL_BLEND_DST_RGB] = dstRgb;
+		mTrueStateInt[GL_BLEND_SRC_ALPHA] = srcAlpha;
+		mTrueStateInt[GL_BLEND_DST_ALPHA] = dstAlpha;
+	}
 }
 
 void Context::clear()
@@ -300,5 +366,49 @@ void Context::pushBack( const ci::Vec4f &v )
 	
 	mVertices.push_back( vertex );
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopeBlend
+ScopeBlend::ScopeBlend( GLboolean enable )
+	: mCtx( gl::context() ), mSaveFactors( false )
+{
+	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
+	mCtx->stateSet( GL_BLEND, enable );
+}
+
+//! Parallels glBlendFunc(), implicitly enables blending
+ScopeBlend::ScopeBlend( GLenum sfactor, GLenum dfactor )
+	: mCtx( gl::context() ), mSaveFactors( true )
+{
+	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
+	mPrevSrcRgb = mCtx->stateGet<GLint>( GL_BLEND_SRC_RGB );
+	mPrevDstRgb = mCtx->stateGet<GLint>( GL_BLEND_DST_RGB );
+	mPrevSrcAlpha = mCtx->stateGet<GLint>( GL_BLEND_SRC_ALPHA );
+	mPrevDstAlpha = mCtx->stateGet<GLint>( GL_BLEND_DST_ALPHA );
+	mCtx->stateSet( GL_BLEND, GL_TRUE );
+	mCtx->blendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
+}
+
+//! Parallels glBlendFuncSeparate(), implicitly enables blending
+ScopeBlend::ScopeBlend( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
+	: mCtx( gl::context() ), mSaveFactors( true )
+{
+	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
+	mPrevSrcRgb = mCtx->stateGet<GLint>( GL_BLEND_SRC_RGB );
+	mPrevDstRgb = mCtx->stateGet<GLint>( GL_BLEND_DST_RGB );
+	mPrevSrcAlpha = mCtx->stateGet<GLint>( GL_BLEND_SRC_ALPHA );
+	mPrevDstAlpha = mCtx->stateGet<GLint>( GL_BLEND_DST_ALPHA );
+	mCtx->stateSet( GL_BLEND, GL_TRUE );
+	mCtx->blendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
+}
+
+ScopeBlend::~ScopeBlend()
+{
+	mCtx->stateRestore( GL_BLEND, mPrevBlend );
+	if( mSaveFactors )
+		mCtx->blendFuncSeparateRestore( mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha );
+}
+
+
 
 } } // namespace cinder::gl

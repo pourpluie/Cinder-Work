@@ -78,12 +78,13 @@ void enable( GLenum state, bool enable )
 
 void enableAlphaBlending( bool premultiplied )
 {
-	gl::enable( GL_BLEND );
+	auto ctx = gl::context();
+	ctx->enable( GL_BLEND );
 	if( ! premultiplied ) {
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		ctx->blendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	}
 	else {
-		glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
+		ctx->blendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
 	}
 }
 
@@ -94,8 +95,9 @@ void disableAlphaBlending()
 
 void enableAdditiveBlending()
 {
-	gl::enable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+	auto ctx = gl::context();
+	ctx->enable( GL_BLEND );
+	ctx->blendFunc( GL_SRC_ALPHA, GL_ONE );
 }
 
 void disableDepthRead()
