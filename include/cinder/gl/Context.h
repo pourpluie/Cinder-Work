@@ -198,7 +198,8 @@ struct ScopeBlend : public boost::noncopyable
   private:
 	Context		*mCtx;
 	bool		mSaveFactors; // whether we should also set th blend factors rather than just the blend state
-	GLint		mPrevBlend, mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha;
+	GLboolean	mPrevBlend;
+	GLint		mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha;
 };
 
 struct ScopeShader : public boost::noncopyable {

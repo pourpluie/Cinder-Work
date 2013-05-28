@@ -417,7 +417,7 @@ ScopeBlend::ScopeBlend( GLenum sfactor, GLenum dfactor )
 	mPrevDstRgb = mCtx->stateGet<GLint>( GL_BLEND_DST_RGB );
 	mPrevSrcAlpha = mCtx->stateGet<GLint>( GL_BLEND_SRC_ALPHA );
 	mPrevDstAlpha = mCtx->stateGet<GLint>( GL_BLEND_DST_ALPHA );
-	mCtx->stateSet( GL_BLEND, GL_TRUE );
+	mCtx->stateSet<GLboolean>( GL_BLEND, GL_TRUE );
 	mCtx->blendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
 }
 
@@ -430,7 +430,7 @@ ScopeBlend::ScopeBlend( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum ds
 	mPrevDstRgb = mCtx->stateGet<GLint>( GL_BLEND_DST_RGB );
 	mPrevSrcAlpha = mCtx->stateGet<GLint>( GL_BLEND_SRC_ALPHA );
 	mPrevDstAlpha = mCtx->stateGet<GLint>( GL_BLEND_DST_ALPHA );
-	mCtx->stateSet( GL_BLEND, GL_TRUE );
+	mCtx->stateSet<GLboolean>( GL_BLEND, GL_TRUE );
 	mCtx->blendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
 }
 
