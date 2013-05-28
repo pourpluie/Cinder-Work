@@ -20,8 +20,8 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "cinder/gl/gl.h"
 #include "cinder/gl/GlslProg.h"
+#include "cinder/gl/Context.h"
 
 using namespace std;
 
@@ -107,12 +107,12 @@ void GlslProg::link()
 
 void GlslProg::bind() const
 {
-	glUseProgram( mHandle );
+	gl::context()->shaderUse( mHandle );
 }
 
 void GlslProg::unbind()
 {
-	glUseProgram( 0 );
+	gl::context()->shaderUse( 0 );
 }
 
 std::string GlslProg::getShaderLog( GLuint handle ) const
@@ -136,96 +136,112 @@ std::string GlslProg::getShaderLog( GLuint handle ) const
 
 void GlslProg::uniform( const std::string &name, int data ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform1i( loc, data );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2i &data ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform2i( loc, data.x, data.y );
 }
 
 void GlslProg::uniform( const std::string &name, const int *data, int count ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform1iv( loc, count, data );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2i *data, int count ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform2iv( loc, count, &data[0].x );
 }
 
 void GlslProg::uniform( const std::string &name, float data ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform1f( loc, data );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2f &data ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform2f( loc, data.x, data.y );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec3f &data ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform3f( loc, data.x, data.y, data.z );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec4f &data ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform4f( loc, data.x, data.y, data.z, data.w );
 }
 
 void GlslProg::uniform( const std::string &name, const Color &data ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform3f( loc, data.r, data.g, data.b );
 }
 
 void GlslProg::uniform( const std::string &name, const ColorA &data ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform4f( loc, data.r, data.g, data.b, data.a );
 }
 
 void GlslProg::uniform( const std::string &name, const float *data, int count ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform1fv( loc, count, data );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2f *data, int count ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform2fv( loc, count, &data[0].x );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec3f *data, int count ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform3fv( loc, count, &data[0].x );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec4f *data, int count ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniform4fv( loc, count, &data[0].x );
 }
 
 void GlslProg::uniform( const std::string &name, const Matrix33f &data, bool transpose ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniformMatrix3fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
 }
 
 void GlslProg::uniform( const std::string &name, const Matrix44f &data, bool transpose ) const
 {
+	ScopeShader shaderBind( getHandle() );
 	GLint loc = getUniformLocation( name );
 	glUniformMatrix4fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
 }

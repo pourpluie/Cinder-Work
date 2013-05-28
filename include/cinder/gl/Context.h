@@ -23,6 +23,8 @@ class BufferObj;
 typedef std::shared_ptr<BufferObj>		BufferObjRef;
 class Texture;
 typedef std::shared_ptr<Texture>		TextureRef;
+class GlslProg;
+typedef std::shared_ptr<GlslProg>		GlslProgRef;
 
 class Context {
   public:
@@ -36,10 +38,16 @@ class Context {
 	void		vaoRestore( GLuint id );
 	void		vaoPrepareUse();
 
-	void			bufferBind( GLenum target, GLuint id );
-	GLuint			bufferGet( GLenum target );
-	void			bufferRestore( GLenum target, GLuint id );
-	void			bufferPrepareUse( GLenum target );
+	void		bufferBind( GLenum target, GLuint id );
+	GLuint		bufferGet( GLenum target );
+	void		bufferRestore( GLenum target, GLuint id );
+	void		bufferPrepareUse( GLenum target );
+
+	void		shaderUse( const GlslProgRef &prog );
+	void		shaderUse( GLuint id );
+	GLuint		shaderGet();
+	void		shaderRestore( GLuint id );
+	void		shaderPrepareUse();
 
 	template<typename T>
 	void			stateSet( GLenum cap, T value );
@@ -71,6 +79,7 @@ class Context {
   private:
 	GLuint						mActiveVao, mTrueVao;
 	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;
+	GLuint						mActiveGlslProg, mTrueGlslProg;
 	std::map<GLenum,GLboolean>	mActiveStateBoolean, mTrueStateBoolean;
 	std::map<GLenum,GLint>		mActiveStateInt, mTrueStateInt;
 	
@@ -190,6 +199,31 @@ struct ScopeBlend : public boost::noncopyable
 	Context		*mCtx;
 	bool		mSaveFactors; // whether we should also set th blend factors rather than just the blend state
 	GLint		mPrevBlend, mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha;
+};
+
+struct ScopeShader : public boost::noncopyable {
+	ScopeShader( const GlslProgRef &prog )
+		: mCtx( gl::context() )
+	{
+		mPrevProgId = mCtx->shaderGet();
+		mCtx->shaderUse( prog );
+	}
+
+	ScopeShader( GLuint handle )
+		: mCtx( gl::context() )
+	{
+		mPrevProgId = mCtx->shaderGet();
+		mCtx->shaderUse( handle );
+	}
+	
+	~ScopeShader()
+	{
+		mCtx->shaderRestore( mPrevProgId );
+	}
+
+  private:
+	Context		*mCtx;
+	GLuint		mPrevProgId;
 };
 
 } } // namespace cinder::gl

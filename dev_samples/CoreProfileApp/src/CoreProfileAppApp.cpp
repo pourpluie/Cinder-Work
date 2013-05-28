@@ -89,7 +89,7 @@ void CoreProfileApp::draw()
 
 	gl::enableAdditiveBlending();
 
-	mShader->bind();
+	gl::ScopeShader shader( mShader );
 	{
 		mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
 		gl::VaoScope vaoBind( mVao->getId() );
@@ -105,7 +105,6 @@ void CoreProfileApp::draw()
 		gl::drawArrays( GL_TRIANGLES, 0, 3 );
 		gl::popModelView();
 	}
-	mShader->unbind();
 }
 
 auto renderOptions = RendererGl::Options().coreProfile();

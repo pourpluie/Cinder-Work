@@ -19,7 +19,7 @@ using namespace std;
 Context::Context()
 	: mActiveVao( 0 ), mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
-	mTextureUnit( -1 ), mWireframe( false )
+	mTextureUnit( -1 ), mWireframe( false ), mActiveGlslProg( 0 )
 {
 	env()->initializeContextDefaults( this );
 
@@ -110,6 +110,37 @@ void Context::bufferPrepareUse( GLenum target )
 }
 
 //////////////////////////////////////////////////////////////////
+// Shader
+void Context::shaderUse( const GlslProgRef &prog )
+{
+	shaderUse( prog->getHandle() );
+}
+
+void Context::shaderUse( GLuint handle )
+{
+	mActiveGlslProg = handle;
+	shaderPrepareUse();
+}
+
+GLuint Context::shaderGet()
+{
+	return mActiveGlslProg;
+}
+
+void Context::shaderRestore( GLuint id )
+{
+	mActiveGlslProg = id;
+}
+
+void Context::shaderPrepareUse()
+{
+	if( mTrueGlslProg != mActiveGlslProg ) {
+		mTrueGlslProg = mActiveGlslProg;
+		glUseProgram( mTrueGlslProg );
+	}
+}
+
+//////////////////////////////////////////////////////////////////
 // States
 template<>
 void Context::stateSet<GLboolean>( GLenum cap, GLboolean value )
@@ -194,6 +225,7 @@ void Context::statesPrepareUse()
 void Context::prepareDraw()
 {
 	vaoPrepareUse();
+	shaderPrepareUse();
 	bufferPrepareUse( GL_ARRAY_BUFFER );
 	bufferPrepareUse( GL_ELEMENT_ARRAY_BUFFER );
 	blendPrepareUse();
