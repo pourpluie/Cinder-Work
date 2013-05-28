@@ -51,7 +51,7 @@ void clear( const ColorA& color, bool clearDepthBuffer )
 {
 	glClearColor( color.r, color.g, color.b, color.a );
 	if ( clearDepthBuffer ) {
-		glDepthMask( GL_TRUE );
+		gl::context()->depthMask( GL_TRUE );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	} else {
 		glClear( GL_COLOR_BUFFER_BIT );
@@ -112,12 +112,12 @@ void enableDepthRead( bool enable )
 
 void enableDepthWrite( bool enable )
 {
-	glDepthMask( enable ? GL_TRUE : GL_FALSE );
+	gl::context()->depthMask( enable ? GL_TRUE : GL_FALSE );
 }
 
 void disableDepthWrite()
 {
-	glDepthMask( GL_FALSE );
+	gl::context()->depthMask( GL_FALSE );
 }
 
 void enableLighting( bool enable )

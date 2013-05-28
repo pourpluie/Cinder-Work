@@ -229,6 +229,7 @@ void Context::prepareDraw()
 	bufferPrepareUse( GL_ARRAY_BUFFER );
 	bufferPrepareUse( GL_ELEMENT_ARRAY_BUFFER );
 	blendPrepareUse();
+	depthMaskPrepareUse();
 }
 
 void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
@@ -287,6 +288,23 @@ void Context::blendPrepareUse()
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// DepthMask
+void Context::depthMask( GLboolean enable )
+{
+	stateSet<GLboolean>( GL_DEPTH_WRITEMASK, enable );
+	depthMaskPrepareUse();
+}
+
+void Context::depthMaskPrepareUse()
+{
+	if( stateIsDirty<GLboolean>( GL_DEPTH_WRITEMASK ) ) {
+		mTrueStateBoolean[GL_DEPTH_WRITEMASK] = mActiveStateBoolean[GL_DEPTH_WRITEMASK];
+		glDepthMask( mTrueStateBoolean[GL_DEPTH_WRITEMASK] );
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 void Context::clear()
 {
 	mVertices.clear();

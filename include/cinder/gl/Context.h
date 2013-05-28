@@ -76,6 +76,11 @@ class Context {
 	//! Call before drawing
 	void		blendPrepareUse();
 
+	//! Parallels glDepthMask()
+	void		depthMask( GLboolean enable );
+	//! Call before drawing
+	void		depthMaskPrepareUse();
+
   private:
 	GLuint						mActiveVao, mTrueVao;
 	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;
