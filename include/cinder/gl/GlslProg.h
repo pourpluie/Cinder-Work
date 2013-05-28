@@ -71,7 +71,6 @@ namespace cinder { namespace gl {
 		
 		void	bindAttribLocation( const std::string &name, GLuint index );
 		GLint	getAttribLocation( const std::string &name ) const;
-		GLint	getUniformLocation( const std::string &name );
 		GLint	getUniformLocation( const std::string &name ) const;
 		
 		std::string		getShaderLog( GLuint handle ) const;
@@ -84,8 +83,8 @@ namespace cinder { namespace gl {
 		void			attachShaders();
 		void			link();
 		
-		GLuint						mHandle;
-		std::map<std::string, int>	mUniformLocs;
+		GLuint								mHandle;
+		mutable std::map<std::string, int>	mUniformLocs;
 	};
 	
 	class GlslProgCompileExc : public std::exception {

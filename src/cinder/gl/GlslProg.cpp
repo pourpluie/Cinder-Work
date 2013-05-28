@@ -230,25 +230,15 @@ void GlslProg::uniform( const std::string &name, const Matrix44f &data, bool tra
 	glUniformMatrix4fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
 }
 
-GLint GlslProg::getUniformLocation( const std::string &name )
-{
-	map<string,int>::const_iterator uniformIt = mUniformLocs.find( name );
-	if ( uniformIt == mUniformLocs.end() ) {
-		GLint loc = glGetUniformLocation( mHandle, name.c_str() );
-		mUniformLocs.at( name ) = loc;
-		return loc;
-	} else {
-		return uniformIt->second;
-	}
-}
-
 GLint GlslProg::getUniformLocation( const std::string &name ) const
 {
 	map<string,int>::const_iterator uniformIt = mUniformLocs.find( name );
-	if ( uniformIt == mUniformLocs.end() ) {
+	if( uniformIt == mUniformLocs.end() ) {
 		GLint loc = glGetUniformLocation( mHandle, name.c_str() );
+		mUniformLocs[name] = loc;
 		return loc;
-	} else {
+	}
+	else {
 		return uniformIt->second;
 	}
 }
