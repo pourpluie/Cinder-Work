@@ -64,7 +64,7 @@ void CoreProfileApp::setup()
 	int pos = mShader->getAttribLocation( "aPosition" );
 	int tex = mShader->getAttribLocation( "aTexCoord" );
 	console() << "pos: " << pos << " " << " tex " << tex << std::endl;
-	auto uniforms = mShader->getActiveUniforms();
+	auto uniforms = mShader->getActiveUniformTypes();
 	for( auto &uni : uniforms ) {
 		console() << uni.first << ":" << uni.second << std::endl;
 	}
@@ -95,7 +95,7 @@ void CoreProfileApp::draw()
 
 	gl::ScopeShader shader( mShader );
 	{
-		mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
+		gl::setDefaultShaderUniforms();
 		gl::VaoScope vaoBind( mVao->getId() );
 		gl::BufferScope vboBind( mVbo->getTarget(), mVbo->getId() );
 		gl::drawArrays( GL_TRIANGLES, 0, 3 );
@@ -103,7 +103,8 @@ void CoreProfileApp::draw()
 	{
 		gl::pushModelView();
 		gl::rotate( Vec3f( 0, 0, mSecondTriRotation ) );
-		mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
+		gl::setDefaultShaderUniforms();		
+//		mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
 		gl::VaoScope vaoBind( mVao->getId() );
 		gl::BufferScope vboBind( mVbo->getTarget(), mVbo->getId() );
 		gl::drawArrays( GL_TRIANGLES, 0, 3 );

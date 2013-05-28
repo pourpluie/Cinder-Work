@@ -19,7 +19,7 @@ using namespace std;
 Context::Context()
 	: mActiveVao( 0 ), mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
-	mTextureUnit( -1 ), mWireframe( false ), mActiveGlslProg( 0 )
+	mTextureUnit( -1 ), mWireframe( false ), mTrueGlslProgId( 0 )
 {
 	env()->initializeContextDefaults( this );
 
@@ -113,30 +113,25 @@ void Context::bufferPrepareUse( GLenum target )
 // Shader
 void Context::shaderUse( const GlslProgRef &prog )
 {
-	shaderUse( prog->getHandle() );
+	mActiveGlslProg = prog;
 }
 
-void Context::shaderUse( GLuint handle )
-{
-	mActiveGlslProg = handle;
-	shaderPrepareUse();
-}
-
-GLuint Context::shaderGet()
+GlslProgRef Context::shaderGet()
 {
 	return mActiveGlslProg;
 }
 
-void Context::shaderRestore( GLuint id )
+void Context::shaderRestore( const GlslProgRef &prog )
 {
-	mActiveGlslProg = id;
+	mActiveGlslProg = prog;
 }
 
 void Context::shaderPrepareUse()
 {
-	if( mTrueGlslProg != mActiveGlslProg ) {
-		mTrueGlslProg = mActiveGlslProg;
-		glUseProgram( mTrueGlslProg );
+	if( ( (! mActiveGlslProg) && (mTrueGlslProgId != 0) ) ||
+		( mActiveGlslProg && mActiveGlslProg->getHandle() != mTrueGlslProgId ) ) {
+		mTrueGlslProgId = ( mActiveGlslProg ) ? mActiveGlslProg->getHandle() : 0;
+		glUseProgram( mTrueGlslProgId );
 	}
 }
 

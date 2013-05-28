@@ -47,6 +47,22 @@ bool isExtensionAvailable( const std::string& extName )
 	}
 }
 
+void setDefaultShaderUniforms()
+{
+	auto ctx = gl::context();
+	auto glslProg = ctx->shaderGet();
+	if( glslProg ) {
+		auto uniforms = glslProg->getUniformSemantics();
+		for( auto unifIt = uniforms.cbegin(); unifIt != uniforms.end(); ++unifIt ) {
+			switch( unifIt->second ) {
+				case UNIFORM_MODELVIEWPROJECTION:
+					glslProg->uniform( unifIt->first, gl::getProjection() * gl::getModelView() );
+				break;
+			}
+		}
+	}
+}
+
 void clear( const ColorA& color, bool clearDepthBuffer )
 {
 	glClearColor( color.r, color.g, color.b, color.a );

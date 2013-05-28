@@ -37,81 +37,92 @@
 
 namespace cinder { namespace gl {
 	
-	//! Represents an OpenGL GLSL program. \ImplShared
-	typedef std::shared_ptr<class GlslProg> GlslProgRef;
-	
-	class GlslProg {
-	public:
-		static GlslProgRef create( DataSourceRef vertexShader, DataSourceRef fragmentShader = DataSourceRef() );
-		static GlslProgRef create( const char *vertexShader, const char *fragmentShader = 0 );
-		
-		~GlslProg();
-		
-		void			bind() const;
-		static void		unbind();
-		
-		GLuint			getHandle() const { return mHandle; }
-		
-		void	uniform( const std::string &name, int data ) const;
-		void	uniform( const std::string &name, const Vec2i &data ) const;
-		void	uniform( const std::string &name, const int *data, int count ) const;
-		void	uniform( const std::string &name, const Vec2i *data, int count ) const;
-		void	uniform( const std::string &name, float data ) const;
-		void	uniform( const std::string &name, const Vec2f &data ) const;
-		void	uniform( const std::string &name, const Vec3f &data ) const;
-		void	uniform( const std::string &name, const Vec4f &data ) const;
-		void	uniform( const std::string &name, const Color &data ) const;
-		void	uniform( const std::string &name, const ColorA &data ) const;
-		void	uniform( const std::string &name, const Matrix33f &data, bool transpose = false ) const;
-		void	uniform( const std::string &name, const Matrix44f &data, bool transpose = false ) const;
-		void	uniform( const std::string &name, const float *data, int count ) const;
-		void	uniform( const std::string &name, const Vec2f *data, int count ) const;
-		void	uniform( const std::string &name, const Vec3f *data, int count ) const;
-		void	uniform( const std::string &name, const Vec4f *data, int count ) const;
+typedef std::shared_ptr<class GlslProg> GlslProgRef;
 
-		//! Returns a std::map from the uniform name to its type (GL_BOOL, GL_FLOAT_VEC3, etc)
-		const std::map<std::string,GLenum>&		getActiveUniforms() const;
-		
-		void	bindAttribLocation( const std::string &name, GLuint index );
-		GLint	getAttribLocation( const std::string &name ) const;
-		GLint	getUniformLocation( const std::string &name ) const;
-		
-		std::string		getShaderLog( GLuint handle ) const;
-	protected:
-		GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader = DataSourceRef() );
-		GlslProg( const char *vertexShader, const char *fragmentShader = 0 );
-		
-		void			loadShader( Buffer shaderSourceBuffer, GLint shaderType );
-		void			loadShader( const char *shaderSource, GLint shaderType );
-		void			attachShaders();
-		void			link();
-		
-		GLuint									mHandle;
-		mutable std::map<std::string, int>		mUniformLocs;
-		mutable bool							mActiveUniformsCached;
-		mutable std::map<std::string, GLenum>	mActiveUniformTypes;
-	};
+class GlslProg : public std::enable_shared_from_this<GlslProg> {
+  public:
+	typedef std::map<std::string,UniformSemantic>	UniformSemanticMap;
+  
+	static GlslProgRef create( DataSourceRef vertexShader, DataSourceRef fragmentShader = DataSourceRef() );
+	static GlslProgRef create( const char *vertexShader, const char *fragmentShader = 0 );
 	
-	class GlslProgCompileExc : public std::exception {
-	public:
-		GlslProgCompileExc( const std::string &log, GLint aShaderType ) throw();
-		virtual const char* what() const throw()
-		{
-			return mMessage;
-		}
-		
-	private:
-		char	mMessage[ 16001 ];
-		GLint	mShaderType;
-	};
+	~GlslProg();
 	
-	class GlslNullProgramExc : public std::exception {
-	public:
-		virtual const char* what() const throw()
-		{
-			return "Glsl: Attempt to use null shader";
-		}
-		
-	};
+	void			bind() const;
+	static void		unbind();
+	
+	GLuint			getHandle() const { return mHandle; }
+	
+	void	uniform( const std::string &name, int data ) const;
+	void	uniform( const std::string &name, const Vec2i &data ) const;
+	void	uniform( const std::string &name, const int *data, int count ) const;
+	void	uniform( const std::string &name, const Vec2i *data, int count ) const;
+	void	uniform( const std::string &name, float data ) const;
+	void	uniform( const std::string &name, const Vec2f &data ) const;
+	void	uniform( const std::string &name, const Vec3f &data ) const;
+	void	uniform( const std::string &name, const Vec4f &data ) const;
+	void	uniform( const std::string &name, const Color &data ) const;
+	void	uniform( const std::string &name, const ColorA &data ) const;
+	void	uniform( const std::string &name, const Matrix33f &data, bool transpose = false ) const;
+	void	uniform( const std::string &name, const Matrix44f &data, bool transpose = false ) const;
+	void	uniform( const std::string &name, const float *data, int count ) const;
+	void	uniform( const std::string &name, const Vec2f *data, int count ) const;
+	void	uniform( const std::string &name, const Vec3f *data, int count ) const;
+	void	uniform( const std::string &name, const Vec4f *data, int count ) const;
+
+	//! Returns a std::map from the uniform name to its OpenGL type (GL_BOOL, GL_FLOAT_VEC3, etc)
+	const std::map<std::string,GLenum>&		getActiveUniformTypes() const;
+
+	const UniformSemanticMap&		getUniformSemantics() const;
+	
+	//! Default mapping from uniform name to semantic. Can be modified via the reference. Not thread-safe.
+	static UniformSemanticMap&		getDefaultUniformNameToSemanticMap();
+	
+	void	bindAttribLocation( const std::string &name, GLuint index );
+	GLint	getAttribLocation( const std::string &name ) const;
+	GLint	getUniformLocation( const std::string &name ) const;
+	
+	std::string		getShaderLog( GLuint handle ) const;
+  protected:
+	GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader = DataSourceRef() );
+	GlslProg( const char *vertexShader, const char *fragmentShader = 0 );
+	
+	void			loadShader( Buffer shaderSourceBuffer, GLint shaderType );
+	void			loadShader( const char *shaderSource, GLint shaderType );
+	void			attachShaders();
+	void			link();
+	
+	GLuint									mHandle;
+	mutable std::map<std::string, int>		mUniformLocs;
+	mutable bool							mActiveUniformTypesCached;
+	mutable std::map<std::string, GLenum>	mActiveUniformTypes;
+	
+	static UniformSemanticMap				sDefaultUniformNameToSemanticMap;
+	UniformSemanticMap						mUniformNameToSemanticMap;
+	mutable bool							mUniformSemanticsCached;
+	mutable UniformSemanticMap				mUniformSemantics;
+};
+
+class GlslProgCompileExc : public std::exception {
+  public:
+	GlslProgCompileExc( const std::string &log, GLint aShaderType ) throw();
+	virtual const char* what() const throw()
+	{
+		return mMessage;
+	}
+	
+  private:
+	char	mMessage[ 16001 ];
+	GLint	mShaderType;
+};
+
+class GlslNullProgramExc : public std::exception {
+  public:
+	virtual const char* what() const throw()
+	{
+		return "Glsl: Attempt to use null shader";
+	}
+	
+};
 	
 } } // namespace cinder::gl

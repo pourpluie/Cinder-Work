@@ -44,9 +44,8 @@ class Context {
 	void		bufferPrepareUse( GLenum target );
 
 	void		shaderUse( const GlslProgRef &prog );
-	void		shaderUse( GLuint id );
-	GLuint		shaderGet();
-	void		shaderRestore( GLuint id );
+	GlslProgRef	shaderGet();
+	void		shaderRestore( const GlslProgRef &prog );
 	void		shaderPrepareUse();
 
 	template<typename T>
@@ -84,7 +83,8 @@ class Context {
   private:
 	GLuint						mActiveVao, mTrueVao;
 	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;
-	GLuint						mActiveGlslProg, mTrueGlslProg;
+	GlslProgRef					mActiveGlslProg;
+	GLuint						mTrueGlslProgId;
 	std::map<GLenum,GLboolean>	mActiveStateBoolean, mTrueStateBoolean;
 	std::map<GLenum,GLint>		mActiveStateInt, mTrueStateInt;
 	
@@ -211,25 +211,26 @@ struct ScopeShader : public boost::noncopyable {
 	ScopeShader( const GlslProgRef &prog )
 		: mCtx( gl::context() )
 	{
-		mPrevProgId = mCtx->shaderGet();
+		mPrevProg = mCtx->shaderGet();
 		mCtx->shaderUse( prog );
 	}
 
-	ScopeShader( GLuint handle )
+	ScopeShader( const std::shared_ptr<const GlslProg> &prog )
 		: mCtx( gl::context() )
 	{
-		mPrevProgId = mCtx->shaderGet();
-		mCtx->shaderUse( handle );
+		mPrevProg = mCtx->shaderGet();
+		mCtx->shaderUse( std::const_pointer_cast<GlslProg>( prog ) );
 	}
-	
+
+
 	~ScopeShader()
 	{
-		mCtx->shaderRestore( mPrevProgId );
+		mCtx->shaderRestore( mPrevProg );
 	}
 
   private:
 	Context		*mCtx;
-	GLuint		mPrevProgId;
+	GlslProgRef	mPrevProg;
 };
 
 } } // namespace cinder::gl

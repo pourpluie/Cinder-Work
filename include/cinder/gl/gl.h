@@ -22,6 +22,14 @@
 
 namespace cinder { namespace gl {
 
+enum UniformSemantic {
+	UNIFORM_MODELVIEWPROJECTION
+};
+
+enum AttrSemantic {
+	ATTR_POSITION, ATTR_NORMAL, ATTR_TEXCOORD0
+};
+
 class Vbo;
 typedef std::shared_ptr<Vbo>		VboRef;
 class VboMesh;
@@ -31,6 +39,8 @@ class Context* context();
 class Environment* env();
 
 bool isExtensionAvailable( const std::string &extName );
+
+void setDefaultShaderUniforms();
 
 void clear( const ColorA &color = ColorA::black(), bool clearDepthBuffer = true );
 
