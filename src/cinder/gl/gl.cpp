@@ -509,6 +509,91 @@ void drawArrays( GLenum mode, GLint first, GLsizei count )
 	glDrawArrays( mode, first, count );
 }
 
+void drawCube( const Vec3f &c, const Vec3f &size )
+{
+	GLfloat sx = size.x * 0.5f;
+	GLfloat sy = size.y * 0.5f;
+	GLfloat sz = size.z * 0.5f;
+	GLfloat vertices[24*3]={c.x+1.0f*sx,c.y+1.0f*sy,c.z+1.0f*sz,	c.x+1.0f*sx,c.y+-1.0f*sy,c.z+1.0f*sz,	c.x+1.0f*sx,c.y+-1.0f*sy,c.z+-1.0f*sz,	c.x+1.0f*sx,c.y+1.0f*sy,c.z+-1.0f*sz,		// +X
+							c.x+1.0f*sx,c.y+1.0f*sy,c.z+1.0f*sz,	c.x+1.0f*sx,c.y+1.0f*sy,c.z+-1.0f*sz,	c.x+-1.0f*sx,c.y+1.0f*sy,c.z+-1.0f*sz,	c.x+-1.0f*sx,c.y+1.0f*sy,c.z+1.0f*sz,		// +Y
+							c.x+1.0f*sx,c.y+1.0f*sy,c.z+1.0f*sz,	c.x+-1.0f*sx,c.y+1.0f*sy,c.z+1.0f*sz,	c.x+-1.0f*sx,c.y+-1.0f*sy,c.z+1.0f*sz,	c.x+1.0f*sx,c.y+-1.0f*sy,c.z+1.0f*sz,		// +Z
+							c.x+-1.0f*sx,c.y+1.0f*sy,c.z+1.0f*sz,	c.x+-1.0f*sx,c.y+1.0f*sy,c.z+-1.0f*sz,	c.x+-1.0f*sx,c.y+-1.0f*sy,c.z+-1.0f*sz,	c.x+-1.0f*sx,c.y+-1.0f*sy,c.z+1.0f*sz,	// -X
+							c.x+-1.0f*sx,c.y+-1.0f*sy,c.z+-1.0f*sz,	c.x+1.0f*sx,c.y+-1.0f*sy,c.z+-1.0f*sz,	c.x+1.0f*sx,c.y+-1.0f*sy,c.z+1.0f*sz,	c.x+-1.0f*sx,c.y+-1.0f*sy,c.z+1.0f*sz,	// -Y
+							c.x+1.0f*sx,c.y+-1.0f*sy,c.z+-1.0f*sz,	c.x+-1.0f*sx,c.y+-1.0f*sy,c.z+-1.0f*sz,	c.x+-1.0f*sx,c.y+1.0f*sy,c.z+-1.0f*sz,	c.x+1.0f*sx,c.y+1.0f*sy,c.z+-1.0f*sz};	// -Z
+
+
+	static GLfloat normals[24*3]={ 1,0,0,	1,0,0,	1,0,0,	1,0,0,
+								  0,1,0,	0,1,0,	0,1,0,	0,1,0,
+									0,0,1,	0,0,1,	0,0,1,	0,0,1,
+								  -1,0,0,	-1,0,0,	-1,0,0,	-1,0,0,
+								  0,-1,0,	0,-1,0,  0,-1,0,0,-1,0,
+								  0,0,-1,	0,0,-1,	0,0,-1,	0,0,-1};
+
+	static GLubyte colors[24*4]={	255,0,0,255,	255,0,0,255,	255,0,0,255,	255,0,0,255,	// +X = red
+									0,255,0,255,	0,255,0,255,	0,255,0,255,	0,255,0,255,	// +Y = green
+									0,0,255,255,	0,0,255,255,	0,0,255,255,	0,0,255,255,	// +Z = blue
+									0,255,255,255,	0,255,255,255,	0,255,255,255,	0,255,255,255,	// -X = cyan
+									255,0,255,255,	255,0,255,255,	255,0,255,255,	255,0,255,255,	// -Y = purple
+									255,255,0,255,	255,255,0,255,	255,255,0,255,	255,255,0,255 };// -Z = yellow
+
+	static GLfloat texs[24*2]={	0,1,	1,1,	1,0,	0,0,
+								1,1,	1,0,	0,0,	0,1,
+								0,1,	1,1,	1,0,	0,0,							
+								1,1,	1,0,	0,0,	0,1,
+								1,0,	0,0,	0,1,	1,1,
+								1,0,	0,0,	0,1,	1,1 };
+
+	static GLubyte elements[6*6] ={	0, 1, 2, 0, 2, 3,
+									4, 5, 6, 4, 6, 7,
+									8, 9,10, 8, 10,11,
+									12,13,14,12,14,15,
+									16,17,18,16,18,19,
+									20,21,22,20,22,23 };
+	
+	Context *ctx = gl::context();
+	
+	GlslProgRef curShader = ctx->shaderGet();
+	bool hasPositions = curShader->hasAttribSemantic( ATTR_POSITION );
+	bool hasNormals = curShader->hasAttribSemantic( ATTR_NORMAL );
+	bool hasTextureCoords = curShader->hasAttribSemantic( ATTR_TEX_COORD0 );
+	
+	size_t totalArrayBufferSize = 0;
+	if( hasPositions )
+		totalArrayBufferSize += sizeof(vertices);
+	if( hasNormals )
+		totalArrayBufferSize += sizeof(normals);
+	if( hasTextureCoords )
+		totalArrayBufferSize += sizeof(texs);
+	
+	VaoRef vao = Vao::create();
+	VboRef arrayVbo = Vbo::create( GL_ARRAY_BUFFER, totalArrayBufferSize );
+	VboRef elementVbo = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, sizeof(elements) );
+	
+	size_t curBufferOffset = 0;
+	if( hasPositions ) {
+		int loc = curShader->getAttribSemanticLocation( ATTR_POSITION );
+		vao->vertexAttribPointer( arrayVbo, loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
+		arrayVbo->bufferSubData( vertices, sizeof(vertices), curBufferOffset );
+		curBufferOffset += sizeof(vertices);
+	}
+
+	if( hasTextureCoords ) {
+		int loc = curShader->getAttribSemanticLocation( ATTR_TEX_COORD0 );
+		vao->vertexAttribPointer( arrayVbo, loc, 2, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
+		arrayVbo->bufferSubData( texs, sizeof(texs), curBufferOffset );
+		curBufferOffset += sizeof(texs);
+	}
+	
+	elementVbo->bufferData( elements, sizeof(elements), GL_DYNAMIC_DRAW );
+	
+	VaoScope vaoScope( vao );
+	BufferScope arrayScope( arrayVbo );
+	BufferScope elementScope( elementVbo );
+	
+	ctx->prepareDraw();
+	glDrawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
+}
+
 GLenum getError()
 {
 	return glGetError();

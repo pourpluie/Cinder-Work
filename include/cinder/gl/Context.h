@@ -141,7 +141,8 @@ class Context {
 
 
 struct VaoScope : public boost::noncopyable {
-	VaoScope( GLuint id ) 
+	VaoScope( const VaoRef &vao );
+	VaoScope( GLuint id )
 		: mCtx( gl::context() )
 	{
 		mPrevId = mCtx->vaoGet();
@@ -157,6 +158,7 @@ struct VaoScope : public boost::noncopyable {
 };
 
 struct BufferScope : public boost::noncopyable {
+	BufferScope( const BufferObjRef &bufferObj );
 	BufferScope( GLenum target, GLuint id )
 		: mCtx( gl::context() ), mTarget( target )
 	{

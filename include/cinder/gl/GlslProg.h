@@ -42,6 +42,7 @@ typedef std::shared_ptr<class GlslProg> GlslProgRef;
 class GlslProg : public std::enable_shared_from_this<GlslProg> {
   public:
 	typedef std::map<std::string,UniformSemantic>	UniformSemanticMap;
+	typedef std::map<std::string,AttrSemantic>		AttribSemanticMap;
   
 	static GlslProgRef create( DataSourceRef vertexShader, DataSourceRef fragmentShader = DataSourceRef() );
 	static GlslProgRef create( const char *vertexShader, const char *fragmentShader = 0 );
@@ -72,17 +73,27 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 
 	//! Returns a std::map from the uniform name to its OpenGL type (GL_BOOL, GL_FLOAT_VEC3, etc)
 	const std::map<std::string,GLenum>&		getActiveUniformTypes() const;
+	//! Returns a std::map from the attribute name to its OpenGL type (GL_BOOL, GL_FLOAT_VEC3, etc)
+	const std::map<std::string,GLenum>&		getActiveAttribTypes() const;
 
 	const UniformSemanticMap&		getUniformSemantics() const;
+	const AttribSemanticMap&		getAttribSemantics() const;
+	
+	bool	hasAttribSemantic( AttrSemantic semantic ) const;
+	GLint	getAttribSemanticLocation( AttrSemantic semantic ) const;
+	
 	
 	//! Default mapping from uniform name to semantic. Can be modified via the reference. Not thread-safe.
 	static UniformSemanticMap&		getDefaultUniformNameToSemanticMap();
+	//! Default mapping from attribute name to semantic. Can be modified via the reference. Not thread-safe.
+	static AttribSemanticMap&		getDefaultAttribNameToSemanticMap();
 	
 	void	bindAttribLocation( const std::string &name, GLuint index );
 	GLint	getAttribLocation( const std::string &name ) const;
 	GLint	getUniformLocation( const std::string &name ) const;
 	
 	std::string		getShaderLog( GLuint handle ) const;
+
   protected:
 	GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader = DataSourceRef() );
 	GlslProg( const char *vertexShader, const char *fragmentShader = 0 );
@@ -93,14 +104,24 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	void			link();
 	
 	GLuint									mHandle;
+
 	mutable std::map<std::string, int>		mUniformLocs;
 	mutable bool							mActiveUniformTypesCached;
 	mutable std::map<std::string, GLenum>	mActiveUniformTypes;
+
+	mutable std::map<std::string, int>		mAttribLocs;
+	mutable bool							mActiveAttribTypesCached;
+	mutable std::map<std::string, GLenum>	mActiveAttribTypes;
 	
 	static UniformSemanticMap				sDefaultUniformNameToSemanticMap;
 	UniformSemanticMap						mUniformNameToSemanticMap;
 	mutable bool							mUniformSemanticsCached;
 	mutable UniformSemanticMap				mUniformSemantics;
+	
+	static AttribSemanticMap				sDefaultAttribNameToSemanticMap;
+	AttribSemanticMap						mAttribNameToSemanticMap;
+	mutable bool							mAttribSemanticsCached;
+	mutable AttribSemanticMap				mAttribSemantics;
 };
 
 class GlslProgCompileExc : public std::exception {

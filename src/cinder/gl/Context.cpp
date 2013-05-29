@@ -413,6 +413,24 @@ void Context::pushBack( const ci::Vec4f &v )
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+// ScopeVao
+VaoScope::VaoScope( const VaoRef &vao )
+	: mCtx( gl::context() )
+{
+	mPrevId = mCtx->vaoGet();
+	mCtx->vaoBind( vao->getId() );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopeBuffer
+BufferScope::BufferScope( const BufferObjRef &bufferObj )
+	: mCtx( gl::context() ), mTarget( bufferObj->getTarget() )
+{
+	mPrevId = mCtx->bufferGet( mTarget );
+	mCtx->bufferBind( mTarget, bufferObj->getId() );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 // ScopeBlend
 ScopeBlend::ScopeBlend( GLboolean enable )
 	: mCtx( gl::context() ), mSaveFactors( false )

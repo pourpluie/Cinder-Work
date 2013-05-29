@@ -27,7 +27,7 @@ enum UniformSemantic {
 };
 
 enum AttrSemantic {
-	ATTR_POSITION, ATTR_NORMAL, ATTR_TEXCOORD0
+	ATTR_POSITION, ATTR_NORMAL, ATTR_TEX_COORD0
 };
 
 class Vbo;
@@ -128,6 +128,8 @@ void draw( const VboMeshRef &mesh );
 void drawRange( const VboMeshRef& mesh, GLint start = 0, GLsizei count = 0 );
 void draw( const VboRef &vbo );
 void drawRange( const VboRef& vbo, GLint start = 0, GLsizei count = 0 );
+
+void drawCube( const Vec3f &c, const Vec3f &size );
 
 void drawArrays( GLenum mode, GLint first, GLsizei count );
 	

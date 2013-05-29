@@ -28,6 +28,7 @@ using namespace std;
 namespace cinder { namespace gl {
 
 GlslProg::UniformSemanticMap	GlslProg::sDefaultUniformNameToSemanticMap;
+GlslProg::AttribSemanticMap		GlslProg::sDefaultAttribNameToSemanticMap;
 
 GlslProgRef GlslProg::create( DataSourceRef vertexShader, DataSourceRef fragmentShader )
 {
@@ -51,7 +52,8 @@ GlslProg::~GlslProg()
 
 GlslProg::GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader )
 	: mActiveUniformTypesCached( false ),
-	mUniformSemanticsCached( false ), mUniformNameToSemanticMap( getDefaultUniformNameToSemanticMap() )
+	mUniformSemanticsCached( false ), mUniformNameToSemanticMap( getDefaultUniformNameToSemanticMap() ),
+	mAttribSemanticsCached( false ), mAttribNameToSemanticMap( getDefaultAttribNameToSemanticMap() )
 {
 	mHandle = glCreateProgram();
 	
@@ -65,7 +67,8 @@ GlslProg::GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader )
 
 GlslProg::GlslProg( const char* vertexShader, const char* fragmentShader )
 	: mActiveUniformTypesCached( false ),
-	mUniformSemanticsCached( false ), mUniformNameToSemanticMap( getDefaultUniformNameToSemanticMap() )
+	mUniformSemanticsCached( false ), mUniformNameToSemanticMap( getDefaultUniformNameToSemanticMap() ),
+	mAttribSemanticsCached( false ), mAttribNameToSemanticMap( getDefaultAttribNameToSemanticMap() )
 {
 	mHandle = glCreateProgram();
 	
@@ -86,6 +89,19 @@ GlslProg::UniformSemanticMap& GlslProg::getDefaultUniformNameToSemanticMap()
 	}
 	
 	return sDefaultUniformNameToSemanticMap;
+}
+
+GlslProg::AttribSemanticMap& GlslProg::getDefaultAttribNameToSemanticMap()
+{
+	static bool initialized = false;
+	if( ! initialized ) {
+		sDefaultAttribNameToSemanticMap["vPosition"] = ATTR_POSITION;
+		sDefaultAttribNameToSemanticMap["vNormal"] = ATTR_NORMAL;
+		sDefaultAttribNameToSemanticMap["vTexCoord0"] = ATTR_TEX_COORD0;
+		initialized = true;
+	}
+	
+	return sDefaultAttribNameToSemanticMap;
 }
 
 void GlslProg::loadShader( Buffer shaderSourceBuffer, GLint shaderType )
@@ -291,6 +307,25 @@ const std::map<std::string,GLenum>& GlslProg::getActiveUniformTypes() const
 	return mActiveUniformTypes;
 }
 
+const std::map<std::string,GLenum>& GlslProg::getActiveAttribTypes() const
+{
+	if( ! mActiveAttribTypesCached ) {
+		GLint numActiveAttrs = 0;
+		glGetProgramiv( mHandle, GL_ACTIVE_ATTRIBUTES, &numActiveAttrs );
+		for( GLint i = 0; i < numActiveAttrs; ++i ) {
+			char name[512];
+			GLsizei nameLength;
+			GLint size;
+			GLenum type;
+			glGetActiveAttrib( mHandle, (GLuint)i, 511, &nameLength, &size, &type, name );
+			name[nameLength] = 0;
+			mActiveAttribTypes[name] = type;
+		}
+		mActiveAttribTypesCached = true;
+	}
+	return mActiveAttribTypes;
+}
+
 const GlslProg::UniformSemanticMap& GlslProg::getUniformSemantics() const
 {
 	if( ! mUniformSemanticsCached ) {
@@ -309,6 +344,48 @@ const GlslProg::UniformSemanticMap& GlslProg::getUniformSemantics() const
 	}
 	
 	return mUniformSemantics;
+}
+
+const GlslProg::AttribSemanticMap& GlslProg::getAttribSemantics() const
+{
+	if( ! mAttribSemanticsCached ) {
+		auto activeAttrTypes = getActiveAttribTypes();
+	
+		for( auto activeAttrIt = activeAttrTypes.begin(); activeAttrIt != activeAttrTypes.end(); ++activeAttrIt ) {
+			// first find this active attribute by name in the mAttrNameToSemanticMap
+			auto semantic = mAttribNameToSemanticMap.find( activeAttrIt->first );
+			if( semantic != mAttribNameToSemanticMap.end() ) {
+				// found this semantic, add it mAttrSemantics
+				mAttribSemantics[semantic->first] = semantic->second;
+			}
+		}
+	
+		mAttribSemanticsCached = true;
+	}
+	
+	return mAttribSemantics;
+}
+
+bool GlslProg::hasAttribSemantic( AttrSemantic semantic ) const
+{
+	auto semantics = getAttribSemantics();
+	for( auto semIt = semantics.begin(); semIt != semantics.end(); ++semIt ) {
+		if( semIt->second == semantic )
+			return true;
+	}
+	
+	return false;
+}
+
+GLint GlslProg::getAttribSemanticLocation( AttrSemantic semantic ) const
+{
+	auto semantics = getAttribSemantics();
+	for( auto semIt = semantics.begin(); semIt != semantics.end(); ++semIt ) {
+		if( semIt->second == semantic )
+			return getAttribLocation( semIt->first );
+	}
+	
+	return -1;
 }
 
 void GlslProg::bindAttribLocation( const std::string &name, GLuint index )
