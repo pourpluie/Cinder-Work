@@ -30,14 +30,14 @@ void BufferObj::bind() const
 	context()->bufferBind( mTarget, mId );
 }
 
-void BufferObj::bufferData( const GLvoid *data, GLsizeiptr size, GLenum usage )
+void BufferObj::bufferData( GLsizeiptr size, const GLvoid *data, GLenum usage )
 {
 	BufferScope bufferBind( mTarget, mId );
 	mSize = size;
 	glBufferData( mTarget, mSize, data, usage );
 }
 	
-void BufferObj::bufferSubData( const GLvoid *data, GLsizeiptr size, GLintptr offset )
+void BufferObj::bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *data )
 {
 	BufferScope bufferBind( mTarget, mId );
 	glBufferSubData( mTarget, offset, size, data );

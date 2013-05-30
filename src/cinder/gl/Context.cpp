@@ -17,7 +17,7 @@ namespace cinder { namespace gl {
 using namespace std;
 	
 Context::Context()
-	: mActiveVao( 0 ), mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
+	: mActiveVao( 0 ), mTrueVao( 0 ), mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
 	mTextureUnit( -1 ), mWireframe( false ), mTrueGlslProgId( 0 )
 {
@@ -114,6 +114,7 @@ void Context::bufferPrepareUse( GLenum target )
 void Context::shaderUse( const GlslProgRef &prog )
 {
 	mActiveGlslProg = prog;
+	shaderPrepareUse();
 }
 
 GlslProgRef Context::shaderGet()
@@ -217,6 +218,23 @@ void Context::statesPrepareUse()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
+void Context::sanityCheck()
+{
+	GLint queriedInt;
+
+	// GL_ARRAY_BUFFER
+	glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &queriedInt );
+	assert( mTrueBuffer[GL_ARRAY_BUFFER] == queriedInt );
+
+	// GL_ELEMENT_ARRAY_BUFFER
+	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
+	assert( mTrueBuffer[GL_ELEMENT_ARRAY_BUFFER] == queriedInt );
+
+	// (VAO) GL_VERTEX_ARRAY_BINDING
+	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &queriedInt );
+	assert( mTrueVao == queriedInt );
+}
+
 void Context::prepareDraw()
 {
 	vaoPrepareUse();
@@ -287,7 +305,7 @@ void Context::blendPrepareUse()
 // DepthMask
 void Context::depthMask( GLboolean enable )
 {
-	stateSet<GLboolean>( GL_DEPTH_WRITEMASK, enable );
+	mActiveStateBoolean[GL_DEPTH_WRITEMASK] = enable;
 	depthMaskPrepareUse();
 }
 
@@ -342,7 +360,7 @@ void Context::draw()
 			mImmVbo = Vbo::create( GL_ARRAY_BUFFER );
 			mImmVbo->setUsage( GL_DYNAMIC_DRAW );
 		}
-		mImmVbo->bufferData( &mVertices[ 0 ], ( GLuint )( mVertices.size() * stride ), GL_DYNAMIC_DRAW );
+		mImmVbo->bufferData( ( GLuint )( mVertices.size() * stride ), &mVertices[ 0 ], GL_DYNAMIC_DRAW );
 	
 		// Create VAO. All shader variations have the same attribute
 		// layout, so we only need to this once

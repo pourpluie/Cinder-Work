@@ -14,8 +14,8 @@ class BufferObj {
 	void				bind() const;
 	void				unbind() const;
 	
-	void				bufferData( const GLvoid *data, GLsizeiptr size, GLenum usage );
-	void				bufferSubData( const GLvoid *data, GLsizeiptr size, GLintptr offset );
+	void				bufferData( GLsizeiptr size, const GLvoid *data, GLenum usage );
+	void				bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *data );
 	
 	uint8_t*			map( GLenum access ) const;
 	void				unmap() const;

@@ -51,21 +51,23 @@ void CoreProfileApp::setup()
 					0, (float)getWindowHeight(), 0.0f,
 					(float)getWindowWidth(), (float)getWindowHeight(), 0.0f };
 	GLfloat vTexCoords[] = { 0, 0, 1, 0, 1, 1 };
-	
+#if 0	
 	mVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(vVertices) + sizeof(vTexCoords) );
-	mVbo->bufferSubData( vVertices, sizeof(vVertices), 0 );
-	mVbo->bufferSubData( vTexCoords, sizeof(vTexCoords), sizeof(vVertices) );
+	mVbo->bufferSubData( 0, sizeof(vVertices), vVertices );
+	mVbo->bufferSubData( sizeof(vVertices), sizeof(vTexCoords), vTexCoords );
 
 	mVao = gl::Vao::create();
-
+#endif
 	mShader->bind();
-//	mShader->uniform( "uTexture", 0 );
+	mShader->uniform( "uTex0", (int)0 );
 //	mShader->uniform( "uTexEnabled", true );
-	mShader->bindAttribLocation( "aPosition", 0 );
-	mShader->bindAttribLocation( "aTexCoord", 2 );
+#if 0
+	mShader->bindAttribLocation( "vPosition", 0 );
+	mShader->bindAttribLocation( "vTexCoord", 2 );
 
-	int pos = mShader->getAttribLocation( "aPosition" );
-	int tex = mShader->getAttribLocation( "aTexCoord" );
+	int pos = mShader->getAttribLocation( "vPosition" );
+	int tex = mShader->getAttribLocation( "vTexCoord0" );
+	
 	console() << "pos: " << pos << " " << " tex " << tex << std::endl;
 	auto uniforms = mShader->getActiveUniformTypes();
 	console() << "Uniform Types: " << std::endl;
@@ -78,7 +80,7 @@ void CoreProfileApp::setup()
 	
 	mVao->vertexAttribPointer( mVbo, pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
 	mVao->vertexAttribPointer( mVbo, tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
-
+#endif
 	mCam.lookAt( Vec3f( 3, 2, -3 ), Vec3f::zero() );
 	mCubeRotation.setToIdentity();
 	
@@ -106,22 +108,24 @@ void CoreProfileApp::draw()
 	gl::enableAdditiveBlending();
 
 	gl::ScopeShader shader( mShader );
+#if 0
 	{
 		gl::setDefaultShaderUniforms();
-		gl::VaoScope vaoBind( mVao->getId() );
-		gl::BufferScope vboBind( mVbo->getTarget(), mVbo->getId() );
-		gl::drawArrays( GL_TRIANGLES, 0, 3 );
+		gl::VaoScope vaoBind( mVao );
+		gl::BufferScope vboBind( mVbo );
+//		gl::drawArrays( GL_TRIANGLES, 0, 3 );
 	}
 	{
 		gl::pushModelView();
 		gl::rotate( Vec3f( 0, 0, mSecondTriRotation ) );
 		gl::setDefaultShaderUniforms();
 //		mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
-		gl::VaoScope vaoBind( mVao->getId() );
-		gl::BufferScope vboBind( mVbo->getTarget(), mVbo->getId() );
-		gl::drawArrays( GL_TRIANGLES, 0, 3 );
+		gl::VaoScope vaoBind( mVao );
+		gl::BufferScope vboBind( mVbo );
+//		gl::drawArrays( GL_TRIANGLES, 0, 3 );
 		gl::popModelView();
 	}
+#endif
 	{
 		gl::pushMatrices();
 			gl::setMatrices( mCam );

@@ -1,16 +1,12 @@
-attribute vec4		aPosition;
-attribute vec4		aNormal;
-attribute vec4		aColor;
-attribute vec4		aTexCoord;
+attribute vec4		vPosition;
+attribute vec2		vTexCoord0;
 
 uniform mat4		uModelViewProjection;
 
-varying highp vec4	vColor;
-varying highp vec4	vTexCoord;
+varying highp vec2	TexCoord;
 
-void main( void ) 
+void main( void )
 {
-	vColor		= aColor;
-	vTexCoord	= aTexCoord;
-	gl_Position	= uModelViewProjection * aPosition;
+	TexCoord	= vTexCoord0;
+	gl_Position	= uModelViewProjection * vPosition;
 }

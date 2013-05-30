@@ -127,11 +127,16 @@ Vao::~Vao()
 void Vao::vertexAttribPointer( const VboRef &vbo, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
 	auto ctx = gl::context();
+ctx->sanityCheck();
 	VaoScope vaoBind( mId );
-	BufferScope bufferBind( vbo->getTarget(), vbo->getId() );
+ctx->sanityCheck();
+	BufferScope bufferBind( vbo );
+ctx->sanityCheck();
 
 	ctx->vertexAttribPointer( index, size, type, normalized, stride, pointer );
+ctx->sanityCheck();
 	ctx->enableVertexAttribArray( index );
+ctx->sanityCheck();
 }
 
 void Vao::addAttribute( const Vao::Attribute &attr )

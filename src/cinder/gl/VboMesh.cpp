@@ -156,7 +156,7 @@ mNumVertices( mesh.getNumVertices() )
 	if ( mVboIndices ) {
 		GLuint count	= sizeof( uint32_t ) * mNumIndices;
 		GLenum usage	= mLayout.getIndexUsage() == Layout::Usage::STATIC ? GL_STATIC_DRAW : GL_STREAM_DRAW;
-		mVboIndices->bufferData( &mesh.getIndices()[ 0 ], count, usage );
+		mVboIndices->bufferData( count, &mesh.getIndices()[ 0 ], usage );
 	}
 }
 
@@ -224,7 +224,7 @@ void VboMesh::initializeBuffers()
 			}
 			
 			GLuint stride = offset * sizeof( GL_FLOAT ) * mNumVertices;
-			mVboVerticesDynamic->bufferData( 0, stride, GL_STREAM_DRAW );
+			mVboVerticesDynamic->bufferData( stride, 0, GL_STREAM_DRAW );
 		}
 		
 		if ( hasStatic ) {
@@ -249,7 +249,7 @@ void VboMesh::initializeBuffers()
 			}
 			
 			GLuint stride = offset * sizeof( GL_FLOAT );
-			mVboVerticesStatic->bufferData( 0, stride, GL_STATIC_DRAW );
+			mVboVerticesStatic->bufferData( stride, 0, GL_STATIC_DRAW );
 		}
 	}
 }

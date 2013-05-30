@@ -61,6 +61,7 @@ class Context {
 	void			statePrepareUse( GLenum cap );
 	void			statesPrepareUse();
 	
+	void		sanityCheck();
 	void		prepareDraw();
 
 	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
