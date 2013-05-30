@@ -64,6 +64,14 @@ class Vao {
 	GLuint							getId() const { return mId; }
 
 	void	vertexAttribPointer( const VboRef &vbo, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+	void	bindElements( const VboRef &vbo );
+	
+	
+	
+	
+	
+	
+	
 	
 	void							addAttribute( const Attribute& attr );
 	std::vector<Attribute>&			getAttributes();

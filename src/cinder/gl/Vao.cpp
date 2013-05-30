@@ -139,6 +139,14 @@ ctx->sanityCheck();
 ctx->sanityCheck();
 }
 
+void Vao::bindElements( const VboRef &vbo )
+{
+	auto ctx = gl::context();
+	
+	VaoScope vaoBind( mId );
+	ctx->bufferBind( GL_ELEMENT_ARRAY_BUFFER, vbo->getId() );
+}
+
 void Vao::addAttribute( const Vao::Attribute &attr )
 {
 //	bind();

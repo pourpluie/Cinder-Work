@@ -132,6 +132,7 @@ void drawRange( const VboRef& vbo, GLint start = 0, GLsizei count = 0 );
 void drawCube( const Vec3f &c, const Vec3f &size );
 
 void drawArrays( GLenum mode, GLint first, GLsizei count );
+void drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices );
 	
 GLenum getError();
 std::string getErrorString( GLenum err );

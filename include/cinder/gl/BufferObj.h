@@ -31,7 +31,7 @@ class BufferObj {
 	
   protected:
 	BufferObj( GLenum target );
-	BufferObj( GLenum target, GLsizeiptr allocationSize );
+	BufferObj( GLenum target, GLsizeiptr allocationSize, const void *data = NULL );
 	
 	GLuint				mId;
 	size_t				mSize;

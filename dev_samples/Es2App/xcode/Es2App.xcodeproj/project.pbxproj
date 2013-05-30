@@ -58,7 +58,7 @@
 		00611D29174AC26000BE54C2 /* Vbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vbo.h; path = ../../../include/cinder/gl/Vbo.h; sourceTree = "<group>"; };
 		00611D2A174AC26000BE54C2 /* VboMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VboMesh.h; path = ../../../include/cinder/gl/VboMesh.h; sourceTree = "<group>"; };
 		00611D2E174AC6B600BE54C2 /* BufferObj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BufferObj.cpp; path = ../../../src/cinder/gl/BufferObj.cpp; sourceTree = "<group>"; };
-		00611D30174AC6F900BE54C2 /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fog.cpp; path = ../../../src/cinder/gl/Fog.cpp; sourceTree = "<group>"; };
+		00611D30174AC6F900BE54C2 /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fog.cpp; path = ../../../src/cinder/gl/Fog.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		00611D32174AC6F900BE54C2 /* Pbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pbo.cpp; path = ../../../src/cinder/gl/Pbo.cpp; sourceTree = "<group>"; };
 		00611D33174AC6FA00BE54C2 /* Shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shader.cpp; path = ../../../src/cinder/gl/Shader.cpp; sourceTree = "<group>"; };
 		00611D34174AC6FB00BE54C2 /* Vao.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vao.cpp; path = ../../../src/cinder/gl/Vao.cpp; sourceTree = "<group>"; };

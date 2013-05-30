@@ -509,6 +509,12 @@ void drawArrays( GLenum mode, GLint first, GLsizei count )
 	glDrawArrays( mode, first, count );
 }
 
+void drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices )
+{
+	context()->prepareDraw();
+	glDrawElements( mode, count, type, indices );
+}
+
 void drawCube( const Vec3f &c, const Vec3f &size )
 {
 	GLfloat sx = size.x * 0.5f;
@@ -568,7 +574,9 @@ ctx->sanityCheck();
 	VaoRef vao = Vao::create();
 	VboRef arrayVbo = Vbo::create( GL_ARRAY_BUFFER, totalArrayBufferSize );
 	VboRef elementVbo = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, sizeof(elements) );
-ctx->sanityCheck();	
+ctx->sanityCheck();
+	VaoScope vaoScope( vao );
+	elementVbo->bind();
 	size_t curBufferOffset = 0;
 	if( hasPositions ) {
 		int loc = curShader->getAttribSemanticLocation( ATTR_POSITION );
@@ -589,10 +597,9 @@ ctx->sanityCheck();
 ctx->sanityCheck();		
 	}
 	
-	vao->
 	elementVbo->bufferData( sizeof(elements), elements, GL_DYNAMIC_DRAW );
 ctx->sanityCheck();	
-	VaoScope vaoScope( vao );
+
 	//BufferScope arrayScope( arrayVbo );
 	//BufferScope elementScope( elementVbo );
 	arrayVbo->bind();

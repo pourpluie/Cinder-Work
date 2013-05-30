@@ -220,6 +220,7 @@ void Context::statesPrepareUse()
 /////////////////////////////////////////////////////////////////////////////////////
 void Context::sanityCheck()
 {
+return;
 	GLint queriedInt;
 
 	// GL_ARRAY_BUFFER

@@ -28,7 +28,7 @@ class CoreProfileApp : public AppNative {
   private:
 	ci::gl::GlslProgRef	mShader;
 	ci::gl::TextureRef	mTexture;
-	ci::gl::VboRef		mVbo;
+	ci::gl::VboRef		mVbo, mElementVbo;
 	ci::gl::VaoRef		mVao;
 	float				mSecondTriRotation;
 	Matrix44f			mCubeRotation;
@@ -51,17 +51,20 @@ void CoreProfileApp::setup()
 					0, (float)getWindowHeight(), 0.0f,
 					(float)getWindowWidth(), (float)getWindowHeight(), 0.0f };
 	GLfloat vTexCoords[] = { 0, 0, 1, 0, 1, 1 };
-#if 0	
+	GLubyte elements[] = { 0, 1, 2 };
+
 	mVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(vVertices) + sizeof(vTexCoords) );
 	mVbo->bufferSubData( 0, sizeof(vVertices), vVertices );
 	mVbo->bufferSubData( sizeof(vVertices), sizeof(vTexCoords), vTexCoords );
 
+	mElementVbo = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), (void*)elements );
+
 	mVao = gl::Vao::create();
-#endif
+
 	mShader->bind();
 	mShader->uniform( "uTex0", (int)0 );
 //	mShader->uniform( "uTexEnabled", true );
-#if 0
+
 	mShader->bindAttribLocation( "vPosition", 0 );
 	mShader->bindAttribLocation( "vTexCoord", 2 );
 
@@ -80,7 +83,8 @@ void CoreProfileApp::setup()
 	
 	mVao->vertexAttribPointer( mVbo, pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
 	mVao->vertexAttribPointer( mVbo, tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
-#endif
+	mVao->bindElements( mElementVbo );
+
 	mCam.lookAt( Vec3f( 3, 2, -3 ), Vec3f::zero() );
 	mCubeRotation.setToIdentity();
 	
@@ -108,13 +112,14 @@ void CoreProfileApp::draw()
 	gl::enableAdditiveBlending();
 
 	gl::ScopeShader shader( mShader );
-#if 0
+
 	{
 		gl::setDefaultShaderUniforms();
 		gl::VaoScope vaoBind( mVao );
-		gl::BufferScope vboBind( mVbo );
-//		gl::drawArrays( GL_TRIANGLES, 0, 3 );
+gl::context()->sanityCheck();
+		gl::drawElements( GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, 0 );
 	}
+#if 0
 	{
 		gl::pushModelView();
 		gl::rotate( Vec3f( 0, 0, mSecondTriRotation ) );
@@ -122,10 +127,10 @@ void CoreProfileApp::draw()
 //		mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
 		gl::VaoScope vaoBind( mVao );
 		gl::BufferScope vboBind( mVbo );
-//		gl::drawArrays( GL_TRIANGLES, 0, 3 );
+		gl::drawArrays( GL_TRIANGLES, 0, 3 );
 		gl::popModelView();
 	}
-#endif
+
 	{
 		gl::pushMatrices();
 			gl::setMatrices( mCam );
@@ -134,6 +139,7 @@ void CoreProfileApp::draw()
 			gl::drawCube( Vec3f::zero(), Vec3f( 2.0f, 2.0f, 2.0f ) );
 		gl::popMatrices();
 	}
+#endif
 }
 
 auto renderOptions = RendererGl::Options().coreProfile();
