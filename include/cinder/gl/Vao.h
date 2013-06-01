@@ -58,7 +58,7 @@ class Vao {
 	static VaoRef					create();
 	~Vao();
 	
-//	void							bind() const;
+	void							bind() const;
 	void							unbind() const;
 
 	GLuint							getId() const { return mId; }

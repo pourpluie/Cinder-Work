@@ -89,7 +89,9 @@ class Context {
 	std::map<GLenum,GLboolean>	mActiveStateBoolean, mTrueStateBoolean;
 	std::map<GLenum,GLint>		mActiveStateInt, mTrueStateInt;
 	
-	
+#if ! defined( CINDER_GLES )
+	GLuint						mDefaultVaoId;
+#endif
 	
 	
 	

@@ -59,8 +59,6 @@ void CoreProfileApp::setup()
 
 	mElementVbo = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), (void*)elements );
 
-	mVao = gl::Vao::create();
-
 	mShader->bind();
 	mShader->uniform( "uTex0", (int)0 );
 //	mShader->uniform( "uTexEnabled", true );
@@ -81,9 +79,12 @@ void CoreProfileApp::setup()
 	for( auto &sem : attrSems )
 		console() << " " << sem.first << ":" << sem.second << std::endl;
 	
-	mVao->vertexAttribPointer( mVbo, pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
-	mVao->vertexAttribPointer( mVbo, tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
-	mVao->bindElements( mElementVbo );
+	{
+		mVao = gl::Vao::create();
+		mVao->vertexAttribPointer( mVbo, pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
+		mVao->vertexAttribPointer( mVbo, tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
+		mVao->bindElements( mElementVbo );
+	}
 
 	mCam.lookAt( Vec3f( 3, 2, -3 ), Vec3f::zero() );
 	mCubeRotation.setToIdentity();
@@ -119,12 +120,10 @@ void CoreProfileApp::draw()
 gl::context()->sanityCheck();
 		gl::drawElements( GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, 0 );
 	}
-#if 0
 	{
 		gl::pushModelView();
 		gl::rotate( Vec3f( 0, 0, mSecondTriRotation ) );
 		gl::setDefaultShaderUniforms();
-//		mShader->uniform( "uModelViewProjection", gl::getProjection() * gl::getModelView() );
 		gl::VaoScope vaoBind( mVao );
 		gl::BufferScope vboBind( mVbo );
 		gl::drawArrays( GL_TRIANGLES, 0, 3 );
@@ -139,7 +138,6 @@ gl::context()->sanityCheck();
 			gl::drawCube( Vec3f::zero(), Vec3f( 2.0f, 2.0f, 2.0f ) );
 		gl::popMatrices();
 	}
-#endif
 }
 
 auto renderOptions = RendererGl::Options().coreProfile();

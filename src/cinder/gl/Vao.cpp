@@ -157,15 +157,10 @@ void Vao::addAttribute( const Vao::Attribute &attr )
 //	unbind();
 }
 	
-/*void Vao::bind() const
+void Vao::bind() const
 {
-	context()->bind( this );
-#if defined( CINDER_GLES )
-	glBindVertexArrayOES( mId );
-#else
-	glBindVertexArray( mId );
-#endif
-}*/
+	context()->vaoBind( mId );
+}
 	
 vector<Vao::Attribute>& Vao::getAttributes()
 {

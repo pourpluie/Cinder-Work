@@ -17,11 +17,20 @@ namespace cinder { namespace gl {
 using namespace std;
 	
 Context::Context()
-	: mActiveVao( 0 ), mTrueVao( 0 ), mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
+	: mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
 	mTextureUnit( -1 ), mWireframe( false ), mTrueGlslProgId( 0 )
 {
 	env()->initializeContextDefaults( this );
+
+	// setup default VAO
+#if ! defined( CINDER_GLES )
+	glGenVertexArrays( 1, &mDefaultVaoId );
+	glBindVertexArray( mDefaultVaoId );
+	mActiveVao = mTrueVao = mDefaultVaoId;
+#else
+	mActiveVao = mTrueVao = 0;
+#endif
 
 	clear();
 	mModelView.push_back( Matrix44f() );
@@ -51,6 +60,7 @@ GLuint Context::vaoGet()
 void Context::vaoRestore( GLuint id )
 {
 	mActiveVao = id;
+	vaoPrepareUse();
 }
 
 void Context::vaoPrepareUse()
@@ -69,15 +79,16 @@ void Context::vaoPrepareUse()
 // Buffer
 void Context::bufferBind( GLenum target, GLuint id )
 {
-	mActiveBuffer[target] = id;
+	mTrueBuffer[target] = mActiveBuffer[target] = id;
+	glBindBuffer( target, mTrueBuffer[target] );
 
-	if( mTrueBuffer.find( target ) == mTrueBuffer.end() )
+/*	if( mTrueBuffer.find( target ) == mTrueBuffer.end() )
 		mTrueBuffer[target] = 0;
 	
 	if( mTrueBuffer[target] != mActiveBuffer[target] ) {
 		mTrueBuffer[target] = mActiveBuffer[target];
 		glBindBuffer( target, mTrueBuffer[target] );
-	}
+	}*/
 }
 
 GLuint Context::bufferGet( GLenum target )
@@ -232,7 +243,11 @@ return;
 	assert( mTrueBuffer[GL_ELEMENT_ARRAY_BUFFER] == queriedInt );
 
 	// (VAO) GL_VERTEX_ARRAY_BINDING
+#if defined( CINDER_GLES )
+	glGetIntegerv( GL_VERTEX_ARRAY_BINDING_OES, &queriedInt );
+#else
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &queriedInt );
+#endif
 	assert( mTrueVao == queriedInt );
 }
 
