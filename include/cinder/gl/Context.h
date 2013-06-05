@@ -62,6 +62,8 @@ class Context {
 	void			statesPrepareUse();
 	
 	void		sanityCheck();
+	void		printState( std::ostream &os ) const;
+	
 	void		prepareDraw();
 
 	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
@@ -81,6 +83,14 @@ class Context {
 	//! Call before drawing
 	void		depthMaskPrepareUse();
 
+#if ! defined( CINDER_GLES )
+	//! Parallels glPolygonMode()
+	void		polygonMode( GLenum face, GLenum mode );
+	//! Call before drawing
+	void		polygonModePrepareUse();
+#endif
+
+
   private:
 	GLuint						mActiveVao, mTrueVao;
 	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;
@@ -88,11 +98,10 @@ class Context {
 	GLuint						mTrueGlslProgId;
 	std::map<GLenum,GLboolean>	mActiveStateBoolean, mTrueStateBoolean;
 	std::map<GLenum,GLint>		mActiveStateInt, mTrueStateInt;
+	GLenum						mActiveFrontPolygonMode, mTrueFrontPolygonMode;
+	GLenum						mActiveBackPolygonMode, mTrueBackPolygonMode;
 	
-#if ! defined( CINDER_GLES )
-	GLuint						mDefaultVaoId;
-#endif
-	
+	GLuint						mDefaultVaoId;	
 	
 	
 	

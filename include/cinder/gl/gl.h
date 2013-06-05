@@ -124,6 +124,10 @@ void vertex( const ci::Vec2f &v );
 void vertex( const ci::Vec3f &v );
 void vertex( const ci::Vec4f &v );
 
+#if ! defined( CINDER_GLES )
+void polygonMode( GLenum face, GLenum mode );
+#endif
+
 void draw( const VboMeshRef &mesh );
 void drawRange( const VboMeshRef& mesh, GLint start = 0, GLsizei count = 0 );
 void draw( const VboRef &vbo );

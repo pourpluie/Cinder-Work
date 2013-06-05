@@ -63,8 +63,9 @@ class Vao {
 
 	GLuint							getId() const { return mId; }
 
-	void	vertexAttribPointer( const VboRef &vbo, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
-	void	bindElements( const VboRef &vbo );
+	void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+	void	enableVertexAttribArray( GLuint index );
+	void	bindBuffer( const VboRef &vbo );
 	
 	
 	
@@ -80,9 +81,12 @@ class Vao {
 	
   protected:
 	Vao();
+
+	GLuint							mBoundElementArrayBuffer, mBoundArrayBuffer;
 	
 	std::vector<Attribute>			mAttributes;
 	GLuint							mId;
+	friend class Context;
 };
 	
 } }

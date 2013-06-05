@@ -20,6 +20,9 @@ Context::Context()
 	: mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
 	mTextureUnit( -1 ), mWireframe( false ), mTrueGlslProgId( 0 )
+#if ! defined( CINDER_GLES )
+	,mTrueFrontPolygonMode( GL_FILL ), mTrueBackPolygonMode( GL_FILL )
+#endif
 {
 	env()->initializeContextDefaults( this );
 
@@ -31,6 +34,9 @@ Context::Context()
 #else
 	mActiveVao = mTrueVao = 0;
 #endif
+
+	mActiveFrontPolygonMode = mTrueFrontPolygonMode;
+	mActiveBackPolygonMode = mTrueBackPolygonMode;
 
 	clear();
 	mModelView.push_back( Matrix44f() );
@@ -251,6 +257,24 @@ return;
 	assert( mTrueVao == queriedInt );
 }
 
+void Context::printState( std::ostream &os ) const
+{
+	GLint queriedInt;
+	
+	glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &queriedInt );	
+	os << "{ARRAY_BUFFER:" << queriedInt << ", ";
+
+	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
+	os << "GL_ELEMENT_ARRAY_BUFFER:" << queriedInt << ", ";
+
+	#if defined( CINDER_GLES )
+	glGetIntegerv( GL_VERTEX_ARRAY_BINDING_OES, &queriedInt );
+#else
+	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &queriedInt );
+#endif
+	os << "GL_VERTEX_ARRAY_BINDING:" << queriedInt << "}" << std::endl;
+}
+
 void Context::prepareDraw()
 {
 	vaoPrepareUse();
@@ -259,6 +283,9 @@ void Context::prepareDraw()
 	bufferPrepareUse( GL_ELEMENT_ARRAY_BUFFER );
 	blendPrepareUse();
 	depthMaskPrepareUse();
+#if ! defined( CINDER_GLES )
+	polygonModePrepareUse();
+#endif
 }
 
 void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
@@ -332,6 +359,47 @@ void Context::depthMaskPrepareUse()
 		glDepthMask( mTrueStateBoolean[GL_DEPTH_WRITEMASK] );
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// PolygonMode
+#if ! defined( CINDER_GLES )
+void Context::polygonMode( GLenum face, GLenum mode )
+{
+	if( face == GL_FRONT_AND_BACK ) {
+		mActiveFrontPolygonMode = mActiveBackPolygonMode = mode;
+	}
+	else if( face == GL_FRONT ) {
+		mActiveFrontPolygonMode = mode;
+	}
+	else if( face == GL_BACK ) {
+		mActiveBackPolygonMode = mode;
+	}
+}
+
+void Context::polygonModePrepareUse()
+{
+	// see if we can combine into one glPolygonMode call
+	// incidentally, this is the only valid option for 3.0+
+	if((( mActiveFrontPolygonMode != mTrueFrontPolygonMode ) ||
+		( mActiveBackPolygonMode != mTrueBackPolygonMode )) &&
+		( mActiveFrontPolygonMode == mActiveBackPolygonMode ) ) {
+		mTrueBackPolygonMode = mTrueFrontPolygonMode = mActiveFrontPolygonMode;
+		glPolygonMode( GL_FRONT_AND_BACK, mTrueFrontPolygonMode );
+	}
+	else {
+		if( mActiveFrontPolygonMode != mTrueFrontPolygonMode ) {
+			mTrueFrontPolygonMode = mActiveFrontPolygonMode;
+			glPolygonMode( GL_FRONT, mTrueFrontPolygonMode );
+		}
+		
+		if( mActiveBackPolygonMode != mTrueBackPolygonMode ) {
+			mTrueBackPolygonMode = mActiveBackPolygonMode;
+			glPolygonMode( GL_BACK, mTrueBackPolygonMode );
+		}
+	}
+}
+
+#endif // defined( CINDER_GLES )
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 void Context::clear()

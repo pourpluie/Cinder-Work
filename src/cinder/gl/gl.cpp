@@ -441,6 +441,14 @@ void vertex( const ci::Vec4f& v )
 	ctx->pushBack( v );
 }
 
+#if ! defined( CINDER_GLES )
+void polygonMode( GLenum face, GLenum mode )
+{
+	auto ctx = gl::context();
+	ctx->polygonMode( face, mode );
+}
+#endif
+
 void draw( const VboRef& vbo )
 {
 	drawRange( vbo );
@@ -581,7 +589,8 @@ ctx->sanityCheck();
 	if( hasPositions ) {
 		int loc = curShader->getAttribSemanticLocation( ATTR_POSITION );
 ctx->sanityCheck();
-		vao->vertexAttribPointer( arrayVbo, loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
+		vao->bindBuffer( arrayVbo );
+		vao->vertexAttribPointer( loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
 ctx->sanityCheck();		
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(vertices), vertices );
 ctx->sanityCheck();		
@@ -591,7 +600,8 @@ ctx->sanityCheck();
 
 	if( hasTextureCoords ) {
 		int loc = curShader->getAttribSemanticLocation( ATTR_TEX_COORD0 );
-		vao->vertexAttribPointer( arrayVbo, loc, 2, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
+		vao->bindBuffer( arrayVbo );
+		vao->vertexAttribPointer( loc, 2, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(texs), texs );
 		curBufferOffset += sizeof(texs);
 ctx->sanityCheck();		
