@@ -84,6 +84,8 @@ if( ! view )
 		[view setWantsBestResolutionOpenGLSurface:YES];
 	
 	[[view openGLContext] makeCurrentContext];
+	// force Cinder's context to be allocated
+	cinder::gl::context();
 
 	GLint swapInterval = 1;
 	[[view openGLContext] setValues:&swapInterval forParameter:NSOpenGLCPSwapInterval];
