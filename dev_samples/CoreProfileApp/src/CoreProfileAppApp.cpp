@@ -1,16 +1,15 @@
+////////////////////////////////////////////////////////////////////
+// The OpenGL® Programming Guide, 8th Edition
+// Example 4.3, Cinderified
+
+const GLuint  NumVertices = 6;
+
 #include "cinder/app/AppNative.h"
 #include "cinder/app/RendererGl.h"
-#include "cinder/Camera.h"
 #include "cinder/gl/gl.h"
-#include "cinder/gl/Context.h"
-#include "cinder/gl/GlslProg.h"
-#include "cinder/gl/Light.h"
-#include "cinder/gl/Material.h"
-#include "cinder/gl/Texture.h"
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
-#include "cinder/gl/VboMesh.h"
-#include "cinder/Utilities.h"
+#include "cinder/gl/GlslProg.h"
 
 #include "Resources.h"
 
@@ -21,123 +20,76 @@ using namespace std;
 class CoreProfileApp : public AppNative {
   public:
 	virtual void		setup() override;
-	virtual void		resize() override;
-	virtual void		update() override;
+	virtual void		keyDown( KeyEvent event ) override;
 	virtual void		draw() override;
 
   private:
-	ci::gl::GlslProgRef	mShader;
-	ci::gl::TextureRef	mTexture;
-	ci::gl::VboRef		mVbo, mElementVbo;
-	ci::gl::VaoRef		mVao;
-	float				mSecondTriRotation;
-	Matrix44f			mCubeRotation;
-	CameraPersp			mCam;
+	gl::GlslProgRef		mShader;
+	gl::VaoRef			mTriangleVao;
+	gl::VboRef			mVertexVbo;
 };
 
 void CoreProfileApp::setup()
 {
-	try {
-		mShader = gl::GlslProg::create( loadResource( RES_VERT_GLSL ), loadResource( RES_FRAG_GLSL ) );
-	}
-	catch ( gl::GlslProgCompileExc ex ) {
-		console() << ex.what() << endl;
-		quit();
-	}
-	
-	mTexture = gl::Texture::create( loadImage( loadResource( RES_TEXTURE ) ) );
+	mTriangleVao = gl::Vao::create();
+	mTriangleVao->bind();
 
-	GLfloat vVertices[] = {  getWindowCenter().x, 0.0f, 0.0f, 
-					0, (float)getWindowHeight(), 0.0f,
-					(float)getWindowWidth(), (float)getWindowHeight(), 0.0f };
-	GLfloat vTexCoords[] = { 0, 0, 1, 0, 1, 1 };
-	GLubyte elements[] = { 0, 1, 2 };
+	struct VertexData {
+		GLfloat color[3];
+		GLfloat position[4];
+	};
 
-	mVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(vVertices) + sizeof(vTexCoords) );
-	mVbo->bufferSubData( 0, sizeof(vVertices), vVertices );
-	mVbo->bufferSubData( sizeof(vVertices), sizeof(vTexCoords), vTexCoords );
+	VertexData vertices[NumVertices] = {
+		{{  1.00, 0.00, 0.00 }, { -0.90, -0.90 }},  // Triangle 1
+		{{  0.00, 1.00, 0.00 }, {  0.85, -0.90 }},
+		{{  0.00, 0.00, 1.00 }, { -0.90,  0.85 }},
+		{{  0.04, 0.04, 0.04 }, {  0.90, -0.85 }},  // Triangle 2
+		{{  0.40, 0.40, 0.40 }, {  0.90,  0.90 }},
+		{{  1.00, 1.00, 1.00 }, { -0.85,  0.90 }}
+	};
 
-	mElementVbo = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), (void*)elements );
+	mVertexVbo = gl::Vbo::create( GL_ARRAY_BUFFER );
+	mVertexVbo->bufferData( sizeof(vertices), vertices, GL_STATIC_DRAW );
 
+	mShader = gl::GlslProg::create( loadResource( "gouraud.vert" ), loadResource( "gouraud.frag" ) );
 	mShader->bind();
-	mShader->uniform( "uTex0", (int)0 );
-//	mShader->uniform( "uTexEnabled", true );
 
-	mShader->bindAttribLocation( "vPosition", 0 );
-	mShader->bindAttribLocation( "vTexCoord", 2 );
+	GLint vColorLoc = mShader->getAttribLocation( "vColor" );
+	GLint vPosLoc = mShader->getAttribLocation( "vPosition" );
 
-	int pos = mShader->getAttribLocation( "vPosition" );
-	int tex = mShader->getAttribLocation( "vTexCoord0" );
-	
-	console() << "pos: " << pos << " " << " tex " << tex << std::endl;
-	auto uniforms = mShader->getActiveUniformTypes();
-	console() << "Uniform Types: " << std::endl;
-	for( auto &uni : uniforms )
-		console() << " " << uni.first << ":" << uni.second << std::endl;
-	auto attrSems = mShader->getAttribSemantics();
-	console() << "Attribute Semantics: " << std::endl;
-	for( auto &sem : attrSems )
-		console() << " " << sem.first << ":" << sem.second << std::endl;
-	
-	{
-		mVao = gl::Vao::create();
-		mVao->vertexAttribPointer( mVbo, pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
-		mVao->vertexAttribPointer( mVbo, tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
-		mVao->bindElements( mElementVbo );
+	mTriangleVao->bindBuffer( mVertexVbo );
+	mTriangleVao->vertexAttribPointer( vColorLoc, 3, GL_FLOAT,
+						   GL_TRUE, sizeof(VertexData), (const void*)(0) );
+	mTriangleVao->vertexAttribPointer( vPosLoc, 2, GL_FLOAT,
+						   GL_FALSE, sizeof(VertexData),
+						   (const void*)(sizeof(vertices[0].color)) );
+
+	mTriangleVao->enableVertexAttribArray( vColorLoc );
+	mTriangleVao->enableVertexAttribArray( vPosLoc );
+}
+
+void CoreProfileApp::keyDown( KeyEvent event )
+{
+	switch( event.getChar() ) {
+		case 'm': {
+			static GLenum  mode = GL_FILL;
+
+			mode = ( mode == GL_FILL ? GL_LINE : GL_FILL );
+			gl::polygonMode( GL_FRONT_AND_BACK, mode );
+		}
+		break;
 	}
-
-	mCam.lookAt( Vec3f( 3, 2, -3 ), Vec3f::zero() );
-	mCubeRotation.setToIdentity();
-	
-	gl::setMatricesWindowPersp( getWindowSize() );
-	
-	mSecondTriRotation = 0;
-}
-
-void CoreProfileApp::resize()
-{
-	mCam.setPerspective( 60, getWindowAspectRatio(), 1, 1000 );
-}
-
-void CoreProfileApp::update()
-{
-	gl::rotate( Vec3f( 0, 0, 0.1f ) );
-	mSecondTriRotation += -0.15f;
-	mCubeRotation.rotate( Vec3f( 1, 1, 1 ), 0.03f );
 }
 
 void CoreProfileApp::draw()
 {
 	gl::clear();
 
-	gl::enableAdditiveBlending();
+	gl::setProjection( Matrix44f::createOrthographic( -1, -1, 1, 1, 1, -1 ) );
+	gl::setModelView( Matrix44f::identity() );
 
-	gl::ScopeShader shader( mShader );
-
-	{
-		gl::setDefaultShaderUniforms();
-		gl::VaoScope vaoBind( mVao );
-gl::context()->sanityCheck();
-		gl::drawElements( GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, 0 );
-	}
-	{
-		gl::pushModelView();
-		gl::rotate( Vec3f( 0, 0, mSecondTriRotation ) );
-		gl::setDefaultShaderUniforms();
-		gl::VaoScope vaoBind( mVao );
-		gl::BufferScope vboBind( mVbo );
-		gl::drawArrays( GL_TRIANGLES, 0, 3 );
-		gl::popModelView();
-	}
-
-	{
-		gl::pushMatrices();
-			gl::setMatrices( mCam );
-			gl::multModelView( mCubeRotation );
-			gl::setDefaultShaderUniforms();
-			gl::drawCube( Vec3f::zero(), Vec3f( 2.0f, 2.0f, 2.0f ) );
-		gl::popMatrices();
-	}
+	mTriangleVao->bind();
+	gl::drawArrays( GL_TRIANGLES, 0, NumVertices );
 }
 
 auto renderOptions = RendererGl::Options().coreProfile();

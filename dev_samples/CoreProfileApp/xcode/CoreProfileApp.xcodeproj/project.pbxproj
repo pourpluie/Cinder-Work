@@ -25,6 +25,8 @@
 		002A0BDD174BD2AA0080C3CB /* texture.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 002A0BDA174BD2AA0080C3CB /* texture.jpg */; };
 		002A0BDE174BD2AA0080C3CB /* vert.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 002A0BDB174BD2AA0080C3CB /* vert.glsl */; };
 		0091D8F90E81B9330029341E /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0091D8F80E81B9330029341E /* OpenGL.framework */; };
+		00A06F69175F97DF00D8BE17 /* gouraud.frag in Resources */ = {isa = PBXBuildFile; fileRef = 00A06F64175F96FD00D8BE17 /* gouraud.frag */; };
+		00A06F6A175F97DF00D8BE17 /* gouraud.vert in Resources */ = {isa = PBXBuildFile; fileRef = 00A06F65175F96FD00D8BE17 /* gouraud.vert */; };
 		00B784B30FF439BC000DE1D7 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784AF0FF439BC000DE1D7 /* Accelerate.framework */; };
 		00B784B40FF439BC000DE1D7 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */; };
 		00B784B50FF439BC000DE1D7 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B10FF439BC000DE1D7 /* AudioUnit.framework */; };
@@ -70,6 +72,8 @@
 		002A0BDA174BD2AA0080C3CB /* texture.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = texture.jpg; path = ../resources/texture.jpg; sourceTree = "<group>"; };
 		002A0BDB174BD2AA0080C3CB /* vert.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = vert.glsl; path = ../resources/vert.glsl; sourceTree = "<group>"; };
 		0091D8F80E81B9330029341E /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
+		00A06F64175F96FD00D8BE17 /* gouraud.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = gouraud.frag; path = ../resources/gouraud.frag; sourceTree = "<group>"; };
+		00A06F65175F96FD00D8BE17 /* gouraud.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = gouraud.vert; path = ../resources/gouraud.vert; sourceTree = "<group>"; };
 		00B784AF0FF439BC000DE1D7 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		00B784B10FF439BC000DE1D7 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
@@ -226,6 +230,8 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				00A06F64175F96FD00D8BE17 /* gouraud.frag */,
+				00A06F65175F96FD00D8BE17 /* gouraud.vert */,
 				002A0BD9174BD2AA0080C3CB /* frag.glsl */,
 				002A0BDA174BD2AA0080C3CB /* texture.jpg */,
 				002A0BDB174BD2AA0080C3CB /* vert.glsl */,
@@ -294,6 +300,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00A06F69175F97DF00D8BE17 /* gouraud.frag in Resources */,
+				00A06F6A175F97DF00D8BE17 /* gouraud.vert in Resources */,
 				9E4655CFCADA44748909A26C /* CinderApp.icns in Resources */,
 				002A0BDC174BD2AA0080C3CB /* frag.glsl in Resources */,
 				002A0BDD174BD2AA0080C3CB /* texture.jpg in Resources */,
