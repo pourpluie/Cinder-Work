@@ -251,6 +251,9 @@ public:
 	static Matrix44<T>	createTranslation( const Vec3<T> &v, T w = 1 );
 	static Matrix44<T>	createTranslation( const Vec4<T> &v ) { return createTranslation( v.xyz(), v.w );}
 
+	//! Creates an orthographic projeciton matrix identical to glOrtho (but note the differing parameter order)
+	static Matrix44<T>	createOrthographic( T left, T top, T right, T bottom, T nearZ, T farZ );
+
 	// creates rotation matrix
 	static Matrix44<T>	createRotation( const Vec3<T> &axis, T radians );
 	static Matrix44<T>	createRotation( const Vec4<T> &axis, T radians ) { return createRotation( axis.xyz(), radians ); }
@@ -1106,6 +1109,27 @@ Matrix44<T> Matrix44<T>::createTranslation( const Vec3<T> &v, T w )
 	ret.m[15] = w;
 
 	return ret;
+}
+
+template<typename T>
+Matrix44<T>	Matrix44<T>::createOrthographic( T left, T top, T right, T bottom, T nearZ, T farZ )
+{
+	const T a = 2 / (right - left);
+	const T b = 2 / (top - bottom);
+	const T c = -2 / (farZ - nearZ);
+
+	const T tx = -(right + left) / (right - left);
+	const T ty = -(top + bottom) / (top - bottom);
+	const T tz = -(farZ + nearZ) / (farZ - nearZ);
+
+	float result[16] = {
+		a, 0, 0, 0,
+		0, b, 0, 0,
+		0, 0, c, 0,
+		tx, ty, tz, 1
+	};
+	
+	return Matrix44<T>( result );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
