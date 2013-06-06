@@ -28,6 +28,37 @@
 		C7FB19D6124BC0D70045AFD2 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7FB19D5124BC0D70045AFD2 /* AudioToolbox.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		00A0703E176119D500D8BE17 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00A07038176119D400D8BE17 /* cinder.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC07E0554694100DB518D;
+			remoteInfo = cinder;
+		};
+		00A07040176119D500D8BE17 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00A07038176119D400D8BE17 /* cinder.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 007050BE1114F93F003FCAE4;
+			remoteInfo = cinder_iphone;
+		};
+		00A07042176119D500D8BE17 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00A07038176119D400D8BE17 /* cinder.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 00CFD9E11135C3520091E310;
+			remoteInfo = cinder_iphone_sim;
+		};
+		00A07051176119FA00D8BE17 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00A07038176119D400D8BE17 /* cinder.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 00CFD92C1135C3520091E310;
+			remoteInfo = cinder_iphone_sim;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		00611D1D174AC26000BE54C2 /* BufferObj.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BufferObj.h; path = ../../../include/cinder/gl/BufferObj.h; sourceTree = "<group>"; };
 		00611D1E174AC26000BE54C2 /* Fbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fbo.h; path = ../../../include/cinder/gl/Fbo.h; sourceTree = "<group>"; };
@@ -57,6 +88,7 @@
 		00611D42174AC72B00BE54C2 /* Vbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vbo.cpp; path = ../../../src/cinder/gl/Vbo.cpp; sourceTree = "<group>"; };
 		00692BCF14FF149000D0A05E /* Es2App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Es2App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0087D25412CD809F002CD69F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
+		00A07038176119D400D8BE17 /* cinder.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cinder.xcodeproj; path = ../../../xcode/cinder.xcodeproj; sourceTree = "<group>"; };
 		00CFDF6A1138442D0091E310 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00F85D13174D342F00F1E23E /* Context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Context.h; path = ../../../include/cinder/gl/Context.h; sourceTree = "<group>"; };
 		00F85D14174D343F00F1E23E /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Context.cpp; path = ../../../src/cinder/gl/Context.cpp; sourceTree = "<group>"; };
@@ -156,6 +188,7 @@
 		00692BC414FF149000D0A05E = {
 			isa = PBXGroup;
 			children = (
+				00A07038176119D400D8BE17 /* cinder.xcodeproj */,
 				99692BD914FF149000D0A05F /* Headers */,
 				00692BD914FF149000D0A05E /* Source */,
 				00692BD914FF149000D0FFFF /* Resources */,
@@ -214,6 +247,16 @@
 			name = Resources;
 			sourceTree = "<group>";
 		};
+		00A07039176119D400D8BE17 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				00A0703F176119D500D8BE17 /* libcinder_d.a */,
+				00A07041176119D500D8BE17 /* libcinder-iphone_d.a */,
+				00A07043176119D500D8BE17 /* libcinder-iphone-sim_d.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		99692BD914FF149000D0A05F /* Headers */ = {
 			isa = PBXGroup;
 			children = (
@@ -237,6 +280,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				00A07052176119FA00D8BE17 /* PBXTargetDependency */,
 			);
 			name = Es2App;
 			productName = LocationManager;
@@ -261,12 +305,42 @@
 			mainGroup = 00692BC414FF149000D0A05E;
 			productRefGroup = 00692BD014FF149000D0A05E /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 00A07039176119D400D8BE17 /* Products */;
+					ProjectRef = 00A07038176119D400D8BE17 /* cinder.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				00692BCE14FF149000D0A05E /* Es2App */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		00A0703F176119D500D8BE17 /* libcinder_d.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcinder_d.a;
+			remoteRef = 00A0703E176119D500D8BE17 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		00A07041176119D500D8BE17 /* libcinder-iphone_d.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcinder-iphone_d.a";
+			remoteRef = 00A07040176119D500D8BE17 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		00A07043176119D500D8BE17 /* libcinder-iphone-sim_d.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcinder-iphone-sim_d.a";
+			remoteRef = 00A07042176119D500D8BE17 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		00692BCD14FF149000D0A05E /* Resources */ = {
@@ -293,6 +367,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		00A07052176119FA00D8BE17 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = cinder_iphone_sim;
+			targetProxy = 00A07051176119FA00D8BE17 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		00692BF314FF149000D0A05E /* Debug */ = {

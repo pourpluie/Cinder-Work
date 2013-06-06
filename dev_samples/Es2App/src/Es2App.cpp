@@ -46,6 +46,7 @@ void CoreProfileApp::setup()
 	}
 	
 	mTexture = gl::Texture::create( loadImage( loadResource( RES_TEXTURE ) ) );
+	mTexture->bind();
 
 	GLfloat vVertices[] = {  getWindowCenter().x, 0.0f, 0.0f, 
 					0, (float)getWindowHeight(), 0.0f,
@@ -84,6 +85,7 @@ void CoreProfileApp::setup()
 		mVao->bindBuffer( mVbo );
 		mVao->vertexAttribPointer( pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
 		mVao->vertexAttribPointer( tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
+		mVao->vertexAttrib( (*mShader)[gl::ATTR_COLOR], 1, 1, 1 );
 		mVao->bindBuffer( mElementVbo );
 	}
 

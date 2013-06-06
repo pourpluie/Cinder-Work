@@ -81,7 +81,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	
 	bool	hasAttribSemantic( AttrSemantic semantic ) const;
 	GLint	getAttribSemanticLocation( AttrSemantic semantic ) const;
-	
+	GLint	operator[]( AttrSemantic sem ) const { return getAttribSemanticLocation( sem ); }
 	
 	//! Default mapping from uniform name to semantic. Can be modified via the reference. Not thread-safe.
 	static UniformSemanticMap&		getDefaultUniformNameToSemanticMap();
