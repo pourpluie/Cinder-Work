@@ -7,23 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00611D2F174AC6B600BE54C2 /* BufferObj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D2E174AC6B600BE54C2 /* BufferObj.cpp */; };
-		00611D36174AC6FF00BE54C2 /* Fog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D30174AC6F900BE54C2 /* Fog.cpp */; };
-		00611D38174AC6FF00BE54C2 /* Pbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D32174AC6F900BE54C2 /* Pbo.cpp */; };
-		00611D39174AC6FF00BE54C2 /* Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D33174AC6FA00BE54C2 /* Shader.cpp */; };
-		00611D3A174AC6FF00BE54C2 /* Vao.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D34174AC6FB00BE54C2 /* Vao.cpp */; };
-		00611D3B174AC6FF00BE54C2 /* VboMesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D35174AC6FD00BE54C2 /* VboMesh.cpp */; };
-		00611D43174AC72B00BE54C2 /* Fbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D3C174AC72B00BE54C2 /* Fbo.cpp */; };
-		00611D44174AC72B00BE54C2 /* gl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D3D174AC72B00BE54C2 /* gl.cpp */; };
-		00611D45174AC72B00BE54C2 /* GlslProg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D3E174AC72B00BE54C2 /* GlslProg.cpp */; };
-		00611D46174AC72B00BE54C2 /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D3F174AC72B00BE54C2 /* Light.cpp */; };
-		00611D47174AC72B00BE54C2 /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D40174AC72B00BE54C2 /* Material.cpp */; };
-		00611D48174AC72B00BE54C2 /* Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D41174AC72B00BE54C2 /* Texture.cpp */; };
-		00611D49174AC72B00BE54C2 /* Vbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00611D42174AC72B00BE54C2 /* Vbo.cpp */; };
 		0087D25512CD809F002CD69F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0087D25412CD809F002CD69F /* CoreText.framework */; };
 		00CFDF6B1138442D0091E310 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00CFDF6A1138442D0091E310 /* CoreGraphics.framework */; };
-		00F85D15174D343F00F1E23E /* Context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F85D14174D343F00F1E23E /* Context.cpp */; };
-		00F85D19174DB85300F1E23E /* Environment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F85D17174DB85300F1E23E /* Environment.cpp */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
@@ -58,7 +43,7 @@
 		00611D29174AC26000BE54C2 /* Vbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vbo.h; path = ../../../include/cinder/gl/Vbo.h; sourceTree = "<group>"; };
 		00611D2A174AC26000BE54C2 /* VboMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VboMesh.h; path = ../../../include/cinder/gl/VboMesh.h; sourceTree = "<group>"; };
 		00611D2E174AC6B600BE54C2 /* BufferObj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BufferObj.cpp; path = ../../../src/cinder/gl/BufferObj.cpp; sourceTree = "<group>"; };
-		00611D30174AC6F900BE54C2 /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fog.cpp; path = ../../../src/cinder/gl/Fog.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		00611D30174AC6F900BE54C2 /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fog.cpp; path = ../../../src/cinder/gl/Fog.cpp; sourceTree = "<group>"; };
 		00611D32174AC6F900BE54C2 /* Pbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pbo.cpp; path = ../../../src/cinder/gl/Pbo.cpp; sourceTree = "<group>"; };
 		00611D33174AC6FA00BE54C2 /* Shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shader.cpp; path = ../../../src/cinder/gl/Shader.cpp; sourceTree = "<group>"; };
 		00611D34174AC6FB00BE54C2 /* Vao.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vao.cpp; path = ../../../src/cinder/gl/Vao.cpp; sourceTree = "<group>"; };
@@ -304,21 +289,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				C7EE47CBF6554E3A926DAB3E /* Es2App.cpp in Sources */,
-				00611D2F174AC6B600BE54C2 /* BufferObj.cpp in Sources */,
-				00611D36174AC6FF00BE54C2 /* Fog.cpp in Sources */,
-				00611D38174AC6FF00BE54C2 /* Pbo.cpp in Sources */,
-				00611D39174AC6FF00BE54C2 /* Shader.cpp in Sources */,
-				00611D3A174AC6FF00BE54C2 /* Vao.cpp in Sources */,
-				00611D3B174AC6FF00BE54C2 /* VboMesh.cpp in Sources */,
-				00611D43174AC72B00BE54C2 /* Fbo.cpp in Sources */,
-				00611D44174AC72B00BE54C2 /* gl.cpp in Sources */,
-				00611D45174AC72B00BE54C2 /* GlslProg.cpp in Sources */,
-				00611D46174AC72B00BE54C2 /* Light.cpp in Sources */,
-				00611D47174AC72B00BE54C2 /* Material.cpp in Sources */,
-				00611D48174AC72B00BE54C2 /* Texture.cpp in Sources */,
-				00611D49174AC72B00BE54C2 /* Vbo.cpp in Sources */,
-				00F85D15174D343F00F1E23E /* Context.cpp in Sources */,
-				00F85D19174DB85300F1E23E /* Environment.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

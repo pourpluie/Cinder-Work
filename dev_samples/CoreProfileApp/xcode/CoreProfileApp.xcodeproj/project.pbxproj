@@ -7,20 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		002A0BAA174ADB680080C3CB /* BufferObj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0B9C174ADB680080C3CB /* BufferObj.cpp */; };
-		002A0BAB174ADB680080C3CB /* Fbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0B9D174ADB680080C3CB /* Fbo.cpp */; };
-		002A0BAC174ADB680080C3CB /* Fog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0B9E174ADB680080C3CB /* Fog.cpp */; };
-		002A0BAD174ADB680080C3CB /* gl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0B9F174ADB680080C3CB /* gl.cpp */; };
-		002A0BAE174ADB680080C3CB /* GlslProg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA0174ADB680080C3CB /* GlslProg.cpp */; };
-		002A0BAF174ADB680080C3CB /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA1174ADB680080C3CB /* Light.cpp */; };
-		002A0BB0174ADB680080C3CB /* Context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA2174ADB680080C3CB /* Context.cpp */; };
-		002A0BB1174ADB680080C3CB /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA3174ADB680080C3CB /* Material.cpp */; };
-		002A0BB2174ADB680080C3CB /* Pbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA4174ADB680080C3CB /* Pbo.cpp */; };
-		002A0BB3174ADB680080C3CB /* Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA5174ADB680080C3CB /* Shader.cpp */; };
-		002A0BB4174ADB680080C3CB /* Texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA6174ADB680080C3CB /* Texture.cpp */; };
-		002A0BB5174ADB680080C3CB /* Vao.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA7174ADB680080C3CB /* Vao.cpp */; };
-		002A0BB6174ADB680080C3CB /* Vbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA8174ADB680080C3CB /* Vbo.cpp */; };
-		002A0BB7174ADB680080C3CB /* VboMesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 002A0BA9174ADB680080C3CB /* VboMesh.cpp */; };
 		002A0BDC174BD2AA0080C3CB /* frag.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 002A0BD9174BD2AA0080C3CB /* frag.glsl */; };
 		002A0BDD174BD2AA0080C3CB /* texture.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 002A0BDA174BD2AA0080C3CB /* texture.jpg */; };
 		002A0BDE174BD2AA0080C3CB /* vert.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 002A0BDB174BD2AA0080C3CB /* vert.glsl */; };
@@ -29,7 +15,6 @@
 		00B784B40FF439BC000DE1D7 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */; };
 		00B784B50FF439BC000DE1D7 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B10FF439BC000DE1D7 /* AudioUnit.framework */; };
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
-		00F85D1C174DBE4300F1E23E /* Environment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F85D1B174DBE4300F1E23E /* Environment.cpp */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
 		5323E6B60EAFCA7E003A9687 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B50EAFCA7E003A9687 /* QTKit.framework */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -40,15 +25,15 @@
 /* Begin PBXFileReference section */
 		002A0B9C174ADB680080C3CB /* BufferObj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BufferObj.cpp; path = ../../../src/cinder/gl/BufferObj.cpp; sourceTree = "<group>"; };
 		002A0B9D174ADB680080C3CB /* Fbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fbo.cpp; path = ../../../src/cinder/gl/Fbo.cpp; sourceTree = "<group>"; };
-		002A0B9E174ADB680080C3CB /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Fog.cpp; path = ../../../src/cinder/gl/Fog.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		002A0B9E174ADB680080C3CB /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Fog.cpp; path = ../../../src/cinder/gl/Fog.cpp; sourceTree = "<group>"; };
 		002A0B9F174ADB680080C3CB /* gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = gl.cpp; path = ../../../src/cinder/gl/gl.cpp; sourceTree = "<group>"; };
 		002A0BA0174ADB680080C3CB /* GlslProg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GlslProg.cpp; path = ../../../src/cinder/gl/GlslProg.cpp; sourceTree = "<group>"; };
 		002A0BA1174ADB680080C3CB /* Light.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Light.cpp; path = ../../../src/cinder/gl/Light.cpp; sourceTree = "<group>"; };
 		002A0BA2174ADB680080C3CB /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Context.cpp; path = ../../../src/cinder/gl/Context.cpp; sourceTree = "<group>"; };
-		002A0BA3174ADB680080C3CB /* Material.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Material.cpp; path = ../../../src/cinder/gl/Material.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		002A0BA3174ADB680080C3CB /* Material.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Material.cpp; path = ../../../src/cinder/gl/Material.cpp; sourceTree = "<group>"; };
 		002A0BA4174ADB680080C3CB /* Pbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pbo.cpp; path = ../../../src/cinder/gl/Pbo.cpp; sourceTree = "<group>"; };
 		002A0BA5174ADB680080C3CB /* Shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shader.cpp; path = ../../../src/cinder/gl/Shader.cpp; sourceTree = "<group>"; };
-		002A0BA6174ADB680080C3CB /* Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Texture.cpp; path = ../../../src/cinder/gl/Texture.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		002A0BA6174ADB680080C3CB /* Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Texture.cpp; path = ../../../src/cinder/gl/Texture.cpp; sourceTree = "<group>"; };
 		002A0BA7174ADB680080C3CB /* Vao.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vao.cpp; path = ../../../src/cinder/gl/Vao.cpp; sourceTree = "<group>"; };
 		002A0BA8174ADB680080C3CB /* Vbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vbo.cpp; path = ../../../src/cinder/gl/Vbo.cpp; sourceTree = "<group>"; };
 		002A0BA9174ADB680080C3CB /* VboMesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VboMesh.cpp; path = ../../../src/cinder/gl/VboMesh.cpp; sourceTree = "<group>"; };
@@ -309,21 +294,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				9FCF525AFB794B09A7351EA7 /* CoreProfileAppApp.cpp in Sources */,
-				002A0BAA174ADB680080C3CB /* BufferObj.cpp in Sources */,
-				002A0BAB174ADB680080C3CB /* Fbo.cpp in Sources */,
-				002A0BAC174ADB680080C3CB /* Fog.cpp in Sources */,
-				002A0BAD174ADB680080C3CB /* gl.cpp in Sources */,
-				002A0BAE174ADB680080C3CB /* GlslProg.cpp in Sources */,
-				002A0BAF174ADB680080C3CB /* Light.cpp in Sources */,
-				002A0BB0174ADB680080C3CB /* Context.cpp in Sources */,
-				002A0BB1174ADB680080C3CB /* Material.cpp in Sources */,
-				002A0BB2174ADB680080C3CB /* Pbo.cpp in Sources */,
-				002A0BB3174ADB680080C3CB /* Shader.cpp in Sources */,
-				002A0BB4174ADB680080C3CB /* Texture.cpp in Sources */,
-				002A0BB5174ADB680080C3CB /* Vao.cpp in Sources */,
-				002A0BB6174ADB680080C3CB /* Vbo.cpp in Sources */,
-				002A0BB7174ADB680080C3CB /* VboMesh.cpp in Sources */,
-				00F85D1C174DBE4300F1E23E /* Environment.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
