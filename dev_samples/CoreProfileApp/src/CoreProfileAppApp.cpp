@@ -68,6 +68,7 @@ void CoreProfileApp::setup()
 
 	int pos = mShader->getAttribLocation( "vPosition" );
 	int tex = mShader->getAttribLocation( "vTexCoord0" );
+	int color = mShader->getAttribLocation( "vColor" );
 	
 	console() << "pos: " << pos << " " << " tex " << tex << std::endl;
 	auto uniforms = mShader->getActiveUniformTypes();
@@ -86,15 +87,12 @@ void CoreProfileApp::setup()
 	{
 		mVao = gl::Vao::create();
 		mVao->bind();
-	gl::context()->printState( app::console() );
 		mVao->bindBuffer( mVbo );
-	gl::context()->printState( app::console() );
 		mVao->vertexAttribPointer( pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
 		mVao->vertexAttribPointer( tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
+		mVao->vertexAttrib( color, 1, 1, 1 );
 		mVao->bindBuffer( mElementVbo );
-	gl::context()->printState( app::console() );
 		mVao->unbind();
-	gl::context()->printState( app::console() );
 	}
 
 	mCam.lookAt( Vec3f( 3, 2, -3 ), Vec3f::zero() );

@@ -98,6 +98,7 @@ GlslProg::AttribSemanticMap& GlslProg::getDefaultAttribNameToSemanticMap()
 		sDefaultAttribNameToSemanticMap["vPosition"] = ATTR_POSITION;
 		sDefaultAttribNameToSemanticMap["vNormal"] = ATTR_NORMAL;
 		sDefaultAttribNameToSemanticMap["vTexCoord0"] = ATTR_TEX_COORD0;
+		sDefaultAttribNameToSemanticMap["vColor"] = ATTR_COLOR;
 		initialized = true;
 	}
 	
@@ -357,6 +358,10 @@ const GlslProg::AttribSemanticMap& GlslProg::getAttribSemantics() const
 			if( semantic != mAttribNameToSemanticMap.end() ) {
 				// found this semantic, add it mAttrSemantics
 				mAttribSemantics[semantic->first] = semantic->second;
+std::cout << semantic->first << "==" << semantic->second;
+			}
+			else {
+std::cout << "No semantic for: " << semantic->first;			
 			}
 		}
 	

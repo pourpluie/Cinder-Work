@@ -27,7 +27,7 @@ enum UniformSemantic {
 };
 
 enum AttrSemantic {
-	ATTR_POSITION, ATTR_NORMAL, ATTR_TEX_COORD0
+	ATTR_POSITION, ATTR_NORMAL, ATTR_TEX_COORD0, ATTR_COLOR
 };
 
 class Vbo;

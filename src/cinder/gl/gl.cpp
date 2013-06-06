@@ -565,11 +565,11 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 									20,21,22,20,22,23 };
 	
 	Context *ctx = gl::context();
-ctx->sanityCheck();	
 	GlslProgRef curShader = ctx->shaderGet();
 	bool hasPositions = curShader->hasAttribSemantic( ATTR_POSITION );
 	bool hasNormals = curShader->hasAttribSemantic( ATTR_NORMAL );
 	bool hasTextureCoords = curShader->hasAttribSemantic( ATTR_TEX_COORD0 );
+	bool hasColors = curShader->hasAttribSemantic( ATTR_COLOR );
 	
 	size_t totalArrayBufferSize = 0;
 	if( hasPositions )
@@ -578,24 +578,22 @@ ctx->sanityCheck();
 		totalArrayBufferSize += sizeof(normals);
 	if( hasTextureCoords )
 		totalArrayBufferSize += sizeof(texs);
+	if( hasColors )
+		totalArrayBufferSize += sizeof(colors);
 	
 	VaoRef vao = Vao::create();
 	VboRef arrayVbo = Vbo::create( GL_ARRAY_BUFFER, totalArrayBufferSize );
 	VboRef elementVbo = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, sizeof(elements) );
-ctx->sanityCheck();
+
 	VaoScope vaoScope( vao );
 	elementVbo->bind();
 	size_t curBufferOffset = 0;
 	if( hasPositions ) {
 		int loc = curShader->getAttribSemanticLocation( ATTR_POSITION );
-ctx->sanityCheck();
 		vao->bindBuffer( arrayVbo );
 		vao->vertexAttribPointer( loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
-ctx->sanityCheck();		
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(vertices), vertices );
-ctx->sanityCheck();		
 		curBufferOffset += sizeof(vertices);
-ctx->sanityCheck();
 	}
 
 	if( hasTextureCoords ) {
@@ -604,19 +602,23 @@ ctx->sanityCheck();
 		vao->vertexAttribPointer( loc, 2, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(texs), texs );
 		curBufferOffset += sizeof(texs);
-ctx->sanityCheck();		
+	}
+
+	if( hasColors ) {
+		int loc = curShader->getAttribSemanticLocation( ATTR_COLOR );
+		vao->bindBuffer( arrayVbo );
+		vao->vertexAttribPointer( loc, 3, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)curBufferOffset );
+		arrayVbo->bufferSubData( curBufferOffset, sizeof(colors), colors );
+		curBufferOffset += sizeof(colors);
 	}
 	
 	elementVbo->bufferData( sizeof(elements), elements, GL_DYNAMIC_DRAW );
-ctx->sanityCheck();	
 
 	//BufferScope arrayScope( arrayVbo );
 	//BufferScope elementScope( elementVbo );
 	arrayVbo->bind();
 	elementVbo->bind();
-ctx->sanityCheck();	
 	ctx->prepareDraw();
-ctx->sanityCheck();
 	glDrawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
 
 	arrayVbo->unbind();

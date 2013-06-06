@@ -64,7 +64,16 @@ class Vao {
 	GLuint							getId() const { return mId; }
 
 	void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+	
+	void	vertexAttrib( GLuint index, float v0 );
+	void	vertexAttrib( GLuint index, float v0, float v1 );
+	void	vertexAttrib( GLuint index, float v0, float v1, float v2 );
+	void	vertexAttrib( GLuint index, float v0, float v1, float v2, float v3 );		
+	
 	void	enableVertexAttribArray( GLuint index );
+	
+
+
 	void	bindBuffer( const VboRef &vbo );
 	
 	

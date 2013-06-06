@@ -133,6 +133,26 @@ void Vao::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean 
 	ctx->enableVertexAttribArray( index );
 }
 
+void Vao::vertexAttrib( GLuint index, float v0 )
+{
+	glVertexAttrib1f( index, v0 );
+}
+
+void Vao::vertexAttrib( GLuint index, float v0, float v1 )
+{
+	glVertexAttrib2f( index, v0, v1 );
+}
+
+void Vao::vertexAttrib( GLuint index, float v0, float v1, float v2 )
+{
+	glVertexAttrib3f( index, v0, v1, v2 );
+}
+
+void Vao::vertexAttrib( GLuint index, float v0, float v1, float v2, float v3 )
+{
+	glVertexAttrib4f( index, v0, v1, v2, v3 );
+}
+
 void Vao::enableVertexAttribArray( GLuint index )
 {
 	auto ctx = gl::context();
