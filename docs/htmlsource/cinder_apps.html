@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=iso-8859-1"><title>Cinder</title>
+		<title>Understanding Cinder Apps</title>
+		<link rel="stylesheet" href="cinder_doxygen.css" type="text/css" media="screen" />
+	</head>
+<body>
+
+<div class="contents">
+<h2>Understanding Cinder Apps</h2>
+<p>In general, Cinder users want to create apps. They may create a standard desktop application, an iOS or Windows Store app, a screensaver, or a number of other types of project. Cinder provides a framework for each of these, and more specifically it provides a C++ base class derived from <d>ci::App</d>.</p>
+<br />
+<p>Cinder apps follow a basic structure which we'll look at now. Below is a minimal Cinder application which animates a circle from right to left.</p>
+
+<pre style="background-color:#EEEEEE"><code>
+#include "cinder/app/AppBasic.h"
+#include "cinder/app/RendererGl.h"
+#include "cinder/Vector.h"
+
+using namespace ci;
+using namespace ci::app;
+
+class CirclePusherApp : public AppBasic {
+  public:
+	void	setup();
+	void	update();
+	void	draw();
+	
+	Vec2f	mCirclePosition;
+};
+
+void CirclePusherApp::setup()
+{
+	mCirclePosition = Vec2f( 0, getWindowHeight() / 2 );
+}
+
+void CirclePusherApp::update()
+{
+	mCirclePosition += Vec2f( 0.1f, 0 );
+}
+
+void CirclePusherApp::draw()
+{
+	gl::clear();
+	gl::color( Color( 1.0f, 0.5f, 0.25f ) );
+	gl::drawSolidCircle( mCirclePosition, 25.0f );
+}
+
+CINDER_APP_BASIC( CirclePusherApp, RendererGl )
+</code></pre>
+
+<p>In this code we see an example of a minimal Cinder application called <code>ExampleApp</code>. Cinder apps fundamentally are classes derived from one of several specific base classes. In this case <d>app::AppBasic</d>, which is Cinder's base class for standard desktop Mac OS X and Windows apps.</p>
+<br />
+<p>For common operations, users override several virtual methods in order to implement their app's behavior. The first of such methods is <code>setup()</code>, which gets called just after the application's default <d>Window</d> has been created. In our example above, we initialize our circle's position variable to be at the left-middle of the window.</p>
+<br />
+<p>After <code>setup()</code> has been called, Cinder enters its event loop, where it fires <code>update()</code> followed by <code>draw()</code> until your application quits. In this loop it also fires any event handlers, which we'll explore later. In our example application, the <code>update()</code> method moves the circle position <sup>1</sup>&frasl;<sub>10</sub> of a pixel per frame.</p>
+<br />
+<p>Finally, the <code>draw()</code> method. Here we're using Cinder's OpenGL methods to first clear the window (which defaults to black). Next, we set the current color to be a shade of orange. Last, we draw a filled circle using <d>gl::drawSolidCircle()</d>, passing the position variable as the location and <code>25</code> as the radius.</p>
+<br />
+<p>The last bit of code to notice is the <code>CINDER_APP_BASIC</code> call. This is a macro which cause some additional setup code to be created in order for your app to run. You can think of it as a Cinder's <code>main()</code> routine, and in fact one of the the things the macro creates is your platform's equivalent of the classical C/C++ <code>main()</code>. The second parameter selects which kind of renderer your application will make use of. In additional to OpenGL Cinder provides Cairo, DirectX and other types of renderers.</p>
+
+</div>
+
