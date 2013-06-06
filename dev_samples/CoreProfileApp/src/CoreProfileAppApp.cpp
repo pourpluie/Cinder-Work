@@ -51,13 +51,13 @@ void CoreProfileApp::setup()
 	mVertexVbo = gl::Vbo::create( GL_ARRAY_BUFFER );
 	mVertexVbo->bufferData( sizeof(vertices), vertices, GL_STATIC_DRAW );
 
-	mShader = gl::GlslProg::create( loadResource( "gouraud.vert" ), loadResource( "gouraud.frag" ) );
+	mShader = gl::GlslProg::create( loadAsset( "ex_4.3/gouraud.vert" ), loadAsset( "ex_4.3/gouraud.frag" ) );
 	mShader->bind();
 
 	GLint vColorLoc = mShader->getAttribLocation( "vColor" );
 	GLint vPosLoc = mShader->getAttribLocation( "vPosition" );
 
-	mTriangleVao->bindBuffer( mVertexVbo );
+	mVertexVbo->bind();
 	mTriangleVao->vertexAttribPointer( vColorLoc, 3, GL_FLOAT,
 						   GL_TRUE, sizeof(VertexData), (const void*)(0) );
 	mTriangleVao->vertexAttribPointer( vPosLoc, 2, GL_FLOAT,
