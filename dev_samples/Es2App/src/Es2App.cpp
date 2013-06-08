@@ -20,6 +20,7 @@ using namespace std;
 
 class CoreProfileApp : public AppNative {
   public:
+	virtual void		prepareSettings( Settings *settings ) { settings->enableHighDensityDisplay(); }
 	virtual void		setup() override;
 	virtual void		resize() override;
 	virtual void		update() override;
@@ -91,8 +92,6 @@ void CoreProfileApp::setup()
 
 	mCam.lookAt( Vec3f( 3, 2, -3 ), Vec3f::zero() );
 	mCubeRotation.setToIdentity();
-	
-	gl::setMatricesWindowPersp( getWindowSize() );
 	
 	mSecondTriRotation = 0;
 }

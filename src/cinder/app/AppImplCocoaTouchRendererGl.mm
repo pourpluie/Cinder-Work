@@ -140,7 +140,7 @@
 	else {
 		glBindFramebuffer( GL_FRAMEBUFFER, mViewFramebuffer );
 	}
-    glViewport( 0, 0, mBackingWidth, mBackingHeight );
+	glViewport( 0, 0, mBackingWidth, mBackingHeight );
 }
 
 - (void)flushBuffer
@@ -166,7 +166,8 @@
 
 - (void)defaultResize
 {
-	//cinder::gl::setMatricesWindow( mBackingWidth, mBackingHeight );
+	cinder::gl::setMatricesWindowPersp( mCinderView.bounds.size.width, mCinderView.bounds.size.height );
+	glViewport( 0, 0, mBackingWidth, mBackingHeight );
 }
 
 - (BOOL)needsDrawRect
