@@ -31,11 +31,46 @@
 
 namespace cinder { namespace gl {
 
+class Renderbuffer;
+typedef std::shared_ptr<Renderbuffer>	RenderbufferRef;
+class Fbo;
+typedef std::shared_ptr<Fbo>	FboRef;
+
 //! Represents an OpenGL Renderbuffer, used primarily in conjunction with FBOs. Supported on OpenGL ES but multisampling is currently ignored. \ImplShared
 class Renderbuffer {
   public:
-	//! Creates a NULL Renderbuffer
-	Renderbuffer() {}
+	//! Create a Renderbuffer \a width pixels wide and \a heigh pixels high, with an internal format of \a internalFormat, defaulting to GL_RGBA8
+#if defined( CINDER_GLES )
+	static RenderbufferRef create( int width, int height, GLenum internalFormat = GL_RGBA8_OES );
+#else
+	static RenderbufferRef create( int width, int height, GLenum internalFormat = GL_RGBA8 );
+#endif
+	//! Create a Renderbuffer \a width pixels wide and \a heigh pixels high, with an internal format of \a internalFormat, defaulting to GL_RGBA8, MSAA samples \a msaaSamples, and CSAA samples \a coverageSamples
+	static RenderbufferRef create( int width, int height, GLenum internalFormat, int msaaSamples, int coverageSamples = 0 );
+
+	~Renderbuffer();
+
+	//! Returns the width of the Renderbuffer in pixels
+	int		getWidth() const { return mWidth; }
+	//! Returns the height of the Renderbuffer in pixels
+	int		getHeight() const { return mHeight; }
+	//! Returns the size of the Renderbuffer in pixels
+	Vec2i	getSize() const { return Vec2i( mWidth, mHeight ); }
+	//! Returns the bounding area of the Renderbuffer in pixels
+	Area	getBounds() const { return Area( 0, 0, mWidth, mHeight ); }
+	//! Returns the aspect ratio of the Renderbuffer
+	float	getAspectRatio() const { return mWidth / (float)mHeight; }
+
+	//! Returns the ID of the Renderbuffer
+	GLuint	getId() const { return mId; }
+	//! Returns the internal format of the Renderbuffer
+	GLenum	getInternalFormat() const { return mInternalFormat; }
+	//! Returns the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling
+	int		getSamples() const { return mSamples; }
+	//! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none.
+	int		getCoverageSamples() const { return mCoverageSamples; }
+
+  private:
 	//! Create a Renderbuffer \a width pixels wide and \a heigh pixels high, with an internal format of \a internalFormat, defaulting to GL_RGBA8
 #if defined( CINDER_GLES )
 	Renderbuffer( int width, int height, GLenum internalFormat = GL_RGBA8_OES );
@@ -43,49 +78,14 @@ class Renderbuffer {
 	Renderbuffer( int width, int height, GLenum internalFormat = GL_RGBA8 );
 #endif
 	//! Create a Renderbuffer \a width pixels wide and \a heigh pixels high, with an internal format of \a internalFormat, defaulting to GL_RGBA8, MSAA samples \a msaaSamples, and CSAA samples \a coverageSamples
-	Renderbuffer( int width, int height, GLenum internalFormat, int msaaSamples, int coverageSamples = 0 );
-
-	//! Returns the width of the Renderbuffer in pixels
-	int		getWidth() const { return mObj->mWidth; }
-	//! Returns the height of the Renderbuffer in pixels
-	int		getHeight() const { return mObj->mHeight; }
-	//! Returns the size of the Renderbuffer in pixels
-	Vec2i	getSize() const { return Vec2i( mObj->mWidth, mObj->mHeight ); }
-	//! Returns the bounding area of the Renderbuffer in pixels
-	Area	getBounds() const { return Area( 0, 0, mObj->mWidth, mObj->mHeight ); }
-	//! Returns the aspect ratio of the Renderbuffer
-	float	getAspectRatio() const { return mObj->mWidth / (float)mObj->mHeight; }
-
-	//! Returns the ID of the Renderbuffer
-	GLuint	getId() const { return mObj->mId; }
-	//! Returns the internal format of the Renderbuffer
-	GLenum	getInternalFormat() const { return mObj->mInternalFormat; }
-	//! Returns the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling
-	int		getSamples() const { return mObj->mSamples; }
-	//! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none.
-	int		getCoverageSamples() const { return mObj->mCoverageSamples; }
-
-  private:
-	struct Obj {
-		Obj();
-		Obj( int aWidth, int aHeight, GLenum internalFormat, int msaaSamples, int coverageSamples );
-		~Obj();
-
-		int					mWidth, mHeight;
-		GLuint				mId;
-		GLenum				mInternalFormat;
-		int					mSamples, mCoverageSamples;
-	};
- 
-	std::shared_ptr<Obj>		mObj;
-
-  public:
-  	//@{
-	//! Emulates shared_ptr-like behavior
-	typedef std::shared_ptr<Obj> Renderbuffer::*unspecified_bool_type;
-	operator unspecified_bool_type() const { return ( mObj.get() == 0 ) ? 0 : &Renderbuffer::mObj; }
-	void reset() { mObj.reset(); }
-	//@}  	
+	Renderbuffer( int width, int height, GLenum internalFormat, int msaaSamples, int coverageSamples = 0 );  
+  
+	void	init( int aWidth, int aHeight, GLenum internalFormat, int msaaSamples, int coverageSamples );
+  
+	int					mWidth, mHeight;
+	GLuint				mId;
+	GLenum				mInternalFormat;
+	int					mSamples, mCoverageSamples;
 };
 
 //! Represents an OpenGL Framebuffer Object. //! Represents an instance of a font at a point size. \ImplShared
@@ -93,27 +93,28 @@ class Fbo {
  public:
 	struct Format;
 
-	//! Creates a NULL FBO
-	Fbo() {}
 	//! Creates an FBO \a width pixels wide and \a height pixels high, using Fbo::Format \a format
-	Fbo( int width, int height, Format format = Format() );
+	static FboRef create( int width, int height, Format format = Format() );
 	//! Creates an FBO \a width pixels wide and \a height pixels high, with an optional alpha channel, color buffer and depth buffer
-	Fbo( int width, int height, bool alpha, bool color = true, bool depth = true );
+	static FboRef create( int width, int height, bool alpha, bool color = true, bool depth = true );
+
+	~Fbo();
+
 
 	//! Returns the width of the FBO in pixels
-	int				getWidth() const { return mObj->mWidth; }
+	int				getWidth() const { return mWidth; }
 	//! Returns the height of the FBO in pixels
-	int				getHeight() const { return mObj->mHeight; }
+	int				getHeight() const { return mHeight; }
 	//! Returns the size of the FBO in pixels
-	Vec2i			getSize() const { return Vec2i( mObj->mWidth, mObj->mHeight ); }
+	Vec2i			getSize() const { return Vec2i( mWidth, mHeight ); }
 	//! Returns the bounding area of the FBO in pixels
-	Area			getBounds() const { return Area( 0, 0, mObj->mWidth, mObj->mHeight ); }
+	Area			getBounds() const { return Area( 0, 0, mWidth, mHeight ); }
 	//! Returns the aspect ratio of the FBO
-	float			getAspectRatio() const { return mObj->mWidth / (float)mObj->mHeight; }
+	float			getAspectRatio() const { return mWidth / (float)mHeight; }
 	//! Returns the Fbo::Format of this FBO
-	const Format&	getFormat() const { return mObj->mFormat; }
+	const Format&	getFormat() const { return mFormat; }
 	//! Returns the texture target for this FBO. Typically \c GL_TEXTURE_2D or \c GL_TEXTURE_RECTANGLE_ARB
-	GLenum			getTarget() const { return mObj->mFormat.mTarget; }
+	GLenum			getTarget() const { return mFormat.mTarget; }
 
 	//! Returns a reference to the color texture of the FBO. \a attachment specifies which attachment in the case of multiple color buffers
 	TextureRef		getTexture( int attachment = 0 );
@@ -132,11 +133,11 @@ class Fbo {
 	static void 	unbindFramebuffer();
 
 	//! Returns the ID of the framebuffer itself. For antialiased FBOs this is the ID of the output multisampled FBO
-	GLuint		getId() const { return mObj->mId; }
+	GLuint		getId() const { return mId; }
 
 #if ! defined( CINDER_GLES )
 	//! For antialiased FBOs this returns the ID of the mirror FBO designed for reading, where the multisampled render buffers are resolved to. For non-antialised, this is the equivalent to getId()
-	GLuint		getResolveId() const { if( mObj->mResolveFramebufferId ) return mObj->mResolveFramebufferId; else return mObj->mId; }
+	GLuint		getResolveId() const { if( mResolveFramebufferId ) return mResolveFramebufferId; else return mId; }
 
 	//! Copies to FBO \a dst from \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
 	void		blitTo( Fbo dst, const Area &srcArea, const Area &dstArea, GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT ) const;
@@ -226,40 +227,27 @@ class Fbo {
 	};
 
  protected:
+	Fbo( int width, int height, Format format );
+	Fbo( int width, int height, bool alpha, bool color, bool depth ); 
+ 
 	void		init();
 	bool		initMultisample( bool csaa );
 	void		resolveTextures() const;
 	void		updateMipmaps( bool bindFirst, int attachment ) const;
 	bool		checkStatus( class FboExceptionInvalidSpecification *resultExc );
 
-	struct Obj {
-		Obj();
-		Obj( int aWidth, int aHeight );
-		~Obj();
-
-		int					mWidth, mHeight;
-		Format				mFormat;
-		GLuint				mId;
-		GLuint				mResolveFramebufferId;
-		std::vector<Renderbuffer>	mMultisampleColorRenderbuffers;
-		Renderbuffer				mMultisampleDepthRenderbuffer;
-		std::vector<TextureRef>		mColorTextures;
-		TextureRef					mDepthTexture;
-		Renderbuffer				mDepthRenderbuffer;
-		mutable bool		mNeedsResolve, mNeedsMipmapUpdate;
-	};
- 
-	std::shared_ptr<Obj>	mObj;
+	int					mWidth, mHeight;
+	Format				mFormat;
+	GLuint				mId;
+	GLuint				mResolveFramebufferId;
+	std::vector<RenderbufferRef>	mMultisampleColorRenderbuffers;
+	RenderbufferRef					mMultisampleDepthRenderbuffer;
+	std::vector<TextureRef>		mColorTextures;
+	TextureRef					mDepthTexture;
+	RenderbufferRef				mDepthRenderbuffer;
+	mutable bool		mNeedsResolve, mNeedsMipmapUpdate;
 	
-	static GLint			sMaxSamples, sMaxAttachments;
-	
-  public:
-	//@{
-	//! Emulates shared_ptr-like behavior
-	typedef std::shared_ptr<Obj> Fbo::*unspecified_bool_type;
-	operator unspecified_bool_type() const { return ( mObj.get() == 0 ) ? 0 : &Fbo::mObj; }
-	void reset() { mObj.reset(); }
-	//@}  	
+	static GLint		sMaxSamples, sMaxAttachments;
 };
 
 class FboException : public Exception {
