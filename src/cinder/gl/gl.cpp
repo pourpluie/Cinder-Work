@@ -566,10 +566,10 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	
 	Context *ctx = gl::context();
 	GlslProgRef curShader = ctx->shaderGet();
-	bool hasPositions = curShader->hasAttribSemantic( ATTR_POSITION );
-	bool hasNormals = curShader->hasAttribSemantic( ATTR_NORMAL );
-	bool hasTextureCoords = curShader->hasAttribSemantic( ATTR_TEX_COORD0 );
-	bool hasColors = curShader->hasAttribSemantic( ATTR_COLOR );
+	bool hasPositions = curShader->hasAttribSemantic( ATTRIB_POSITION );
+	bool hasNormals = curShader->hasAttribSemantic( ATTRIB_NORMAL );
+	bool hasTextureCoords = curShader->hasAttribSemantic( ATTRIB_TEX_COORD_0 );
+	bool hasColors = curShader->hasAttribSemantic( ATTRIB_COLOR );
 	
 	size_t totalArrayBufferSize = 0;
 	if( hasPositions )
@@ -589,7 +589,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	elementVbo->bind();
 	size_t curBufferOffset = 0;
 	if( hasPositions ) {
-		int loc = curShader->getAttribSemanticLocation( ATTR_POSITION );
+		int loc = curShader->getAttribSemanticLocation( ATTRIB_POSITION );
 		vao->bindBuffer( arrayVbo );
 		vao->vertexAttribPointer( loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(vertices), vertices );
@@ -597,7 +597,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	}
 
 	if( hasTextureCoords ) {
-		int loc = curShader->getAttribSemanticLocation( ATTR_TEX_COORD0 );
+		int loc = curShader->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
 		vao->bindBuffer( arrayVbo );
 		vao->vertexAttribPointer( loc, 2, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(texs), texs );
@@ -605,7 +605,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	}
 
 	if( hasColors ) {
-		int loc = curShader->getAttribSemanticLocation( ATTR_COLOR );
+		int loc = curShader->getAttribSemanticLocation( ATTRIB_COLOR );
 		vao->bindBuffer( arrayVbo );
 		vao->vertexAttribPointer( loc, 3, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)curBufferOffset );
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(colors), colors );
