@@ -91,6 +91,8 @@ class Context {
 #endif
 
 
+	GlslProgRef	getStockShader();
+
   private:
 	GLuint						mActiveVao, mTrueVao;
 	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;

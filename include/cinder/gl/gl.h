@@ -129,6 +129,7 @@ void polygonMode( GLenum face, GLenum mode );
 #endif
 
 void draw( const VboMeshRef &mesh );
+void draw( const TextureRef &texture, const Vec2f &offset = Vec2f::zero() );
 void drawRange( const VboMeshRef& mesh, GLint start = 0, GLsizei count = 0 );
 void draw( const VboRef &vbo );
 void drawRange( const VboRef& vbo, GLint start = 0, GLsizei count = 0 );

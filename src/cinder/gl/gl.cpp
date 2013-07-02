@@ -625,6 +625,12 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	elementVbo->unbind();
 }
 
+void draw( const TextureRef &texture, const Vec2f &offset )
+{
+	Context ctx = context();
+	GlslProgRef shader = ctx->getStockShader( Shader().texture() );
+}
+
 GLenum getError()
 {
 	return glGetError();

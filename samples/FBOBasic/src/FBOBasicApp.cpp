@@ -17,7 +17,7 @@ class FBOBasicApp : public AppNative {
 
 	void			renderSceneToFbo();
 	
-	gl::Fbo				mFbo;
+	gl::FboRef			mFbo;
 	Matrix44f			mTorusRotation;
 	static const int	FBO_WIDTH = 256, FBO_HEIGHT = 256;
 };
@@ -26,7 +26,7 @@ void FBOBasicApp::setup()
 {
 	gl::Fbo::Format format;
 //	format.setSamples( 4 ); // uncomment this to enable 4x antialiasing
-	mFbo = gl::Fbo( FBO_WIDTH, FBO_HEIGHT, format );
+	mFbo = gl::Fbo::create( FBO_WIDTH, FBO_HEIGHT, format );
 
 	gl::enableDepthRead();
 	gl::enableDepthWrite();	
@@ -38,19 +38,19 @@ void FBOBasicApp::setup()
 void FBOBasicApp::renderSceneToFbo()
 {
 	// this will restore the old framebuffer binding when we leave this function
-	// on non-OpenGL ES platforms, you can just call mFbo.unbindFramebuffer() at the end of the function
+	// on non-OpenGL ES platforms, you can just call mFbo->unbindFramebuffer() at the end of the function
 	// but this will restore the "screen" FBO on OpenGL ES, and does the right thing on both platforms
 	gl::SaveFramebufferBinding bindingSaver;
 	
 	// bind the framebuffer - now everything we draw will go there
-	mFbo.bindFramebuffer();
+	mFbo->bindFramebuffer();
 
 	// setup the viewport to match the dimensions of the FBO
-	gl::setViewport( mFbo.getBounds() );
+	gl::setViewport( mFbo->getBounds() );
 
 	// setup our camera to render the torus scene
-	CameraPersp cam( mFbo.getWidth(), mFbo.getHeight(), 60.0f );
-	cam.setPerspective( 60, mFbo.getAspectRatio(), 1, 1000 );
+	CameraPersp cam( mFbo->getWidth(), mFbo->getHeight(), 60.0f );
+	cam.setPerspective( 60, mFbo->getAspectRatio(), 1, 1000 );
 	cam.lookAt( Vec3f( 2.8f, 1.8f, -2.8f ), Vec3f::zero() );
 	gl::setMatrices( cam );
 
@@ -92,7 +92,7 @@ void FBOBasicApp::draw()
 
 	// use the scene we rendered into the FBO as a texture
 	glEnable( GL_TEXTURE_2D );
-	mFbo.bindTexture();
+	mFbo->bindTexture();
 
 	// draw a cube textured with the FBO
 	gl::color( Color::white() );
@@ -100,10 +100,10 @@ void FBOBasicApp::draw()
 
 	// show the FBO texture in the upper left corner
 	gl::setMatricesWindow( getWindowSize() );
-	gl::draw( mFbo.getTexture(0), Rectf( 0, 0, 96, 96 ) );
+	gl::draw( mFbo->getTexture(0), Rectf( 0, 0, 96, 96 ) );
 	
 #if ! defined( CINDER_GLES ) // OpenGL ES can't do depth textures, otherwise draw the FBO's
-	gl::draw( mFbo.getDepthTexture(), Rectf( 96, 0, 96 + 96, 96 ) );
+	gl::draw( mFbo->getDepthTexture(), Rectf( 96, 0, 96 + 96, 96 ) );
 #endif
 }
 

@@ -3,11 +3,16 @@
 #include "cinder/app/App.h"
 #include "cinder/Utilities.h"
 
-namespace cinder { namespace gl {
-	
 using namespace std;
 
+namespace cinder { namespace gl {
+
+Shader::Shader()
+
+
 /////////////////////////////////////////////////////////////////
+
+#if 0
 	
 Shader::UniformOptions::UniformOptions()
 : mColorEnabled( false ), mFogEnabled( false ), mLightingModel( Shader::LightingModel::NONE ),
@@ -610,5 +615,7 @@ const string& Shader::getVertexString() const
 {
 	return mVertexString;
 }
+
+#endif
 	
 } }

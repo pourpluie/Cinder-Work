@@ -401,6 +401,14 @@ void Context::polygonModePrepareUse()
 
 #endif // defined( CINDER_GLES )
 
+GlslProgRef	getStockShader()
+{
+	#if defined( CINDER_GLES )
+		
+	#else
+	#endif
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 void Context::clear()
 {

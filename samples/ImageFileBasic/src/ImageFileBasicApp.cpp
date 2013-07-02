@@ -1,4 +1,5 @@
 #include "cinder/app/AppBasic.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/gl/Texture.h"
 
@@ -16,7 +17,7 @@ class ImageFileBasicApp : public AppBasic {
 	void fileDrop( FileDropEvent event );	
 	void draw();
 	
-	gl::Texture		mTexture;	
+	gl::TextureRef	mTexture;	
 };
 
 void ImageFileBasicApp::setup()
@@ -24,7 +25,7 @@ void ImageFileBasicApp::setup()
 	try {
 		fs::path path = getOpenFilePath( "", ImageIo::getLoadExtensions() );
 		if( ! path.empty() ) {
-			mTexture = gl::Texture( loadImage( path ) );
+			mTexture = gl::Texture::create( loadImage( path ) );
 		}
 	}
 	catch( ... ) {
@@ -43,14 +44,14 @@ void ImageFileBasicApp::keyDown( KeyEvent event )
 	else if( event.getChar() == 'o' ) {
 		fs::path path = getOpenFilePath( "", ImageIo::getLoadExtensions() );
 		if( ! path.empty() )
-			mTexture = gl::Texture( loadImage( path.string() ) );
+			mTexture = gl::Texture::create( loadImage( path.string() ) );
 	}
 }
 
 void ImageFileBasicApp::fileDrop( FileDropEvent event )
 {
 	try {
-		mTexture = gl::Texture( loadImage( event.getFile( 0 ) ) );
+		mTexture = gl::Texture::create( loadImage( event.getFile( 0 ) ) );
 	}
 	catch( ... ) {
 		console() << "unable to load the texture file!" << std::endl;
@@ -62,8 +63,7 @@ void ImageFileBasicApp::draw()
 	gl::clear( Color( 0.5f, 0.5f, 0.5f ) );
 	gl::enableAlphaBlending();
 	
-	if( mTexture )
-		gl::draw( mTexture, Vec2f( 0, 0 ) );
+	gl::draw( mTexture, Vec2f( 0, 0 ) );
 }
 
 CINDER_APP_BASIC( ImageFileBasicApp, RendererGl )
