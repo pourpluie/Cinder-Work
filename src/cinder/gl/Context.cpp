@@ -30,9 +30,9 @@ Context::Context()
 #if ! defined( CINDER_GLES )
 	glGenVertexArrays( 1, &mDefaultVaoId );
 	glBindVertexArray( mDefaultVaoId );
-	mActiveVao = mTrueVao = mDefaultVaoId;
+	mCachedVao = mDefaultVaoId;
 #else
-	mActiveVao = mTrueVao = 0;
+	mCachedVao = 0;
 #endif
 
 	mActiveFrontPolygonMode = mTrueFrontPolygonMode;
@@ -54,31 +54,19 @@ Context::~Context()
 // VAO
 void Context::vaoBind( GLuint id )
 {
-	mActiveVao = id;
-	vaoPrepareUse();
+	if( mCachedVao != id ) {
+		mCachedVao = id;
+#if defined( CINDER_GLES )
+		glBindVertexArrayOES( mCachedVao );
+#else
+		glBindVertexArray( mCachedVao );
+#endif
+	}
 }
 
 GLuint Context::vaoGet()
 {
-	return mActiveVao;
-}
-
-void Context::vaoRestore( GLuint id )
-{
-	mActiveVao = id;
-	vaoPrepareUse();
-}
-
-void Context::vaoPrepareUse()
-{
-	if( mTrueVao != mActiveVao ) {
-		mTrueVao = mActiveVao;
-#if defined( CINDER_GLES )
-		glBindVertexArrayOES( mTrueVao );
-#else
-		glBindVertexArray( mTrueVao );
-#endif
-	}
+	return mCachedVao;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -254,7 +242,7 @@ return;
 #else
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &queriedInt );
 #endif
-	assert( mTrueVao == queriedInt );
+	assert( mCachedVao == queriedInt );
 }
 
 void Context::printState( std::ostream &os ) const
@@ -277,7 +265,6 @@ void Context::printState( std::ostream &os ) const
 
 void Context::prepareDraw()
 {
-	vaoPrepareUse();
 	shaderPrepareUse();
 	bufferPrepareUse( GL_ARRAY_BUFFER );
 	bufferPrepareUse( GL_ELEMENT_ARRAY_BUFFER );
@@ -290,14 +277,12 @@ void Context::prepareDraw()
 
 void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-	vaoPrepareUse();
 	bufferPrepareUse( GL_ARRAY_BUFFER );
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
 }
 
 void Context::enableVertexAttribArray( GLuint index )
 {
-	vaoPrepareUse();
 	glEnableVertexAttribArray( index );
 }
 

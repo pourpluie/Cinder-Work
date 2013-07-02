@@ -42,7 +42,7 @@ typedef std::shared_ptr<class GlslProg> GlslProgRef;
 class GlslProg : public std::enable_shared_from_this<GlslProg> {
   public:
 	typedef std::map<std::string,UniformSemantic>	UniformSemanticMap;
-	typedef std::map<std::string,AttrSemantic>		AttribSemanticMap;
+	typedef std::map<std::string,AttribSemantic>		AttribSemanticMap;
   
 	static GlslProgRef create( DataSourceRef vertexShader, DataSourceRef fragmentShader = DataSourceRef() );
 	static GlslProgRef create( const char *vertexShader, const char *fragmentShader = 0 );
@@ -79,9 +79,9 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	const UniformSemanticMap&		getUniformSemantics() const;
 	const AttribSemanticMap&		getAttribSemantics() const;
 	
-	bool	hasAttribSemantic( AttrSemantic semantic ) const;
-	GLint	getAttribSemanticLocation( AttrSemantic semantic ) const;
-	GLint	operator[]( AttrSemantic sem ) const { return getAttribSemanticLocation( sem ); }
+	bool	hasAttribSemantic( AttribSemantic semantic ) const;
+	GLint	getAttribSemanticLocation( AttribSemantic semantic ) const;
+	GLint	operator[]( AttribSemantic sem ) const { return getAttribSemanticLocation( sem ); }
 	
 	//! Default mapping from uniform name to semantic. Can be modified via the reference. Not thread-safe.
 	static UniformSemanticMap&		getDefaultUniformNameToSemanticMap();

@@ -35,8 +35,6 @@ class Context {
 
 	void		vaoBind( GLuint id );
 	GLuint		vaoGet();
-	void		vaoRestore( GLuint id );
-	void		vaoPrepareUse();
 
 	void		bufferBind( GLenum target, GLuint id );
 	GLuint		bufferGet( GLenum target );
@@ -94,7 +92,7 @@ class Context {
 	GlslProgRef	getStockShader();
 
   private:
-	GLuint						mActiveVao, mTrueVao;
+	GLuint						mCachedVao;
 	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;
 	GlslProgRef					mActiveGlslProg;
 	GLuint						mTrueGlslProgId;
@@ -164,7 +162,7 @@ struct VaoScope : public boost::noncopyable {
 	}
 	
 	~VaoScope() {
-		mCtx->vaoRestore( mPrevId );
+		mCtx->vaoBind( mPrevId );
 	}
   private:
 	Context		*mCtx;

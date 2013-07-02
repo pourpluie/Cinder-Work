@@ -86,7 +86,7 @@ void CoreProfileApp::setup()
 		mVao->bindBuffer( mVbo );
 		mVao->vertexAttribPointer( pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
 		mVao->vertexAttribPointer( tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
-		mVao->vertexAttrib( (*mShader)[gl::ATTR_COLOR], 1, 1, 1 );
+		mVao->vertexAttrib( (*mShader)[gl::ATTRIB_COLOR], 1, 1, 1 );
 		mVao->bindBuffer( mElementVbo );
 	}
 
