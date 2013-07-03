@@ -23,6 +23,7 @@
 */
 
 #include "cinder/gl/Environment.h"
+#include "cinder/gl/Shader.h"
 
 namespace cinder { namespace gl {
 
@@ -45,12 +46,84 @@ void EnvironmentEs2::initializeContextDefaults( Context *context )
 class EnvironmentCoreProfile : public Environment {
   public:
 	virtual void	initializeContextDefaults( Context *context ) override;
+
+	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
+	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
+	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
 };
 
 
 void EnvironmentCoreProfile::initializeContextDefaults( Context *context )
+{		
+}
+
+std::string	EnvironmentCoreProfile::generateVertexShader( const ShaderDef &shader )
 {
+	std::string s;
 	
+	s +=		"#version 150\n"
+				"\n"
+				"uniform mat4	uModelViewProjection;\n"
+				"\n"
+				"in vec4		vPosition;\n"
+				;
+			
+	if( shader.mTextureMapping ) {
+		s +=	"in vec2		vTexCoord0;\n"
+				"out highp vec2	TexCoord;\n"
+				;
+	}
+
+	s +=		"void main( void )\n"
+				"{\n"
+				"gl_Position	= uModelViewProjection * vPosition;\n"
+				;
+				
+	if( shader.mTextureMapping ) {	
+		s +=	"TexCoord	= vTexCoord0;\n"
+				;
+	}
+	
+	s +=		"}\n";
+	
+	return s;
+}
+
+std::string	EnvironmentCoreProfile::generateFragmentShader( const ShaderDef &shader )
+{
+	std::string s;
+	
+	s+=			"#version 150\n"
+				"\n"
+				"out vec4 oColor;\n"
+				;
+
+	if( shader.mTextureMapping ) {	
+		s +=	"uniform sampler2D uTex0;\n"
+				"in vec2	TexCoord;\n"
+				;
+	}
+
+	s +=		"void main( void )\n"
+				"{\n"
+				;
+	
+	if( shader.mTextureMapping ) {
+		s +=	"oColor.rgb = texture( uTex0, TexCoord.st ).rgb;\n"
+				"oColor.a = 1.0;\n"
+				;
+	}
+	
+	s +=		"}\n"
+				;
+	
+	return s;
+}
+
+
+GlslProgRef	EnvironmentCoreProfile::buildShader( const ShaderDef &shader )
+{
+	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
 }
 
 #endif // if defined( CINDER_GLES )

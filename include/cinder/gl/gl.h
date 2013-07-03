@@ -15,6 +15,7 @@
 #endif
 
 #include "cinder/Area.h"
+#include "cinder/Rect.h"
 #include "cinder/Exception.h"
 #include "cinder/Color.h"
 #include "cinder/Camera.h"
@@ -34,6 +35,8 @@ class Vbo;
 typedef std::shared_ptr<Vbo>		VboRef;
 class VboMesh;
 typedef std::shared_ptr<VboMesh>	VboMeshRef;
+class Texture;
+typedef std::shared_ptr<Texture>	TextureRef;
 
 class Context* context();
 class Environment* env();
@@ -130,11 +133,16 @@ void polygonMode( GLenum face, GLenum mode );
 
 void draw( const VboMeshRef &mesh );
 void draw( const TextureRef &texture, const Vec2f &offset = Vec2f::zero() );
+void draw( const TextureRef &texture, const Rectf &rect );
 void drawRange( const VboMeshRef& mesh, GLint start = 0, GLsizei count = 0 );
 void draw( const VboRef &vbo );
 void drawRange( const VboRef& vbo, GLint start = 0, GLsizei count = 0 );
 
-void drawCube( const Vec3f &c, const Vec3f &size );
+//! Renders a solid cube centered at \a center of size \a size. Normals and created texture coordinates are generated.
+void drawCube( const Vec3f &center, const Vec3f &size );
+//! Renders a solid cube centered at \a center of size \a size. Each face is assigned a unique color.
+void drawColorCube( const Vec3f &center, const Vec3f &size );
+void drawTorus( float outerRadius, float innerRadius, int longitudeSegments, int latitudeSegments );
 
 void drawArrays( GLenum mode, GLint first, GLsizei count );
 void drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices );

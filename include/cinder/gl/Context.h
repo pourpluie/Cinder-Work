@@ -12,6 +12,7 @@
 
 #include <boost/noncopyable.hpp>
 #include <vector>
+#include <map>
 
 namespace cinder { namespace gl {
 
@@ -28,8 +29,6 @@ typedef std::shared_ptr<GlslProg>		GlslProgRef;
 
 class Context {
   public:
-	typedef std::map<Shader::UniformOptions, ShaderRef> ShaderMap;
-	
 	Context();
 	~Context();
 
@@ -89,9 +88,11 @@ class Context {
 #endif
 
 
-	GlslProgRef	getStockShader();
+	GlslProgRef		getStockShader( const ShaderDef &shaderDef );
 
   private:
+	std::map<ShaderDef,GlslProgRef>		mStockShaders;
+	
 	GLuint						mCachedVao;
 	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;
 	GlslProgRef					mActiveGlslProg;
@@ -122,12 +123,10 @@ class Context {
 	bool						mMaterialEnabled;
 	int							mTextureUnit;
 	
-	ShaderMap					mShaders;
 	VaoRef						mImmVao; // Immediate-mode VAO
 	VboRef						mImmVbo; // Immediate-mode VBO
 	
 	void						clear();
-	void						draw();
 
 	ci::ColorAf					mColor;
 	bool						mLighting;

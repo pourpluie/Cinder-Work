@@ -143,9 +143,13 @@ gl::context()->sanityCheck();
 		gl::pushMatrices();
 			gl::setMatrices( mCam );
 			gl::multModelView( mCubeRotation );
-			gl::setDefaultShaderUniforms();
 			gl::drawCube( Vec3f::zero(), Vec3f( 2.0f, 2.0f, 2.0f ) );
 		gl::popMatrices();
+	}
+	
+	{
+		gl::setMatricesWindow( getWindowSize() );
+		gl::draw( mTexture, Rectf( 10, 10, 120, 50 ) );
 	}
 }
 

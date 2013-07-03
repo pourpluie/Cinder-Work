@@ -386,114 +386,22 @@ void Context::polygonModePrepareUse()
 
 #endif // defined( CINDER_GLES )
 
-GlslProgRef	getStockShader()
+GlslProgRef	Context::getStockShader( const ShaderDef &shaderDef )
 {
-	#if defined( CINDER_GLES )
-		
-	#else
-	#endif
+	auto existing = mStockShaders.find( shaderDef );
+	if( existing == mStockShaders.end() ) {
+		auto result = gl::env()->buildShader( shaderDef );
+		mStockShaders[shaderDef] = result;
+		return result;
+	}
+	else
+		return existing->second;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 void Context::clear()
 {
 	mVertices.clear();
-}
-
-void Context::draw()
-{
-	if( ! mVertices.empty() ) {
-		// Choose shader
-		Shader::UniformOptions options;
-		options.enableColor();
-		options.setLightingModel( mLighting ? Shader::LightingModel::LAMBERT : Shader::LightingModel::NONE );
-		options.enableFog( mFogEnabled );
-		options.enableMaterial( mMaterialEnabled );
-		options.enableTexture( mTextureUnit >= 0 );
-		options.setNumLights( mLights.size() );
-		options.setPrecision( Shader::Precision::HIGH );
-		
-		bool found = false;
-		for( ShaderMap::const_iterator iter = mShaders.begin(); iter != mShaders.end(); ++iter ) {
-			if ( iter->first == options ) {
-				found = true;
-				break;
-			}
-		}
-		if ( !found ) { // if ( mShader.find( options ) == mShaders.end() ) { // Isn't working here
-			mShaders.insert( make_pair( options, Shader::create( options ) ) );
-		}
-		ShaderRef shader = mShaders[ options ];
-		
-		// Change mode to line strip for wireframes
-		GLenum mode = mMode;
-		if ( mWireframe && mode != GL_POINTS ) {
-			mode = GL_LINE_STRIP;
-		}
-		
-		// Buffer data
-		GLsizei stride = (GLsizei)sizeof( Context::Vertex );
-		if ( ! mImmVbo ) {
-			mImmVbo = Vbo::create( GL_ARRAY_BUFFER );
-			mImmVbo->setUsage( GL_DYNAMIC_DRAW );
-		}
-		mImmVbo->bufferData( ( GLuint )( mVertices.size() * stride ), &mVertices[ 0 ], GL_DYNAMIC_DRAW );
-	
-		// Create VAO. All shader variations have the same attribute
-		// layout, so we only need to this once
-		if( ! mImmVao ) {
-			mImmVao = Vao::create();
-			const GlslProgRef& glslProg = shader->getGlslProg();
-			
-			GLint offset	= 0;
-			GLint size		= 4;
-			Vao::Attribute attrColor( glslProg->getAttribLocation( "aColor" ), size, GL_FLOAT, false, stride, ( const GLvoid* )offset );
-			mImmVao->addAttribute( attrColor );
-			offset			+= size * sizeof( float );
-			
-			size			= 3;
-			Vao::Attribute attrNormal( glslProg->getAttribLocation( "aNormal" ), size, GL_FLOAT, false, stride, ( const GLvoid* )offset );
-			mImmVao->addAttribute( attrNormal );
-			offset			+= size * sizeof( float );
-			
-			size			= 3;
-			Vao::Attribute attrPosition( glslProg->getAttribLocation( "aPosition" ), size, GL_FLOAT, false, stride, ( const GLvoid* )offset );
-			mImmVao->addAttribute( attrPosition );
-			offset			+= size * sizeof( float );
-			
-			size			= 4;
-			Vao::Attribute attrTexCoord( glslProg->getAttribLocation( "aTexCoord" ), size, GL_FLOAT, false, stride, ( const GLvoid* )offset );
-			mImmVao->addAttribute( attrTexCoord );
-			offset			+= size * sizeof( float );
-		}
-		
-		// Set uniforms
-		shader->setModelViewProjectionMatrix( mProjection.back() * mModelView.back() );
-		if ( mFogEnabled ) {
-			shader->setFog( mFog );
-		}
-		if ( mMaterialEnabled ) {
-			shader->setMaterial( mMaterial );
-		}
-		if ( mTextureUnit >= 0 ) {
-			shader->setTextureId( mTextureUnit );
-		}
-		if ( mLights.size() > 0 ) {
-			size_t i = 0;
-			for ( vector<Light>::const_iterator iter = mLights.begin(); iter != mLights.end(); ++iter, ++i ) {
-				shader->setLight( i, *iter );
-			}
-		}
-		shader->update();
-		
-		// Draw
-		shader->bind();
-		VaoScope vaoBind( mImmVao->getId() );
-		BufferScope bufferBind( mImmVbo->getTarget(), mImmVbo->getId() );
-		drawArrays( mode, 0, mVertices.size() );
-		shader->unbind();
-	}
-	clear();
 }
 	
 void Context::pushBack( const ci::Vec4f &v )

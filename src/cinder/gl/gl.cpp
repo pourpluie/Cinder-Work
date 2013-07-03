@@ -3,6 +3,7 @@
 #include "cinder/gl/VboMesh.h"
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
+#include "cinder/gl/Texture.h"
 
 #include "cinder/app/App.h"
 #include "cinder/Utilities.h"
@@ -318,7 +319,7 @@ void begin( GLenum mode )
 void end()
 {
 	auto ctx = gl::context();
-	ctx->draw();
+//	ctx->draw();
 }
 
 void color( float r, float g, float b )
@@ -619,7 +620,8 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	arrayVbo->bind();
 	elementVbo->bind();
 	ctx->prepareDraw();
-	glDrawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
+	gl::setDefaultShaderUniforms();
+	gl::drawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
 
 	arrayVbo->unbind();
 	elementVbo->unbind();
@@ -627,8 +629,40 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 
 void draw( const TextureRef &texture, const Vec2f &offset )
 {
-	Context ctx = context();
-	GlslProgRef shader = ctx->getStockShader( Shader().texture() );
+	Context *ctx = context();
+//	GlslProgRef shader = ctx->getStockShader( Shader().texture() );
+}
+
+void draw( const TextureRef &texture, const Rectf &rect )
+{
+	Context *ctx = context();
+	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture() );
+	
+	shader->bind();
+	
+	GLfloat data[8+8]; // both verts and texCoords
+	GLfloat *verts = data, *texCoords = data + sizeof(float) * 8;
+	
+	verts[0*2+0] = rect.getX2(); texCoords[0*2+0] = texture->getRight();
+	verts[0*2+1] = rect.getY1(); texCoords[0*2+1] = texture->getTop();
+	verts[1*2+0] = rect.getX1(); texCoords[1*2+0] = texture->getLeft();
+	verts[1*2+1] = rect.getY1(); texCoords[1*2+1] = texture->getTop();
+	verts[2*2+0] = rect.getX2(); texCoords[2*2+0] = texture->getRight();
+	verts[2*2+1] = rect.getY2(); texCoords[2*2+1] = texture->getBottom();
+	verts[3*2+0] = rect.getX1(); texCoords[3*2+0] = texture->getLeft();
+	verts[3*2+1] = rect.getY2(); texCoords[3*2+1] = texture->getBottom();
+	
+	VaoRef vao = Vao::create();
+	VboRef arrayVbo = Vbo::create( GL_ARRAY_BUFFER, sizeof(data), data );
+	arrayVbo->bind();
+
+	int posLoc = shader->getAttribSemanticLocation( ATTRIB_POSITION );
+	vao->vertexAttribPointer( posLoc, 3, GL_FLOAT, GL_FALSE, 0, (void*)verts );
+	int texLoc = shader->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
+	vao->vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)texCoords );
+	
+	gl::setDefaultShaderUniforms();
+	gl::drawArrays( GL_TRIANGLE_STRIP, 0, 4 );	
 }
 
 GLenum getError()
@@ -640,7 +674,7 @@ std::string getErrorString( GLenum err )
 {
 	switch( err ) {
 		case GL_NO_ERROR:
-			return "GL_NO_ERROR";;
+			return "GL_NO_ERROR";
 		case GL_INVALID_ENUM:
 			return "GL_INVALID_ENUM";
 		case GL_INVALID_VALUE:

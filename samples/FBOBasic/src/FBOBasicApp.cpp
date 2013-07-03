@@ -63,8 +63,8 @@ void FBOBasicApp::renderSceneToFbo()
 	// render an orange torus, with no textures
 	glDisable( GL_TEXTURE_2D );
 	gl::color( Color( 1.0f, 0.5f, 0.25f ) );
-	gl::drawTorus( 1.4f, 0.3f, 32, 64 );
-//	gl::drawColorCube( Vec3f::zero(), Vec3f( 2.2f, 2.2f, 2.2f ) );
+//	gl::drawTorus( 1.4f, 0.3f, 32, 64 );
+	gl::drawCube( Vec3f::zero(), Vec3f( 2.2f, 2.2f, 2.2f ) );
 }
 
 void FBOBasicApp::update()
