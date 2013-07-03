@@ -44,6 +44,8 @@ void CoreProfileApp::setup()
 		console() << ex.what() << endl;
 		quit();
 	}
+
+mShader = gl::context()->getStockShader( gl::ShaderDef().texture() );
 	
 	mTexture = gl::Texture::create( loadImage( loadResource( RES_TEXTURE ) ) );
 
@@ -149,7 +151,7 @@ gl::context()->sanityCheck();
 	
 	{
 		gl::setMatricesWindow( getWindowSize() );
-		gl::draw( mTexture, Rectf( 10, 10, 120, 50 ) );
+		gl::draw( mTexture, Rectf( 10, 10, 120 + getElapsedSeconds(), 50 ) );
 	}
 }
 

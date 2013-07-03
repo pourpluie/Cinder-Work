@@ -641,7 +641,7 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	shader->bind();
 	
 	GLfloat data[8+8]; // both verts and texCoords
-	GLfloat *verts = data, *texCoords = data + sizeof(float) * 8;
+	GLfloat *verts = data, *texCoords = data + 8;
 	
 	verts[0*2+0] = rect.getX2(); texCoords[0*2+0] = texture->getRight();
 	verts[0*2+1] = rect.getY1(); texCoords[0*2+1] = texture->getTop();
@@ -653,16 +653,17 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	verts[3*2+1] = rect.getY2(); texCoords[3*2+1] = texture->getBottom();
 	
 	VaoRef vao = Vao::create();
+	VaoScope vaoScope( vao );
 	VboRef arrayVbo = Vbo::create( GL_ARRAY_BUFFER, sizeof(data), data );
 	arrayVbo->bind();
 
 	int posLoc = shader->getAttribSemanticLocation( ATTRIB_POSITION );
-	vao->vertexAttribPointer( posLoc, 3, GL_FLOAT, GL_FALSE, 0, (void*)verts );
+	vao->vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
 	int texLoc = shader->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
-	vao->vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)texCoords );
+	vao->vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 	
 	gl::setDefaultShaderUniforms();
-	gl::drawArrays( GL_TRIANGLE_STRIP, 0, 4 );	
+	gl::drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
 
 GLenum getError()
