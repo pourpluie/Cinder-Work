@@ -637,8 +637,11 @@ void draw( const TextureRef &texture, const Rectf &rect )
 {
 	Context *ctx = context();
 	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture() );
+	ScopeShader shaderScope( shader );
 	
-	shader->bind();
+	texture->bind();
+	shader->uniform( "uTex0", 0 );
+	
 	
 	GLfloat data[8+8]; // both verts and texCoords
 	GLfloat *verts = data, *texCoords = data + 8;

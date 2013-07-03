@@ -27,16 +27,84 @@
 
 namespace cinder { namespace gl {
 
+//////////////////////////////////////////////////////////////////////////////////
+// GL ES 2
+
 #if defined( CINDER_GLES )
 
 class EnvironmentEs2 : public Environment {
   public:
 	virtual void	initializeContextDefaults( Context *context ) override;
+	
+	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
+	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
+	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
 };
-
 
 void EnvironmentEs2::initializeContextDefaults( Context *context )
 {
+}
+
+std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )
+{
+	std::string s;
+	
+	s +=		"uniform mat4	uModelViewProjection;\n"
+				"\n"
+				"attribute vec4		vPosition;\n"
+				;
+			
+	if( shader.mTextureMapping ) {
+		s +=	"attribute vec2		vTexCoord0;\n"
+				"varying highp vec2	TexCoord;\n"
+				;
+	}
+
+	s +=		"void main( void )\n"
+				"{\n"
+				"gl_Position	= uModelViewProjection * vPosition;\n"
+				;
+				
+	if( shader.mTextureMapping ) {	
+		s +=	"TexCoord	= vTexCoord0;\n"
+				;
+	}
+	
+	s +=		"}\n";
+	
+	return s;
+}
+
+std::string	EnvironmentEs2::generateFragmentShader( const ShaderDef &shader )
+{
+	std::string s;
+
+	if( shader.mTextureMapping ) {	
+		s +=	"uniform sampler2D uTex0;\n"
+				"varying highp vec2	TexCoord;\n"
+				;
+	}
+
+	s +=		"void main( void )\n"
+				"{\n"
+				;
+	
+	if( shader.mTextureMapping ) {
+		s +=	"gl_FragColor.rgb = texture2D( uTex0, TexCoord.st ).rgb;\n"
+				"gl_FragColor.a = 1.0;\n"
+				;
+	}
+	
+	s +=		"}\n"
+				;
+	
+	return s;
+}
+
+
+GlslProgRef	EnvironmentEs2::buildShader( const ShaderDef &shader )
+{
+	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
 }
 
 #else

@@ -39,7 +39,8 @@ class CoreProfileApp : public AppNative {
 void CoreProfileApp::setup()
 {
 	try {
-		mShader = gl::GlslProg::create( loadResource( RES_VERT_GLSL ), loadResource( RES_FRAG_GLSL ) );
+//		mShader = gl::GlslProg::create( loadResource( RES_VERT_GLSL ), loadResource( RES_FRAG_GLSL ) );
+mShader = gl::context()->getStockShader( gl::ShaderDef().texture() );
 	}
 	catch ( gl::GlslProgCompileExc ex ) {
 		console() << ex.what() << endl;
@@ -127,7 +128,6 @@ gl::context()->sanityCheck();
 		gl::rotate( Vec3f( 0, 0, mSecondTriRotation ) );
 		gl::setDefaultShaderUniforms();
 		gl::VaoScope vaoBind( mVao );
-		gl::BufferScope vboBind( mVbo );
 		gl::drawArrays( GL_TRIANGLES, 0, 3 );
 		gl::popModelView();
 	}
@@ -136,9 +136,13 @@ gl::context()->sanityCheck();
 		gl::pushMatrices();
 			gl::setMatrices( mCam );
 			gl::multModelView( mCubeRotation );
-			gl::setDefaultShaderUniforms();
 			gl::drawCube( Vec3f::zero(), Vec3f( 2.0f, 2.0f, 2.0f ) );
 		gl::popMatrices();
+	}
+	
+	{
+		gl::setMatricesWindow( getWindowSize() );
+		gl::draw( mTexture, Rectf( 10, 10, 120, 150 ) );
 	}
 }
 

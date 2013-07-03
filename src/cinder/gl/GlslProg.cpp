@@ -51,7 +51,7 @@ GlslProg::~GlslProg()
 // GlslProg
 
 GlslProg::GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader )
-	: mActiveUniformTypesCached( false ),
+	: mActiveUniformTypesCached( false ), mActiveAttribTypesCached( false ),
 	mUniformSemanticsCached( false ), mUniformNameToSemanticMap( getDefaultUniformNameToSemanticMap() ),
 	mAttribSemanticsCached( false ), mAttribNameToSemanticMap( getDefaultAttribNameToSemanticMap() )
 {
@@ -66,7 +66,7 @@ GlslProg::GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader )
 }
 
 GlslProg::GlslProg( const char* vertexShader, const char* fragmentShader )
-	: mActiveUniformTypesCached( false ),
+	: mActiveUniformTypesCached( false ), mActiveAttribTypesCached( false ),
 	mUniformSemanticsCached( false ), mUniformNameToSemanticMap( getDefaultUniformNameToSemanticMap() ),
 	mAttribSemanticsCached( false ), mAttribNameToSemanticMap( getDefaultAttribNameToSemanticMap() )
 {
