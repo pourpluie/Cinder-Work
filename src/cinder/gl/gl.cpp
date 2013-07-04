@@ -512,6 +512,47 @@ void drawRange( const VboMeshRef& mesh, GLint start, GLsizei count )
 	mesh->mVao->unbind();
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Vertex Attributes
+void vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
+{
+	context()->vertexAttribPointer( index, size, type, normalized, stride, pointer );
+}
+
+void enableVertexAttribArray( GLuint index )
+{
+	context()->enableVertexAttribArray( index );
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Buffers
+void vertexAttrib1f( GLuint index, float v0 )
+{
+	context()->vertexAttrib1f( index, v0 );
+}
+
+void vertexAttrib2f( GLuint index, float v0, float v1 )
+{
+	context()->vertexAttrib2f( index, v0, v1 );
+}
+
+void vertexAttrib3f( GLuint index, float v0, float v1, float v2 )
+{
+	context()->vertexAttrib3f( index, v0, v1, v2 );
+}
+
+void vertexAttrib4f( GLuint index, float v0, float v1, float v2, float v3 )
+{
+	context()->vertexAttrib4f( index, v0, v1, v2, v3 );
+}
+
+void bindBuffer( const BufferObjRef &buffer )
+{
+	context()->bindBuffer( buffer->getTarget(), buffer->getId() );
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Draw*
 void drawArrays( GLenum mode, GLint first, GLsizei count )
 {
 	context()->prepareDraw();
@@ -591,24 +632,27 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	size_t curBufferOffset = 0;
 	if( hasPositions ) {
 		int loc = curShader->getAttribSemanticLocation( ATTRIB_POSITION );
-		vao->bindBuffer( arrayVbo );
-		vao->vertexAttribPointer( loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
+		gl::bindBuffer( arrayVbo );
+		enableVertexAttribArray( loc );
+		vertexAttribPointer( loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(vertices), vertices );
 		curBufferOffset += sizeof(vertices);
 	}
 
 	if( hasTextureCoords ) {
 		int loc = curShader->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
-		vao->bindBuffer( arrayVbo );
-		vao->vertexAttribPointer( loc, 2, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
+		gl::bindBuffer( arrayVbo );
+		enableVertexAttribArray( loc );
+		vertexAttribPointer( loc, 2, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(texs), texs );
 		curBufferOffset += sizeof(texs);
 	}
 
 	if( hasColors ) {
 		int loc = curShader->getAttribSemanticLocation( ATTRIB_COLOR );
-		vao->bindBuffer( arrayVbo );
-		vao->vertexAttribPointer( loc, 3, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)curBufferOffset );
+		gl::bindBuffer( arrayVbo );
+		enableVertexAttribArray( loc );
+		vertexAttribPointer( loc, 3, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)curBufferOffset );
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(colors), colors );
 		curBufferOffset += sizeof(colors);
 	}
@@ -661,9 +705,11 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	arrayVbo->bind();
 
 	int posLoc = shader->getAttribSemanticLocation( ATTRIB_POSITION );
-	vao->vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+	enableVertexAttribArray( posLoc );
+	vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
 	int texLoc = shader->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
-	vao->vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
+	enableVertexAttribArray( texLoc );	
+	vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 	
 	gl::setDefaultShaderUniforms();
 	gl::drawArrays( GL_TRIANGLE_STRIP, 0, 4 );

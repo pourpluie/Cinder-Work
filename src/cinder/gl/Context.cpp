@@ -71,7 +71,7 @@ GLuint Context::vaoGet()
 
 //////////////////////////////////////////////////////////////////
 // Buffer
-void Context::bufferBind( GLenum target, GLuint id )
+void Context::bindBuffer( GLenum target, GLuint id )
 {
 	mTrueBuffer[target] = mActiveBuffer[target] = id;
 	glBindBuffer( target, mTrueBuffer[target] );
@@ -275,6 +275,8 @@ void Context::prepareDraw()
 #endif
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Vertex Attributes
 void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
 	bufferPrepareUse( GL_ARRAY_BUFFER );
@@ -285,6 +287,28 @@ void Context::enableVertexAttribArray( GLuint index )
 {
 	glEnableVertexAttribArray( index );
 }
+
+void Context::vertexAttrib1f( GLuint index, float v0 )
+{
+	glVertexAttrib1f( index, v0 );
+}
+
+void Context::vertexAttrib2f( GLuint index, float v0, float v1 )
+{
+	glVertexAttrib2f( index, v0, v1 );
+}
+
+void Context::vertexAttrib3f( GLuint index, float v0, float v1, float v2 )
+{
+	glVertexAttrib3f( index, v0, v1, v2 );
+}
+
+void Context::vertexAttrib4f( GLuint index, float v0, float v1, float v2, float v3 )
+{
+	glVertexAttrib4f( index, v0, v1, v2, v3 );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Context::blendFunc( GLenum sfactor, GLenum dfactor )
 {
@@ -430,7 +454,7 @@ BufferScope::BufferScope( const BufferObjRef &bufferObj )
 	: mCtx( gl::context() ), mTarget( bufferObj->getTarget() )
 {
 	mPrevId = mCtx->bufferGet( mTarget );
-	mCtx->bufferBind( mTarget, bufferObj->getId() );
+	mCtx->bindBuffer( mTarget, bufferObj->getId() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

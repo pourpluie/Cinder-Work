@@ -37,6 +37,8 @@ class VboMesh;
 typedef std::shared_ptr<VboMesh>	VboMeshRef;
 class Texture;
 typedef std::shared_ptr<Texture>	TextureRef;
+class BufferObj;
+typedef std::shared_ptr<BufferObj>	BufferObjRef;
 
 class Context* context();
 class Environment* env();
@@ -144,8 +146,28 @@ void drawCube( const Vec3f &center, const Vec3f &size );
 void drawColorCube( const Vec3f &center, const Vec3f &size );
 void drawTorus( float outerRadius, float innerRadius, int longitudeSegments, int latitudeSegments );
 
-void drawArrays( GLenum mode, GLint first, GLsizei count );
-void drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices );
+
+// Vertex Attributes
+//! Analogous to glVertexAttribPointer
+void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+//! Analogous to glEnableVertexAttribArray
+void	enableVertexAttribArray( GLuint index );
+
+void		vertexAttrib1f( GLuint index, float v0 );
+inline void	vertexAttrib( GLuint index, float v0 ) { vertexAttrib1f( index, v0 ); }
+void		vertexAttrib2f( GLuint index, float v0, float v1 );
+inline void	vertexAttrib( GLuint index, float v0, float v1 ) { vertexAttrib2f( index, v0, v1 ); }
+void		vertexAttrib3f( GLuint index, float v0, float v1, float v2 );
+inline void	vertexAttrib( GLuint index, float v0, float v1, float v2 ) { vertexAttrib3f( index, v0, v1, v2 ); }
+inline void	vertexAttrib( GLuint index, float v0, float v1 );
+void		vertexAttrib4f( GLuint index, float v0, float v1, float v2, float v3 );
+inline void	vertexAttrib( GLuint index, float v0, float v1, float v2, float v3 ) { vertexAttrib4f( index, v0, v1, v2, v3 ); }
+
+// Buffers
+void	bindBuffer( const BufferObjRef &buffer );
+
+void	drawArrays( GLenum mode, GLint first, GLsizei count );
+void	drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices );
 	
 GLenum getError();
 std::string getErrorString( GLenum err );

@@ -124,54 +124,6 @@ Vao::~Vao()
 #endif
 }
 
-void Vao::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
-{
-	auto ctx = gl::context();
-	VaoScope vaoBind( mId );
-
-	ctx->vertexAttribPointer( index, size, type, normalized, stride, pointer );
-	ctx->enableVertexAttribArray( index );
-}
-
-void Vao::vertexAttrib( GLuint index, float v0 )
-{
-	glVertexAttrib1f( index, v0 );
-}
-
-void Vao::vertexAttrib( GLuint index, float v0, float v1 )
-{
-	glVertexAttrib2f( index, v0, v1 );
-}
-
-void Vao::vertexAttrib( GLuint index, float v0, float v1, float v2 )
-{
-	glVertexAttrib3f( index, v0, v1, v2 );
-}
-
-void Vao::vertexAttrib( GLuint index, float v0, float v1, float v2, float v3 )
-{
-	glVertexAttrib4f( index, v0, v1, v2, v3 );
-}
-
-void Vao::enableVertexAttribArray( GLuint index )
-{
-	auto ctx = gl::context();
-	VaoScope vaoBind( mId );
-	ctx->enableVertexAttribArray( index );
-}
-
-void Vao::bindBuffer( const VboRef &vbo )
-{
-	auto ctx = gl::context();
-	
-	VaoScope vaoBind( mId );
-	ctx->bufferBind( vbo->getTarget(), vbo->getId() );
-	if( vbo->getTarget() == GL_ELEMENT_ARRAY_BUFFER )
-		mBoundElementArrayBuffer = vbo->getId();
-	else if( vbo->getTarget() == GL_ARRAY_BUFFER )
-		mBoundArrayBuffer = vbo->getId();
-}
-
 void Vao::addAttribute( const Vao::Attribute &attr )
 {
 //	bind();

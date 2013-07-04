@@ -27,7 +27,7 @@ BufferObj::~BufferObj()
 
 void BufferObj::bind() const
 {
-	context()->bufferBind( mTarget, mId );
+	context()->bindBuffer( mTarget, mId );
 }
 
 void BufferObj::bufferData( GLsizeiptr size, const GLvoid *data, GLenum usage )
@@ -88,7 +88,7 @@ void BufferObj::setUsage( GLenum usage )
 	
 void BufferObj::unbind() const
 {
-	context()->bufferBind( mTarget, 0 );
+	context()->bindBuffer( mTarget, 0 );
 }
 	
 } }

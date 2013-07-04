@@ -35,7 +35,7 @@ class Context {
 	void		vaoBind( GLuint id );
 	GLuint		vaoGet();
 
-	void		bufferBind( GLenum target, GLuint id );
+	void		bindBuffer( GLenum target, GLuint id );
 	GLuint		bufferGet( GLenum target );
 	void		bufferRestore( GLenum target, GLuint id );
 	void		bufferPrepareUse( GLenum target );
@@ -63,8 +63,19 @@ class Context {
 	
 	void		prepareDraw();
 
+	// Vertex Attributes
+	//! Analogous to glVertexAttribPointer
 	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+	//! Analogous to glEnableVertexAttribArray
 	void		enableVertexAttribArray( GLuint index );
+	//! Analogous to glVertexAttrib1f
+	void		vertexAttrib1f( GLuint index, float v0 );
+	//! Analogous to glVertexAttrib2f
+	void		vertexAttrib2f( GLuint index, float v0, float v1 );
+	//! Analogous to glVertexAttrib3f
+	void		vertexAttrib3f( GLuint index, float v0, float v1, float v2 );
+	//! Analogous to glVertexAttrib4f
+	void		vertexAttrib4f( GLuint index, float v0, float v1, float v2, float v3 );
 
 	//! Parallels glBlendFunc()
 	void		blendFunc( GLenum sfactor, GLenum dfactor );
@@ -174,7 +185,7 @@ struct BufferScope : public boost::noncopyable {
 		: mCtx( gl::context() ), mTarget( target )
 	{
 		mPrevId = mCtx->bufferGet( target );
-		mCtx->bufferBind( target, id );
+		mCtx->bindBuffer( target, id );
 	}
 
 	~BufferScope() {

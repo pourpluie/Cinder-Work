@@ -84,11 +84,14 @@ mShader = gl::context()->getStockShader( gl::ShaderDef().texture() );
 	
 	{
 		mVao = gl::Vao::create();
-		mVao->bindBuffer( mVbo );
-		mVao->vertexAttribPointer( pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
-		mVao->vertexAttribPointer( tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
-		mVao->vertexAttrib( (*mShader)[gl::ATTRIB_COLOR], 1, 1, 1 );
-		mVao->bindBuffer( mElementVbo );
+		gl::VaoScope vaoScope( mVao );
+		gl::bindBuffer( mVbo );
+		gl::enableVertexAttribArray( pos );
+		gl::vertexAttribPointer( pos, 3, GL_FLOAT, GL_FALSE, 0, 0 );
+		gl::enableVertexAttribArray( tex );
+		gl::vertexAttribPointer( tex, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*9) );
+		gl::vertexAttrib( (*mShader)[gl::ATTRIB_COLOR], 1, 1, 1 );
+		gl::bindBuffer( mElementVbo );
 	}
 
 	mCam.lookAt( Vec3f( 3, 2, -3 ), Vec3f::zero() );
