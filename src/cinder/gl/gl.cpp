@@ -56,7 +56,7 @@ GlslProgRef	getStockShader( const class ShaderDef &shader )
 void setDefaultShaderUniforms()
 {
 	auto ctx = gl::context();
-	auto glslProg = ctx->shaderGet();
+	auto glslProg = ctx->getCurrentShader();
 	if( glslProg ) {
 		auto uniforms = glslProg->getUniformSemantics();
 		for( auto unifIt = uniforms.cbegin(); unifIt != uniforms.end(); ++unifIt ) {
@@ -615,7 +615,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 									20,21,22,20,22,23 };
 	
 	Context *ctx = gl::context();
-	GlslProgRef curShader = ctx->shaderGet();
+	GlslProgRef curShader = ctx->getCurrentShader();
 	if( ! curShader )
 		return;
 

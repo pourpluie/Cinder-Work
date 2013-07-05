@@ -138,12 +138,12 @@ void GlslProg::link()
 
 void GlslProg::bind() const
 {
-	gl::context()->shaderUse( std::const_pointer_cast<GlslProg>( shared_from_this() ) );
+	gl::context()->bindShader( std::const_pointer_cast<GlslProg>( shared_from_this() ) );
 }
 
 void GlslProg::unbind()
 {
-	gl::context()->shaderUse( 0 );
+	gl::context()->unbindShader();
 }
 
 std::string GlslProg::getShaderLog( GLuint handle ) const

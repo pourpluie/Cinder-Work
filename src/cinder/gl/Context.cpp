@@ -19,7 +19,7 @@ using namespace std;
 Context::Context()
 	: mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
-	mTextureUnit( -1 ), mWireframe( false ), mTrueGlslProgId( 0 )
+	mTextureUnit( -1 ), mWireframe( false )
 #if ! defined( CINDER_GLES )
 	,mTrueFrontPolygonMode( GL_FILL ), mTrueBackPolygonMode( GL_FILL )
 #endif
@@ -113,29 +113,26 @@ void Context::invalidateBufferBinding( GLenum target )
 
 //////////////////////////////////////////////////////////////////
 // Shader
-void Context::shaderUse( const GlslProgRef &prog )
+void Context::bindShader( const GlslProgRef &prog )
 {
-	mActiveGlslProg = prog;
-	shaderPrepareUse();
-}
-
-GlslProgRef Context::shaderGet()
-{
-	return mActiveGlslProg;
-}
-
-void Context::shaderRestore( const GlslProgRef &prog )
-{
-	mActiveGlslProg = prog;
-}
-
-void Context::shaderPrepareUse()
-{
-	if( ( (! mActiveGlslProg) && (mTrueGlslProgId != 0) ) ||
-		( mActiveGlslProg && mActiveGlslProg->getHandle() != mTrueGlslProgId ) ) {
-		mTrueGlslProgId = ( mActiveGlslProg ) ? mActiveGlslProg->getHandle() : 0;
-		glUseProgram( mTrueGlslProgId );
+	if( mCachedGlslProg != prog ) {
+		mCachedGlslProg = prog;
+		if( prog )
+			glUseProgram( prog->getHandle() );
+		else
+			glUseProgram( 0 );
 	}
+}
+
+void Context::unbindShader()
+{
+	mCachedGlslProg = GlslProgRef();
+	glUseProgram( 0 );
+}
+
+GlslProgRef Context::getCurrentShader()
+{
+	return mCachedGlslProg;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -262,7 +259,6 @@ void Context::printState( std::ostream &os ) const
 
 void Context::prepareDraw()
 {
-	shaderPrepareUse();
 	blendPrepareUse();
 	depthMaskPrepareUse();
 #if ! defined( CINDER_GLES )

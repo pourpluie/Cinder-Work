@@ -40,10 +40,10 @@ class Context {
 	//! Marks the Context's cache of the binding for \a target as invalid
 	void		invalidateBufferBinding( GLenum target );
 
-	void		shaderUse( const GlslProgRef &prog );
-	GlslProgRef	shaderGet();
-	void		shaderRestore( const GlslProgRef &prog );
-	void		shaderPrepareUse();
+	void		bindShader( const GlslProgRef &prog );
+	//! Sets the current shader to 'none'
+	void		unbindShader();
+	GlslProgRef	getCurrentShader();
 
 	template<typename T>
 	void			stateSet( GLenum cap, T value );
@@ -107,8 +107,7 @@ class Context {
 	
 	GLuint						mCachedVao;
 	std::map<GLenum,int>		mCachedBuffer;
-	GlslProgRef					mActiveGlslProg;
-	GLuint						mTrueGlslProgId;
+	GlslProgRef					mCachedGlslProg;
 	std::map<GLenum,GLboolean>	mActiveStateBoolean, mTrueStateBoolean;
 	std::map<GLenum,GLint>		mActiveStateInt, mTrueStateInt;
 	GLenum						mActiveFrontPolygonMode, mTrueFrontPolygonMode;
@@ -232,25 +231,26 @@ struct ScopeBlend : public boost::noncopyable
 	GLint		mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha;
 };
 
-struct ShaderScope : public boost::noncopyable {
+struct ShaderScope : public boost::noncopyable
+{
 	ShaderScope( const GlslProgRef &prog )
 		: mCtx( gl::context() )
 	{
-		mPrevProg = mCtx->shaderGet();
-		mCtx->shaderUse( prog );
+		mPrevProg = mCtx->getCurrentShader();
+		mCtx->bindShader( prog );
 	}
 
+	// this is for convenience
 	ShaderScope( const std::shared_ptr<const GlslProg> &prog )
 		: mCtx( gl::context() )
 	{
-		mPrevProg = mCtx->shaderGet();
-		mCtx->shaderUse( std::const_pointer_cast<GlslProg>( prog ) );
+		mPrevProg = mCtx->getCurrentShader();
+		mCtx->bindShader( std::const_pointer_cast<GlslProg>( prog ) );
 	}
-
 
 	~ShaderScope()
 	{
-		mCtx->shaderRestore( mPrevProg );
+		mCtx->bindShader( mPrevProg );
 	}
 
   private:
