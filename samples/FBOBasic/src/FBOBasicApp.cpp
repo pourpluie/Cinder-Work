@@ -45,10 +45,7 @@ void FBOBasicApp::renderSceneToFbo()
 	// this will restore the old framebuffer binding when we leave this function
 	// on non-OpenGL ES platforms, you can just call mFbo->unbindFramebuffer() at the end of the function
 	// but this will restore the "screen" FBO on OpenGL ES, and does the right thing on both platforms
-	gl::SaveFramebufferBinding bindingSaver;
-	
-	// bind the framebuffer - now everything we draw will go there
-	mFbo->bindFramebuffer();
+	gl::FramebufferScope fbScp( mFbo );
 
 	// setup the viewport to match the dimensions of the FBO
 	gl::setViewport( mFbo->getBounds() );

@@ -8,6 +8,7 @@
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
+#include "cinder/gl/Fbo.h"
 #include "cinder/Utilities.h"
 
 #include "cinder/app/App.h"
@@ -19,7 +20,8 @@ using namespace std;
 Context::Context()
 	: mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
-	mTextureUnit( -1 ), mWireframe( false )
+	mTextureUnit( -1 ), mWireframe( false ),
+	mCachedReadFramebuffer( -1 ), mCachedDrawFramebuffer( -1 )
 #if ! defined( CINDER_GLES )
 	,mTrueFrontPolygonMode( GL_FILL ), mTrueBackPolygonMode( GL_FILL )
 #endif
@@ -133,6 +135,58 @@ void Context::unbindShader()
 GlslProgRef Context::getCurrentShader()
 {
 	return mCachedGlslProg;
+}
+
+//////////////////////////////////////////////////////////////////
+// Framebuffers
+void Context::bindFramebuffer( GLenum target, GLuint framebuffer )
+{
+	if( target == GL_FRAMEBUFFER ) {
+		if( framebuffer != mCachedReadFramebuffer || framebuffer != mCachedDrawFramebuffer ) {
+			mCachedReadFramebuffer = mCachedDrawFramebuffer = framebuffer;
+			glBindFramebuffer( target, framebuffer );
+		}
+	}
+	else if( target == GL_READ_FRAMEBUFFER ) {
+		if( framebuffer != mCachedReadFramebuffer ) {
+			mCachedReadFramebuffer = framebuffer;
+			glBindFramebuffer( target, framebuffer );
+		}
+	}
+	else if( target == GL_DRAW_FRAMEBUFFER ) {
+		if( framebuffer != mCachedDrawFramebuffer ) {
+			mCachedDrawFramebuffer = framebuffer;
+			glBindFramebuffer( target, framebuffer );
+		}
+	}
+}
+
+void Context::bindFramebuffer( const FboRef &fbo )
+{
+	bindFramebuffer( GL_FRAMEBUFFER, fbo->getId() );
+}
+
+void Context::unbindFramebuffer()
+{
+	bindFramebuffer( GL_FRAMEBUFFER, 0 );
+}
+
+GLuint Context::getFramebufferBinding( GLenum target )
+{
+	if( target == GL_READ_FRAMEBUFFER ) {
+		if( mCachedReadFramebuffer == -1 )
+			glGetIntegerv( GL_READ_FRAMEBUFFER_BINDING, &mCachedReadFramebuffer );
+		return mCachedReadFramebuffer;
+	}
+	else if( target == GL_DRAW_FRAMEBUFFER || target == GL_FRAMEBUFFER ) {
+		if( mCachedDrawFramebuffer == -1 )
+			glGetIntegerv( GL_DRAW_FRAMEBUFFER_BINDING, &mCachedDrawFramebuffer );
+		return mCachedDrawFramebuffer;
+	}
+	else {
+		//throw EcxGl( "Illegal param for getFramebufferBinding" );
+		return 0; // 
+	}
 }
 
 //////////////////////////////////////////////////////////////////
@@ -435,7 +489,7 @@ void Context::pushBack( const ci::Vec4f &v )
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// ScopeVao
+// VaoScope
 VaoScope::VaoScope( const VaoRef &vao )
 	: mCtx( gl::context() )
 {
@@ -444,7 +498,7 @@ VaoScope::VaoScope( const VaoRef &vao )
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// ScopeBuffer
+// BufferScope
 BufferScope::BufferScope( const BufferObjRef &bufferObj )
 	: mCtx( gl::context() ), mTarget( bufferObj->getTarget() )
 {
@@ -494,6 +548,52 @@ ScopeBlend::~ScopeBlend()
 		mCtx->blendFuncSeparateRestore( mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha );
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// FramebufferScope
+FramebufferScope::FramebufferScope()
+	: mCtx( gl::context() ), mTarget( GL_FRAMEBUFFER )
+{
+	mPrevReadFramebuffer = mCtx->getFramebufferBinding( GL_READ_FRAMEBUFFER );
+	mPrevDrawFramebuffer = mCtx->getFramebufferBinding( GL_DRAW_FRAMEBUFFER );
+}
+
+FramebufferScope::FramebufferScope( const FboRef &fbo, GLenum target )
+	: mCtx( gl::context() ), mTarget( target )
+{
+	saveState();
+	mCtx->bindFramebuffer( target, fbo->getId() );
+}
+
+FramebufferScope::FramebufferScope( GLenum target, GLuint framebuffer )
+	: mCtx( gl::context() ), mTarget( target )
+{
+	saveState();
+	mCtx->bindFramebuffer( target, framebuffer );
+}
+
+void FramebufferScope::saveState()
+{
+#if defined( CINDER_GLES )
+	mPrevFramebuffer = mCtx->getFramebufferBinding( GL_FRAMEBUFFER );
+#else
+	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
+		mPrevReadFramebuffer = mCtx->getFramebufferBinding( GL_READ_FRAMEBUFFER );
+	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_DRAW_FRAMEBUFFER )
+		mPrevDrawFramebuffer = mCtx->getFramebufferBinding( GL_DRAW_FRAMEBUFFER );
+#endif
+}
+
+FramebufferScope::~FramebufferScope()
+{	
+#if defined( CINDER_GLES )
+	mCtx->bindFramebuffer( GL_FRAMEBUFFER, mPrevFramebuffer );
+#else
+	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
+		mCtx->bindFramebuffer( GL_READ_FRAMEBUFFER, mPrevReadFramebuffer );
+	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_DRAW_FRAMEBUFFER )
+		mCtx->bindFramebuffer( GL_DRAW_FRAMEBUFFER, mPrevDrawFramebuffer );
+#endif
+}
 
 
 } } // namespace cinder::gl

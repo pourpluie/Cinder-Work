@@ -789,14 +789,4 @@ ClientBoolState::ClientBoolState( GLint target )
 	mOldValue = glIsEnabled( target );
 }
 
-SaveFramebufferBinding::SaveFramebufferBinding()
-{
-	glGetIntegerv( GL_FRAMEBUFFER_BINDING, &mOldValue );
-}
-
-SaveFramebufferBinding::~SaveFramebufferBinding()
-{
-	glBindFramebuffer( GL_FRAMEBUFFER, mOldValue );
-}
-
 } }

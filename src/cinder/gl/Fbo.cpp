@@ -24,6 +24,7 @@
 
 #include "cinder/gl/gl.h" // must be first
 #include "cinder/gl/Fbo.h"
+#include "cinder/gl/Context.h"
 
 using namespace std;
 
@@ -186,8 +187,6 @@ Fbo::~Fbo()
 
 void Fbo::init()
 {
-	gl::SaveFramebufferBinding bindingSaver;
-	
 #if defined( CINDER_MSW )
 	static bool csaaSupported = ( GLEE_NV_framebuffer_multisample_coverage != 0 );
 #else
@@ -200,7 +199,7 @@ void Fbo::init()
 
 	// allocate the framebuffer itself
 	glGenFramebuffers( 1, &mId );
-	glBindFramebuffer( GL_FRAMEBUFFER, mId );	
+	FramebufferScope fbScp( GL_FRAMEBUFFER, mId );
 
 	Texture::Format textureFormat;
 	textureFormat.setTarget( getTarget() );
@@ -277,8 +276,10 @@ bool Fbo::initMultisample( bool csaa )
 #if defined( CINDER_GLES )
 	return false;
 #else
+	auto ctx = context();
+
 	glGenFramebuffers( 1, &mResolveFramebufferId );
-	glBindFramebuffer( GL_FRAMEBUFFER, mResolveFramebufferId ); 
+	ctx->bindFramebuffer( GL_FRAMEBUFFER, mResolveFramebufferId ); 
 	
 	// bind all of the color buffers to the resolve FB's attachment points
 	vector<GLenum> drawBuffers;
@@ -295,7 +296,7 @@ bool Fbo::initMultisample( bool csaa )
 	if( ! checkStatus( &ignoredException ) )
 		return false;
 
-	glBindFramebuffer( GL_FRAMEBUFFER, mId );
+	ctx->bindFramebuffer( GL_FRAMEBUFFER, mId );
 
 	if( mFormat.mSamples > getMaxSamples() ) {
 		mFormat.mSamples = getMaxSamples();
@@ -362,10 +363,11 @@ void Fbo::resolveTextures() const
 #if ! defined( CINDER_GLES )		
 	// if this FBO is multisampled, resolve it, so it can be displayed
 	if ( mResolveFramebufferId ) {
-		SaveFramebufferBinding saveFboBinding;
+		FramebufferScope fbScp;
+		auto ctx = context();
 
-		glBindFramebuffer( GL_READ_FRAMEBUFFER, mId );
-		glBindFramebuffer( GL_DRAW_FRAMEBUFFER, mResolveFramebufferId );
+		ctx->bindFramebuffer( GL_READ_FRAMEBUFFER, mId );
+		ctx->bindFramebuffer( GL_DRAW_FRAMEBUFFER, mResolveFramebufferId );
 		
 		for( size_t c = 0; c < mColorTextures.size(); ++c ) {
 			glDrawBuffer( GL_COLOR_ATTACHMENT0 + c );
@@ -380,7 +382,7 @@ void Fbo::resolveTextures() const
 		vector<GLenum> drawBuffers;
 		for( size_t c = 0; c < mColorTextures.size(); ++c )
 			drawBuffers.push_back( GL_COLOR_ATTACHMENT0 + c );
-		glBindFramebuffer( GL_FRAMEBUFFER, mId );
+		ctx->bindFramebuffer( GL_FRAMEBUFFER, mId );
 		glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
 	}
 #endif
@@ -407,7 +409,8 @@ void Fbo::updateMipmaps( bool bindFirst, int attachment ) const
 
 void Fbo::bindFramebuffer()
 {
-	glBindFramebuffer( GL_FRAMEBUFFER, mId );
+	auto ctx = context();
+	ctx->bindFramebuffer( GL_FRAMEBUFFER, mId );
 	if( mResolveFramebufferId ) {
 		mNeedsResolve = true;
 	}
@@ -418,7 +421,7 @@ void Fbo::bindFramebuffer()
 
 void Fbo::unbindFramebuffer()
 {
-	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+	context()->unbindFramebuffer();
 }
 
 bool Fbo::checkStatus( FboExceptionInvalidSpecification *resultExc )
@@ -493,28 +496,32 @@ GLint Fbo::getMaxAttachments()
 #if ! defined( CINDER_GLES )
 void Fbo::blitTo( Fbo dst, const Area &srcArea, const Area &dstArea, GLenum filter, GLbitfield mask ) const
 {
-	SaveFramebufferBinding saveFboBinding;
+	FramebufferScope fbScp;
+	auto ctx = gl::context();
+	
+	ctx->bindFramebuffer( GL_READ_FRAMEBUFFER, mId );
+	ctx->bindFramebuffer( GL_DRAW_FRAMEBUFFER, dst.getId() );
 
-	glBindFramebuffer( GL_READ_FRAMEBUFFER, mId );
-	glBindFramebuffer( GL_DRAW_FRAMEBUFFER, dst.getId() );		
 	glBlitFramebuffer( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
 }
 
 void Fbo::blitToScreen( const Area &srcArea, const Area &dstArea, GLenum filter, GLbitfield mask ) const
 {
-	SaveFramebufferBinding saveFboBinding;
+	FramebufferScope fbScp;
+	auto ctx = gl::context();
 
-	glBindFramebuffer( GL_READ_FRAMEBUFFER, mId );
-	glBindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 );		
+	ctx->bindFramebuffer( GL_READ_FRAMEBUFFER, mId );
+	ctx->bindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 );		
 	glBlitFramebuffer( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
 }
 
 void Fbo::blitFromScreen( const Area &srcArea, const Area &dstArea, GLenum filter, GLbitfield mask )
 {
-	SaveFramebufferBinding saveFboBinding;
+	FramebufferScope fbScp;
+	auto ctx = gl::context();
 
-	glBindFramebuffer( GL_READ_FRAMEBUFFER, GL_NONE );
-	glBindFramebuffer( GL_DRAW_FRAMEBUFFER, mId );		
+	ctx->bindFramebuffer( GL_READ_FRAMEBUFFER, GL_NONE );
+	ctx->bindFramebuffer( GL_DRAW_FRAMEBUFFER, mId );		
 	glBlitFramebuffer( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
 }
 #endif

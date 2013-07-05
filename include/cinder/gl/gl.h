@@ -210,14 +210,6 @@ private:
 	GLfloat		mOldValues[ 4 ];
 };
 
-struct SaveFramebufferBinding
-{
-	SaveFramebufferBinding();
-	~SaveFramebufferBinding();
-private:
-	GLint		mOldValue;
-};
-
 class Exception : public cinder::Exception {
 };
 

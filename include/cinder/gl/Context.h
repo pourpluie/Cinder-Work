@@ -26,6 +26,8 @@ class Texture;
 typedef std::shared_ptr<Texture>		TextureRef;
 class GlslProg;
 typedef std::shared_ptr<GlslProg>		GlslProgRef;
+class Fbo;
+typedef std::shared_ptr<Fbo>			FboRef;
 
 class Context {
   public:
@@ -44,6 +46,11 @@ class Context {
 	//! Sets the current shader to 'none'
 	void		unbindShader();
 	GlslProgRef	getCurrentShader();
+
+	void		bindFramebuffer( GLenum target, GLuint framebuffer );
+	void		bindFramebuffer( const FboRef &fbo );
+	void		unbindFramebuffer();
+	GLuint		getFramebufferBinding( GLenum target );
 
 	template<typename T>
 	void			stateSet( GLenum cap, T value );
@@ -108,6 +115,9 @@ class Context {
 	GLuint						mCachedVao;
 	std::map<GLenum,int>		mCachedBuffer;
 	GlslProgRef					mCachedGlslProg;
+	
+	GLint						mCachedReadFramebuffer, mCachedDrawFramebuffer;
+	
 	std::map<GLenum,GLboolean>	mActiveStateBoolean, mTrueStateBoolean;
 	std::map<GLenum,GLint>		mActiveStateInt, mTrueStateInt;
 	GLenum						mActiveFrontPolygonMode, mTrueFrontPolygonMode;
@@ -256,6 +266,25 @@ struct ShaderScope : public boost::noncopyable
   private:
 	Context		*mCtx;
 	GlslProgRef	mPrevProg;
+};
+
+struct FramebufferScope : public boost::noncopyable
+{
+	FramebufferScope(); // preserves but doesn't set
+	FramebufferScope( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
+	FramebufferScope( GLenum target, GLuint framebuffer );
+	~FramebufferScope();
+	
+  private:
+	void		saveState();
+
+	Context		*mCtx;
+	GLenum		mTarget;
+#if defined( CINDER_GLES )
+	GLuint		mPrevFramebuffer;
+#else
+	GLuint		mPrevReadFramebuffer, mPrevDrawFramebuffer;
+#endif
 };
 
 } } // namespace cinder::gl
