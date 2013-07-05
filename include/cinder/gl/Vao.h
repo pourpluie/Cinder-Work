@@ -70,7 +70,7 @@ class Vao {
 	
   protected:
 	Vao();
-
+	
 	std::vector<Attribute>			mAttributes;
 	GLuint							mId;
 	friend class Context;

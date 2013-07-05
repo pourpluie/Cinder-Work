@@ -134,11 +134,10 @@ gl::context()->sanityCheck();
 	}
 	{
 		gl::pushModelView();
-		gl::rotate( Vec3f( 0, 0, mSecondTriRotation ) );
-		gl::setDefaultShaderUniforms();
-		gl::VaoScope vaoBind( mVao );
-		gl::BufferScope vboBind( mVbo );
-		gl::drawArrays( GL_TRIANGLES, 0, 3 );
+			gl::rotate( Vec3f( 0, 0, mSecondTriRotation ) );
+			gl::VaoScope vaoBind( mVao );
+			gl::setDefaultShaderUniforms();
+			gl::drawArrays( GL_TRIANGLES, 0, 3 );
 		gl::popModelView();
 	}
 

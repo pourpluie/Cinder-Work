@@ -61,6 +61,10 @@ void Context::vaoBind( GLuint id )
 #else
 		glBindVertexArray( mCachedVao );
 #endif
+
+		// binding a VAO invalidates other pieces of cached state
+		invalidateBufferBinding( GL_ARRAY_BUFFER );
+		invalidateBufferBinding( GL_ELEMENT_ARRAY_BUFFER );
 	}
 }
 
@@ -73,45 +77,38 @@ GLuint Context::vaoGet()
 // Buffer
 void Context::bindBuffer( GLenum target, GLuint id )
 {
-	mTrueBuffer[target] = mActiveBuffer[target] = id;
-	glBindBuffer( target, mTrueBuffer[target] );
-
-/*	if( mTrueBuffer.find( target ) == mTrueBuffer.end() )
-		mTrueBuffer[target] = 0;
-	
-	if( mTrueBuffer[target] != mActiveBuffer[target] ) {
-		mTrueBuffer[target] = mActiveBuffer[target];
-		glBindBuffer( target, mTrueBuffer[target] );
-	}*/
+	if( mCachedBuffer[target] != id ) {
+		mCachedBuffer[target] = id;
+		glBindBuffer( target, id );
+	}
 }
 
-GLuint Context::bufferGet( GLenum target )
+GLuint Context::getBufferBinding( GLenum target )
 {
-	auto active = mActiveBuffer.find( target );
-	if( mActiveBuffer.find( target ) == mActiveBuffer.end() ) {
-		mActiveBuffer[target] = 0;
-		return 0;
+	auto cachedIt = mCachedBuffer.find( target );
+	if( (cachedIt == mCachedBuffer.end()) || ( cachedIt->second == -1 ) ) {
+		GLint queriedInt = -1;
+		switch( target ) {
+			case GL_ARRAY_BUFFER:
+				glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &queriedInt );
+			break;
+			case GL_ELEMENT_ARRAY_BUFFER:
+				glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
+			break;
+			default:
+				; // warning?
+		}
+		
+		mCachedBuffer[target] = queriedInt;
+		return (GLuint)queriedInt;
 	}
 	else
-		return active->second;
+		return (GLuint)cachedIt->second;
 }
 
-void Context::bufferRestore( GLenum target, GLuint id )
+void Context::invalidateBufferBinding( GLenum target )
 {
-	mActiveBuffer[target] = id;
-}
-
-void Context::bufferPrepareUse( GLenum target )
-{
-	if( mActiveBuffer.find( target ) == mActiveBuffer.end() )
-		mActiveBuffer[target] = 0;
-	if( mTrueBuffer.find( target ) == mTrueBuffer.end() )
-		mTrueBuffer[target] = 0;
-
-	if( mTrueBuffer[target] != mActiveBuffer[target] ) {
-		mTrueBuffer[target] = mActiveBuffer[target];
-		glBindBuffer( target, mTrueBuffer[target] );
-	}
+	mCachedBuffer[target] = -1;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -230,11 +227,11 @@ return;
 
 	// GL_ARRAY_BUFFER
 	glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &queriedInt );
-	assert( mTrueBuffer[GL_ARRAY_BUFFER] == queriedInt );
+	assert( mCachedBuffer[GL_ARRAY_BUFFER] == queriedInt );
 
 	// GL_ELEMENT_ARRAY_BUFFER
 	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
-	assert( mTrueBuffer[GL_ELEMENT_ARRAY_BUFFER] == queriedInt );
+	assert( mCachedBuffer[GL_ELEMENT_ARRAY_BUFFER] == queriedInt );
 
 	// (VAO) GL_VERTEX_ARRAY_BINDING
 #if defined( CINDER_GLES )
@@ -266,8 +263,6 @@ void Context::printState( std::ostream &os ) const
 void Context::prepareDraw()
 {
 	shaderPrepareUse();
-	bufferPrepareUse( GL_ARRAY_BUFFER );
-	bufferPrepareUse( GL_ELEMENT_ARRAY_BUFFER );
 	blendPrepareUse();
 	depthMaskPrepareUse();
 #if ! defined( CINDER_GLES )
@@ -279,7 +274,6 @@ void Context::prepareDraw()
 // Vertex Attributes
 void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-	bufferPrepareUse( GL_ARRAY_BUFFER );
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
 }
 
@@ -453,7 +447,7 @@ VaoScope::VaoScope( const VaoRef &vao )
 BufferScope::BufferScope( const BufferObjRef &bufferObj )
 	: mCtx( gl::context() ), mTarget( bufferObj->getTarget() )
 {
-	mPrevId = mCtx->bufferGet( mTarget );
+	mPrevId = mCtx->getBufferBinding( mTarget );
 	mCtx->bindBuffer( mTarget, bufferObj->getId() );
 }
 

@@ -36,9 +36,9 @@ class Context {
 	GLuint		vaoGet();
 
 	void		bindBuffer( GLenum target, GLuint id );
-	GLuint		bufferGet( GLenum target );
-	void		bufferRestore( GLenum target, GLuint id );
-	void		bufferPrepareUse( GLenum target );
+	GLuint		getBufferBinding( GLenum target );
+	//! Marks the Context's cache of the binding for \a target as invalid
+	void		invalidateBufferBinding( GLenum target );
 
 	void		shaderUse( const GlslProgRef &prog );
 	GlslProgRef	shaderGet();
@@ -105,7 +105,7 @@ class Context {
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
 	GLuint						mCachedVao;
-	std::map<GLenum,GLuint>		mActiveBuffer, mTrueBuffer;
+	std::map<GLenum,int>		mCachedBuffer;
 	GlslProgRef					mActiveGlslProg;
 	GLuint						mTrueGlslProgId;
 	std::map<GLenum,GLboolean>	mActiveStateBoolean, mTrueStateBoolean;
@@ -184,12 +184,12 @@ struct BufferScope : public boost::noncopyable {
 	BufferScope( GLenum target, GLuint id )
 		: mCtx( gl::context() ), mTarget( target )
 	{
-		mPrevId = mCtx->bufferGet( target );
+		mPrevId = mCtx->getBufferBinding( target );
 		mCtx->bindBuffer( target, id );
 	}
 
 	~BufferScope() {
-		mCtx->bufferRestore( mTarget, mPrevId );
+		mCtx->bindBuffer( mTarget, mPrevId );
 	}
   private:
 	Context		*mCtx;
