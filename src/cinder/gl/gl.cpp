@@ -48,6 +48,11 @@ bool isExtensionAvailable( const std::string& extName )
 	}
 }
 
+GlslProgRef	getStockShader( const class ShaderDef &shader )
+{
+	return context()->getStockShader( shader );
+}
+
 void setDefaultShaderUniforms()
 {
 	auto ctx = gl::context();
@@ -58,6 +63,9 @@ void setDefaultShaderUniforms()
 			switch( unifIt->second ) {
 				case UNIFORM_MODELVIEWPROJECTION:
 					glslProg->uniform( unifIt->first, gl::getProjection() * gl::getModelView() );
+				break;
+				case UNIFORM_COLOR:
+					glslProg->uniform( unifIt->first, ctx->getCurrentColor() );
 				break;
 			}
 		}
@@ -608,6 +616,9 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	
 	Context *ctx = gl::context();
 	GlslProgRef curShader = ctx->shaderGet();
+	if( ! curShader )
+		return;
+
 	bool hasPositions = curShader->hasAttribSemantic( ATTRIB_POSITION );
 	bool hasNormals = curShader->hasAttribSemantic( ATTRIB_NORMAL );
 	bool hasTextureCoords = curShader->hasAttribSemantic( ATTRIB_TEX_COORD_0 );
@@ -681,7 +692,7 @@ void draw( const TextureRef &texture, const Rectf &rect )
 {
 	Context *ctx = context();
 	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture() );
-	ScopeShader shaderScope( shader );
+	ShaderScope shaderScope( shader );
 	
 	texture->bind();
 	shader->uniform( "uTex0", 0 );

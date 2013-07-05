@@ -1,6 +1,11 @@
 #include "cinder/Cinder.h"
 #include "cinder/app/AppNative.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/Camera.h"
+
+#include "cinder/gl/Context.h"
+#include "cinder/gl/Texture.h"
+#include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Fbo.h"
 
 using namespace ci;
@@ -61,7 +66,7 @@ void FBOBasicApp::renderSceneToFbo()
 	gl::clear( Color( 0.25, 0.5f, 1.0f ) );
 
 	// render an orange torus, with no textures
-	glDisable( GL_TEXTURE_2D );
+	gl::ShaderScope shaderScp( gl::getStockShader( gl::ShaderDef().solidColor() ) );
 	gl::color( Color( 1.0f, 0.5f, 0.25f ) );
 //	gl::drawTorus( 1.4f, 0.3f, 32, 64 );
 	gl::drawCube( Vec3f::zero(), Vec3f( 2.2f, 2.2f, 2.2f ) );
@@ -95,8 +100,10 @@ void FBOBasicApp::draw()
 	mFbo->bindTexture();
 
 	// draw a cube textured with the FBO
-	gl::color( Color::white() );
-	gl::drawCube( Vec3f::zero(), Vec3f( 2.2f, 2.2f, 2.2f ) );
+	{
+		gl::ShaderScope shaderScp( gl::getStockShader( gl::ShaderDef().texture() ) );
+		gl::drawCube( Vec3f::zero(), Vec3f( 2.2f, 2.2f, 2.2f ) );
+	}
 
 	// show the FBO texture in the upper left corner
 	gl::setMatricesWindow( getWindowSize() );
@@ -107,4 +114,5 @@ void FBOBasicApp::draw()
 #endif
 }
 
-CINDER_APP_NATIVE( FBOBasicApp, RendererGl )
+auto renderOptions = RendererGl::Options().coreProfile();
+CINDER_APP_NATIVE( FBOBasicApp, RendererGl( renderOptions ) )

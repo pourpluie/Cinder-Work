@@ -8,18 +8,18 @@ namespace cinder { namespace gl {
 class EnvironmentCoreProfile;
 class EnvironmentEs2;
 
-typedef std::shared_ptr<class Shader> ShaderRef;
-	
 class ShaderDef {
   public:
 	ShaderDef();
 	
 	ShaderDef&		texture();
+	ShaderDef&		solidColor();
 
 	bool operator<( const ShaderDef &rhs ) const;
 	
   protected:
 	bool			mTextureMapping;
+	bool			mSolidColor;
 	
 	friend EnvironmentCoreProfile;
 	friend EnvironmentEs2;	

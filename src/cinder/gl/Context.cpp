@@ -404,6 +404,11 @@ void Context::polygonModePrepareUse()
 
 #endif // defined( CINDER_GLES )
 
+const ColorAf& Context::getCurrentColor() const
+{
+	return mColor;
+}
+
 GlslProgRef	Context::getStockShader( const ShaderDef &shaderDef )
 {
 	auto existing = mStockShaders.find( shaderDef );

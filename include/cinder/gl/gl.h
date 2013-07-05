@@ -24,7 +24,7 @@
 namespace cinder { namespace gl {
 
 enum UniformSemantic {
-	UNIFORM_MODELVIEWPROJECTION
+	UNIFORM_MODELVIEWPROJECTION, UNIFORM_COLOR
 };
 
 enum AttribSemantic {
@@ -39,12 +39,15 @@ class Texture;
 typedef std::shared_ptr<Texture>	TextureRef;
 class BufferObj;
 typedef std::shared_ptr<BufferObj>	BufferObjRef;
+class GlslProg;
+typedef std::shared_ptr<GlslProg>	GlslProgRef;
 
 class Context* context();
 class Environment* env();
 
 bool isExtensionAvailable( const std::string &extName );
 
+GlslProgRef	getStockShader( const class ShaderDef &shader );
 void setDefaultShaderUniforms();
 
 void clear( const ColorA &color = ColorA::black(), bool clearDepthBuffer = true );

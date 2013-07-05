@@ -98,7 +98,8 @@ class Context {
 	void		polygonModePrepareUse();
 #endif
 
-
+	//! Returns the current active color, used in immediate-mode emulation and as UNIFORM_COLOR
+	const ColorAf&	getCurrentColor() const;
 	GlslProgRef		getStockShader( const ShaderDef &shaderDef );
 
   private:
@@ -139,7 +140,6 @@ class Context {
 	
 	void						clear();
 
-	ci::ColorAf					mColor;
 	bool						mLighting;
 	ci::Vec3f					mNormal;
 	ci::Vec4f					mTexCoord;
@@ -148,6 +148,7 @@ class Context {
 	std::vector<Vertex>			mVertices;
 	void						pushBack( const Vec4f &v );
 
+	ci::ColorAf					mColor;	
 	std::vector<Matrix44f>		mModelView;
 	std::vector<Matrix44f>		mProjection;
 
@@ -231,15 +232,15 @@ struct ScopeBlend : public boost::noncopyable
 	GLint		mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha;
 };
 
-struct ScopeShader : public boost::noncopyable {
-	ScopeShader( const GlslProgRef &prog )
+struct ShaderScope : public boost::noncopyable {
+	ShaderScope( const GlslProgRef &prog )
 		: mCtx( gl::context() )
 	{
 		mPrevProg = mCtx->shaderGet();
 		mCtx->shaderUse( prog );
 	}
 
-	ScopeShader( const std::shared_ptr<const GlslProg> &prog )
+	ShaderScope( const std::shared_ptr<const GlslProg> &prog )
 		: mCtx( gl::context() )
 	{
 		mPrevProg = mCtx->shaderGet();
@@ -247,7 +248,7 @@ struct ScopeShader : public boost::noncopyable {
 	}
 
 
-	~ScopeShader()
+	~ShaderScope()
 	{
 		mCtx->shaderRestore( mPrevProg );
 	}

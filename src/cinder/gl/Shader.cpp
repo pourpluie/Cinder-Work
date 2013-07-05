@@ -8,7 +8,7 @@ using namespace std;
 namespace cinder { namespace gl {
 
 ShaderDef::ShaderDef()
-	: mTextureMapping( false )
+	: mTextureMapping( false ), mSolidColor( false )
 {
 }
 
@@ -18,10 +18,19 @@ ShaderDef& ShaderDef::texture()
 	return *this;
 }
 
+ShaderDef& ShaderDef::solidColor()
+{
+	mSolidColor = true;
+	return *this;
+}
+
+
 bool ShaderDef::operator<( const ShaderDef &rhs ) const
 {
 	if( rhs.mTextureMapping != mTextureMapping )
 		return rhs.mTextureMapping;
+	if( rhs.mSolidColor != mSolidColor )
+		return rhs.mSolidColor;
 	
 	return false;
 }

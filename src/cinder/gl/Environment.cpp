@@ -59,6 +59,10 @@ std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )
 				"varying highp vec2	TexCoord;\n"
 				;
 	}
+	if( shader.mSolidColor ) {
+		s +=	"uniform vec4		uColor;\n"
+				;
+	}
 
 	s +=		"void main( void )\n"
 				"{\n"
@@ -79,9 +83,16 @@ std::string	EnvironmentEs2::generateFragmentShader( const ShaderDef &shader )
 {
 	std::string s;
 
+	s +=		"precision highp float;\n"
+				;
+
 	if( shader.mTextureMapping ) {	
 		s +=	"uniform sampler2D uTex0;\n"
 				"varying highp vec2	TexCoord;\n"
+				;
+	}
+	if( shader.mSolidColor ) {
+		s +=	"uniform vec4		uColor;\n"
 				;
 	}
 
@@ -94,6 +105,10 @@ std::string	EnvironmentEs2::generateFragmentShader( const ShaderDef &shader )
 				"gl_FragColor.a = 1.0;\n"
 				;
 	}
+	else if( shader.mSolidColor ) {
+		s +=	"gl_FragColor = vec4( 1.0, 0.5, 0.25, 1 );\n"
+				;
+	}
 	
 	s +=		"}\n"
 				;
@@ -104,6 +119,8 @@ std::string	EnvironmentEs2::generateFragmentShader( const ShaderDef &shader )
 
 GlslProgRef	EnvironmentEs2::buildShader( const ShaderDef &shader )
 {
+	std::cout << "Vertex: " << generateVertexShader( shader ) << std::endl;
+	std::cout << "Fragment: " << generateFragmentShader( shader ) << std::endl;	
 	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
 }
 
@@ -166,6 +183,10 @@ std::string	EnvironmentCoreProfile::generateFragmentShader( const ShaderDef &sha
 				"out vec4 oColor;\n"
 				;
 
+	if( shader.mSolidColor ) {
+		s +=	"uniform vec4		uColor;\n";
+	}
+
 	if( shader.mTextureMapping ) {	
 		s +=	"uniform sampler2D uTex0;\n"
 				"in vec2	TexCoord;\n"
@@ -179,6 +200,10 @@ std::string	EnvironmentCoreProfile::generateFragmentShader( const ShaderDef &sha
 	if( shader.mTextureMapping ) {
 		s +=	"oColor.rgb = texture( uTex0, TexCoord.st ).rgb;\n"
 				"oColor.a = 1.0;\n"
+				;
+	}
+	else if( shader.mSolidColor ) {
+		s +=	"oColor.rgba = uColor;\n"
 				;
 	}
 	
