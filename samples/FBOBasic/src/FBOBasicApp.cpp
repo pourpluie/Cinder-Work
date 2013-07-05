@@ -93,7 +93,6 @@ void FBOBasicApp::draw()
 	gl::setViewport( getWindowBounds() );
 
 	// use the scene we rendered into the FBO as a texture
-	glEnable( GL_TEXTURE_2D );
 	mFbo->bindTexture();
 
 	// draw a cube textured with the FBO

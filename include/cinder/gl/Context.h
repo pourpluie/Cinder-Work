@@ -116,7 +116,11 @@ class Context {
 	std::map<GLenum,int>		mCachedBuffer;
 	GlslProgRef					mCachedGlslProg;
 	
+#if defined( CINDER_GLES )
+	GLint						mCachedFramebuffer;
+#else
 	GLint						mCachedReadFramebuffer, mCachedDrawFramebuffer;
+#endif
 	
 	std::map<GLenum,GLboolean>	mActiveStateBoolean, mTrueStateBoolean;
 	std::map<GLenum,GLint>		mActiveStateInt, mTrueStateInt;

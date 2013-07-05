@@ -20,9 +20,11 @@ using namespace std;
 Context::Context()
 	: mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
-	mTextureUnit( -1 ), mWireframe( false ),
-	mCachedReadFramebuffer( -1 ), mCachedDrawFramebuffer( -1 )
-#if ! defined( CINDER_GLES )
+	mTextureUnit( -1 ), mWireframe( false )
+#if defined( CINDER_GLES )
+	,mCachedFramebuffer( -1 )
+#else
+	,mCachedReadFramebuffer( -1 ), mCachedDrawFramebuffer( -1 ),
 	,mTrueFrontPolygonMode( GL_FILL ), mTrueBackPolygonMode( GL_FILL )
 #endif
 {
@@ -141,6 +143,17 @@ GlslProgRef Context::getCurrentShader()
 // Framebuffers
 void Context::bindFramebuffer( GLenum target, GLuint framebuffer )
 {
+#if defined( CINDER_GLES )
+	if( target == GL_FRAMEBUFFER ) {
+		if( framebuffer != mCachedFramebuffer ) {
+			mCachedFramebuffer = framebuffer;
+			glBindFramebuffer( target, framebuffer );
+		}
+	}
+	else {
+		//throw gl::Exception( "Illegal target for Context::bindFramebuffer" );	
+	}
+#else
 	if( target == GL_FRAMEBUFFER ) {
 		if( framebuffer != mCachedReadFramebuffer || framebuffer != mCachedDrawFramebuffer ) {
 			mCachedReadFramebuffer = mCachedDrawFramebuffer = framebuffer;
@@ -159,6 +172,10 @@ void Context::bindFramebuffer( GLenum target, GLuint framebuffer )
 			glBindFramebuffer( target, framebuffer );
 		}
 	}
+	else {
+		//throw gl::Exception( "Illegal target for Context::bindFramebuffer" );	
+	}
+#endif
 }
 
 void Context::bindFramebuffer( const FboRef &fbo )
@@ -173,20 +190,32 @@ void Context::unbindFramebuffer()
 
 GLuint Context::getFramebufferBinding( GLenum target )
 {
+#if defined( CINDER_GLES )
+	if( target == GL_FRAMEBUFFER ) {
+		if( mCachedFramebuffer == -1 )
+			glGetIntegerv( GL_FRAMEBUFFER_BINDING, &mCachedFramebuffer );
+		return (GLuint)mCachedFramebuffer;			
+	}
+	else {
+		//throw gl::Exception( "Illegal target for getFramebufferBinding" );
+		return 0; // 	
+	}
+#else
 	if( target == GL_READ_FRAMEBUFFER ) {
 		if( mCachedReadFramebuffer == -1 )
 			glGetIntegerv( GL_READ_FRAMEBUFFER_BINDING, &mCachedReadFramebuffer );
-		return mCachedReadFramebuffer;
+		return (GLuint)mCachedReadFramebuffer;
 	}
 	else if( target == GL_DRAW_FRAMEBUFFER || target == GL_FRAMEBUFFER ) {
 		if( mCachedDrawFramebuffer == -1 )
 			glGetIntegerv( GL_DRAW_FRAMEBUFFER_BINDING, &mCachedDrawFramebuffer );
-		return mCachedDrawFramebuffer;
+		return (GLuint)mCachedDrawFramebuffer;
 	}
 	else {
-		//throw EcxGl( "Illegal param for getFramebufferBinding" );
+		//throw gl::Exception( "Illegal target for getFramebufferBinding" );
 		return 0; // 
 	}
+#endif
 }
 
 //////////////////////////////////////////////////////////////////
@@ -553,8 +582,12 @@ ScopeBlend::~ScopeBlend()
 FramebufferScope::FramebufferScope()
 	: mCtx( gl::context() ), mTarget( GL_FRAMEBUFFER )
 {
+#if defined( CINDER_GLES )
+	mPrevFramebuffer = mCtx->getFramebufferBinding( GL_FRAMEBUFFER );
+#else
 	mPrevReadFramebuffer = mCtx->getFramebufferBinding( GL_READ_FRAMEBUFFER );
 	mPrevDrawFramebuffer = mCtx->getFramebufferBinding( GL_DRAW_FRAMEBUFFER );
+#endif
 }
 
 FramebufferScope::FramebufferScope( const FboRef &fbo, GLenum target )
