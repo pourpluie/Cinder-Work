@@ -102,13 +102,13 @@ void FBOBasicApp::draw()
 	}
 
 	// show the FBO texture in the upper left corner
-	gl::setMatricesWindow( getWindowSize() );
-	gl::draw( mFbo->getTexture(0), Rectf( 0, 0, 96, 96 ) );
+	gl::setMatricesWindow( toPixels( getWindowSize() ) );
+	gl::draw( mFbo->getTexture(0), Rectf( 0, 0, 256, 256 ) );
 	
 #if ! defined( CINDER_GLES ) // OpenGL ES can't do depth textures, otherwise draw the FBO's
 	gl::draw( mFbo->getDepthTexture(), Rectf( 96, 0, 96 + 96, 96 ) );
 #endif
 }
 
-auto renderOptions = RendererGl::Options().coreProfile();
+auto renderOptions = RendererGl::Options().coreProfile().antiAliasing(0);
 CINDER_APP_NATIVE( FBOBasicApp, RendererGl( renderOptions ) )

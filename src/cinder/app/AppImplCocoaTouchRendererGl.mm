@@ -80,7 +80,7 @@
 		glBindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
 		glBindRenderbuffer( GL_RENDERBUFFER, mMsaaRenderBuffer );
 		
-		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGB5_A1, 0, 0 );
+		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGBA8_OES, 0, 0 );
 		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mMsaaRenderBuffer );
 		
 		glGenRenderbuffers( 1, &mDepthRenderBuffer );

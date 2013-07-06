@@ -116,7 +116,7 @@ class Context {
 	std::map<GLenum,int>		mCachedBuffer;
 	GlslProgRef					mCachedGlslProg;
 	
-#if defined( CINDER_GLES )
+#if defined( CINDER_GLES ) && (! defined( CINDER_COCOA_TOUCH ))
 	GLint						mCachedFramebuffer;
 #else
 	GLint						mCachedReadFramebuffer, mCachedDrawFramebuffer;
@@ -284,7 +284,7 @@ struct FramebufferScope : public boost::noncopyable
 
 	Context		*mCtx;
 	GLenum		mTarget;
-#if defined( CINDER_GLES )
+#if defined( CINDER_GLES ) && ( ! defined( CINDER_COCOA_TOUCH ) )
 	GLuint		mPrevFramebuffer;
 #else
 	GLuint		mPrevReadFramebuffer, mPrevDrawFramebuffer;

@@ -28,6 +28,15 @@
 
 using namespace std;
 
+#if (! defined( CINDER_GLES )) || defined( CINDER_COCOA_TOUCH )
+	#define SUPPORTS_MULTISAMPLE
+	#if defined( CINDER_COCOA_TOUCH )
+		#define glRenderbufferStorageMultisample	glRenderbufferStorageMultisampleAPPLE
+		#define GL_READ_FRAMEBUFFER					GL_READ_FRAMEBUFFER_APPLE
+		#define GL_DRAW_FRAMEBUFFER					GL_DRAW_FRAMEBUFFER_APPLE
+	#endif
+#endif
+
 namespace cinder {
 namespace gl {
 
@@ -85,14 +94,13 @@ void Renderbuffer::init( int aWidth, int aHeight, GLenum internalFormat, int msa
 
 	glBindRenderbuffer( GL_RENDERBUFFER, mId );
 
-#if ! defined( CINDER_GLES )
-  #if defined( CINDER_MSW )
+#if defined( CINDER_MSW ) && (! defined( CINDER_GLES ))
 	if( mCoverageSamples ) // create a CSAA buffer
 		glRenderbufferStorageMultisampleCoverageNV( GL_RENDERBUFFER, mCoverageSamples, mSamples, mInternalFormat, mWidth, mHeight );
 	else
-  #endif
+#elif defined(SUPPORTS_MULTISAMPLE)
 	if( mSamples ) // create a regular MSAA buffer
-		glRenderbufferStorageMultisample( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
+glRenderbufferStorageMultisample( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
 	else
 #endif
 		glRenderbufferStorage( GL_RENDERBUFFER, mInternalFormat, mWidth, mHeight );
@@ -187,7 +195,7 @@ Fbo::~Fbo()
 
 void Fbo::init()
 {
-#if defined( CINDER_MSW )
+#if defined( CINDER_MSW ) && ( ! defined( CINDER_GLES ) )
 	static bool csaaSupported = ( GLEE_NV_framebuffer_multisample_coverage != 0 );
 #else
 	static bool csaaSupported = false;
@@ -252,7 +260,7 @@ void Fbo::init()
 				glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, getTarget(), mDepthTexture->getId(), 0 );
 //glFramebufferTexture2DEXT( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, getTarget(), mDepthTexture.getId(), 0 );
 	#else
-		throw; // this should never fire in OpenGL ES
+		throw FboExceptionInvalidSpecification( "Depth as texture not supported on OpenGL ES" ); // this should never fire in OpenGL ES
 	#endif
 			}
 			else if( mFormat.mDepthBuffer ) { // implement depth buffer as RenderBuffer
@@ -273,9 +281,6 @@ void Fbo::init()
 
 bool Fbo::initMultisample( bool csaa )
 {
-#if defined( CINDER_GLES )
-	return false;
-#else
 	auto ctx = context();
 
 	glGenFramebuffers( 1, &mResolveFramebufferId );
@@ -288,8 +293,10 @@ bool Fbo::initMultisample( bool csaa )
 		drawBuffers.push_back( GL_COLOR_ATTACHMENT0 + c );
 	}
 
+#if ! defined( CINDER_GLES )
 	if( ! drawBuffers.empty() )
 		glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
+#endif
 
 	// see if the resolve buffer is ok
 	FboExceptionInvalidSpecification ignoredException;
@@ -304,14 +311,16 @@ bool Fbo::initMultisample( bool csaa )
 
 	// setup the multisampled color renderbuffers
 	for( int c = 0; c < mFormat.mNumColorBuffers; ++c ) {
-		mMultisampleColorRenderbuffers.push_back( Renderbuffer::create( mWidth, mHeight, mFormat.mColorInternalFormat, mFormat.mSamples, mFormat.mCoverageSamples ) );
+mMultisampleColorRenderbuffers.push_back( Renderbuffer::create( mWidth, mHeight, GL_RGBA8_OES/*mFormat.mColorInternalFormat*/, mFormat.mSamples, mFormat.mCoverageSamples ) );
 
 		// attach the multisampled color buffer
 		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, GL_RENDERBUFFER, mMultisampleColorRenderbuffers.back()->getId() );
 	}
-	
+
+#if ! defined( CINDER_GLES )	
 	if( ! drawBuffers.empty() )
 		glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
+#endif
 
 	if( mFormat.mDepthBuffer ) {
 		// create the multisampled depth Renderbuffer
@@ -323,7 +332,6 @@ bool Fbo::initMultisample( bool csaa )
 
 	// see if the primary framebuffer turned out ok
 	return checkStatus( &ignoredException );
-#endif // ! CINDER_GLES
 }
 
 TextureRef Fbo::getTexture( int attachment )
@@ -360,7 +368,18 @@ void Fbo::resolveTextures() const
 	if( ! mNeedsResolve )
 		return;
 
-#if ! defined( CINDER_GLES )		
+#if defined( SUPPORTS_MULTISAMPLE ) && defined( CINDER_GLES )
+	// iOS-specific multisample resolution code
+	if ( mResolveFramebufferId ) {
+		FramebufferScope fbScp;
+		auto ctx = context();
+		
+		ctx->bindFramebuffer( GL_READ_FRAMEBUFFER_APPLE, mId );
+		ctx->bindFramebuffer( GL_DRAW_FRAMEBUFFER_APPLE, mResolveFramebufferId );
+		
+		glResolveMultisampleFramebufferAPPLE();
+	}
+#elif defined( SUPPORTS_MULTISAMPLE )
 	// if this FBO is multisampled, resolve it, so it can be displayed
 	if ( mResolveFramebufferId ) {
 		FramebufferScope fbScp;
@@ -455,6 +474,11 @@ bool Fbo::checkStatus( FboExceptionInvalidSpecification *resultExc )
 			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: attached images must have same dimensions" );
 		return false;
 #endif
+#if defined( CINDER_COCOA_TOUCH )
+		case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_APPLE:
+			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: not all attached images have the same number of samples" );
+		return false;
+#endif
 		default:
 			*resultExc = FboExceptionInvalidSpecification( "Framebuffer invalid: unknown reason" );
 		return false;
@@ -471,8 +495,13 @@ GLint Fbo::getMaxSamples()
 			sMaxSamples = 0;
 		}
 		else
-			glGetIntegerv( GL_MAX_SAMPLES, &sMaxSamples);	
+			glGetIntegerv( GL_MAX_SAMPLES, &sMaxSamples);
 	}
+	
+	return sMaxSamples;
+#elif defined( CINDER_COCOA_TOUCH )
+	if( sMaxSamples < 0 )
+		glGetIntegerv( GL_MAX_SAMPLES_APPLE, &sMaxSamples);
 	
 	return sMaxSamples;
 #else

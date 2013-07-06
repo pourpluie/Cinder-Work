@@ -13,6 +13,17 @@
 
 #include "cinder/app/App.h"
 
+// ES 2 Multisampling is available on iOS via an extension
+#if ! defined( CINDER_GLES ) || ( defined( CINDER_COCOA_TOUCH ) )
+	#define SUPPORTS_FBO_MULTISAMPLING
+	#if defined( CINDER_COCOA_TOUCH )
+		#define GL_READ_FRAMEBUFFER					GL_READ_FRAMEBUFFER_APPLE
+		#define GL_DRAW_FRAMEBUFFER					GL_DRAW_FRAMEBUFFER_APPLE
+		#define GL_READ_FRAMEBUFFER_BINDING			GL_READ_FRAMEBUFFER_BINDING_APPLE
+		#define GL_DRAW_FRAMEBUFFER_BINDING			GL_DRAW_FRAMEBUFFER_BINDING_APPLE
+	#endif
+#endif
+
 namespace cinder { namespace gl {
 
 using namespace std;
@@ -21,10 +32,12 @@ Context::Context()
 	: mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
 	mTextureUnit( -1 ), mWireframe( false )
-#if defined( CINDER_GLES )
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	,mCachedFramebuffer( -1 )
 #else
-	,mCachedReadFramebuffer( -1 ), mCachedDrawFramebuffer( -1 ),
+	,mCachedReadFramebuffer( -1 ), mCachedDrawFramebuffer( -1 )
+#endif
+#if ! defined( CINDER_GLES )
 	,mTrueFrontPolygonMode( GL_FILL ), mTrueBackPolygonMode( GL_FILL )
 #endif
 {
@@ -143,7 +156,7 @@ GlslProgRef Context::getCurrentShader()
 // Framebuffers
 void Context::bindFramebuffer( GLenum target, GLuint framebuffer )
 {
-#if defined( CINDER_GLES )
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	if( target == GL_FRAMEBUFFER ) {
 		if( framebuffer != mCachedFramebuffer ) {
 			mCachedFramebuffer = framebuffer;
@@ -190,7 +203,7 @@ void Context::unbindFramebuffer()
 
 GLuint Context::getFramebufferBinding( GLenum target )
 {
-#if defined( CINDER_GLES )
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	if( target == GL_FRAMEBUFFER ) {
 		if( mCachedFramebuffer == -1 )
 			glGetIntegerv( GL_FRAMEBUFFER_BINDING, &mCachedFramebuffer );
@@ -582,7 +595,7 @@ ScopeBlend::~ScopeBlend()
 FramebufferScope::FramebufferScope()
 	: mCtx( gl::context() ), mTarget( GL_FRAMEBUFFER )
 {
-#if defined( CINDER_GLES )
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	mPrevFramebuffer = mCtx->getFramebufferBinding( GL_FRAMEBUFFER );
 #else
 	mPrevReadFramebuffer = mCtx->getFramebufferBinding( GL_READ_FRAMEBUFFER );
@@ -594,7 +607,7 @@ FramebufferScope::FramebufferScope( const FboRef &fbo, GLenum target )
 	: mCtx( gl::context() ), mTarget( target )
 {
 	saveState();
-	mCtx->bindFramebuffer( target, fbo->getId() );
+	fbo->bindFramebuffer();
 }
 
 FramebufferScope::FramebufferScope( GLenum target, GLuint framebuffer )
@@ -606,7 +619,7 @@ FramebufferScope::FramebufferScope( GLenum target, GLuint framebuffer )
 
 void FramebufferScope::saveState()
 {
-#if defined( CINDER_GLES )
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	mPrevFramebuffer = mCtx->getFramebufferBinding( GL_FRAMEBUFFER );
 #else
 	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
@@ -618,7 +631,7 @@ void FramebufferScope::saveState()
 
 FramebufferScope::~FramebufferScope()
 {	
-#if defined( CINDER_GLES )
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	mCtx->bindFramebuffer( GL_FRAMEBUFFER, mPrevFramebuffer );
 #else
 	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
