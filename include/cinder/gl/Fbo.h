@@ -90,16 +90,14 @@ class Renderbuffer {
 
 //! Represents an OpenGL Framebuffer Object. //! Represents an instance of a font at a point size. \ImplShared
 class Fbo {
- public:
+  public:
 	struct Format;
 
 	//! Creates an FBO \a width pixels wide and \a height pixels high, using Fbo::Format \a format
 	static FboRef create( int width, int height, Format format = Format() );
 	//! Creates an FBO \a width pixels wide and \a height pixels high, with an optional alpha channel, color buffer and depth buffer
 	static FboRef create( int width, int height, bool alpha, bool color = true, bool depth = true );
-
 	~Fbo();
-
 
 	//! Returns the width of the FBO in pixels
 	int				getWidth() const { return mWidth; }
@@ -196,9 +194,9 @@ class Fbo {
 		GLenum	getColorInternalFormat() const { return mColorInternalFormat; }
 		//! Returns the GL internal format for the depth buffer. Defaults to \c GL_DEPTH_COMPONENT24.
 		GLenum	getDepthInternalFormat() const { return mDepthInternalFormat; }
-		//! Returns the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling. OpenGL ES does not support multisampling.
+		//! Returns the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling.
 		int		getSamples() const { return mSamples; }
-		//! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none. OpenGL ES does not support multisampling.
+		//! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none. MSW only.
 		int		getCoverageSamples() const { return mCoverageSamples; }
 		//! Returns whether the FBO contains a color buffer
 		bool	hasColorBuffer() const { return mNumColorBuffers > 0; }

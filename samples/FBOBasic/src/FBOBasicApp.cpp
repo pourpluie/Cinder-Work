@@ -30,7 +30,7 @@ class FBOBasicApp : public AppNative {
 void FBOBasicApp::setup()
 {
 	gl::Fbo::Format format;
-//	format.setSamples( 4 ); // uncomment this to enable 4x antialiasing
+	//format.setSamples( 4 ); // uncomment this to enable 4x antialiasing
 	mFbo = gl::Fbo::create( FBO_WIDTH, FBO_HEIGHT, format );
 
 	gl::enableDepthRead();
@@ -83,14 +83,14 @@ void FBOBasicApp::draw()
 	// clear the window to gray
 	gl::clear( Color( 0.35f, 0.35f, 0.35f ) );
 
+	// set the viewport to match our window
+	gl::setViewport( toPixels( getWindowBounds() ) );
+
 	// setup our camera to render the cube
 	CameraPersp cam( getWindowWidth(), getWindowHeight(), 60.0f );
 	cam.setPerspective( 60, getWindowAspectRatio(), 1, 1000 );
 	cam.lookAt( Vec3f( 2.6f, 1.6f, -2.6f ), Vec3f::zero() );
 	gl::setMatrices( cam );
-
-	// set the viewport to match our window
-	gl::setViewport( getWindowBounds() );
 
 	// use the scene we rendered into the FBO as a texture
 	mFbo->bindTexture();
@@ -106,9 +106,10 @@ void FBOBasicApp::draw()
 	gl::draw( mFbo->getTexture(0), Rectf( 0, 0, 256, 256 ) );
 	
 #if ! defined( CINDER_GLES ) // OpenGL ES can't do depth textures, otherwise draw the FBO's
-	gl::draw( mFbo->getDepthTexture(), Rectf( 96, 0, 96 + 96, 96 ) );
+	if( mFbo->getDepthTexture() ) // NULL if we have multisampling
+		gl::draw( mFbo->getDepthTexture(), Rectf( 256, 0, 256 + 256, 256 ) );
 #endif
 }
 
-auto renderOptions = RendererGl::Options().coreProfile().antiAliasing(0);
+auto renderOptions = RendererGl::Options().coreProfile();
 CINDER_APP_NATIVE( FBOBasicApp, RendererGl( renderOptions ) )

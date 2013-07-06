@@ -100,7 +100,7 @@ void Renderbuffer::init( int aWidth, int aHeight, GLenum internalFormat, int msa
 	else
 #elif defined(SUPPORTS_MULTISAMPLE)
 	if( mSamples ) // create a regular MSAA buffer
-glRenderbufferStorageMultisample( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
+		glRenderbufferStorageMultisample( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
 	else
 #endif
 		glRenderbufferStorage( GL_RENDERBUFFER, mInternalFormat, mWidth, mHeight );
@@ -311,7 +311,15 @@ bool Fbo::initMultisample( bool csaa )
 
 	// setup the multisampled color renderbuffers
 	for( int c = 0; c < mFormat.mNumColorBuffers; ++c ) {
-mMultisampleColorRenderbuffers.push_back( Renderbuffer::create( mWidth, mHeight, GL_RGBA8_OES/*mFormat.mColorInternalFormat*/, mFormat.mSamples, mFormat.mCoverageSamples ) );
+		GLint colorInternalFormat = mFormat.mColorInternalFormat;
+#if defined( CINDER_GLES )
+		// GL_RGBA & GL_RGB work as an internalFormat for textures but not RenderBuffers on ES
+		if( colorInternalFormat == GL_RGBA )
+			colorInternalFormat = GL_RGBA8_OES;
+		else if( colorInternalFormat == GL_RGB )
+			colorInternalFormat = GL_RGB8_OES;
+#endif
+		mMultisampleColorRenderbuffers.push_back( Renderbuffer::create( mWidth, mHeight, colorInternalFormat, mFormat.mSamples, mFormat.mCoverageSamples ) );
 
 		// attach the multisampled color buffer
 		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, GL_RENDERBUFFER, mMultisampleColorRenderbuffers.back()->getId() );
@@ -491,11 +499,7 @@ GLint Fbo::getMaxSamples()
 {
 #if ! defined( CINDER_GLES )
 	if( sMaxSamples < 0 ) {
-		if( ( ! gl::isExtensionAvailable( "GL_framebuffer_multisample" ) ) || ( ! gl::isExtensionAvailable( "GL_framebuffer_blit" ) ) ) {
-			sMaxSamples = 0;
-		}
-		else
-			glGetIntegerv( GL_MAX_SAMPLES, &sMaxSamples);
+		glGetIntegerv( GL_MAX_SAMPLES, &sMaxSamples);
 	}
 	
 	return sMaxSamples;
