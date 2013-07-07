@@ -39,8 +39,7 @@ class CoreProfileApp : public AppNative {
 void CoreProfileApp::setup()
 {
 	try {
-//		mShader = gl::GlslProg::create( loadResource( RES_VERT_GLSL ), loadResource( RES_FRAG_GLSL ) );
-mShader = gl::context()->getStockShader( gl::ShaderDef().texture() );
+		mShader = gl::GlslProg::create( loadResource( RES_VERT_GLSL ), loadResource( RES_FRAG_GLSL ) );
 	}
 	catch ( gl::GlslProgCompileExc ex ) {
 		console() << ex.what() << endl;
@@ -65,9 +64,6 @@ mShader = gl::context()->getStockShader( gl::ShaderDef().texture() );
 	mShader->bind();
 	mShader->uniform( "uTex0", (int)0 );
 //	mShader->uniform( "uTexEnabled", true );
-
-	mShader->bindAttribLocation( "vPosition", 0 );
-	mShader->bindAttribLocation( "vTexCoord", 2 );
 
 	int pos = mShader->getAttribLocation( "vPosition" );
 	int tex = mShader->getAttribLocation( "vTexCoord0" );
@@ -118,7 +114,7 @@ void CoreProfileApp::draw()
 
 	gl::enableAdditiveBlending();
 
-	gl::ScopeShader shader( mShader );
+	gl::ShaderScope shader( mShader );
 
 	{
 		gl::setDefaultShaderUniforms();
@@ -149,5 +145,5 @@ gl::context()->sanityCheck();
 	}
 }
 
-auto renderOptions = RendererGl::Options().coreProfile();
+auto renderOptions = RendererGl::Options();
 CINDER_APP_NATIVE( CoreProfileApp, RendererGl( renderOptions ) )

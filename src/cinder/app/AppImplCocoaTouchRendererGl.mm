@@ -25,6 +25,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Context.h"
 
 @implementation AppImplCocoaTouchRendererGl
 
@@ -64,12 +65,12 @@
 	}
 	
 	// force Cinder's context to be allocated
-	cinder::gl::context();
+	mCinderContext = cinder::gl::context();
 	
 	// Create default framebuffer object. The backing will be allocated for the current layer in -resizeFromLayer
 	glGenFramebuffers( 1, &mViewFramebuffer );
 	glGenRenderbuffers( 1, &mViewRenderBuffer );
-	glBindFramebuffer( GL_FRAMEBUFFER, mViewFramebuffer );
+	mCinderContext->bindFramebuffer( GL_FRAMEBUFFER, mViewFramebuffer );
 	glBindRenderbuffer( GL_RENDERBUFFER, mViewRenderBuffer );
 	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mViewRenderBuffer );
 	
@@ -77,7 +78,7 @@
 		glGenFramebuffers( 1, &mMsaaFramebuffer );
 		glGenRenderbuffers( 1, &mMsaaRenderBuffer );
 		
-		glBindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
+		mCinderContext->bindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
 		glBindRenderbuffer( GL_RENDERBUFFER, mMsaaRenderBuffer );
 		
 		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGBA8_OES, 0, 0 );
@@ -105,18 +106,18 @@
 {
 	[EAGLContext setCurrentContext:mContext];
 	// Allocate color buffer backing based on the current layer size
-	glBindFramebuffer( GL_FRAMEBUFFER, mViewFramebuffer );
+	mCinderContext->bindFramebuffer( GL_FRAMEBUFFER, mViewFramebuffer );
 	glBindRenderbuffer( GL_RENDERBUFFER, mViewRenderBuffer );
 	[mContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)mCinderView.layer];
 	glGetRenderbufferParameteriv( GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &mBackingWidth );
 	glGetRenderbufferParameteriv( GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &mBackingHeight );
 	
 	if( mUsingMsaa ) {
-		glBindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
+		mCinderContext->bindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
 		glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
 		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH_COMPONENT16, mBackingWidth, mBackingHeight );
 		glBindRenderbuffer( GL_RENDERBUFFER, mMsaaRenderBuffer );
-		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGB5_A1, mBackingWidth, mBackingHeight );
+		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGBA8_OES, mBackingWidth, mBackingHeight );
 	}
 	else {
 		glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
@@ -135,28 +136,32 @@
 	// This application only creates a single default framebuffer which is already bound at this point.
 	// This call is redundant, but needed if dealing with multiple framebuffers.
 	if( mUsingMsaa ) {
-		glBindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
+		mCinderContext->bindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
 	}
 	else {
-		glBindFramebuffer( GL_FRAMEBUFFER, mViewFramebuffer );
+		mCinderContext->bindFramebuffer( GL_FRAMEBUFFER, mViewFramebuffer );
 	}
-	glViewport( 0, 0, mBackingWidth, mBackingHeight );
+//	glViewport( 0, 0, mBackingWidth, mBackingHeight );
 }
 
 - (void)flushBuffer
 {
-	if( mUsingMsaa ) {
-		GLenum attachments[] = { GL_DEPTH_ATTACHMENT };
-		glDiscardFramebufferEXT( GL_READ_FRAMEBUFFER_APPLE, 1, attachments );
-		
-		glBindFramebuffer( GL_READ_FRAMEBUFFER_APPLE, mMsaaFramebuffer );
-		glBindFramebuffer( GL_DRAW_FRAMEBUFFER_APPLE, mViewFramebuffer );
+	if( mUsingMsaa ) {		
+		mCinderContext->bindFramebuffer( GL_READ_FRAMEBUFFER_APPLE, mMsaaFramebuffer );
+		mCinderContext->bindFramebuffer( GL_DRAW_FRAMEBUFFER_APPLE, mViewFramebuffer );
 		
 		glResolveMultisampleFramebufferAPPLE();
+
+		mCinderContext->bindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
+		GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT };
+		glDiscardFramebufferEXT( GL_FRAMEBUFFER, 2, attachments );
 	}
 	
     glBindRenderbuffer( GL_RENDERBUFFER, mViewRenderBuffer );
     [mContext presentRenderbuffer:GL_RENDERBUFFER];
+	
+	if( mUsingMsaa ) {
+	}
 }
 
 - (void)setFrameSize:(CGSize)newSize

@@ -46,6 +46,8 @@ void FBOBasicApp::renderSceneToFbo()
 	// on non-OpenGL ES platforms, you can just call mFbo->unbindFramebuffer() at the end of the function
 	// but this will restore the "screen" FBO on OpenGL ES, and does the right thing on both platforms
 	gl::FramebufferScope fbScp( mFbo );
+	// clear out the FBO with blue
+	gl::clear( Color( 0.25, 0.5f, 1.0f ) );
 
 	// setup the viewport to match the dimensions of the FBO
 	gl::setViewport( mFbo->getBounds() );
@@ -59,9 +61,6 @@ void FBOBasicApp::renderSceneToFbo()
 	// set the modelview matrix to reflect our current rotation
 	gl::multModelView( mTorusRotation );
 	
-	// clear out the FBO with blue
-	gl::clear( Color( 0.25, 0.5f, 1.0f ) );
-
 	// render an orange torus, with no textures
 	gl::ShaderScope shaderScp( gl::getStockShader( gl::ShaderDef().solidColor() ) );
 	gl::color( Color( 1.0f, 0.5f, 0.25f ) );
