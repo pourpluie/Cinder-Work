@@ -401,7 +401,15 @@ void GlslProg::bindAttribLocation( const std::string &name, GLuint index )
 
 GLint GlslProg::getAttribLocation( const std::string &name ) const
 {
-	return glGetAttribLocation( mHandle, name.c_str() );
+	auto existing = mAttribLocs.find( name );
+	if( existing == mAttribLocs.end() ) {
+		const GLint loc = glGetAttribLocation( mHandle, name.c_str() );
+		if( loc != -1 )
+			mAttribLocs[name] = loc;
+		return loc;
+	}
+	else
+		return existing->second;
 }
 
 //////////////////////////////////////////////////////////////////////////

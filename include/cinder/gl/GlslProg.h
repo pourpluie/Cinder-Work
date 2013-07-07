@@ -109,9 +109,9 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	mutable bool							mActiveUniformTypesCached;
 	mutable std::map<std::string, GLenum>	mActiveUniformTypes;
 
-	mutable std::map<std::string, int>		mAttribLocs;
+	mutable std::map<std::string, int>		mAttribLocs; // map between name and location
 	mutable bool							mActiveAttribTypesCached;
-	mutable std::map<std::string, GLenum>	mActiveAttribTypes;
+	mutable std::map<std::string, GLenum>	mActiveAttribTypes; // map between name and type, ie GL_FLOAT_VEC2, GL_FLOAT_MAT2x4, etc
 	
 	static UniformSemanticMap				sDefaultUniformNameToSemanticMap;
 	UniformSemanticMap						mUniformNameToSemanticMap;
