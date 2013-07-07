@@ -38,7 +38,7 @@ Context::Context()
 	,mCachedReadFramebuffer( -1 ), mCachedDrawFramebuffer( -1 )
 #endif
 #if ! defined( CINDER_GLES )
-	,mTrueFrontPolygonMode( GL_FILL ), mTrueBackPolygonMode( GL_FILL )
+	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL )
 #endif
 {
 	env()->initializeContextDefaults( this );
@@ -51,9 +51,6 @@ Context::Context()
 #else
 	mCachedVao = 0;
 #endif
-
-	mActiveFrontPolygonMode = mTrueFrontPolygonMode;
-	mActiveBackPolygonMode = mTrueBackPolygonMode;
 
 	clear();
 	mModelView.push_back( Matrix44f() );
@@ -236,11 +233,10 @@ GLuint Context::getFramebufferBinding( GLenum target )
 template<>
 void Context::stateSet<GLboolean>( GLenum cap, GLboolean value )
 {
-	mActiveStateBoolean[cap] = value;
-	
-	if( mTrueStateBoolean[cap] != mActiveStateBoolean[cap] ) {
-		mTrueStateBoolean[cap] = mActiveStateBoolean[cap];
-		if( mTrueStateBoolean[cap] )
+	auto cached = mCachedStateBoolean.find( cap );
+	if( cached == mCachedStateBoolean.end() || cached->second != value ) {
+		mCachedStateBoolean[cap] = value;
+		if( value )
 			glEnable( cap );
 		else
 			glDisable( cap );
@@ -255,61 +251,28 @@ void Context::enable( GLenum cap, GLboolean value )
 template<>
 GLboolean Context::stateGet<GLboolean>( GLenum cap )
 {
-	if( (mActiveStateBoolean.find( cap ) == mActiveStateBoolean.end()) || (mTrueStateBoolean.find( cap ) == mTrueStateBoolean.end()) )
-		mTrueStateBoolean[cap] = mActiveStateBoolean[cap] = glIsEnabled( cap );
-		
-	return mActiveStateBoolean[cap];
+	auto cached = mCachedStateBoolean.find( cap );
+	if( cached == mCachedStateBoolean.end() ) {
+		GLboolean result = glIsEnabled( cap );
+		mCachedStateBoolean[cap] = result;
+		return result;
+	}
+	else
+		return cached->second;
 }
 
 template<>
 GLint Context::stateGet<GLint>( GLenum pname )
 {
-	if( (mActiveStateInt.find( pname ) == mActiveStateInt.end()) || (mTrueStateInt.find( pname ) == mTrueStateInt.end()) ) {
-		GLint curValue;
-		glGetIntegerv( pname, &curValue );
-		mTrueStateInt[pname] = mActiveStateInt[pname] = curValue;
+	auto cached = mCachedStateInt.find( pname );
+	if( cached == mCachedStateInt.end() ) {
+		GLint result;
+		glGetIntegerv( pname, &result );
+		mCachedStateInt[pname] = result;
+		return result;
 	}
-		
-	return mActiveStateInt[pname];
-}
-
-template<>
-bool Context::stateIsDirty<GLboolean>( GLenum pname )
-{
-	return mTrueStateBoolean[pname] != mActiveStateBoolean[pname];
-}
-
-template<>
-bool Context::stateIsDirty<GLint>( GLenum pname )
-{
-	return mTrueStateInt[pname] != mActiveStateInt[pname];
-}
-
-template<>
-void Context::stateRestore<GLboolean>( GLenum cap, GLboolean value )
-{
-	mActiveStateBoolean[cap] = value;
-}
-
-template<>
-void Context::statePrepareUse<GLboolean>( GLenum cap )
-{
-	if( (mActiveStateBoolean.find( cap ) == mActiveStateBoolean.end()) || (mTrueStateBoolean.find( cap ) == mTrueStateBoolean.end()) )
-		mTrueStateBoolean[cap] = mActiveStateBoolean[cap] = glIsEnabled( cap );
-		
-	if( mTrueStateBoolean[cap] != mActiveStateBoolean[cap] ) {
-		mTrueStateBoolean[cap] = mActiveStateBoolean[cap];
-		if( mTrueStateBoolean[cap] )
-			glEnable( cap );
-		else
-			glDisable( cap );
-	}
-}
-
-void Context::statesPrepareUse()
-{
-	for( auto stateIt = mActiveStateBoolean.cbegin(); stateIt != mActiveStateBoolean.cend(); ++stateIt )
-		statePrepareUse<GLboolean>( stateIt->first );
+	else
+		return cached->second;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -345,7 +308,7 @@ void Context::printState( std::ostream &os ) const
 	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
 	os << "GL_ELEMENT_ARRAY_BUFFER:" << queriedInt << ", ";
 
-	#if defined( CINDER_GLES )
+#if defined( CINDER_GLES )
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING_OES, &queriedInt );
 #else
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &queriedInt );
@@ -353,14 +316,6 @@ void Context::printState( std::ostream &os ) const
 	os << "GL_VERTEX_ARRAY_BINDING:" << queriedInt << "}" << std::endl;
 }
 
-void Context::prepareDraw()
-{
-	blendPrepareUse();
-	depthMaskPrepareUse();
-#if ! defined( CINDER_GLES )
-	polygonModePrepareUse();
-#endif
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Vertex Attributes
@@ -398,44 +353,21 @@ void Context::vertexAttrib4f( GLuint index, float v0, float v1, float v2, float 
 
 void Context::blendFunc( GLenum sfactor, GLenum dfactor )
 {
-	blendFuncSeparateRestore( sfactor, dfactor, sfactor, dfactor );
-	blendPrepareUse();	
+	blendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
 }
 
 void Context::blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
 {
-	blendFuncSeparateRestore( srcRGB, dstRGB, srcAlpha, dstAlpha );
-	blendPrepareUse();
-}
-
-void Context::blendFuncSeparateRestore( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
-{
-	mActiveStateInt[GL_BLEND_SRC_RGB] = srcRGB;
-	mActiveStateInt[GL_BLEND_DST_RGB] = dstRGB;
-	mActiveStateInt[GL_BLEND_SRC_ALPHA] = srcAlpha;
-	mActiveStateInt[GL_BLEND_DST_ALPHA] = dstAlpha;
-}
-
-void Context::blendPrepareUse()
-{
-	statePrepareUse<GLboolean>( GL_BLEND );
-
-	if( stateIsDirty<GLint>( GL_BLEND_SRC_RGB ) ||
-		stateIsDirty<GLint>( GL_BLEND_DST_RGB ) ||
-		stateIsDirty<GLint>( GL_BLEND_SRC_ALPHA ) ||
-		stateIsDirty<GLint>( GL_BLEND_DST_ALPHA ) )
+	if( ( mCachedStateInt[GL_BLEND_SRC_RGB] != srcRGB ) ||
+		( mCachedStateInt[GL_BLEND_DST_RGB] != dstRGB ) ||
+		( mCachedStateInt[GL_BLEND_SRC_ALPHA] != srcAlpha ) ||
+		( mCachedStateInt[GL_BLEND_DST_ALPHA] != dstAlpha ) )
 	{
-		GLint srcRgb = stateGet<GLint>( GL_BLEND_SRC_RGB );
-		GLint dstRgb = stateGet<GLint>( GL_BLEND_DST_RGB );
-		GLint srcAlpha = stateGet<GLint>( GL_BLEND_SRC_ALPHA );
-		GLint dstAlpha = stateGet<GLint>( GL_BLEND_DST_ALPHA );						
-	
-		glBlendFuncSeparate( srcRgb, dstRgb, srcAlpha, dstAlpha );
-
-		mTrueStateInt[GL_BLEND_SRC_RGB] = srcRgb;
-		mTrueStateInt[GL_BLEND_DST_RGB] = dstRgb;
-		mTrueStateInt[GL_BLEND_SRC_ALPHA] = srcAlpha;
-		mTrueStateInt[GL_BLEND_DST_ALPHA] = dstAlpha;
+		glBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
+		mCachedStateInt[GL_BLEND_SRC_RGB] = srcRGB;
+		mCachedStateInt[GL_BLEND_DST_RGB] = dstRGB;
+		mCachedStateInt[GL_BLEND_SRC_ALPHA] = srcAlpha;
+		mCachedStateInt[GL_BLEND_DST_ALPHA] = dstAlpha;
 	}
 }
 
@@ -443,15 +375,9 @@ void Context::blendPrepareUse()
 // DepthMask
 void Context::depthMask( GLboolean enable )
 {
-	mActiveStateBoolean[GL_DEPTH_WRITEMASK] = enable;
-	depthMaskPrepareUse();
-}
-
-void Context::depthMaskPrepareUse()
-{
-	if( stateIsDirty<GLboolean>( GL_DEPTH_WRITEMASK ) ) {
-		mTrueStateBoolean[GL_DEPTH_WRITEMASK] = mActiveStateBoolean[GL_DEPTH_WRITEMASK];
-		glDepthMask( mTrueStateBoolean[GL_DEPTH_WRITEMASK] );
+	if( mCachedStateBoolean[GL_DEPTH_WRITEMASK] != enable ) {
+		mCachedStateBoolean[GL_DEPTH_WRITEMASK] = enable;
+		glDepthMask( enable );
 	}
 }
 
@@ -461,36 +387,22 @@ void Context::depthMaskPrepareUse()
 void Context::polygonMode( GLenum face, GLenum mode )
 {
 	if( face == GL_FRONT_AND_BACK ) {
-		mActiveFrontPolygonMode = mActiveBackPolygonMode = mode;
+		if( mCachedFrontPolygonMode != mode || mCachedBackPolygonMode != mode ) {
+			mCachedFrontPolygonMode = mCachedBackPolygonMode = mode;
+			glPolygonMode( GL_FRONT_AND_BACK, mode );
+		}
 	}
 	else if( face == GL_FRONT ) {
-		mActiveFrontPolygonMode = mode;
+		if( mCachedFrontPolygonMode != mode ) {
+			mCachedFrontPolygonMode = mode;
+			glPolygonMode( GL_FRONT, mode );
+		}
 	}
 	else if( face == GL_BACK ) {
-		mActiveBackPolygonMode = mode;
-	}
-}
-
-void Context::polygonModePrepareUse()
-{
-	// see if we can combine into one glPolygonMode call
-	// incidentally, this is the only valid option for 3.0+
-	if((( mActiveFrontPolygonMode != mTrueFrontPolygonMode ) ||
-		( mActiveBackPolygonMode != mTrueBackPolygonMode )) &&
-		( mActiveFrontPolygonMode == mActiveBackPolygonMode ) ) {
-		mTrueBackPolygonMode = mTrueFrontPolygonMode = mActiveFrontPolygonMode;
-		glPolygonMode( GL_FRONT_AND_BACK, mTrueFrontPolygonMode );
-	}
-	else {
-		if( mActiveFrontPolygonMode != mTrueFrontPolygonMode ) {
-			mTrueFrontPolygonMode = mActiveFrontPolygonMode;
-			glPolygonMode( GL_FRONT, mTrueFrontPolygonMode );
-		}
-		
-		if( mActiveBackPolygonMode != mTrueBackPolygonMode ) {
-			mTrueBackPolygonMode = mActiveBackPolygonMode;
-			glPolygonMode( GL_BACK, mTrueBackPolygonMode );
-		}
+		if( mCachedBackPolygonMode != mode ) {
+			mCachedBackPolygonMode = mode;
+			glPolygonMode( GL_BACK, mode );
+		}		
 	}
 }
 
@@ -573,8 +485,8 @@ BufferScope::BufferScope( const BufferObjRef &bufferObj )
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// ScopeBlend
-ScopeBlend::ScopeBlend( GLboolean enable )
+// BlendScope
+BlendScope::BlendScope( GLboolean enable )
 	: mCtx( gl::context() ), mSaveFactors( false )
 {
 	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
@@ -582,7 +494,7 @@ ScopeBlend::ScopeBlend( GLboolean enable )
 }
 
 //! Parallels glBlendFunc(), implicitly enables blending
-ScopeBlend::ScopeBlend( GLenum sfactor, GLenum dfactor )
+BlendScope::BlendScope( GLenum sfactor, GLenum dfactor )
 	: mCtx( gl::context() ), mSaveFactors( true )
 {
 	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
@@ -595,7 +507,7 @@ ScopeBlend::ScopeBlend( GLenum sfactor, GLenum dfactor )
 }
 
 //! Parallels glBlendFuncSeparate(), implicitly enables blending
-ScopeBlend::ScopeBlend( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
+BlendScope::BlendScope( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
 	: mCtx( gl::context() ), mSaveFactors( true )
 {
 	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
@@ -607,11 +519,11 @@ ScopeBlend::ScopeBlend( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum ds
 	mCtx->blendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
 }
 
-ScopeBlend::~ScopeBlend()
+BlendScope::~BlendScope()
 {
-	mCtx->stateRestore( GL_BLEND, mPrevBlend );
+	mCtx->stateSet( GL_BLEND, mPrevBlend );
 	if( mSaveFactors )
-		mCtx->blendFuncSeparateRestore( mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha );
+		mCtx->blendFuncSeparate( mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

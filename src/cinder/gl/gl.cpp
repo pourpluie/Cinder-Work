@@ -563,13 +563,11 @@ void bindBuffer( const BufferObjRef &buffer )
 // Draw*
 void drawArrays( GLenum mode, GLint first, GLsizei count )
 {
-	context()->prepareDraw();
 	glDrawArrays( mode, first, count );
 }
 
 void drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices )
 {
-	context()->prepareDraw();
 	glDrawElements( mode, count, type, indices );
 }
 
@@ -674,7 +672,6 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	//BufferScope elementScope( elementVbo );
 	arrayVbo->bind();
 	elementVbo->bind();
-	ctx->prepareDraw();
 	gl::setDefaultShaderUniforms();
 	gl::drawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
 

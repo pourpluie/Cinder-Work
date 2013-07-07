@@ -58,18 +58,9 @@ class Context {
 	void			enable( GLenum cap, GLboolean value = true );
 	template<typename T>
 	T				stateGet( GLenum cap );
-	template<typename T>
-	bool			stateIsDirty( GLenum pname );
-	template<typename T>
-	void			stateRestore( GLenum cap, T value );
-	template<typename T>
-	void			statePrepareUse( GLenum cap );
-	void			statesPrepareUse();
 	
 	void		sanityCheck();
 	void		printState( std::ostream &os ) const;
-	
-	void		prepareDraw();
 
 	// Vertex Attributes
 	//! Analogous to glVertexAttribPointer
@@ -89,21 +80,13 @@ class Context {
 	void		blendFunc( GLenum sfactor, GLenum dfactor );
 	//! Parallels glBlendFuncSeparate()
 	void		blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
-	//! Soft-sets the blend func
-	void		blendFuncSeparateRestore( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
-	//! Call before drawing
-	void		blendPrepareUse();
 
 	//! Parallels glDepthMask()
 	void		depthMask( GLboolean enable );
-	//! Call before drawing
-	void		depthMaskPrepareUse();
 
 #if ! defined( CINDER_GLES )
 	//! Parallels glPolygonMode()
 	void		polygonMode( GLenum face, GLenum mode );
-	//! Call before drawing
-	void		polygonModePrepareUse();
 #endif
 
 	//! Returns the current active color, used in immediate-mode emulation and as UNIFORM_COLOR
@@ -126,10 +109,9 @@ class Context {
 	GLint						mCachedReadFramebuffer, mCachedDrawFramebuffer;
 #endif
 	
-	std::map<GLenum,GLboolean>	mActiveStateBoolean, mTrueStateBoolean;
-	std::map<GLenum,GLint>		mActiveStateInt, mTrueStateInt;
-	GLenum						mActiveFrontPolygonMode, mTrueFrontPolygonMode;
-	GLenum						mActiveBackPolygonMode, mTrueBackPolygonMode;
+	std::map<GLenum,GLboolean>	mCachedStateBoolean;
+	std::map<GLenum,GLint>		mCachedStateInt;
+	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
 	
 	GLuint						mDefaultVaoId;	
 	VboRef						mDefaultArrayVbo, mDefaultElementVbo;
@@ -225,7 +207,7 @@ struct StateScope : public boost::noncopyable {
 	}
 
 	~StateScope() {
-		mCtx->stateRestore<T>( mCap, mPrevValue );
+		mCtx->stateSet<T>( mCap, mPrevValue );
 	}
   private:
 	Context		*mCtx;
@@ -233,14 +215,14 @@ struct StateScope : public boost::noncopyable {
 	T			mPrevValue;
 };
 
-struct ScopeBlend : public boost::noncopyable
+struct BlendScope : public boost::noncopyable
 {
-	ScopeBlend( GLboolean enable );
+	BlendScope( GLboolean enable );
 	//! Parallels glBlendFunc(), implicitly enables blending
-	ScopeBlend( GLenum sfactor, GLenum dfactor );
+	BlendScope( GLenum sfactor, GLenum dfactor );
 	//! Parallels glBlendFuncSeparate(), implicitly enables blending
-	ScopeBlend( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
-	~ScopeBlend();
+	BlendScope( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
+	~BlendScope();
 	
   private:
 	Context		*mCtx;
