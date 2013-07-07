@@ -635,8 +635,8 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 		totalArrayBufferSize += sizeof(colors);
 	
 	VaoRef vao = Vao::create();
-	VboRef arrayVbo = Vbo::create( GL_ARRAY_BUFFER, totalArrayBufferSize );
-	VboRef elementVbo = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, sizeof(elements) );
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( totalArrayBufferSize );
+	VboRef elementVbo = ctx->getDefaultElementVbo( sizeof(elements) );
 
 	VaoScope vaoScope( vao );
 	elementVbo->bind();
@@ -696,8 +696,7 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	
 	texture->bind();
 	shader->uniform( "uTex0", 0 );
-	
-	
+		
 	GLfloat data[8+8]; // both verts and texCoords
 	GLfloat *verts = data, *texCoords = data + 8;
 	
@@ -712,8 +711,9 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	
 	VaoRef vao = Vao::create();
 	VaoScope vaoScope( vao );
-	VboRef arrayVbo = Vbo::create( GL_ARRAY_BUFFER, sizeof(data), data );
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(data) );
 	arrayVbo->bind();
+	arrayVbo->bufferData( sizeof(data), data, GL_DYNAMIC_DRAW );
 
 	int posLoc = shader->getAttribSemanticLocation( ATTRIB_POSITION );
 	enableVertexAttribArray( posLoc );

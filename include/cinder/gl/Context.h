@@ -47,8 +47,9 @@ class Context {
 	void		unbindShader();
 	GlslProgRef	getCurrentShader();
 
-	void		bindFramebuffer( GLenum target, GLuint framebuffer );
 	void		bindFramebuffer( const FboRef &fbo );
+	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
+	void		bindFramebuffer( GLenum target, GLuint framebuffer );
 	void		unbindFramebuffer();
 	GLuint		getFramebufferBinding( GLenum target );
 
@@ -109,6 +110,9 @@ class Context {
 	const ColorAf&	getCurrentColor() const;
 	GlslProgRef		getStockShader( const ShaderDef &shaderDef );
 
+	VboRef			getDefaultArrayVbo( size_t requiredSize );
+	VboRef			getDefaultElementVbo( size_t requiredSize );
+
   private:
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
@@ -128,7 +132,7 @@ class Context {
 	GLenum						mActiveBackPolygonMode, mTrueBackPolygonMode;
 	
 	GLuint						mDefaultVaoId;	
-	
+	VboRef						mDefaultArrayVbo, mDefaultElementVbo;
 	
 	
   public:	
@@ -276,6 +280,7 @@ struct FramebufferScope : public boost::noncopyable
 {
 	FramebufferScope(); // preserves but doesn't set
 	FramebufferScope( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
+	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
 	FramebufferScope( GLenum target, GLuint framebuffer );
 	~FramebufferScope();
 	

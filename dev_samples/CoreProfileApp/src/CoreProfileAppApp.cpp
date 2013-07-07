@@ -124,7 +124,7 @@ void CoreProfileApp::draw()
 
 	gl::enableAdditiveBlending();
 
-	gl::ScopeShader shader( mShader );
+	gl::ShaderScope shader( mShader );
 
 	{
 		gl::setDefaultShaderUniforms();

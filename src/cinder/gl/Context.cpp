@@ -513,6 +513,30 @@ GlslProgRef	Context::getStockShader( const ShaderDef &shaderDef )
 		return existing->second;
 }
 
+VboRef Context::getDefaultArrayVbo( size_t requiredSize )
+{
+	if( ! mDefaultArrayVbo ) {
+		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize );
+	}
+	else if( requiredSize > mDefaultArrayVbo->getSize() ) {
+		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize );
+	}
+	
+	return mDefaultArrayVbo;
+}
+
+VboRef Context::getDefaultElementVbo( size_t requiredSize )
+{
+	if( ! mDefaultElementVbo ) {
+		mDefaultElementVbo = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, requiredSize );
+	}
+	if( requiredSize > mDefaultElementVbo->getSize() ) {
+		mDefaultElementVbo = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, requiredSize );
+	}
+	
+	return mDefaultElementVbo;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 void Context::clear()
 {
