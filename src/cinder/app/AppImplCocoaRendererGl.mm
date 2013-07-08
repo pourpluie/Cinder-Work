@@ -31,6 +31,7 @@
 
 #import "cinder/app/App.h"
 #include "cinder/app/Renderer.h"
+#include "cinder/gl/Environment.h"
 #include <iostream>
 
 // This is only here so that we can override isOpaque, which is necessary
@@ -61,6 +62,7 @@
 	renderer = aRenderer;
 
 	cinder::app::RendererGl::Options options = renderer->getOptions();
+	cinder::gl::Environment::setCoreProfile( options.getCoreProfile() );
 	NSOpenGLPixelFormat* fmt = [AppImplCocoaRendererGl defaultPixelFormat:options.getAntiAliasing() legacy:(options.getCoreProfile()==false)];
 	GLint aaSamples;
 	[fmt getValues:&aaSamples forAttribute:NSOpenGLPFASamples forVirtualScreen:0];

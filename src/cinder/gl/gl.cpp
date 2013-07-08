@@ -492,7 +492,7 @@ void draw( const VboMeshRef& mesh )
 
 void drawRange( const VboMeshRef& mesh, GLint start, GLsizei count )
 {
-	auto vaoBind( mesh->mVao );
+/*	auto vaoBind( mesh->mVao );
 	
 	if ( mesh->mVboIndices ) {
 		if ( mesh->mVboVerticesDynamic ) {
@@ -517,7 +517,7 @@ void drawRange( const VboMeshRef& mesh, GLint start, GLsizei count )
 		}
 	}
 	
-	mesh->mVao->unbind();
+	mesh->mVao->unbind();*/
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////

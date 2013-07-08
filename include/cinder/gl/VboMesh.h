@@ -18,7 +18,7 @@ void draw( const VboMeshRef& vbo );
 void drawRange( const VboMeshRef& vbo, GLint start, GLsizei count );
 
 class VboMesh {
-  public:	
+/*  public:	
 	class Layout {
 	  public:
 		enum
@@ -109,7 +109,7 @@ class VboMesh {
 	size_t	mOffsetTexCoord;
 	
 	friend void		ci::gl::draw( const VboMeshRef& mesh );
-	friend void		ci::gl::drawRange( const VboMeshRef& mesh, GLint start, GLsizei count );
+	friend void		ci::gl::drawRange( const VboMeshRef& mesh, GLint start, GLsizei count );*/
 };
 
 } }

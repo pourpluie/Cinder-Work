@@ -8,8 +8,9 @@ namespace cinder { namespace gl {
 
 using namespace std;
 
+#if 0
+
 /////////////////////////////////////////////////////////////////
-	
 VboMesh::Layout::Layout()
 : mAttrColor( Vao::ATTRIB_COLOR ), mAttrNormal( Vao::ATTRIB_NORMAL ),
 mAttrPosition( Vao::ATTRIB_POSITION ), mAttrTexCoord( Vao::ATTRIB_TEXCOORD ),
@@ -281,5 +282,7 @@ void VboMesh::bufferTexCoords( const vector<Vec3f>& texCoords )
 void VboMesh::bufferTexCoords( const vector<Vec4f>& texCoords )
 {
 }
+
+#endif
 
 } }

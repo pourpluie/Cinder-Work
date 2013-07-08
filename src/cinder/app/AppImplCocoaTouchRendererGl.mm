@@ -66,7 +66,7 @@
 	
 	// force Cinder's context to be allocated
 	mCinderContext = cinder::gl::context();
-	
+
 	// Create default framebuffer object. The backing will be allocated for the current layer in -resizeFromLayer
 	glGenFramebuffers( 1, &mViewFramebuffer );
 	glGenRenderbuffers( 1, &mViewRenderBuffer );

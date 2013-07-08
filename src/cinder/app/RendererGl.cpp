@@ -46,7 +46,7 @@ RendererGl::Options::Options()
 	mVersion = std::pair<int,int>( 2, 0 );
 #else
 	mAntiAliasing = AA_MSAA_16;
-	mCoreProfile = false;
+	mCoreProfile = true;
 	mVersion = std::pair<int,int>( 2, 1 );	
 #endif
 }

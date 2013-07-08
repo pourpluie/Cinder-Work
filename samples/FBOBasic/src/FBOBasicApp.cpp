@@ -110,5 +110,5 @@ void FBOBasicApp::draw()
 #endif
 }
 
-auto renderOptions = RendererGl::Options().coreProfile();
+auto renderOptions = RendererGl::Options().coreProfile( false );
 CINDER_APP_NATIVE( FBOBasicApp, RendererGl( renderOptions ) )

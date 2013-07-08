@@ -27,6 +27,11 @@
 
 namespace cinder { namespace gl {
 
+#if ! defined( CINDER_GLES )
+bool Environment::sCoreProfile = true;
+#endif
+
+
 //////////////////////////////////////////////////////////////////////////////////
 // GL ES 2
 
@@ -219,6 +224,99 @@ GlslProgRef	EnvironmentCoreProfile::buildShader( const ShaderDef &shader )
 	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
 }
 
+//////////////////////////////////////////////////////////////////////////////////
+// GL Compatibility Profile
+
+class EnvironmentCompatibilityProfile : public Environment {
+  public:
+	virtual void	initializeContextDefaults( Context *context ) override;
+
+	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
+	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
+	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
+};
+
+
+void EnvironmentCompatibilityProfile::initializeContextDefaults( Context *context )
+{		
+}
+
+std::string	EnvironmentCompatibilityProfile::generateVertexShader( const ShaderDef &shader )
+{
+	std::string s;
+	
+	s +=		"#version 120\n"
+				"\n"
+				"uniform mat4	uModelViewProjection;\n"
+				"\n"
+				"attribute vec4		vPosition;\n"
+				;
+			
+	if( shader.mTextureMapping ) {
+		s +=	"attribute vec2		vTexCoord0;\n"
+				"varying vec2	TexCoord;\n"
+				;
+	}
+
+	s +=		"void main( void )\n"
+				"{\n"
+				"gl_Position	= uModelViewProjection * vPosition;\n"
+				;
+				
+	if( shader.mTextureMapping ) {	
+		s +=	"TexCoord	= vTexCoord0;\n"
+				;
+	}
+	
+	s +=		"}\n";
+	
+	return s;
+}
+
+std::string	EnvironmentCompatibilityProfile::generateFragmentShader( const ShaderDef &shader )
+{
+	std::string s;
+	
+	s+=			"#version 120\n"
+				"\n"
+				;
+
+	if( shader.mSolidColor ) {
+		s +=	"uniform vec4		uColor;\n";
+	}
+
+	if( shader.mTextureMapping ) {	
+		s +=	"uniform sampler2D uTex0;\n"
+				"varying vec2	TexCoord;\n"
+				;
+	}
+
+	s +=		"void main( void )\n"
+				"{\n"
+				;
+	
+	if( shader.mTextureMapping ) {
+		s +=	"gl_FragColor.rgb = texture2D( uTex0, TexCoord.st ).rgb;\n"
+				"gl_FragColor.a = 1.0;\n"
+				;
+	}
+	else if( shader.mSolidColor ) {
+		s +=	"gl_FragColor.rgba = uColor;\n"
+				;
+	}
+	
+	s +=		"}\n"
+				;
+	
+	return s;
+}
+
+
+GlslProgRef	EnvironmentCompatibilityProfile::buildShader( const ShaderDef &shader )
+{
+	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
+}
+
 #endif // if defined( CINDER_GLES )
 ///////////////////////////////////////////////////////////////////////////////////
 
@@ -229,7 +327,10 @@ Environment* env()
 #if defined( CINDER_GLES )
 		sEnvironment = new EnvironmentEs2();
 #else
-		sEnvironment = new EnvironmentCoreProfile();
+		if( Environment::isCoreProfile() )
+			sEnvironment = new EnvironmentCoreProfile();
+		else
+			sEnvironment = new EnvironmentCompatibilityProfile();
 #endif
 	}
 	

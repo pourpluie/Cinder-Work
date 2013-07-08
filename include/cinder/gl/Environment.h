@@ -39,6 +39,15 @@ class Environment {
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) = 0;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) = 0;
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) = 0;
+	
+  #if ! defined( CINDER_GLES )
+  	static bool				isCoreProfile() { return sCoreProfile; }
+	//! Must be called before a call to gl::env()
+	static bool				setCoreProfile( bool enable = true ) { sCoreProfile = enable; }
+  
+  protected:
+	static bool				sCoreProfile;
+  #endif
 };
 
 } } // namespace cinder::gl

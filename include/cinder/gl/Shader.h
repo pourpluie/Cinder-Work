@@ -5,9 +5,6 @@
 
 namespace cinder { namespace gl {
 
-class EnvironmentCoreProfile;
-class EnvironmentEs2;
-
 class ShaderDef {
   public:
 	ShaderDef();
@@ -21,8 +18,9 @@ class ShaderDef {
 	bool			mTextureMapping;
 	bool			mSolidColor;
 	
-	friend EnvironmentCoreProfile;
-	friend EnvironmentEs2;	
+	friend class EnvironmentCoreProfile;
+	friend class EnvironmentCompatibilityProfile;
+	friend class EnvironmentEs2;	
 };
 	
 } } // namespace cinder::gl

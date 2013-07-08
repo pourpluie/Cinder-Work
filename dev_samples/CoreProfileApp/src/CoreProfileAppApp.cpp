@@ -38,7 +38,8 @@ class CoreProfileApp : public AppNative {
 void CoreProfileApp::setup()
 {
 	try {
-		mShader = gl::GlslProg::create( loadResource( RES_VERT_GLSL ), loadResource( RES_FRAG_GLSL ) );
+//		mShader = gl::GlslProg::create( loadResource( RES_VERT_GLSL ), loadResource( RES_FRAG_GLSL ) );
+mShader = gl::context()->getStockShader( gl::ShaderDef().texture() );
 	}
 	catch ( gl::GlslProgCompileExc ex ) {
 		console() << ex.what() << endl;
@@ -155,5 +156,5 @@ gl::context()->sanityCheck();
 	}
 }
 
-auto renderOptions = RendererGl::Options().coreProfile();
+auto renderOptions = RendererGl::Options().coreProfile( false );
 CINDER_APP_NATIVE( CoreProfileApp, RendererGl( renderOptions ) )
