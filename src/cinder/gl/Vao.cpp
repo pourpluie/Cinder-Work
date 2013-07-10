@@ -17,7 +17,10 @@ Vao::Vao()
 #if defined( CINDER_GLES )	
 	glGenVertexArraysOES( 1, &mId );
 #else
-	glGenVertexArrays( 1, &mId );
+	if( glGenVertexArrays )
+		glGenVertexArrays( 1, &mId );
+	else
+		glGenVertexArraysAPPLE( 1, &mId );
 #endif
 }
 
@@ -26,18 +29,51 @@ Vao::~Vao()
 #if defined( CINDER_GLES )	
 	glDeleteVertexArraysOES( 1, &mId );
 #else
-	glDeleteVertexArrays( 1, &mId );
+	if( glDeleteVertexArrays )
+		glDeleteVertexArrays( 1, &mId );
+	else
+		glDeleteVertexArraysAPPLE( 1, &mId );
 #endif
 }
 
-void Vao::bind() const
+void Vao::bind()
 {
-	context()->vaoBind( mId );
+	// this will "come back" by calling bindImpl if it's necessary
+	context()->vaoBind( shared_from_this() );
 }
-	
+
 void Vao::unbind() const
 {
-	context()->vaoBind( 0 );
+	// this will "come back" by calling bindImpl if it's necessary
+	context()->vaoBind( nullptr );
 }
+
+void Vao::bindImpl( GLuint id, Context *context )
+{
+#if defined( CINDER_GLES )
+	glBindVertexArrayOES( id );
+#else
+	if( glBindVertexArray ) // not available on GL legacy
+		glBindVertexArray( id );
+	else
+		glBindVertexArrayAPPLE( id );
+#endif
+
+	if( context )
+		invalidateContext( context );
+}
+
+void Vao::unbindImpl( Context *context )
+{
+	bindImpl( 0, context );
+}
+
+void Vao::invalidateContext( Context *context )
+{
+	// binding a VAO invalidates other pieces of cached state
+	context->invalidateBufferBinding( GL_ARRAY_BUFFER );
+	context->invalidateBufferBinding( GL_ELEMENT_ARRAY_BUFFER );
+}
+
 	
 } }

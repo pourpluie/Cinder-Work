@@ -16,6 +16,8 @@
 
 namespace cinder { namespace gl {
 
+class Context;
+typedef std::shared_ptr<Context>		ContextRef;
 class Vbo;
 typedef std::shared_ptr<Vbo>			VboRef;
 class Vao;
@@ -31,11 +33,11 @@ typedef std::shared_ptr<Fbo>			FboRef;
 
 class Context {
   public:
-	Context();
 	~Context();
-
-	void		vaoBind( GLuint id );
-	GLuint		vaoGet();
+	static ContextRef	create();
+	
+	void		vaoBind( const VaoRef &vao );
+	VaoRef		vaoGet();
 
 	void		bindBuffer( GLenum target, GLuint id );
 	GLuint		getBufferBinding( GLenum target );
@@ -99,7 +101,7 @@ class Context {
   private:
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
-	GLuint						mCachedVao;
+	VaoRef						mCachedVao;
 	std::map<GLenum,int>		mCachedBuffer;
 	GlslProgRef					mCachedGlslProg;
 	
@@ -113,11 +115,11 @@ class Context {
 	std::map<GLenum,GLint>		mCachedStateInt;
 	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
 	
-	GLuint						mDefaultVaoId;	
+	VaoRef						mDefaultVao;	
 	VboRef						mDefaultArrayVbo, mDefaultElementVbo;
 	
 	
-  public:	
+  public:
 	struct Vertex
 	{
 		ColorAf					mColor;
@@ -154,7 +156,14 @@ class Context {
 	GLenum						mMode;
 
   private:
+	Context();
+  
+  
 	friend class				Environment;
+	friend class				EnvironmentEs2Profile;
+	friend class				EnvironmentCoreProfile;
+	friend class				EnvironmentCompatibilityProfile;
+	
 	friend class				Fog;
 	friend class				Light;
 	friend class				Material;
@@ -163,20 +172,19 @@ class Context {
 
 
 struct VaoScope : public boost::noncopyable {
-	VaoScope( const VaoRef &vao );
-	VaoScope( GLuint id )
+	VaoScope( const VaoRef &vao )
 		: mCtx( gl::context() )
 	{
-		mPrevId = mCtx->vaoGet();
-		mCtx->vaoBind( id );
+		mPrevVao = mCtx->vaoGet();
+		mCtx->vaoBind( vao );
 	}
 	
 	~VaoScope() {
-		mCtx->vaoBind( mPrevId );
+		mCtx->vaoBind( mPrevVao );
 	}
   private:
 	Context		*mCtx;
-	GLuint		mPrevId;
+	VaoRef		mPrevVao;
 };
 
 struct BufferScope : public boost::noncopyable {

@@ -15,11 +15,11 @@ namespace cinder { namespace gl {
 
 Context* context()
 {
-	static Context *sContext = NULL;
+	static ContextRef sContext;
 	if( ! sContext ) {
-		sContext = new Context();
+		sContext = Context::create();
 	}
-	return sContext;
+	return sContext.get();
 }
 
 bool isExtensionAvailable( const std::string& extName )

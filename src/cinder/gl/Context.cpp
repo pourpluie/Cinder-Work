@@ -11,6 +11,8 @@
 #include "cinder/gl/Fbo.h"
 #include "cinder/Utilities.h"
 
+#include "glload/gl_load.h"
+
 #include "cinder/app/App.h"
 
 // ES 2 Multisampling is available on iOS via an extension
@@ -41,15 +43,11 @@ Context::Context()
 	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL )
 #endif
 {
-	env()->initializeContextDefaults( this );
 
 	// setup default VAO
 #if ! defined( CINDER_GLES )
-	glGenVertexArrays( 1, &mDefaultVaoId );
-	glBindVertexArray( mDefaultVaoId );
-	mCachedVao = mDefaultVaoId;
-#else
-	mCachedVao = 0;
+	mCachedVao = mDefaultVao = Vao::create();
+	Vao::bindImpl( mDefaultVao->getId(), NULL );
 #endif
 
 	clear();
@@ -64,25 +62,33 @@ Context::~Context()
 	clear();
 }
 
+ContextRef Context::create()
+{
+#if ! defined( CINDER_GLES )
+	ogl_LoadFunctions();
+#endif
+	
+	ContextRef result( std::shared_ptr<Context>( new Context() ) );
+	env()->initializeContextDefaults( result.get() );
+
+	return result;
+}
+
 //////////////////////////////////////////////////////////////////
 // VAO
-void Context::vaoBind( GLuint id )
+void Context::vaoBind( const VaoRef &vao )
 {
-	if( mCachedVao != id ) {
-		mCachedVao = id;
-#if defined( CINDER_GLES )
-		glBindVertexArrayOES( mCachedVao );
-#else
-		glBindVertexArray( mCachedVao );
-#endif
-
-		// binding a VAO invalidates other pieces of cached state
-		invalidateBufferBinding( GL_ARRAY_BUFFER );
-		invalidateBufferBinding( GL_ELEMENT_ARRAY_BUFFER );
+	if( mCachedVao != vao ) {
+		mCachedVao = vao;
+		
+		if( vao )
+			Vao::bindImpl( vao->getId(), this );
+		else
+			Vao::unbindImpl( this );
 	}
 }
 
-GLuint Context::vaoGet()
+VaoRef Context::vaoGet()
 {
 	return mCachedVao;
 }
@@ -295,7 +301,7 @@ return;
 #else
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &queriedInt );
 #endif
-	assert( mCachedVao == queriedInt );
+//	assert( mCachedVao == queriedInt );
 }
 
 void Context::printState( std::ostream &os ) const
@@ -464,15 +470,6 @@ void Context::pushBack( const ci::Vec4f &v )
 	vertex.mTexCoord	= mTexCoord;
 	
 	mVertices.push_back( vertex );
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// VaoScope
-VaoScope::VaoScope( const VaoRef &vao )
-	: mCtx( gl::context() )
-{
-	mPrevId = mCtx->vaoGet();
-	mCtx->vaoBind( vao->getId() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

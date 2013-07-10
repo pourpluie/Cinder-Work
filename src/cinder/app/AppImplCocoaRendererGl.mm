@@ -24,7 +24,6 @@
 #include "cinder/gl/gl.h"
 #include "cinder/Camera.h"
 #import <Cocoa/Cocoa.h>
-#import <OpenGL/OpenGL.h>
 
 #import "cinder/app/AppImplCocoaRendererGl.h"
 #import "cinder/app/CinderView.h"

@@ -102,6 +102,8 @@
 		003ADB9D1038974A00ACF6F2 /* TwBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003ADB8F1038974A00ACF6F2 /* TwBar.cpp */; };
 		003ADBA01038996800ACF6F2 /* AntTweakBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 003ADB9E1038996800ACF6F2 /* AntTweakBar.h */; };
 		003C0CE715A34D3F00FF29F5 /* AppCocoaView.h in Headers */ = {isa = PBXBuildFile; fileRef = 003C0CE615A34D3F00FF29F5 /* AppCocoaView.h */; };
+		003C69F4178C8FE3008C1643 /* gl_load.c in Sources */ = {isa = PBXBuildFile; fileRef = 003C69F3178C8FE3008C1643 /* gl_load.c */; };
+		003C69F8178C9FED008C1643 /* gl_load_cpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003C69F7178C9FED008C1643 /* gl_load_cpp.cpp */; };
 		003FAA9F1290CC90002D6860 /* Clipboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003FAA9E1290CC90002D6860 /* Clipboard.cpp */; };
 		003FAAA31290CCB1002D6860 /* Clipboard.h in Headers */ = {isa = PBXBuildFile; fileRef = 003FAAA21290CCB1002D6860 /* Clipboard.h */; };
 		003FAAB81290E01D002D6860 /* Clipboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003FAA9E1290CC90002D6860 /* Clipboard.cpp */; };
@@ -873,6 +875,8 @@
 		003ADB8F1038974A00ACF6F2 /* TwBar.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = TwBar.cpp; path = ../src/AntTweakBar/TwBar.cpp; sourceTree = SOURCE_ROOT; };
 		003ADB9E1038996800ACF6F2 /* AntTweakBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AntTweakBar.h; path = ../src/AntTweakBar/AntTweakBar.h; sourceTree = SOURCE_ROOT; };
 		003C0CE615A34D3F00FF29F5 /* AppCocoaView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppCocoaView.h; path = app/AppCocoaView.h; sourceTree = "<group>"; };
+		003C69F3178C8FE3008C1643 /* gl_load.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gl_load.c; path = ../src/glload/gl_load.c; sourceTree = "<group>"; };
+		003C69F7178C9FED008C1643 /* gl_load_cpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gl_load_cpp.cpp; path = ../src/glload/gl_load_cpp.cpp; sourceTree = "<group>"; };
 		003FAA9E1290CC90002D6860 /* Clipboard.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Clipboard.cpp; sourceTree = "<group>"; };
 		003FAAA21290CCB1002D6860 /* Clipboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Clipboard.h; sourceTree = "<group>"; };
 		003FABA61290ED38002D6860 /* AppNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppNative.h; path = app/AppNative.h; sourceTree = "<group>"; };
@@ -1306,6 +1310,15 @@
 			name = src;
 			sourceTree = "<group>";
 		};
+		003C69F1178C8FD0008C1643 /* glload */ = {
+			isa = PBXGroup;
+			children = (
+				003C69F7178C9FED008C1643 /* gl_load_cpp.cpp */,
+				003C69F3178C8FE3008C1643 /* gl_load.c */,
+			);
+			name = glload;
+			sourceTree = "<group>";
+		};
 		005B02F4152CD13C00F2C237 /* jsoncpp */ = {
 			isa = PBXGroup;
 			children = (
@@ -1724,6 +1737,7 @@
 		32C88DFF0371C24200C91783 /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				003C69F1178C8FD0008C1643 /* glload */,
 				003ADB661038970C00ACF6F2 /* AntTweakBar */,
 				005B02F4152CD13C00F2C237 /* jsoncpp */,
 				0034C31B151A5B9F003F2E30 /* linebreak */,
@@ -2664,6 +2678,8 @@
 				00A06FA61760EFAD00D8BE17 /* Vao.cpp in Sources */,
 				00A06FA91760EFAD00D8BE17 /* Vbo.cpp in Sources */,
 				00A06FAC1760EFAD00D8BE17 /* VboMesh.cpp in Sources */,
+				003C69F4178C8FE3008C1643 /* gl_load.c in Sources */,
+				003C69F8178C9FED008C1643 /* gl_load_cpp.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

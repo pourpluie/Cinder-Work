@@ -24,6 +24,8 @@
 
 #include "cinder/gl/Environment.h"
 #include "cinder/gl/Shader.h"
+#include "cinder/gl/Context.h"
+#include "cinder/gl/Vao.h"
 
 namespace cinder { namespace gl {
 
@@ -144,7 +146,7 @@ class EnvironmentCoreProfile : public Environment {
 
 
 void EnvironmentCoreProfile::initializeContextDefaults( Context *context )
-{		
+{
 }
 
 std::string	EnvironmentCoreProfile::generateVertexShader( const ShaderDef &shader )
@@ -238,7 +240,7 @@ class EnvironmentCompatibilityProfile : public Environment {
 
 
 void EnvironmentCompatibilityProfile::initializeContextDefaults( Context *context )
-{		
+{
 }
 
 std::string	EnvironmentCompatibilityProfile::generateVertexShader( const ShaderDef &shader )
