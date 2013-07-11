@@ -104,6 +104,7 @@
     <ClCompile Include="..\src\cinder\app\AppImplMswScreenSaver.cpp" />
     <ClCompile Include="..\src\cinder\app\AppScreenSaver.cpp" />
     <ClCompile Include="..\src\cinder\app\RendererDx.cpp" />
+    <ClCompile Include="..\src\cinder\app\RendererGl.cpp" />
     <ClCompile Include="..\src\cinder\app\Window.cpp" />
     <ClCompile Include="..\src\cinder\Area.cpp" />
     <ClCompile Include="..\src\cinder\audio\OutputImplXAudio.cpp" />
@@ -221,6 +222,10 @@
     <ClCompile Include="..\src\AntTweakBar\TwMgr.cpp" />
     <ClCompile Include="..\src\AntTweakBar\TwOpenGL.cpp" />
     <ClCompile Include="..\src\AntTweakBar\TwPrecomp.cpp" />
+    <ClCompile Include="..\src\glload\gl_load.c" />
+    <ClCompile Include="..\src\glload\gl_load_cpp.cpp" />
+    <ClCompile Include="..\src\glload\wgl_load.c" />
+    <ClCompile Include="..\src\glload\wgl_load_cpp.cpp" />
     <ClCompile Include="..\src\jsoncpp\json_reader.cpp" />
     <ClCompile Include="..\src\jsoncpp\json_value.cpp" />
     <ClCompile Include="..\src\jsoncpp\json_writer.cpp" />

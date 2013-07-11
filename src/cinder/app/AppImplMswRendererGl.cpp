@@ -257,6 +257,8 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 	if( sharedRC )
 		::wglShareLists( sharedRC, mRC );
 
+	mCinderContext = cinder::gl::context();
+
 	return true;									// Success
 }
 

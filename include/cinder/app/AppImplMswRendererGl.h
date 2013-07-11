@@ -26,6 +26,10 @@
 #include "cinder/app/App.h"
 #include "cinder/app/AppImplMswRenderer.h"
 
+namespace cinder { namespace gl {
+	class Context;
+} }
+
 namespace cinder { namespace app {
 
 class AppImplMswRendererGl : public AppImplMswRenderer {
@@ -45,6 +49,8 @@ class AppImplMswRendererGl : public AppImplMswRenderer {
 	int		initMultisample( PIXELFORMATDESCRIPTOR pfd, int requestedLevelIdx, HDC dc );
 	
 	class RendererGl	*mRenderer;
+	gl::Context			*mCinderContext;
+
 	bool		mWasFullScreen;
 	bool		mWasVerticalSynced;
 	HGLRC		mRC, mPrevRC;

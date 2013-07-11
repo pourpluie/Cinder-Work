@@ -91,6 +91,9 @@
     <Filter Include="Source Files\dx">
       <UniqueIdentifier>{aaf12809-97ce-4c25-bb74-4c111e438a25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\gl\gllload">
+      <UniqueIdentifier>{bfab3397-0e13-409d-8476-be9fcf60b0ae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cinder\Area.cpp">
@@ -500,6 +503,21 @@
     </ClCompile>
     <ClCompile Include="..\src\cinder\gl\VboMesh.cpp">
       <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\app\RendererGl.cpp">
+      <Filter>Source Files\app</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\glload\gl_load_cpp.cpp">
+      <Filter>Source Files\gl\gllload</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\glload\gl_load.c">
+      <Filter>Source Files\gl\gllload</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\glload\wgl_load.c">
+      <Filter>Source Files\gl\gllload</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\glload\wgl_load_cpp.cpp">
+      <Filter>Source Files\gl\gllload</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
