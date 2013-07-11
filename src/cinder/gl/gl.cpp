@@ -11,6 +11,8 @@
 
 #if defined( CINDER_MSW )
 	#include "glload/wgl_all.h"
+#elif defined( CINDER_MAC )
+	#include <OpenGL/OpenGL.h>
 #endif
 
 using namespace std;

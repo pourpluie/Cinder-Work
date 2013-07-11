@@ -2,7 +2,7 @@
 
 #include "cinder/Cinder.h"
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_COCOA_TOUCH )
 	#include "glload/gl_all.h"
 #else
 	#include <OpenGLES/ES2/gl.h>
