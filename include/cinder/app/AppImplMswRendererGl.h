@@ -30,7 +30,7 @@ namespace cinder { namespace app {
 
 class AppImplMswRendererGl : public AppImplMswRenderer {
  public:
-	AppImplMswRendererGl( App *aApp, RendererGl *aRenderer );
+	AppImplMswRendererGl( App *aApp, class RendererGl *aRenderer );
 	
 	virtual bool	initialize( HWND wnd, HDC dc, RendererRef sharedRenderer );
 	virtual void	prepareToggleFullScreen();
@@ -44,7 +44,7 @@ class AppImplMswRendererGl : public AppImplMswRenderer {
 	bool	initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC );
 	int		initMultisample( PIXELFORMATDESCRIPTOR pfd, int requestedLevelIdx, HDC dc );
 	
-	RendererGl	*mRenderer;
+	class RendererGl	*mRenderer;
 	bool		mWasFullScreen;
 	bool		mWasVerticalSynced;
 	HGLRC		mRC, mPrevRC;

@@ -2,10 +2,8 @@
 
 #include "cinder/Cinder.h"
 
-#if defined( CINDER_MAC )
+#if ! defined( CINDER_GLES )
 	#include "glload/gl_all.h"
-#elif defined( CINDER_MSW )
-	#include "cinder/gl/GLee.h"
 #else
 	#include <OpenGLES/ES2/gl.h>
 	#include <OpenGLES/ES2/glext.h>
@@ -44,6 +42,8 @@ typedef std::shared_ptr<GlslProg>	GlslProgRef;
 class Context* context();
 class Environment* env();
 
+void enableVerticalSync( bool enable = true );
+bool isVerticalSyncEnabled();
 bool isExtensionAvailable( const std::string &extName );
 
 GlslProgRef	getStockShader( const class ShaderDef &shader );

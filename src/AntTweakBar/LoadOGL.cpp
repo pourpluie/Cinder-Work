@@ -10,8 +10,11 @@
 
 #include "TwPrecomp.h"
 #include "LoadOGL.h"
-#include <OpenGL/gl.h>
-
+#if defined( CINDER_COCOA )
+	#include <OpenGL/gl.h>
+#else
+	#include <GL/gl.h>
+#endif
 
 //  ---------------------------------------------------------------------------
 

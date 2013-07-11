@@ -79,7 +79,7 @@ void Renderbuffer::init( int aWidth, int aHeight, GLenum internalFormat, int msa
 	mSamples = msaaSamples;
 	mCoverageSamples = coverageSamples;
 #if defined( CINDER_MSW )
-	static bool csaaSupported = ( GLEE_NV_framebuffer_multisample_coverage != 0 );
+	static bool csaaSupported = ( glext_NV_framebuffer_multisample_coverage != 0 );
 #else
 	static bool csaaSupported = false;
 #endif
@@ -196,7 +196,7 @@ Fbo::~Fbo()
 void Fbo::init()
 {
 #if defined( CINDER_MSW ) && ( ! defined( CINDER_GLES ) )
-	static bool csaaSupported = ( GLEE_NV_framebuffer_multisample_coverage != 0 );
+	static bool csaaSupported = ( glext_NV_framebuffer_multisample_coverage != 0 );
 #else
 	static bool csaaSupported = false;
 #endif

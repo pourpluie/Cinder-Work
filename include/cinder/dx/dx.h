@@ -31,8 +31,6 @@
 
 #include "cinder/Cinder.h"
 
-#include "cinder/gl/GLee.h"
-
 #include "cinder/Exception.h"
 #include "cinder/Quaternion.h"
 #include "cinder/Matrix.h"

@@ -180,12 +180,6 @@ void Fbo::init()
 {
 	//gl::SaveFramebufferBinding bindingSaver;
 	
-	static bool csaaSupported = ( GLEE_NV_framebuffer_multisample_coverage != 0 );
-	bool useCSAA = csaaSupported && ( mObj->mFormat.mCoverageSamples > mObj->mFormat.mSamples );
-	bool useMSAA = ( mObj->mFormat.mCoverageSamples > 0 ) || ( mObj->mFormat.mSamples > 0 );
-	if( useCSAA )
-		useMSAA = false;
-
 	HRESULT hr;
 	for(int c = 0; c < mObj->mFormat.mNumColorBuffers; ++c)
 	{
@@ -474,44 +468,6 @@ void Fbo::unbindFramebuffer()
 {
 	getDxRenderer()->mDeviceContext->OMSetRenderTargets(1, &getDxRenderer()->mMainFramebuffer, getDxRenderer()->mDepthStencilView);
 	//GL_SUFFIX(glBindFramebuffer)( GL_SUFFIX(GL_FRAMEBUFFER_), 0 );
-}
-
-bool Fbo::checkStatus( FboExceptionInvalidSpecification *resultExc )
-{
-	GLenum status;
-	status = (GLenum) GL_SUFFIX(glCheckFramebufferStatus)( GL_SUFFIX(GL_FRAMEBUFFER_) );
-	switch( status ) {
-		case GL_SUFFIX(GL_FRAMEBUFFER_COMPLETE_):
-		break;
-		case GL_SUFFIX(GL_FRAMEBUFFER_UNSUPPORTED_):
-			*resultExc = FboExceptionInvalidSpecification( "Unsupported framebuffer format" );
-		return false;
-		case GL_SUFFIX(GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_):
-			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: missing attachment" );
-		return false;
-		case GL_SUFFIX(GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_):
-			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: duplicate attachment" );
-		return false;
-		case GL_SUFFIX(GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_):
-			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: attached images must have same dimensions" );
-		return false;
-		case GL_SUFFIX(GL_FRAMEBUFFER_INCOMPLETE_FORMATS_):
-			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: attached images must have same format" );
-		return false;
-#if ! defined( CINDER_GLES )
-		case GL_SUFFIX(GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_):
-			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: missing draw buffer" );
-		return false;
-		case GL_SUFFIX(GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_):
-			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: missing read buffer" );
-		return false;
-#endif
-		default:
-			*resultExc = FboExceptionInvalidSpecification( "Framebuffer invalid: unknown reason" );
-		return false;
-    }
-	
-    return true;
 }
 
 GLint Fbo::getMaxSamples()

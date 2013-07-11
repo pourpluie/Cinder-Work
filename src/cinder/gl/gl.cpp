@@ -9,6 +9,10 @@
 #include "cinder/Utilities.h"
 #include <vector>
 
+#if defined( CINDER_MSW )
+	#include "glload/wgl_all.h"
+#endif
+
 using namespace std;
 
 namespace cinder { namespace gl {
@@ -20,6 +24,34 @@ Context* context()
 		sContext = Context::create();
 	}
 	return sContext.get();
+}
+
+void enableVerticalSync( bool enable )
+{
+#if defined( CINDER_MAC )
+	GLint sync = ( enable ) ? 1 : 0;
+	::CGLSetParameter( ::CGLGetCurrentContext(), kCGLCPSwapInterval, &sync );
+#elif defined( CINDER_MSW )
+	GLint sync = ( enable ) ? 1 : 0;
+	if( wglext_EXT_swap_control )
+		::wglSwapIntervalEXT( sync );
+#endif
+}
+
+bool isVerticalSyncEnabled()
+{
+#if defined( CINDER_MAC )
+	GLint enabled;
+	::CGLGetParameter( ::CGLGetCurrentContext(), kCGLCPSwapInterval, &enabled );
+	return enabled > 0;
+#elif defined( CINDER_MSW )
+	if( wglext_EXT_swap_control )
+		return ::wglGetSwapIntervalEXT() > 0;
+	else
+		return true;
+#else
+	return true;
+#endif
 }
 
 bool isExtensionAvailable( const std::string& extName )

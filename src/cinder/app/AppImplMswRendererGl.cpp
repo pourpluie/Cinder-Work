@@ -22,7 +22,9 @@
 */
 
 #include "cinder/app/AppImplMswRendererGl.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
+#include "glload/wgl_all.h"
 #include "cinder/app/App.h"
 #include "cinder/Camera.h"
 #include <windowsx.h>
@@ -156,7 +158,7 @@ HWND createDummyWindow( int *width, int *height, bool fullscreen )
 
 bool AppImplMswRendererGl::initialize( HWND wnd, HDC dc, RendererRef sharedRenderer )
 {
-	if( ( ! sMultisampleSupported ) && mRenderer->getAntiAliasing() ) {
+	if( ( ! sMultisampleSupported ) && mRenderer->getOptions().getAntiAliasing() ) {
 		// first create a dummy window and use it to determine if we can do antialiasing
 		int width = 640;
 		int height = 480;
@@ -236,9 +238,8 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 		return false;								
 	}
 
-	if( ( ! sMultisampleSupported ) && ( mRenderer->getAntiAliasing() > RendererGl::AA_NONE ) )  {
-		int level = initMultisample( pfd, mRenderer->getAntiAliasing(), dc );
-		mRenderer->setAntiAliasing( RendererGl::AA_NONE + level );
+	if( ( ! sMultisampleSupported ) && ( mRenderer->getOptions().getAntiAliasing() > RendererGl::AA_NONE ) )  {
+		int level = initMultisample( pfd, mRenderer->getOptions().getAntiAliasing(), dc );
 		if( level > 0 ) {
 			// kill the current context and relaunch
 			::wglMakeCurrent( NULL, NULL );
@@ -262,7 +263,7 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 int AppImplMswRendererGl::initMultisample( PIXELFORMATDESCRIPTOR pfd, int requestedLevelIdx, HDC dc )
 {
 	// this is an array that corresponds to AppSettings::AA_NONE through AA_MSAA_16
-	if( ( ! WGL_ARB_multisample ) || ( ! wglChoosePixelFormatARB ) ) {
+	if( ( ! wglext_ARB_multisample ) || ( ! wglChoosePixelFormatARB ) ) {
 		sMultisampleSupported = false;
 		return 0;
 	}

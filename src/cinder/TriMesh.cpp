@@ -1,4 +1,4 @@
-#include "TriMesh.h"
+#include "cinder/TriMesh.h"
 
 using std::vector;
 
