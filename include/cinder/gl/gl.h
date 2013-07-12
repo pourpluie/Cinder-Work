@@ -45,6 +45,9 @@ class Environment* env();
 void enableVerticalSync( bool enable = true );
 bool isVerticalSyncEnabled();
 bool isExtensionAvailable( const std::string &extName );
+//! Returns the OpenGL version number as a pair<major,minor>
+std::pair<GLint,GLint>	getVersion();
+std::string getVersionString();
 
 GlslProgRef	getStockShader( const class ShaderDef &shader );
 void setDefaultShaderUniforms();

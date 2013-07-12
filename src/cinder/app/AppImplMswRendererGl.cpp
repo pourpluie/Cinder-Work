@@ -25,6 +25,7 @@
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "glload/wgl_all.h"
+#include "glload/gl_load.h"
 #include "cinder/app/App.h"
 #include "cinder/Camera.h"
 #include <windowsx.h>
@@ -182,6 +183,27 @@ bool AppImplMswRendererGl::initialize( HWND wnd, HDC dc, RendererRef sharedRende
 	return initializeInternal( wnd, dc, sharedRC );
 }
 
+HGLRC createContext( HDC dc, bool coreProfile, int majorVersion, int minorVersion )
+{
+	HGLRC result = 0;
+
+	if( wglCreateContextAttribsARB ) {
+		int attribList[] =
+		{
+			WGL_CONTEXT_MAJOR_VERSION_ARB, majorVersion,
+			WGL_CONTEXT_MINOR_VERSION_ARB, minorVersion,
+			WGL_CONTEXT_PROFILE_MASK_ARB, (coreProfile) ? WGL_CONTEXT_CORE_PROFILE_BIT_ARB : WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+			0, 0
+		};
+ 
+		result = wglCreateContextAttribsARB( dc, 0, attribList );
+		return result;
+	}
+	else {
+		return wglCreateContext( dc );
+	}
+}
+
 bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC )
 {
 	int pixelFormat;
@@ -230,7 +252,8 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 		return false;								
 	}
 
-	if( ! ( mRC = ::wglCreateContext( dc ) ) )	{			// Are We Able To Get A Rendering Context?
+	if( ! ( mRC = createContext( dc, mRenderer->getOptions().getCoreProfile(),
+			mRenderer->getOptions().getVersion().first, mRenderer->getOptions().getVersion().second ) ) )	{			// Are We Able To Get A Rendering Context?
 		return false;								
 	}
 

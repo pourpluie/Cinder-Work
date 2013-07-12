@@ -29,6 +29,9 @@ class FBOBasicApp : public AppNative {
 
 void FBOBasicApp::setup()
 {
+auto v = gl::getVersion();
+console() << v.first << " " << v.second << std::endl;
+console() << "VS: " << gl::getVersionString() << std::endl;
 	gl::Fbo::Format format;
 	//format.setSamples( 4 ); // uncomment this to enable 4x antialiasing
 	mFbo = gl::Fbo::create( FBO_WIDTH, FBO_HEIGHT, format );
@@ -110,5 +113,5 @@ void FBOBasicApp::draw()
 #endif
 }
 
-auto renderOptions = RendererGl::Options().coreProfile( false );
+auto renderOptions = RendererGl::Options().coreProfile( false ).version( 4, 1 );
 CINDER_APP_NATIVE( FBOBasicApp, RendererGl( renderOptions ) )

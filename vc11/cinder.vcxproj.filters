@@ -1058,6 +1058,9 @@
     <ClInclude Include="..\include\cinder\gl\VboMesh.h">
       <Filter>Header Files\gl</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cinder\app\RendererGl.h">
+      <Filter>Header Files\app</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\jsoncpp\json_internalarray.inl">

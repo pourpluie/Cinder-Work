@@ -246,6 +246,7 @@
     <ClInclude Include="..\include\cinder\app\AppNative.h" />
     <ClInclude Include="..\include\cinder\app\Event.h" />
     <ClInclude Include="..\include\cinder\app\RendererDx.h" />
+    <ClInclude Include="..\include\cinder\app\RendererGl.h" />
     <ClInclude Include="..\include\cinder\app\ResizeEvent.h" />
     <ClInclude Include="..\include\cinder\app\Window.h" />
     <ClInclude Include="..\include\cinder\audio\OutputImplXAudio.h" />

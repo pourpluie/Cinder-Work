@@ -82,6 +82,22 @@ bool isExtensionAvailable( const std::string& extName )
 	}
 }
 
+std::pair<GLint,GLint> getVersion()
+{
+	GLint major, minor;
+	glGetIntegerv( GL_MAJOR_VERSION, &major );
+	glGetIntegerv( GL_MINOR_VERSION, &minor );
+
+	return std::make_pair( major, minor );
+}
+
+std::string getVersionString()
+{
+	const GLubyte* s = glGetString( GL_VERSION );
+
+	return std::string( reinterpret_cast<const char*>( s ) );
+}
+
 GlslProgRef	getStockShader( const class ShaderDef &shader )
 {
 	return context()->getStockShader( shader );
