@@ -34,6 +34,8 @@ namespace cinder { namespace app {
 
 bool sMultisampleSupported = false;
 int sArbMultisampleFormat;
+typedef HGLRC (__stdcall * PFNWGLCREATECONTEXTATTRIBSARB) (HDC hDC, HGLRC hShareContext, const int *attribList);
+
 
 AppImplMswRendererGl::AppImplMswRendererGl( App *aApp, RendererGl *aRenderer )
 	: AppImplMswRenderer( aApp ), mRenderer( aRenderer )
@@ -65,15 +67,7 @@ void AppImplMswRendererGl::defaultResize() const
 	int height = clientRect.bottom - clientRect.top;
 
 	glViewport( 0, 0, width, height );
-	cinder::CameraPersp cam( width, height, 60.0f );
-
-	glMatrixMode( GL_PROJECTION );
-	glLoadMatrixf( cam.getProjectionMatrix().m );
-
-	glMatrixMode( GL_MODELVIEW );
-	glLoadMatrixf( cam.getModelViewMatrix().m );
-	glScalef( 1.0f, -1.0f, 1.0f );           // invert Y axis so increasing Y goes down.
-	glTranslatef( 0.0f, (float)-height, 0.0f );       // shift origin up to upper-left corner.
+	gl::setMatricesWindowPersp( width, height );
 }
 
 void AppImplMswRendererGl::swapBuffers() const
@@ -183,26 +177,57 @@ bool AppImplMswRendererGl::initialize( HWND wnd, HDC dc, RendererRef sharedRende
 	return initializeInternal( wnd, dc, sharedRC );
 }
 
+// We can't use the normal mechanism for this test because we don't have a context yet
+namespace {
+bool getCreateContextAttribsPtr( HDC dc, PFNWGLCREATECONTEXTATTRIBSARB *resultFnPtr )
+{
+	static PFNWGLCREATECONTEXTATTRIBSARB cachedFnPtr = NULL;
+	if( ! cachedFnPtr ) {
+		auto temp = ::wglCreateContext( dc ); 
+		::wglMakeCurrent( dc, temp ); 
+
+		cachedFnPtr = (PFNWGLCREATECONTEXTATTRIBSARB)::wglGetProcAddress( "wglCreateContextAttribsARB" );
+		*resultFnPtr = cachedFnPtr;
+		::wglMakeCurrent( NULL, NULL );
+		::wglDeleteContext( temp );
+		if( cachedFnPtr == NULL ) { 
+			return false;
+		}
+		else
+			return true;
+	}
+	else {
+		*resultFnPtr = cachedFnPtr;
+		return cachedFnPtr != NULL;
+	}
+}
+
 HGLRC createContext( HDC dc, bool coreProfile, int majorVersion, int minorVersion )
 {
 	HGLRC result = 0;
+	static bool initializedLoadOGL = false;
 
-	if( wglCreateContextAttribsARB ) {
-		int attribList[] =
-		{
+	bool needsCreateContextAttribsARB = false;
+	if( coreProfile || majorVersion > 2 )
+		needsCreateContextAttribsARB = true;
+
+	PFNWGLCREATECONTEXTATTRIBSARB wglCreateContextAttribsARBPtr = NULL;
+	if( needsCreateContextAttribsARB && getCreateContextAttribsPtr( dc, &wglCreateContextAttribsARBPtr ) ) {
+		int attribList[] = {
 			WGL_CONTEXT_MAJOR_VERSION_ARB, majorVersion,
 			WGL_CONTEXT_MINOR_VERSION_ARB, minorVersion,
 			WGL_CONTEXT_PROFILE_MASK_ARB, (coreProfile) ? WGL_CONTEXT_CORE_PROFILE_BIT_ARB : WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
 			0, 0
 		};
  
-		result = wglCreateContextAttribsARB( dc, 0, attribList );
+		result = (*wglCreateContextAttribsARBPtr)( dc, 0, attribList );
 		return result;
 	}
 	else {
-		return wglCreateContext( dc );
+		return ::wglCreateContext( dc );
 	}
 }
+} // anonymous namespace
 
 bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC )
 {
@@ -259,6 +284,12 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 
 	if( ! ::wglMakeCurrent( dc, mRC ) ){					// Try To Activate The Rendering Context
 		return false;								
+	}
+
+	static bool oglLoadCalled = false;
+	if( ! oglLoadCalled ) {
+		oglLoadCalled = true;
+		ogl_LoadFunctions();
 	}
 
 	if( ( ! sMultisampleSupported ) && ( mRenderer->getOptions().getAntiAliasing() > RendererGl::AA_NONE ) )  {
