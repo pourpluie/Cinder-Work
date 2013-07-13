@@ -9,13 +9,15 @@ class ShaderDef {
   public:
 	ShaderDef();
 	
-	ShaderDef&		texture();
+	ShaderDef&		texture( const TextureRef &tex = TextureRef() );
 	ShaderDef&		solidColor();
 
 	bool operator<( const ShaderDef &rhs ) const;
 	
   protected:
 	bool			mTextureMapping;
+	bool			mTextureMappingRectangleArb;
+	
 	bool			mSolidColor;
 	
 	friend class EnvironmentCoreProfile;

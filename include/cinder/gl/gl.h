@@ -11,6 +11,8 @@
 	#define CINDER_GLES2
 #endif
 
+#include "cinder/gl/Texture.h"
+
 #include "cinder/Area.h"
 #include "cinder/Rect.h"
 #include "cinder/Exception.h"
@@ -139,7 +141,6 @@ void polygonMode( GLenum face, GLenum mode );
 #endif
 
 void draw( const VboMeshRef &mesh );
-void draw( const TextureRef &texture, const Vec2f &offset = Vec2f::zero() );
 void draw( const TextureRef &texture, const Rectf &rect );
 void drawRange( const VboMeshRef& mesh, GLint start = 0, GLsizei count = 0 );
 void draw( const VboRef &vbo );

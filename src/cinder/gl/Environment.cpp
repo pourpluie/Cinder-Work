@@ -194,9 +194,12 @@ std::string	EnvironmentCoreProfile::generateFragmentShader( const ShaderDef &sha
 		s +=	"uniform vec4		uColor;\n";
 	}
 
-	if( shader.mTextureMapping ) {	
-		s +=	"uniform sampler2D uTex0;\n"
-				"in vec2	TexCoord;\n"
+	if( shader.mTextureMapping ) {
+		if( shader.mTextureMappingRectangleArb )
+			s +="uniform sampler2DRect uTex0;\n";
+		else
+			s +="uniform sampler2D uTex0;\n";
+		s	+=	"in vec2	TexCoord;\n";
 				;
 	}
 
@@ -206,7 +209,7 @@ std::string	EnvironmentCoreProfile::generateFragmentShader( const ShaderDef &sha
 	
 	if( shader.mTextureMapping ) {
 		s +=	"oColor.rgb = texture( uTex0, TexCoord.st ).rgb;\n"
-				"oColor.a = 1.0;\n"
+				"oColor.a = 1.0;\n";
 				;
 	}
 	else if( shader.mSolidColor ) {
@@ -288,8 +291,11 @@ std::string	EnvironmentCompatibilityProfile::generateFragmentShader( const Shade
 	}
 
 	if( shader.mTextureMapping ) {	
-		s +=	"uniform sampler2D uTex0;\n"
-				"varying vec2	TexCoord;\n"
+		if( shader.mTextureMappingRectangleArb )
+			s +="uniform sampler2DRect uTex0;\n";
+		else
+			s +="uniform sampler2D uTex0;\n";
+		s	+=	"varying vec2	TexCoord;\n"
 				;
 	}
 
@@ -298,8 +304,11 @@ std::string	EnvironmentCompatibilityProfile::generateFragmentShader( const Shade
 				;
 	
 	if( shader.mTextureMapping ) {
-		s +=	"gl_FragColor.rgb = texture2D( uTex0, TexCoord.st ).rgb;\n"
-				"gl_FragColor.a = 1.0;\n"
+		if( shader.mTextureMappingRectangleArb )
+			s +="gl_FragColor.rgb = texture2DRect( uTex0, TexCoord.st ).rgb;\n";
+		else
+			s +="gl_FragColor.rgb = texture2D( uTex0, TexCoord.st ).rgb;\n";
+		s	+=  "gl_FragColor.a = 1.0;\n"
 				;
 	}
 	else if( shader.mSolidColor ) {
