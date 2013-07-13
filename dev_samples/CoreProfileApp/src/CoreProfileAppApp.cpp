@@ -11,6 +11,7 @@
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/VboMesh.h"
 #include "cinder/Utilities.h"
+#include "cinder/ImageIo.h"
 
 #include "Resources.h"
 
