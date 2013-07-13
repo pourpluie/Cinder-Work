@@ -84,11 +84,16 @@ bool isExtensionAvailable( const std::string& extName )
 
 std::pair<GLint,GLint> getVersion()
 {
+	//hard-coded for now
+#if defined( CINDER_GLES )
+	return std::make_pair( (GLint)2, (GLint)0 );
+#else
 	GLint major, minor;
 	glGetIntegerv( GL_MAJOR_VERSION, &major );
 	glGetIntegerv( GL_MINOR_VERSION, &minor );
 
 	return std::make_pair( major, minor );
+#endif
 }
 
 std::string getVersionString()

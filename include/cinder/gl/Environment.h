@@ -43,7 +43,7 @@ class Environment {
   #if ! defined( CINDER_GLES )
   	static bool				isCoreProfile() { return sCoreProfile; }
 	//! Must be called before a call to gl::env()
-	static bool				setCoreProfile( bool enable = true ) { sCoreProfile = enable; }
+	static void				setCoreProfile( bool enable = true ) { sCoreProfile = enable; }
   
   protected:
 	static bool				sCoreProfile;
