@@ -49,6 +49,9 @@ class Context {
 	void		unbindShader();
 	GlslProgRef	getCurrentShader();
 
+	void		activeTexture( GLenum textureUnit );
+	GLenum		getActiveTexture();
+
 	void		bindFramebuffer( const FboRef &fbo );
 	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
 	void		bindFramebuffer( GLenum target, GLuint framebuffer );
@@ -113,6 +116,7 @@ class Context {
 	
 	std::map<GLenum,GLboolean>	mCachedStateBoolean;
 	std::map<GLenum,GLint>		mCachedStateInt;
+	GLint						mCachedActiveTexture;
 	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
 	
 	VaoRef						mDefaultVao;	
@@ -134,7 +138,6 @@ class Context {
 	std::vector<Light>			mLights;
 	Material					mMaterial;
 	bool						mMaterialEnabled;
-	int							mTextureUnit;
 	
 	VaoRef						mImmVao; // Immediate-mode VAO
 	VboRef						mImmVbo; // Immediate-mode VBO
@@ -284,6 +287,25 @@ struct FramebufferScope : public boost::noncopyable
 #else
 	GLuint		mPrevReadFramebuffer, mPrevDrawFramebuffer;
 #endif
+};
+
+struct ActiveTextureScope : public boost::noncopyable
+{
+	ActiveTextureScope( GLenum texture )
+		: mCtx( gl::context() )
+	{
+		mPrevValue = mCtx->getActiveTexture();
+		mCtx->activeTexture( texture );
+	}
+	
+	~ActiveTextureScope()
+	{
+		mCtx->activeTexture( mPrevValue );
+	}
+	
+  private:
+	Context		*mCtx;
+	GLenum		mPrevValue;
 };
 
 } } // namespace cinder::gl

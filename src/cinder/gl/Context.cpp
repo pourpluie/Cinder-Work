@@ -33,7 +33,7 @@ using namespace std;
 Context::Context()
 	: mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
-	mTextureUnit( -1 ), mWireframe( false )
+	mCachedActiveTexture( 0 ), mWireframe( false )
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	,mCachedFramebuffer( -1 )
 #else
@@ -154,6 +154,22 @@ GlslProgRef Context::getCurrentShader()
 {
 	return mCachedGlslProg;
 }
+
+//////////////////////////////////////////////////////////////////
+// ActiveTexture
+void Context::activeTexture( GLenum textureUnit )
+{
+	if( mCachedActiveTexture != textureUnit ) {
+		mCachedActiveTexture = textureUnit;
+		glActiveTexture( textureUnit );
+	}
+}
+
+GLenum Context::getActiveTexture()
+{
+	return mCachedActiveTexture;
+}
+
 
 //////////////////////////////////////////////////////////////////
 // Framebuffers

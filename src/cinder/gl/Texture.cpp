@@ -639,24 +639,19 @@ float Texture::getMaxV() const
 
 void Texture::bind( GLuint textureUnit ) const
 {
-	gl::context()->mTextureUnit = (int)textureUnit;
-	glActiveTexture( GL_TEXTURE0 + textureUnit );
+	ActiveTextureScope activeTextureScope( textureUnit );
 	glBindTexture( mTarget, mTextureID );
-	glActiveTexture( GL_TEXTURE0 );
 }
 
 void Texture::unbind( GLuint textureUnit ) const
 {
-	gl::context()->mTextureUnit = -1;
-	glActiveTexture( GL_TEXTURE0 + textureUnit );
+	ActiveTextureScope activeTextureScope( textureUnit );
 	glBindTexture( mTarget, 0 );
-	glActiveTexture( GL_TEXTURE0 );
 }
 
 void Texture::enableAndBind() const
 {
 	auto ctx = gl::context();
-	ctx->mTextureUnit = mTextureID;
 	ctx->enable( mTarget );
 	glBindTexture( mTarget, mTextureID );
 }
