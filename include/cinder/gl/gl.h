@@ -23,7 +23,7 @@
 namespace cinder { namespace gl {
 
 enum UniformSemantic {
-	UNIFORM_MODELVIEWPROJECTION, UNIFORM_COLOR
+	UNIFORM_MODELVIEWPROJECTION
 };
 
 enum AttribSemantic {

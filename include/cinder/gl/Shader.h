@@ -8,9 +8,9 @@ namespace cinder { namespace gl {
 class ShaderDef {
   public:
 	ShaderDef();
-	
+
+	ShaderDef&		color();	
 	ShaderDef&		texture( const TextureRef &tex = TextureRef() );
-	ShaderDef&		solidColor();
 
 	bool operator<( const ShaderDef &rhs ) const;
 	
@@ -18,7 +18,7 @@ class ShaderDef {
 	bool			mTextureMapping;
 	bool			mTextureMappingRectangleArb;
 	
-	bool			mSolidColor;
+	bool			mColor;
 	
 	friend class EnvironmentCoreProfile;
 	friend class EnvironmentCompatibilityProfile;

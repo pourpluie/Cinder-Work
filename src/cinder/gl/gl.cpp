@@ -126,9 +126,19 @@ void setDefaultShaderUniforms()
 				case UNIFORM_MODELVIEWPROJECTION:
 					glslProg->uniform( unifIt->first, gl::getProjection() * gl::getModelView() );
 				break;
-				case UNIFORM_COLOR:
-					glslProg->uniform( unifIt->first, ctx->getCurrentColor() );
+			}
+		}
+		
+		auto attribs = glslProg->getAttribSemantics();
+		for( auto attribIt = attribs.begin(); attribIt != attribs.end(); ++attribIt ) {
+			switch( attribIt->second ) {
+				case ATTRIB_COLOR: {
+					ColorA c = ctx->getCurrentColor();
+					gl::vertexAttrib4f( glslProg->getAttribLocation( attribIt->first ), c.r, c.g, c.b, c.a );
+				}
 				break;
+				default:
+					;
 			}
 		}
 	}

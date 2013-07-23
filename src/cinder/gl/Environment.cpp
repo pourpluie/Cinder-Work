@@ -66,18 +66,23 @@ std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )
 				"varying highp vec2	TexCoord;\n"
 				;
 	}
-	if( shader.mSolidColor ) {
-		s +=	"uniform vec4		uColor;\n"
+	if( shader.mColor ) {
+		s +=	"attribute vec4		vColor;\n"
+				"varying vec4		Color;\n"
 				;
 	}
 
 	s +=		"void main( void )\n"
 				"{\n"
-				"gl_Position	= uModelViewProjection * vPosition;\n"
+				"	gl_Position	= uModelViewProjection * vPosition;\n"
 				;
 				
 	if( shader.mTextureMapping ) {	
-		s +=	"TexCoord	= vTexCoord0;\n"
+		s +=	"	TexCoord = vTexCoord0;\n"
+				;
+	}
+	if( shader.mColor ) {
+		s +=	"	Color = vColor;\n"
 				;
 	}
 	
@@ -94,12 +99,12 @@ std::string	EnvironmentEs2::generateFragmentShader( const ShaderDef &shader )
 				;
 
 	if( shader.mTextureMapping ) {	
-		s +=	"uniform sampler2D uTex0;\n"
+		s +=	"uniform sampler2D	uTex0;\n"
 				"varying highp vec2	TexCoord;\n"
 				;
 	}
-	if( shader.mSolidColor ) {
-		s +=	"uniform vec4		uColor;\n"
+	if( shader.mColor ) {
+		s +=	"varying lowp vec4	Color;\n"
 				;
 	}
 
@@ -107,13 +112,16 @@ std::string	EnvironmentEs2::generateFragmentShader( const ShaderDef &shader )
 				"{\n"
 				;
 	
-	if( shader.mTextureMapping ) {
-		s +=	"gl_FragColor.rgb = texture2D( uTex0, TexCoord.st ).rgb;\n"
-				"gl_FragColor.a = 1.0;\n"
+	if( shader.mTextureMapping && shader.mColor ) {
+		s +=	"	gl_FragColor = texture2D( uTex0, TexCoord.st ) * Color;\n"
 				;
 	}
-	else if( shader.mSolidColor ) {
-		s +=	"gl_FragColor = vec4( 1.0, 0.5, 0.25, 1 );\n"
+	else if( shader.mTextureMapping ) {
+		s +=	"	gl_FragColor = texture2D( uTex0, TexCoord.st );\n"
+				;
+	}
+	else if( shader.mColor ) {
+		s +=	"	gl_FragColor = Color;\n"
 				;
 	}
 	
@@ -159,20 +167,28 @@ std::string	EnvironmentCoreProfile::generateVertexShader( const ShaderDef &shade
 				"\n"
 				"in vec4		vPosition;\n"
 				;
-			
+	
 	if( shader.mTextureMapping ) {
 		s +=	"in vec2		vTexCoord0;\n"
 				"out highp vec2	TexCoord;\n"
 				;
 	}
+	if( shader.mColor ) {
+		s +=	"in vec4		vColor;\n"
+				"out lowp vec4	Color;\n"
+				;
+	}
 
 	s +=		"void main( void )\n"
 				"{\n"
-				"gl_Position	= uModelViewProjection * vPosition;\n"
+				"	gl_Position	= uModelViewProjection * vPosition;\n"
 				;
-				
+	if( shader.mColor ) {
+		s +=	"	Color = vColor;\n"
+				;
+	}
 	if( shader.mTextureMapping ) {	
-		s +=	"TexCoord	= vTexCoord0;\n"
+		s +=	"	TexCoord	= vTexCoord0;\n"
 				;
 	}
 	
@@ -190,8 +206,8 @@ std::string	EnvironmentCoreProfile::generateFragmentShader( const ShaderDef &sha
 				"out vec4 oColor;\n"
 				;
 
-	if( shader.mSolidColor ) {
-		s +=	"uniform vec4		uColor;\n";
+	if( shader.mColor ) {
+		s +=	"in vec4		Color;\n";
 	}
 
 	if( shader.mTextureMapping ) {
@@ -207,13 +223,16 @@ std::string	EnvironmentCoreProfile::generateFragmentShader( const ShaderDef &sha
 				"{\n"
 				;
 	
-	if( shader.mTextureMapping ) {
-		s +=	"oColor.rgb = texture( uTex0, TexCoord.st ).rgb;\n"
-				"oColor.a = 1.0;\n";
+	if( shader.mTextureMapping && shader.mColor ) {
+		s +=	"	oColor = texture( uTex0, TexCoord.st ) * Color;\n"
 				;
 	}
-	else if( shader.mSolidColor ) {
-		s +=	"oColor.rgba = uColor;\n"
+	else if( shader.mTextureMapping ) {
+		s +=	"	oColor = texture( uTex0, TexCoord.st );\n"
+				;
+	}
+	else if( shader.mColor ) {
+		s +=	"	oColor = Color;\n"
 				;
 	}
 	
@@ -254,22 +273,33 @@ std::string	EnvironmentCompatibilityProfile::generateVertexShader( const ShaderD
 				"\n"
 				"uniform mat4	uModelViewProjection;\n"
 				"\n"
-				"attribute vec4		vPosition;\n"
+				"attribute vec4	vPosition;\n"
 				;
 			
 	if( shader.mTextureMapping ) {
-		s +=	"attribute vec2		vTexCoord0;\n"
+		s +=	"attribute vec2	vTexCoord0;\n"
 				"varying vec2	TexCoord;\n"
+				;
+	}
+
+	if( shader.mColor ) {
+		s +=	"attribute vec4 vColor;\n"
+				"varying vec4 Color;\n"
 				;
 	}
 
 	s +=		"void main( void )\n"
 				"{\n"
-				"gl_Position	= uModelViewProjection * vPosition;\n"
+				"	gl_Position	= uModelViewProjection * vPosition;\n"
 				;
 				
 	if( shader.mTextureMapping ) {	
-		s +=	"TexCoord	= vTexCoord0;\n"
+		s +=	"	TexCoord = vTexCoord0;\n"
+				;
+	}
+	
+	if( shader.mColor ) {
+		s +=	"	Color = vColor;\n"
 				;
 	}
 	
@@ -286,16 +316,16 @@ std::string	EnvironmentCompatibilityProfile::generateFragmentShader( const Shade
 				"\n"
 				;
 
-	if( shader.mSolidColor ) {
-		s +=	"uniform vec4		uColor;\n";
+	if( shader.mColor ) {
+		s +=	"varying vec4		Color;\n";
 	}
 
 	if( shader.mTextureMapping ) {	
 		if( shader.mTextureMappingRectangleArb )
 			s +="uniform sampler2DRect uTex0;\n";
 		else
-			s +="uniform sampler2D uTex0;\n";
-		s	+=	"varying vec2	TexCoord;\n"
+			s +="uniform sampler2D	uTex0;\n";
+		s	+=	"varying vec2		TexCoord;\n"
 				;
 	}
 
@@ -303,16 +333,21 @@ std::string	EnvironmentCompatibilityProfile::generateFragmentShader( const Shade
 				"{\n"
 				;
 	
-	if( shader.mTextureMapping ) {
+	if( shader.mColor && shader.mTextureMapping ) {
 		if( shader.mTextureMappingRectangleArb )
-			s +="gl_FragColor.rgb = texture2DRect( uTex0, TexCoord.st ).rgb;\n";
+			s +="	gl_FragColor = texture2DRect( uTex0, TexCoord.st ) * Color;\n";
 		else
-			s +="gl_FragColor.rgb = texture2D( uTex0, TexCoord.st ).rgb;\n";
-		s	+=  "gl_FragColor.a = 1.0;\n"
+			s +="	gl_FragColor = texture2D( uTex0, TexCoord.st ) * Color;\n";
+	}
+	else if( shader.mTextureMapping ) {
+		if( shader.mTextureMappingRectangleArb )
+			s +="	gl_FragColor = texture2DRect( uTex0, TexCoord.st );\n";
+		else
+			s +="	gl_FragColor = texture2D( uTex0, TexCoord.st );\n";
 				;
 	}
-	else if( shader.mSolidColor ) {
-		s +=	"gl_FragColor.rgba = uColor;\n"
+	else if( shader.mColor ) {
+		s +=	"	gl_FragColor = Color;\n"
 				;
 	}
 	

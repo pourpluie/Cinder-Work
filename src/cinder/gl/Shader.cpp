@@ -9,7 +9,7 @@ using namespace std;
 namespace cinder { namespace gl {
 
 ShaderDef::ShaderDef()
-	: mTextureMapping( false ), mTextureMappingRectangleArb( false ), mSolidColor( false )
+	: mTextureMapping( false ), mTextureMappingRectangleArb( false ), mColor( false )
 {
 }
 
@@ -23,12 +23,11 @@ ShaderDef& ShaderDef::texture( const TextureRef &texture )
 	return *this;
 }
 
-ShaderDef& ShaderDef::solidColor()
+ShaderDef& ShaderDef::color()
 {
-	mSolidColor = true;
+	mColor = true;
 	return *this;
 }
-
 
 bool ShaderDef::operator<( const ShaderDef &rhs ) const
 {
@@ -38,8 +37,8 @@ bool ShaderDef::operator<( const ShaderDef &rhs ) const
 	if( rhs.mTextureMappingRectangleArb != mTextureMappingRectangleArb )
 		return rhs.mTextureMappingRectangleArb;
 #endif		
-	if( rhs.mSolidColor != mSolidColor )
-		return rhs.mSolidColor;
+	if( rhs.mColor != mColor )
+		return rhs.mColor;
 	
 	return false;
 }

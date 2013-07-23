@@ -85,7 +85,6 @@ GlslProg::UniformSemanticMap& GlslProg::getDefaultUniformNameToSemanticMap()
 	static bool initialized = false;
 	if( ! initialized ) {
 		sDefaultUniformNameToSemanticMap["uModelViewProjection"] = UNIFORM_MODELVIEWPROJECTION;
-		sDefaultUniformNameToSemanticMap["uColor"] = UNIFORM_COLOR;
 		initialized = true;
 	}
 	
