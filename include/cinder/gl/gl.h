@@ -52,6 +52,7 @@ std::pair<GLint,GLint>	getVersion();
 std::string getVersionString();
 
 GlslProgRef	getStockShader( const class ShaderDef &shader );
+void bindStockShader( const class ShaderDef &shader );
 void setDefaultShaderUniforms();
 
 void clear( const ColorA &color = ColorA::black(), bool clearDepthBuffer = true );

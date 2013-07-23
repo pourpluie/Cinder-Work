@@ -108,6 +108,13 @@ GlslProgRef	getStockShader( const class ShaderDef &shader )
 	return context()->getStockShader( shader );
 }
 
+void bindStockShader( const class ShaderDef &shaderDef )
+{
+	auto ctx = gl::context();
+	auto shader = ctx->getStockShader( shaderDef );
+	ctx->bindShader( shader );
+}
+
 void setDefaultShaderUniforms()
 {
 	auto ctx = gl::context();

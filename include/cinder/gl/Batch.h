@@ -36,15 +36,18 @@ class Batch {
   public:
 };
 
+//! Cannot be shared across contexts
 class VertBatch {
   public:
 
 	VertBatch( GLenum type = GL_POINTS );
 	
 	void	color( const Colorf &color );
+	void	color( float r, float g, float b, float a = 1.0f );
 	void	color( const ColorAf &color );
 	void	normal( const Vec3f &n );
 	void	vertex( const Vec3f &v );
+	void	vertex( float x, float y, float z = 0, float w = 1 );
 	void	texCoord( const Vec2f &t );
 	void	texCoord( const Vec3f &t );
 	void	texCoord( const Vec4f &t );	
