@@ -181,21 +181,21 @@ void VertBatch::setupBuffers()
 		offset += verticesSizeBytes;
 	}
 
-	if( shader->hasAttribSemantic( ATTRIB_NORMAL ) ) {
+	if( shader->hasAttribSemantic( ATTRIB_NORMAL ) && ( ! mNormals.empty() ) ) {
 		int loc = shader->getAttribSemanticLocation( ATTRIB_NORMAL );
 		ctx->enableVertexAttribArray( loc );
 		ctx->vertexAttribPointer( loc, 3, GL_FLOAT, false, 0, (const GLvoid*)offset );
 		offset += normalsSizeBytes;
 	}
 
-	if( shader->hasAttribSemantic( ATTRIB_COLOR ) ) {
+	if( shader->hasAttribSemantic( ATTRIB_COLOR ) && ( ! mColors.empty() ) ) {
 		int loc = shader->getAttribSemanticLocation( ATTRIB_COLOR );
 		ctx->enableVertexAttribArray( loc );
 		ctx->vertexAttribPointer( loc, 4, GL_FLOAT, false, 0, (const GLvoid*)offset );
 		offset += colorsSizeBytes;
 	}
 
-	if( shader->hasAttribSemantic( ATTRIB_TEX_COORD_0 ) ) {
+	if( shader->hasAttribSemantic( ATTRIB_TEX_COORD_0 ) && ( ! mTexCoords.empty() ) ) {
 		int loc = shader->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
 		ctx->enableVertexAttribArray( loc );
 		ctx->vertexAttribPointer( loc, 4, GL_FLOAT, false, 0, (const GLvoid*)offset );
