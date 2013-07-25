@@ -40,6 +40,8 @@ class BufferObj;
 typedef std::shared_ptr<BufferObj>	BufferObjRef;
 class GlslProg;
 typedef std::shared_ptr<GlslProg>	GlslProgRef;
+class Vao;
+typedef std::shared_ptr<Vao>		VaoRef;
 
 class Context* context();
 class Environment* env();
@@ -54,6 +56,7 @@ std::string getVersionString();
 GlslProgRef	getStockShader( const class ShaderDef &shader );
 void bindStockShader( const class ShaderDef &shader );
 void setDefaultShaderUniforms();
+void setDefaultShaderVars( const VaoRef &vao );
 
 void clear( const ColorA &color = ColorA::black(), bool clearDepthBuffer = true );
 

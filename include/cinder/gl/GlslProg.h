@@ -41,9 +41,31 @@ typedef std::shared_ptr<class GlslProg> GlslProgRef;
 
 class GlslProg : public std::enable_shared_from_this<GlslProg> {
   public:
-	typedef std::map<std::string,UniformSemantic>	UniformSemanticMap;
-	typedef std::map<std::string,AttribSemantic>		AttribSemanticMap;
+	struct Format {
+		Format();
+		
+		Format&		vertex( const DataSourceRef &dataSource );
+		Format&		vertex( const char *vertexShader );
+		Format&		fragment( const DataSourceRef &dataSource );
+		Format&		fragment( const char *vertexShader );
+		
+		Format&		attribLocation( const std::string &attribName, GLint location );
+
+		const char *	getVertex() const { return mVertexShader.get(); }		
+		const char *	getFragment() const { return mFragmentShader.get(); }
+		
+		const std::map<std::string,GLint>&	getAttribLocations() const { return mAttribLocMap; }
+		
+	  protected:
+		std::shared_ptr<char>			mVertexShader;
+		std::shared_ptr<char>			mFragmentShader;
+		std::map<std::string,GLint>		mAttribLocMap;
+	};
   
+	typedef std::map<std::string,UniformSemantic>	UniformSemanticMap;
+	typedef std::map<std::string,AttribSemantic>	AttribSemanticMap;
+
+	static GlslProgRef create( const Format &format );  
 	static GlslProgRef create( DataSourceRef vertexShader, DataSourceRef fragmentShader = DataSourceRef() );
 	static GlslProgRef create( const char *vertexShader, const char *fragmentShader = 0 );
 	
@@ -88,15 +110,13 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	//! Default mapping from attribute name to semantic. Can be modified via the reference. Not thread-safe.
 	static AttribSemanticMap&		getDefaultAttribNameToSemanticMap();
 	
-	void	bindAttribLocation( const std::string &name, GLuint index );
 	GLint	getAttribLocation( const std::string &name ) const;
 	GLint	getUniformLocation( const std::string &name ) const;
 	
 	std::string		getShaderLog( GLuint handle ) const;
 
   protected:
-	GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader = DataSourceRef() );
-	GlslProg( const char *vertexShader, const char *fragmentShader = 0 );
+	GlslProg( const Format &format );
 	
 	void			loadShader( Buffer shaderSourceBuffer, GLint shaderType );
 	void			loadShader( const char *shaderSource, GLint shaderType );

@@ -30,14 +30,68 @@ namespace cinder { namespace gl {
 GlslProg::UniformSemanticMap	GlslProg::sDefaultUniformNameToSemanticMap;
 GlslProg::AttribSemanticMap		GlslProg::sDefaultAttribNameToSemanticMap;
 
+//////////////////////////////////////////////////////////////////////////
+// GlslProg::Format
+GlslProg::Format::Format()
+{
+}
+
+GlslProg::Format& GlslProg::Format::vertex( const DataSourceRef &dataSource )
+{
+	Buffer buffer( dataSource );
+	mVertexShader = std::shared_ptr<char>( (char*)malloc( buffer.getDataSize() + 1 ), free );
+	memcpy( mVertexShader.get(), buffer.getData(), buffer.getDataSize() );
+	mVertexShader.get()[buffer.getDataSize()] = 0;
+	return *this;
+}
+
+GlslProg::Format& GlslProg::Format::vertex( const char *vertexShader )
+{
+	const size_t stringSize = strlen( vertexShader );
+	mVertexShader = std::shared_ptr<char>( (char*)malloc( stringSize + 1 ), free );
+	strcpy( mVertexShader.get(), vertexShader );
+	return *this;
+}
+
+GlslProg::Format& GlslProg::Format::fragment( const DataSourceRef &dataSource )
+{
+	Buffer buffer( dataSource );
+	mFragmentShader = std::shared_ptr<char>( (char*)malloc( buffer.getDataSize() + 1 ), free );
+	memcpy( mFragmentShader.get(), buffer.getData(), buffer.getDataSize() );
+	mFragmentShader.get()[buffer.getDataSize()] = 0;
+	return *this;
+}
+
+GlslProg::Format& GlslProg::Format::fragment( const char *fragmentShader )
+{
+	const size_t stringSize = strlen( fragmentShader );
+	mFragmentShader = std::shared_ptr<char>( (char*)malloc( stringSize + 1 ), free );
+	strcpy( mFragmentShader.get(), fragmentShader );
+	return *this;
+}
+
+GlslProg::Format&	GlslProg::Format::attribLocation( const std::string &attribName, GLint location )
+{
+	mAttribLocMap[attribName] = location;
+	return *this;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// GlslProg statics
+
+GlslProgRef GlslProg::create( const Format &format )
+{
+	return GlslProgRef( new GlslProg( format ) );
+}
+
 GlslProgRef GlslProg::create( DataSourceRef vertexShader, DataSourceRef fragmentShader )
 {
-	return GlslProgRef( new GlslProg( vertexShader, fragmentShader ) );
+	return GlslProgRef( new GlslProg( GlslProg::Format().vertex( vertexShader ).fragment( fragmentShader ) ) );
 }
 
 GlslProgRef GlslProg::create( const char *vertexShader, const char *fragmentShader )
 {
-	return GlslProgRef( new GlslProg( vertexShader, fragmentShader ) );
+	return GlslProgRef( new GlslProg( GlslProg::Format().vertex( vertexShader ).fragment( fragmentShader ) ) );
 }
 	
 GlslProg::~GlslProg()
@@ -50,32 +104,20 @@ GlslProg::~GlslProg()
 //////////////////////////////////////////////////////////////////////////
 // GlslProg
 
-GlslProg::GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader )
+GlslProg::GlslProg( const Format &format )
 	: mActiveUniformTypesCached( false ), mActiveAttribTypesCached( false ),
 	mUniformSemanticsCached( false ), mUniformNameToSemanticMap( getDefaultUniformNameToSemanticMap() ),
 	mAttribSemanticsCached( false ), mAttribNameToSemanticMap( getDefaultAttribNameToSemanticMap() )
 {
 	mHandle = glCreateProgram();
 	
-	if( vertexShader )
-		loadShader( vertexShader->getBuffer(), GL_VERTEX_SHADER );
-	if( fragmentShader )
-		loadShader( fragmentShader->getBuffer(), GL_FRAGMENT_SHADER );
+	if( format.getVertex() )
+		loadShader( format.getVertex(), GL_VERTEX_SHADER );
+	if( format.getFragment() )
+		loadShader( format.getFragment(), GL_FRAGMENT_SHADER );
 	
-	link();
-}
-
-GlslProg::GlslProg( const char* vertexShader, const char* fragmentShader )
-	: mActiveUniformTypesCached( false ), mActiveAttribTypesCached( false ),
-	mUniformSemanticsCached( false ), mUniformNameToSemanticMap( getDefaultUniformNameToSemanticMap() ),
-	mAttribSemanticsCached( false ), mAttribNameToSemanticMap( getDefaultAttribNameToSemanticMap() )
-{
-	mHandle = glCreateProgram();
-	
-	if( vertexShader )
-		loadShader( vertexShader, GL_VERTEX_SHADER );
-	if( fragmentShader )
-		loadShader( fragmentShader, GL_FRAGMENT_SHADER );
+	for( auto attribIt = format.getAttribLocations().begin(); attribIt != format.getAttribLocations().end(); ++attribIt )
+		glBindAttribLocation( mHandle, attribIt->second, attribIt->first.c_str() );
 	
 	link();
 }
@@ -103,16 +145,6 @@ GlslProg::AttribSemanticMap& GlslProg::getDefaultAttribNameToSemanticMap()
 	}
 	
 	return sDefaultAttribNameToSemanticMap;
-}
-
-void GlslProg::loadShader( Buffer shaderSourceBuffer, GLint shaderType )
-{
-	// we need to duplicate the contents of the buffer and append a null-terminator
-	std::shared_ptr<char> sourceBlock( new char[ shaderSourceBuffer.getDataSize() + 1 ], checked_array_deleter<char>() );
-	memcpy( sourceBlock.get(), shaderSourceBuffer.getData(), shaderSourceBuffer.getDataSize() );
-	sourceBlock.get()[ shaderSourceBuffer.getDataSize() ] = 0; // null terminate
-	const char* sourceBlockPtr = sourceBlock.get();
-	loadShader( sourceBlockPtr, shaderType );
 }
 
 void GlslProg::loadShader( const char *shaderSource, GLint shaderType )
@@ -391,11 +423,6 @@ GLint GlslProg::getAttribSemanticLocation( AttribSemantic semantic ) const
 	}
 	
 	return -1;
-}
-
-void GlslProg::bindAttribLocation( const std::string &name, GLuint index )
-{
-	glBindAttribLocation( mHandle, index, name.c_str() );
 }
 
 GLint GlslProg::getAttribLocation( const std::string &name ) const

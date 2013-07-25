@@ -37,7 +37,7 @@ void ImmediateModeApp::draw()
 	gl::setMatricesWindow( getWindowSize() );
 
 	gl::color( Colorf( 1.0, 0.5f, 0.25f ) );
-	
+
 	gl::VertBatch vb( GL_TRIANGLES );
 //		vb.color( 1, 0, 0 );
 		vb.vertex( getWindowWidth() / 2, 50 );

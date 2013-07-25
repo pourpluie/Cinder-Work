@@ -109,7 +109,7 @@ void VertBatch::draw()
 	setupBuffers();
 	VaoScope vao( mVao );
 	
-	gl::setDefaultShaderUniforms();
+	gl::setDefaultShaderVars( mVao );
 	gl::drawArrays( mPrimType, 0, mVertices.size() );
 }
 

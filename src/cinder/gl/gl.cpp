@@ -127,19 +127,30 @@ void setDefaultShaderUniforms()
 					glslProg->uniform( unifIt->first, gl::getProjection() * gl::getModelView() );
 				break;
 			}
-		}
-		
-		auto attribs = glslProg->getAttribSemantics();
-		for( auto attribIt = attribs.begin(); attribIt != attribs.end(); ++attribIt ) {
-			switch( attribIt->second ) {
-				case ATTRIB_COLOR: {
-					ColorA c = ctx->getCurrentColor();
-					gl::vertexAttrib4f( glslProg->getAttribLocation( attribIt->first ), c.r, c.g, c.b, c.a );
-				}
-				break;
-				default:
-					;
+		}		
+	}
+}
+
+void setDefaultShaderVars( const VaoRef &vao )
+{
+	setDefaultShaderUniforms();
+	
+	VaoScope vaoScope( vao );
+	
+	auto ctx = gl::context();
+	auto glslProg = ctx->getCurrentShader();
+	auto attribs = glslProg->getAttribSemantics();
+	for( auto attribIt = attribs.begin(); attribIt != attribs.end(); ++attribIt ) {
+		switch( attribIt->second ) {
+			case ATTRIB_COLOR: {
+				int loc = glslProg->getAttribLocation( attribIt->first );
+				ColorA c = ctx->getCurrentColor();
+				//gl::enableVertexAttribArray( loc );
+				gl::vertexAttrib4f( loc, c.r, c.g, c.b, c.a );
 			}
+			break;
+			default:
+				;
 		}
 	}
 }

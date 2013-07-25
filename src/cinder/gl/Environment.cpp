@@ -134,8 +134,8 @@ std::string	EnvironmentEs2::generateFragmentShader( const ShaderDef &shader )
 
 GlslProgRef	EnvironmentEs2::buildShader( const ShaderDef &shader )
 {
-	std::cout << "Vertex: " << generateVertexShader( shader ) << std::endl;
-	std::cout << "Fragment: " << generateFragmentShader( shader ) << std::endl;	
+	std::cout << "ES 2 Shader Vert: " << generateVertexShader( shader ) << std::endl;
+	std::cout << "ES 2 Shader Frag: " << generateFragmentShader( shader ) << std::endl;	
 	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
 }
 
@@ -245,6 +245,8 @@ std::string	EnvironmentCoreProfile::generateFragmentShader( const ShaderDef &sha
 
 GlslProgRef	EnvironmentCoreProfile::buildShader( const ShaderDef &shader )
 {
+std::cout << "Core shader vert:" << std::endl << generateVertexShader( shader ).c_str() << std::endl;
+std::cout << "Core shader frag:" << std::endl << generateFragmentShader( shader ).c_str() << std::endl;
 	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
 }
 
@@ -360,7 +362,13 @@ std::string	EnvironmentCompatibilityProfile::generateFragmentShader( const Shade
 
 GlslProgRef	EnvironmentCompatibilityProfile::buildShader( const ShaderDef &shader )
 {
-	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
+std::cout << "Compat shader vert:" << std::endl << generateVertexShader( shader ).c_str() << std::endl;
+std::cout << "Compat shader frag:" << std::endl << generateFragmentShader( shader ).c_str() << std::endl;
+
+	return GlslProg::create( GlslProg::Format().vertex( generateVertexShader( shader ).c_str() )
+												.fragment( generateFragmentShader( shader ).c_str() )
+												.attribLocation( "vPosition", 0 )
+												);
 }
 
 #endif // if defined( CINDER_GLES )
