@@ -755,7 +755,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 void draw( const TextureRef &texture, const Rectf &rect )
 {
 	Context *ctx = context();
-	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture( texture ) );
+	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture( texture ).color() );
 	ShaderScope shaderScope( shader );
 	
 	texture->bind();
