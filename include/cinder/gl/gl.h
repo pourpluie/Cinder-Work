@@ -55,8 +55,7 @@ std::string getVersionString();
 
 GlslProgRef	getStockShader( const class ShaderDef &shader );
 void bindStockShader( const class ShaderDef &shader );
-void setDefaultShaderUniforms();
-void setDefaultShaderVars( const VaoRef &vao );
+void setDefaultShaderVars();
 
 void clear( const ColorA &color = ColorA::black(), bool clearDepthBuffer = true );
 

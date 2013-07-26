@@ -115,7 +115,7 @@ void bindStockShader( const class ShaderDef &shaderDef )
 	ctx->bindShader( shader );
 }
 
-void setDefaultShaderUniforms()
+void setDefaultShaderVars()
 {
 	auto ctx = gl::context();
 	auto glslProg = ctx->getCurrentShader();
@@ -128,29 +128,19 @@ void setDefaultShaderUniforms()
 				break;
 			}
 		}		
-	}
-}
 
-void setDefaultShaderVars( const VaoRef &vao )
-{
-	setDefaultShaderUniforms();
-	
-	VaoScope vaoScope( vao );
-	
-	auto ctx = gl::context();
-	auto glslProg = ctx->getCurrentShader();
-	auto attribs = glslProg->getAttribSemantics();
-	for( auto attribIt = attribs.begin(); attribIt != attribs.end(); ++attribIt ) {
-		switch( attribIt->second ) {
-			case ATTRIB_COLOR: {
-				int loc = glslProg->getAttribLocation( attribIt->first );
-				ColorA c = ctx->getCurrentColor();
-				//gl::enableVertexAttribArray( loc );
-				gl::vertexAttrib4f( loc, c.r, c.g, c.b, c.a );
+		auto attribs = glslProg->getAttribSemantics();
+		for( auto attribIt = attribs.begin(); attribIt != attribs.end(); ++attribIt ) {
+			switch( attribIt->second ) {
+				case ATTRIB_COLOR: {
+					int loc = glslProg->getAttribLocation( attribIt->first );
+					ColorA c = ctx->getCurrentColor();
+					gl::vertexAttrib4f( loc, c.r, c.g, c.b, c.a );
+				}
+				break;
+				default:
+					;
 			}
-			break;
-			default:
-				;
 		}
 	}
 }
@@ -755,7 +745,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	//BufferScope elementScope( elementVbo );
 	arrayVbo->bind();
 	elementVbo->bind();
-	gl::setDefaultShaderUniforms();
+	gl::setDefaultShaderVars();
 	gl::drawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
 
 	arrayVbo->unbind();
@@ -796,7 +786,7 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	enableVertexAttribArray( texLoc );	
 	vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 	
-	gl::setDefaultShaderUniforms();
+	gl::setDefaultShaderVars();
 	gl::drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
 
