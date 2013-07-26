@@ -46,6 +46,8 @@
 // http://go.microsoft.com/fwlink/?LinkId=248929
 //--------------------------------------------------------------------------------------
 
+#if ( _WIN32_WINNT >= 0x0602 ) && ( ! defined( _USING_V110_SDK71_ ) )
+
 //#include "pch.h"
 #if !defined(WIN32_LEAN_AND_MEAN)
 #define WIN32_LEAN_AND_MEAN
@@ -1438,3 +1440,5 @@ HRESULT DirectX::CreateDDSTextureFromFileEx( ID3D11Device* d3dDevice,
 
     return hr;
 }
+
+#endif //( _WIN32_WINNT >= 0x0602 ) && ( ! defined( _USING_V110_SDK71_ ) )

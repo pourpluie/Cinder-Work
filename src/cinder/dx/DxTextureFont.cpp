@@ -26,6 +26,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#if ( _WIN32_WINNT >= 0x0602 ) && ( ! defined( _USING_V110_SDK71_ ) )
 
 #include "cinder/dx/DxTextureFont.h"
 
@@ -607,3 +608,5 @@ vector<pair<uint16_t,Vec2f> > TextBox::measureGlyphs() const
 #endif
 
 } // namespace cinder
+
+#endif // ( _WIN32_WINNT >= 0x0602 ) && ( ! defined( _USING_V110_SDK71_ ) )

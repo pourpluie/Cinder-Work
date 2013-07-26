@@ -26,6 +26,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#if ( _WIN32_WINNT >= 0x0602 ) && ( ! defined( _USING_V110_SDK71_ ) )
 
 #include "cinder/dx/dx.h" // must be first
 #include "cinder/dx/DxFbo.h"
@@ -524,3 +525,5 @@ FboExceptionInvalidSpecification::FboExceptionInvalidSpecification( const string
 #undef GL_SUFFIX
 
 } } // namespace cinder::dx
+
+#endif //( _WIN32_WINNT >= 0x0602 ) && ( ! defined( _USING_V110_SDK71_ ) )
