@@ -117,7 +117,7 @@ void CoreProfileApp::draw()
 	gl::ShaderScope shader( mShader );
 
 	{
-		gl::setDefaultShaderUniforms();
+		gl::setDefaultShaderVars();
 		gl::VaoScope vaoBind( mVao );
 gl::context()->sanityCheck();
 		gl::drawElements( GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, 0 );
@@ -125,7 +125,7 @@ gl::context()->sanityCheck();
 	{
 		gl::pushModelView();
 		gl::rotate( Vec3f( 0, 0, mSecondTriRotation ) );
-		gl::setDefaultShaderUniforms();
+		gl::setDefaultShaderVars();
 		gl::VaoScope vaoBind( mVao );
 		gl::drawArrays( GL_TRIANGLES, 0, 3 );
 		gl::popModelView();

@@ -350,10 +350,11 @@
 		008734161795901B00BC2063 /* Batch.h in Headers */ = {isa = PBXBuildFile; fileRef = 008734141795901B00BC2063 /* Batch.h */; };
 		008734171795901B00BC2063 /* Batch.h in Headers */ = {isa = PBXBuildFile; fileRef = 008734141795901B00BC2063 /* Batch.h */; };
 		0087343217A4769E00BC2063 /* VaoImplCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087343117A4769E00BC2063 /* VaoImplCore.cpp */; };
-		0087343317A4769E00BC2063 /* VaoImplCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087343117A4769E00BC2063 /* VaoImplCore.cpp */; };
-		0087343417A4769E00BC2063 /* VaoImplCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087343117A4769E00BC2063 /* VaoImplCore.cpp */; };
 		0087343717A4BC6E00BC2063 /* VaoImplEs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087343517A4BC6E00BC2063 /* VaoImplEs.cpp */; };
 		0087343817A4BC6E00BC2063 /* VaoImplEs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087343517A4BC6E00BC2063 /* VaoImplEs.cpp */; };
+		0087343A17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087343917A4C17600BC2063 /* VaoImplSoftware.cpp */; };
+		0087343B17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087343917A4C17600BC2063 /* VaoImplSoftware.cpp */; };
+		0087343C17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087343917A4C17600BC2063 /* VaoImplSoftware.cpp */; };
 		008876560F957E7300FD55C5 /* Arcball.h in Headers */ = {isa = PBXBuildFile; fileRef = 008876550F957E7300FD55C5 /* Arcball.h */; };
 		0088773C0F96671600FD55C5 /* FileDropEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 0088773B0F96671600FD55C5 /* FileDropEvent.h */; };
 		00887AC10F9C279700FD55C5 /* MayaCamUI.h in Headers */ = {isa = PBXBuildFile; fileRef = 00887AC00F9C279700FD55C5 /* MayaCamUI.h */; };
@@ -963,6 +964,7 @@
 		008734141795901B00BC2063 /* Batch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Batch.h; path = gl/Batch.h; sourceTree = "<group>"; };
 		0087343117A4769E00BC2063 /* VaoImplCore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VaoImplCore.cpp; path = gl/VaoImplCore.cpp; sourceTree = "<group>"; };
 		0087343517A4BC6E00BC2063 /* VaoImplEs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VaoImplEs.cpp; path = gl/VaoImplEs.cpp; sourceTree = "<group>"; };
+		0087343917A4C17600BC2063 /* VaoImplSoftware.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VaoImplSoftware.cpp; path = gl/VaoImplSoftware.cpp; sourceTree = "<group>"; };
 		008876550F957E7300FD55C5 /* Arcball.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Arcball.h; sourceTree = "<group>"; };
 		0088773B0F96671600FD55C5 /* FileDropEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileDropEvent.h; path = app/FileDropEvent.h; sourceTree = "<group>"; };
 		00887AC00F9C279700FD55C5 /* MayaCamUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MayaCamUI.h; sourceTree = "<group>"; };
@@ -1685,6 +1687,7 @@
 				00A06F7C1760EFAD00D8BE17 /* Vao.cpp */,
 				0087343517A4BC6E00BC2063 /* VaoImplEs.cpp */,
 				0087343117A4769E00BC2063 /* VaoImplCore.cpp */,
+				0087343917A4C17600BC2063 /* VaoImplSoftware.cpp */,
 				00A06F7D1760EFAD00D8BE17 /* Vbo.cpp */,
 				00A06F7E1760EFAD00D8BE17 /* VboMesh.cpp */,
 				0087340C17958FBA00BC2063 /* Batch.cpp */,
@@ -2468,8 +2471,8 @@
 				00A06FAD1760EFAD00D8BE17 /* VboMesh.cpp in Sources */,
 				008733CD1794D07400BC2063 /* GeoSource.cpp in Sources */,
 				0087340F17958FBA00BC2063 /* Batch.cpp in Sources */,
-				0087343317A4769E00BC2063 /* VaoImplCore.cpp in Sources */,
 				0087343717A4BC6E00BC2063 /* VaoImplEs.cpp in Sources */,
+				0087343B17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2588,8 +2591,8 @@
 				00A06FAE1760EFAD00D8BE17 /* VboMesh.cpp in Sources */,
 				008733CE1794D07400BC2063 /* GeoSource.cpp in Sources */,
 				0087341017958FBA00BC2063 /* Batch.cpp in Sources */,
-				0087343417A4769E00BC2063 /* VaoImplCore.cpp in Sources */,
 				0087343817A4BC6E00BC2063 /* VaoImplEs.cpp in Sources */,
+				0087343C17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2726,6 +2729,7 @@
 				008733CC1794D07400BC2063 /* GeoSource.cpp in Sources */,
 				0087340E17958FBA00BC2063 /* Batch.cpp in Sources */,
 				0087343217A4769E00BC2063 /* VaoImplCore.cpp in Sources */,
+				0087343A17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

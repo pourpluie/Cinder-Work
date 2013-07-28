@@ -20,59 +20,74 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-// Concrete implementation of VAO for OpenGL ES 2.
-// Should only be instantiated by Vao::create() in the presence of GL_OES_vertex_array_object
+// Concrete implementation of VAO using "software" emulation
 
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Context.h"
 
+#include <map>
+using namespace std;
+
 namespace cinder { namespace gl {
 
-class VaoImplEs : public Vao {
+class VaoImplSoftware : public Vao {
   public:
-	virtual ~VaoImplEs();
+	virtual ~VaoImplSoftware();
 	
-	VaoImplEs();
+	VaoImplSoftware();
 
 	// Does the actual "work" of binding the VAO; called by Context
 	virtual void	bindImpl( class Context *context );
 	virtual void	unbindImpl( class Context *context );
 	
+  protected:
+	struct VertexAttrib {
+		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer )
+			: mSize( size ), mType( type ), mNormalized( normalized ), mStride( stride ), mPointer( pointer )
+		{}
+	
+		GLint			mSize;
+		GLenum			mType;
+		GLboolean		mNormalized;
+		GLsizei			mStride;
+		const GLvoid*	mPointer;
+	};
+
+	map<GLuint,VertexAttrib>	mVertexAttribs;
+	
 	friend class Context;
 };
 
 // Called by Vao::create()
-VaoRef createVaoImplEs()
+VaoRef createVaoImplSoftware()
 {
-	return VaoRef( new VaoImplEs );
+	return VaoRef( new VaoImplSoftware );
 }
 	
-VaoImplEs::VaoImplEs()
+VaoImplSoftware::VaoImplSoftware()
 {
-	mId	= 0;
-
-	glGenVertexArraysOES( 1, &mId );
+mId = 0;
 }
 
-VaoImplEs::~VaoImplEs()
+VaoImplSoftware::~VaoImplSoftware()
 {
-	glDeleteVertexArraysOES( 1, &mId );
 }
 
-
-void VaoImplEs::bindImpl( Context *context )
+void VaoImplSoftware::bindImpl( Context *context )
 {
-	glBindVertexArrayOES( mId );
-
-	if( context )
-		invalidateContext( context );
+	for( auto attribIt = mVertexAttribs.begin(); attribIt != mVertexAttribs.end(); ++attribIt ) {
+		glEnableVertexAttribArray( attribIt->first );
+		glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
+	}
 }
 
-void VaoImplEs::unbindImpl( Context *context )
+void VaoImplSoftware::unbindImpl( Context *context )
 {
-	glBindVertexArrayOES( 0 );
-
+	for( auto attribIt = mVertexAttribs.begin(); attribIt != mVertexAttribs.end(); ++attribIt ) {
+		glDisableVertexAttribArray( attribIt->first );
+	}	
+	
 	if( context )
 		invalidateContext( context );
 }
