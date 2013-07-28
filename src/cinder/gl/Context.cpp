@@ -47,7 +47,7 @@ Context::Context()
 	// setup default VAO
 #if ! defined( CINDER_GLES )
 	mCachedVao = mDefaultVao = Vao::create();
-	Vao::bindImpl( mDefaultVao->getId(), NULL );
+	mDefaultVao->bindImpl( NULL );
 #endif
 
 	clear();
@@ -78,13 +78,16 @@ ContextRef Context::create()
 // VAO
 void Context::vaoBind( const VaoRef &vao )
 {
-	if( mCachedVao != vao ) {
-		mCachedVao = vao;
+	if( mCachedVao != vao ) {		
+		if( vao ) {
+			vao->bindImpl( this );
+		}
+		else { // unbind current vao
+			if( mCachedVao )
+				mCachedVao->unbindImpl( this );
+		}
 		
-		if( vao )
-			Vao::bindImpl( vao->getId(), this );
-		else
-			Vao::unbindImpl( this );
+		mCachedVao = vao;
 	}
 }
 

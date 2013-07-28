@@ -67,9 +67,6 @@ mShader = gl::context()->getStockShader( gl::ShaderDef().texture() );
 	mShader->uniform( "uTex0", (int)0 );
 //	mShader->uniform( "uTexEnabled", true );
 
-	mShader->bindAttribLocation( "vPosition", 0 );
-	mShader->bindAttribLocation( "vTexCoord", 2 );
-
 	int pos = mShader->getAttribLocation( "vPosition" );
 	int tex = mShader->getAttribLocation( "vTexCoord0" );
 	int color = mShader->getAttribLocation( "vColor" );
@@ -129,7 +126,7 @@ void CoreProfileApp::draw()
 	gl::ShaderScope shader( mShader );
 
 	{
-		gl::setDefaultShaderUniforms();
+		gl::setDefaultShaderVars();
 		gl::VaoScope vaoBind( mVao );
 gl::context()->sanityCheck();
 		gl::drawElements( GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, 0 );
@@ -138,7 +135,7 @@ gl::context()->sanityCheck();
 		gl::pushModelView();
 			gl::rotate( Vec3f( 0, 0, mSecondTriRotation ) );
 			gl::VaoScope vaoBind( mVao );
-			gl::setDefaultShaderUniforms();
+			gl::setDefaultShaderVars();
 			gl::drawArrays( GL_TRIANGLES, 0, 3 );
 		gl::popModelView();
 	}

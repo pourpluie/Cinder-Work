@@ -20,49 +20,65 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+// Concrete implementation of VAO for OpenGL ES 2.
+// Should only be instantiated by Vao::create() in the presence of GL_OES_vertex_array_object
+
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Context.h"
 
 namespace cinder { namespace gl {
 
-// defined in VaoImplEs
-#if defined( CINDER_GLES )
-extern VaoRef createVaoImplEs();
-#else
-extern VaoRef createVaoImplCore();
-#endif
+class VaoImplEs : public Vao {
+  public:
+	virtual ~VaoImplEs();
+	
+	VaoImplEs();
 
-VaoRef Vao::create()
+	// Does the actual "work" of binding the VAO; called by Context
+	virtual void	bindImpl( class Context *context );
+	virtual void	unbindImpl( class Context *context );
+	
+	friend class Context;
+};
+
+// Called by Vao::create()
+VaoRef createVaoImplEs()
 {
-#if defined( CINDER_GLES )
-	return createVaoImplEs();
-#else
-	return createVaoImplCore();
-#endif
+	return VaoRef( new VaoImplEs );
+}
+	
+VaoImplEs::VaoImplEs()
+{
+	mId	= 0;
+
+	glGenVertexArraysOES( 1, &mId );
 }
 
-Vao::Vao()
+VaoImplEs::~VaoImplEs()
 {
+	glDeleteVertexArraysOES( 1, &mId );
 }
 
-void Vao::bind()
+VaoImplEs::~VaoImplEs()
 {
-	// this will "come back" by calling bindImpl if it's necessary
-	context()->vaoBind( shared_from_this() );
+	glDeleteVertexArraysOES( 1, &mId );
 }
 
-void Vao::unbind() const
+void VaoImplEs::bindImpl( Context *context )
 {
-	// this will "come back" by calling bindImpl if it's necessary
-	context()->vaoBind( nullptr );
+	glBindVertexArrayOES( id );
+
+	if( context )
+		invalidateContext( context );
 }
 
-void Vao::invalidateContext( Context *context )
+void VaoImplEs::unbindImpl( Context *context )
 {
-	// binding a VAO invalidates other pieces of cached state
-	context->invalidateBufferBinding( GL_ARRAY_BUFFER );
-	context->invalidateBufferBinding( GL_ELEMENT_ARRAY_BUFFER );
+	glBindVertexArrayOES( 0 );
+
+	if( context )
+		invalidateContext( context );
 }
 
 } }

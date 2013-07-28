@@ -20,49 +20,69 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+// Concrete implementation of VAO for desktop GL
+
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Context.h"
 
 namespace cinder { namespace gl {
 
-// defined in VaoImplEs
-#if defined( CINDER_GLES )
-extern VaoRef createVaoImplEs();
-#else
-extern VaoRef createVaoImplCore();
-#endif
+class VaoImplCore : public Vao {
+  public:
+	virtual ~VaoImplCore();
+	
+	VaoImplCore();
 
-VaoRef Vao::create()
+	// Does the actual "work" of binding the VAO; called by Context
+	virtual void	bindImpl( class Context *context );
+	virtual void	unbindImpl( class Context *context );
+	
+	friend class Context;
+};
+
+// Called by Vao::create()
+VaoRef createVaoImplCore()
 {
-#if defined( CINDER_GLES )
-	return createVaoImplEs();
-#else
-	return createVaoImplCore();
-#endif
+	return VaoRef( new VaoImplCore );
+}
+	
+VaoImplCore::VaoImplCore()
+{
+	if( glGenVertexArrays ) // not available on GL legacy
+		glGenVertexArrays( 1, &mId );
+	else
+		glGenVertexArraysAPPLE( 1, &mId );
 }
 
-Vao::Vao()
+VaoImplCore::~VaoImplCore()
 {
+	if( glDeleteVertexArrays ) // not available on GL legacy
+		glDeleteVertexArrays( 1, &mId );
+	else
+		glDeleteVertexArraysAPPLE( 1, &mId );
 }
 
-void Vao::bind()
+void VaoImplCore::bindImpl( Context *context )
 {
-	// this will "come back" by calling bindImpl if it's necessary
-	context()->vaoBind( shared_from_this() );
+	if( glBindVertexArray ) // not available on GL legacy
+		glBindVertexArray( mId );
+	else
+		glBindVertexArrayAPPLE( mId );
+
+	if( context )
+		invalidateContext( context );
 }
 
-void Vao::unbind() const
+void VaoImplCore::unbindImpl( Context *context )
 {
-	// this will "come back" by calling bindImpl if it's necessary
-	context()->vaoBind( nullptr );
-}
+	if( glBindVertexArray ) // not available on GL legacy
+		glBindVertexArray( 0 );
+	else
+		glBindVertexArrayAPPLE( 0 );
 
-void Vao::invalidateContext( Context *context )
-{
-	// binding a VAO invalidates other pieces of cached state
-	context->invalidateBufferBinding( GL_ARRAY_BUFFER );
-	context->invalidateBufferBinding( GL_ELEMENT_ARRAY_BUFFER );
+	if( context )
+		invalidateContext( context );
 }
 
 } }
