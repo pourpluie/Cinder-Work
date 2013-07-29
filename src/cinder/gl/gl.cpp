@@ -790,6 +790,11 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	gl::drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
 
+void draw( const TextureRef &texture, const Vec2f &v )
+{
+	draw( texture, Rectf( texture->getBounds() ) + v );
+}
+
 GLenum getError()
 {
 	return glGetError();

@@ -720,6 +720,7 @@
 		00E0B49F0F604FCF002C8FBD /* AppImplCocoaRendererQuartz.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E0B49E0F604FCF002C8FBD /* AppImplCocoaRendererQuartz.h */; };
 		00E0B4B20F605D64002C8FBD /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E0B4B10F605D64002C8FBD /* CoreGraphics.framework */; };
 		00E0B60D0F60DE8B002C8FBD /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E0B60C0F60DE8B002C8FBD /* ApplicationServices.framework */; };
+		00E3914217A327BF00952CA0 /* QuickTimeGl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00E3914117A327BF00952CA0 /* QuickTimeGl.cpp */; };
 		00E5A41A163F45AF00AACB3A /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007438400EA7924F005DD3E6 /* Capture.cpp */; };
 		00E5A41C163F5A2B00AACB3A /* CaptureImplCocoaDummy.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E5A41B163F5A2B00AACB3A /* CaptureImplCocoaDummy.h */; };
 		00E5A41F163F5AC600AACB3A /* CaptureImplCocoaDummy.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00E5A41D163F5AC500AACB3A /* CaptureImplCocoaDummy.mm */; };
@@ -1096,6 +1097,7 @@
 		00E0B49E0F604FCF002C8FBD /* AppImplCocoaRendererQuartz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppImplCocoaRendererQuartz.h; path = app/AppImplCocoaRendererQuartz.h; sourceTree = "<group>"; };
 		00E0B4B10F605D64002C8FBD /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00E0B60C0F60DE8B002C8FBD /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
+		00E3914117A327BF00952CA0 /* QuickTimeGl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = QuickTimeGl.cpp; path = qtime/QuickTimeGl.cpp; sourceTree = "<group>"; };
 		00E5A41B163F5A2B00AACB3A /* CaptureImplCocoaDummy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CaptureImplCocoaDummy.h; sourceTree = "<group>"; };
 		00E5A41D163F5AC500AACB3A /* CaptureImplCocoaDummy.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CaptureImplCocoaDummy.mm; sourceTree = "<group>"; };
 		00F3BD1C0EBF88AA00382AC1 /* Utilities.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Utilities.cpp; sourceTree = "<group>"; };
@@ -1396,6 +1398,7 @@
 		00954472167CF92E008ECA02 /* qtime */ = {
 			isa = PBXGroup;
 			children = (
+				00E3914117A327BF00952CA0 /* QuickTimeGl.cpp */,
 				0095448E167D2A3E008ECA02 /* MovieWriter.cpp */,
 				0095448F167D2A3E008ECA02 /* QuickTime.cpp */,
 				00954490167D2A3E008ECA02 /* QuickTimeUtils.cpp */,
@@ -2730,6 +2733,7 @@
 				0087340E17958FBA00BC2063 /* Batch.cpp in Sources */,
 				0087343217A4769E00BC2063 /* VaoImplCore.cpp in Sources */,
 				0087343A17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
+				00E3914217A327BF00952CA0 /* QuickTimeGl.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

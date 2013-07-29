@@ -66,13 +66,13 @@ void TextRibbon::makeText()
 		mTagBox = TextBox().alignment(TextBox::LEFT).font(mTagFont).size(Vec2i(200, TextBox::GROW)).text(mTag);
 		mTagBox.setColor(ColorA(mTextCol.r, mTextCol.g, mTextCol.b, 1));
 		mTagBox.setBackgroundColor(ColorA(0, 0, 0, 0));
-		mTagTex = mTagBox.render();
+		mTagTex = gl::Texture::create( mTagBox.render() );
 	}
 	
 	mUserBox = TextBox().alignment( TextBox::LEFT ).font( mUserFont ).size( Vec2i( 250, TextBox::GROW ) ).text( "@" + mUser );
 	mUserBox.setColor(ColorA(mTextCol.r, mTextCol.g, mTextCol.b, 1));
 	mUserBox.setBackgroundColor( ColorA( 0, 0, 0, 0) );
-	mUserTex = mUserBox.render();
+	mUserTex = gl::Texture::create( mUserBox.render() );
 	
 	float ribbonWidth = mTagBox.measure().x + mUserBox.measure().x + 30;
 	mRibbonSize = Vec2f(ribbonWidth, 50);

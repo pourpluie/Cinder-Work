@@ -106,11 +106,18 @@ void setMatricesWindowPersp( const ci::Vec2i &screenSize, float fovDegrees = 60.
 void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft = true );
 void setMatricesWindow( const ci::Vec2i &screenSize, bool originUpperLeft = true );
 
-void rotate( const ci::Vec3f& v );
-void scale( const ci::Vec3f& v );
+void rotate( const ci::Vec3f &v );
+inline void rotate( float zRotation ) { rotate( Vec3f( 0, 0, zRotation ) ); }
+
+void scale( const ci::Vec3f &v );
 inline void scale( float x, float y, float z ) { scale( Vec3f( x, y, z ) ); }
-void translate( const ci::Vec3f& v );
+inline void scale( const ci::Vec2f &v ) { scale( Vec3f( v.x, v.y, 1 ) ); }
+inline void scale( float x, float y ) { scale( Vec3f( x, y, 1 ) ); }
+
+void translate( const ci::Vec3f &v );
 inline void translate( float x, float y, float z ) { translate( Vec3f( x, y, z ) ); }
+inline void translate( const ci::Vec2f &v ) { translate( Vec3f( v, 0 ) ); }
+inline void translate( float x, float y ) { translate( Vec3f( x, y, 0 ) ); }
 	
 void begin( GLenum mode );
 void end();
@@ -145,6 +152,7 @@ void polygonMode( GLenum face, GLenum mode );
 
 void draw( const VboMeshRef &mesh );
 void draw( const TextureRef &texture, const Rectf &rect );
+void draw( const TextureRef &texture, const Vec2f &v );
 void drawRange( const VboMeshRef& mesh, GLint start = 0, GLsizei count = 0 );
 void draw( const VboRef &vbo );
 void drawRange( const VboRef& vbo, GLint start = 0, GLsizei count = 0 );
