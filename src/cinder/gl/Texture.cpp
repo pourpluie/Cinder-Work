@@ -57,20 +57,14 @@ Texture::Format::Format()
 
 /////////////////////////////////////////////////////////////////////////////////
 // Texture
-	
-TextureRef Texture::create()
+TextureRef Texture::create( int width, int height, Format format )
 {
-	return TextureRef( new Texture() );
+	return TextureRef( new Texture( width, height, format ) );
 }
 
-TextureRef Texture::create( int aWidth, int aHeight, Format format )
+TextureRef Texture::create( const unsigned char *data, int dataFormat, int width, int height, Format format )
 {
-	return TextureRef( new Texture( aWidth, aHeight, format ) );
-}
-
-TextureRef Texture::create( const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format )
-{
-	return TextureRef( new Texture( data, dataFormat, aWidth, aHeight, format ) );
+	return TextureRef( new Texture( data, dataFormat, width, height, format ) );
 }
 
 TextureRef Texture::create( const Surface8u &surface, Format format )
@@ -98,28 +92,26 @@ TextureRef Texture::create( ImageSourceRef imageSource, Format format )
 	return TextureRef( new Texture( imageSource, format ) );
 }
 	
-TextureRef Texture::create( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bool aDoNotDispose )
+TextureRef Texture::create( GLenum target, GLuint textureID, int width, int height, bool doNotDispose )
 {
-	return TextureRef( new Texture( aTarget, aTextureID, aWidth, aHeight, aDoNotDispose ) );
+	return TextureRef( new Texture( target, textureID, width, height, doNotDispose ) );
 }
 	
 Texture::~Texture()
 {
-	if ( mDeallocatorFunc ) {
-		(*mDeallocatorFunc)( mDeallocatorRefcon );
-	}
-	
-	if ( ( mTextureID > 0 ) && ( !mDoNotDispose ) ) {
-		glDeleteTextures( 1, &mTextureID );
+	if ( ( mTextureId > 0 ) && ( ! mDoNotDispose ) ) {
+		glDeleteTextures( 1, &mTextureId );
 	}
 }
 
 	
 	
-Texture::Texture( int aWidth, int aHeight, Format format )
-: mWidth( aWidth ), mHeight( aHeight ), mCleanWidth( -1 ), mCleanHeight( -1 ), mInternalFormat( -1 ), mTextureID( 0 ), mFlipped( false ), mDeallocatorFunc( 0 )
+Texture::Texture( int width, int height, Format format )
+	: mWidth( width ), mHeight( height ),
+	mCleanWidth( width ), mCleanHeight( height ),
+	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
 {
-	if ( format.mInternalFormat == -1 ) {
+	if( format.mInternalFormat == -1 ) {
 		format.mInternalFormat = GL_RGBA;
 	}
 	mInternalFormat = format.mInternalFormat;
@@ -127,10 +119,12 @@ Texture::Texture( int aWidth, int aHeight, Format format )
 	init( (unsigned char*)0, 0, GL_RGBA, GL_UNSIGNED_BYTE, format );
 }
 
-Texture::Texture( const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format )
-: mWidth( aWidth ), mHeight( aHeight ), mCleanWidth( -1 ), mCleanHeight( -1 ), mInternalFormat( -1 ), mTextureID( 0 ), mFlipped( false ), mDeallocatorFunc( 0 )
+Texture::Texture( const unsigned char *data, int dataFormat, int width, int height, Format format )
+	: mWidth( width ), mHeight( height ),
+	mCleanWidth( width ), mCleanHeight( height ),
+	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
 {
-	if ( format.mInternalFormat == -1 ) {
+	if( format.mInternalFormat == -1 ) {
 		format.mInternalFormat = GL_RGBA;
 	}
 	mInternalFormat = format.mInternalFormat;
@@ -139,9 +133,11 @@ Texture::Texture( const unsigned char *data, int dataFormat, int aWidth, int aHe
 }
 
 Texture::Texture( const Surface8u &surface, Format format )
-: mWidth( surface.getWidth() ), mHeight( surface.getHeight() ), mCleanWidth( -1 ), mCleanHeight( -1 ), mInternalFormat( -1 ), mTextureID( 0 ), mFlipped( false ), mDeallocatorFunc( 0 )
+	: mWidth( surface.getWidth() ), mHeight( surface.getHeight() ),
+	mCleanWidth( surface.getWidth() ), mCleanHeight( surface.getHeight() ),
+	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
 {
-	if ( format.mInternalFormat < 0 ) {
+	if( format.mInternalFormat < 0 ) {
 		format.mInternalFormat = surface.hasAlpha() ? GL_RGBA : GL_RGB;
 	}
 	mInternalFormat = format.mInternalFormat;
@@ -155,9 +151,11 @@ Texture::Texture( const Surface8u &surface, Format format )
 }
 
 Texture::Texture( const Surface32f &surface, Format format )
-: mWidth( surface.getWidth() ), mHeight( surface.getHeight() ), mCleanWidth( -1 ), mCleanHeight( -1 ), mInternalFormat( -1 ), mTextureID( 0 ), mFlipped( false ), mDeallocatorFunc( 0 )
+	: mWidth( surface.getWidth() ), mHeight( surface.getHeight() ),
+	mCleanWidth( surface.getWidth() ), mCleanHeight( surface.getHeight() ),
+	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
 {
-	if ( format.mInternalFormat < 0 ) {
+	if( format.mInternalFormat < 0 ) {
 		format.mInternalFormat = surface.hasAlpha() ? GL_RGBA : GL_RGB;
 	}
 	mInternalFormat	= format.mInternalFormat;
@@ -167,9 +165,11 @@ Texture::Texture( const Surface32f &surface, Format format )
 }
 
 Texture::Texture( const Channel8u &channel, Format format )
-: mWidth( channel.getWidth() ), mHeight( channel.getHeight() ), mCleanWidth( -1 ), mCleanHeight( -1 ), mInternalFormat( -1 ), mTextureID( 0 ), mFlipped( false ), mDeallocatorFunc( 0 )
+	: mWidth( channel.getWidth() ), mHeight( channel.getHeight() ),
+	mCleanWidth( channel.getWidth() ), mCleanHeight( channel.getHeight() ),
+	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
 {
-	if ( format.mInternalFormat < 0 ) {
+	if( format.mInternalFormat < 0 ) {
 		format.mInternalFormat = GL_LUMINANCE;
 	}
 	
@@ -196,9 +196,11 @@ Texture::Texture( const Channel8u &channel, Format format )
 }
 
 Texture::Texture( const Channel32f &channel, Format format )
-: mWidth( channel.getWidth() ), mHeight( channel.getHeight() ), mCleanWidth( -1 ), mCleanHeight( -1 ), mInternalFormat( -1 ), mTextureID( 0 ), mFlipped( false ), mDeallocatorFunc( 0 )
+	: mWidth( channel.getWidth() ), mHeight( channel.getHeight() ),
+	mCleanWidth( channel.getWidth() ), mCleanHeight( channel.getHeight() ),
+	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
 {
-	if ( format.mInternalFormat < 0 ) {
+	if( format.mInternalFormat < 0 ) {
 		format.mInternalFormat = GL_LUMINANCE;
 	}
 	
@@ -220,29 +222,29 @@ Texture::Texture( const Channel32f &channel, Format format )
 		}
 		
 		init( data.get(), GL_LUMINANCE, format );
-	} else {
+	}
+	else {
 		init( channel.getData(), GL_LUMINANCE, format );
 	}
 }
 
 Texture::Texture( ImageSourceRef imageSource, Format format )
-: mWidth( -1 ), mHeight( -1 ), mCleanWidth( -1 ), mCleanHeight( -1 ), mInternalFormat( -1 ), mTextureID( 0 ), mFlipped( false ), mDeallocatorFunc( 0 )
+	: mWidth( -1 ), mHeight( -1 ), mCleanWidth( -1 ), mCleanHeight( -1 ),
+	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
 {
 	init( imageSource, format );
 }
 
-Texture::Texture( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bool aDoNotDispose )
-: mWidth( -1 ), mHeight( -1 ), mCleanWidth( -1 ), mCleanHeight( -1 ), mInternalFormat( -1 ), mTextureID( 0 ), mFlipped( false ), mDeallocatorFunc( 0 )
+Texture::Texture( GLenum target, GLuint textureId, int width, int height, bool doNotDispose )
+	: mTarget( target ), mTextureId( textureId ),
+	mWidth( width ), mHeight( height ),
+	mCleanWidth( width ), mCleanHeight( height ),
+	mInternalFormat( -1 ), mFlipped( false ), mDoNotDispose( doNotDispose )
 {
-	mTarget		= aTarget;
-	mTextureID	= aTextureID;
-	mDoNotDispose	= aDoNotDispose;
-	mWidth		= mCleanWidth = aWidth;
-	mHeight		= mCleanHeight = aHeight;
-	
 	if ( mTarget == GL_TEXTURE_2D ) {
 		mMaxU = mMaxV = 1.0f;
-	} else {
+	}
+	else {
 		mMaxU = (float)mWidth;
 		mMaxV = (float)mHeight;
 	}
@@ -250,21 +252,20 @@ Texture::Texture( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bo
 
 void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format )
 {
-	mDoNotDispose = false;
+	glGenTextures( 1, &mTextureId );
 	
-	glGenTextures( 1, &mTextureID );
-	
-	glBindTexture( mTarget, mTextureID );
+	glBindTexture( mTarget, mTextureId );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
 	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
 	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
-	if ( format.mMipmapping ) {
+	if( format.mMipmapping ) {
 		glGenerateMipmap( mTarget );
 	}
-	if ( mTarget == GL_TEXTURE_2D ) {
+	if( mTarget == GL_TEXTURE_2D ) {
 		mMaxU = mMaxV = 1.0f;
-	} else {
+	}
+	else {
 		mMaxU = (float)mWidth;
 		mMaxV = (float)mHeight;
 	}
@@ -275,42 +276,40 @@ void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataF
 
 void Texture::init( const float *data, GLint dataFormat, const Format &format )
 {
-	mDoNotDispose = false;
+	glGenTextures( 1, &mTextureId );
 	
-	glGenTextures( 1, &mTextureID );
-	
-	glBindTexture( mTarget, mTextureID );
+	glBindTexture( mTarget, mTextureId );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
 	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
 	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
-	if ( format.mMipmapping ) {
+	if( format.mMipmapping ) {
 		glGenerateMipmap( mTarget );
 	}
-	if ( mTarget == GL_TEXTURE_2D ) {
+	if( mTarget == GL_TEXTURE_2D ) {
 		mMaxU = mMaxV = 1.0f;
 	} else {
 		mMaxU = (float)mWidth;
 		mMaxV = (float)mHeight;
 	}
 	
-	if ( data ) {
+	if( data ) {
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_FLOAT, data );
-	} else {
+	}
+	else {
 		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, GL_LUMINANCE, GL_FLOAT, 0 );  // init to black...
 	}
 }
 
 void Texture::init( ImageSourceRef imageSource, const Format &format )
 {
-	mDoNotDispose = false;
 	mTarget = format.mTarget;
 	mWidth = mCleanWidth = imageSource->getWidth();
 	mHeight = mCleanHeight = imageSource->getHeight();
 	
 	// Set the internal format based on the image's color space
-	if ( format.isAutoInternalFormat() ) {
+	if( format.isAutoInternalFormat() ) {
 		switch( imageSource->getColorModel() ) {
 			case ImageIo::CM_RGB:
 				mInternalFormat = ( imageSource->hasAlpha() ) ? GL_RGBA : GL_RGB;
@@ -322,7 +321,8 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 				throw ImageIoExceptionIllegalColorModel();
 				break;
 		}
-	} else {
+	}
+	else {
 		mInternalFormat = format.mInternalFormat;
 	}
 	
@@ -346,8 +346,8 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 			break;
 	}
 	
-	glGenTextures( 1, &mTextureID );
-	glBindTexture( mTarget, mTextureID );
+	glGenTextures( 1, &mTextureId );
+	glBindTexture( mTarget, mTextureId );
 	
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
@@ -368,12 +368,14 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 		shared_ptr<ImageTargetGLTexture<uint8_t> > target = ImageTargetGLTexture<uint8_t>::createRef( this, channelOrder, isGray, imageSource->hasAlpha() );
 		imageSource->load( target );
 		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_UNSIGNED_BYTE, target->getData() );
-	} else if( imageSource->getDataType() == ImageIo::UINT16 ) {
+	}
+	else if( imageSource->getDataType() == ImageIo::UINT16 ) {
 		shared_ptr<ImageTargetGLTexture<uint16_t> > target = ImageTargetGLTexture<uint16_t>::createRef( this, channelOrder, isGray, imageSource->hasAlpha() );
 		imageSource->load( target );
 		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_UNSIGNED_SHORT, target->getData() );
 		
-	} else {
+	}
+	else {
 		shared_ptr<ImageTargetGLTexture<float> > target = ImageTargetGLTexture<float>::createRef( this, channelOrder, isGray, imageSource->hasAlpha() );
 		imageSource->load( target );
 		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_FLOAT, target->getData() );
@@ -385,11 +387,11 @@ void Texture::update( const Surface &surface )
 	GLint dataFormat;
 	GLenum type;
 	SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
-	if ( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) ) {
+	if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) ) {
 		throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
 	}
 	
-	glBindTexture( mTarget, mTextureID );
+	glBindTexture( mTarget, mTextureId );
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 	glTexImage2D( mTarget, 0, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, type, surface.getData() );
 }
@@ -399,11 +401,11 @@ void Texture::update( const Surface32f &surface )
 	GLint dataFormat;
 	GLenum type;
 	SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
-	if ( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) ) {
+	if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) ) {
 		throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
 	}
 	
-	glBindTexture( mTarget, mTextureID );
+	glBindTexture( mTarget, mTextureId );
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 	// @TODO: type does not seem to be pulling out the right value..
 	glTexImage2D( mTarget, 0, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, GL_FLOAT, surface.getData() );
@@ -415,23 +417,23 @@ void Texture::update( const Surface &surface, const Area &area )
 	GLenum type;
 	SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
 	
-	glBindTexture( mTarget, mTextureID );
+	glBindTexture( mTarget, mTextureId );
 	glTexSubImage2D( mTarget, 0, area.getX1(), area.getY1(), area.getWidth(), area.getHeight(), dataFormat, type, surface.getData( area.getUL() ) );
 }
 
 void Texture::update( const Channel32f &channel )
 {
-	if ( ( channel.getWidth() != getWidth() ) || ( channel.getHeight() != getHeight() ) ) {
+	if( ( channel.getWidth() != getWidth() ) || ( channel.getHeight() != getHeight() ) ) {
 		throw TextureDataExc( "Invalid Texture::update() channel dimensions" );
 	}
 	
-	glBindTexture( mTarget, mTextureID );
+	glBindTexture( mTarget, mTextureId );
 	glTexSubImage2D( mTarget, 0, 0, 0, getWidth(), getHeight(), GL_LUMINANCE, GL_FLOAT, channel.getData() );
 }
 
 void Texture::update( const Channel8u &channel, const Area &area )
 {
-	glBindTexture( mTarget, mTextureID );
+	glBindTexture( mTarget, mTextureId );
 	// if the data is not already contiguous, we'll need to create a block of memory that is
 	if( ( channel.getIncrement() != 1 ) || ( channel.getRowBytes() != channel.getWidth() * sizeof(uint8_t) ) ) {
 		shared_ptr<uint8_t> data( new uint8_t[area.getWidth() * area.getHeight()], checked_array_deleter<uint8_t>() );
@@ -447,7 +449,8 @@ void Texture::update( const Channel8u &channel, const Area &area )
 		}
 		
 		glTexSubImage2D( mTarget, 0, area.getX1(), area.getY1(), area.getWidth(), area.getHeight(), GL_LUMINANCE, GL_UNSIGNED_BYTE, data.get() );
-	} else {
+	}
+	else {
 		glTexSubImage2D( mTarget, 0, area.getX1(), area.getY1(), area.getWidth(), area.getHeight(), GL_LUMINANCE, GL_UNSIGNED_BYTE, channel.getData( area.getUL() ) );
 	}
 }
@@ -458,20 +461,20 @@ void Texture::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder 
 		case SurfaceChannelOrder::RGB:
 			*dataFormat = GL_RGB;
 			*type = GL_UNSIGNED_BYTE;
-			break;
+		break;
 		case SurfaceChannelOrder::RGBA:
 		case SurfaceChannelOrder::RGBX:
 			*dataFormat = GL_RGBA;
 			*type = GL_UNSIGNED_BYTE;
-			break;
+		break;
 		case SurfaceChannelOrder::BGRA:
 		case SurfaceChannelOrder::BGRX:
 			*dataFormat = GL_BGRA;
 			*type = GL_UNSIGNED_BYTE;
-			break;
+		break;
 		default:
 			throw TextureDataExc( "Invalid channel order" ); // this is an unsupported channel order for a texture
-			break;
+		break;
 	}
 }
 
@@ -482,7 +485,7 @@ bool Texture::dataFormatHasAlpha( GLint dataFormat )
 		case GL_ALPHA:
 		case GL_LUMINANCE_ALPHA:
 			return true;
-			break;
+		break;
 		default:
 			return false;
 	}
@@ -495,7 +498,6 @@ bool Texture::dataFormatHasColor( GLint dataFormat )
 		case GL_LUMINANCE:
 		case GL_LUMINANCE_ALPHA:
 			return false;
-			break;
 	}
 	
 	return true;
@@ -503,16 +505,10 @@ bool Texture::dataFormatHasColor( GLint dataFormat )
 
 Texture	Texture::weakClone() const
 {
-	gl::Texture result = Texture( mTarget, mTextureID, mWidth, mHeight, true );
+	gl::Texture result = Texture( mTarget, mTextureId, mWidth, mHeight, true );
 	result.mInternalFormat = mInternalFormat;
 	result.mFlipped = mFlipped;
 	return result;
-}
-
-void Texture::setDeallocator( void(*aDeallocatorFunc)( void * ), void *aDeallocatorRefcon )
-{
-	mDeallocatorFunc = aDeallocatorFunc;
-	mDeallocatorRefcon = aDeallocatorRefcon;
 }
 
 void Texture::setWrapS( GLenum wrapS )
@@ -640,7 +636,7 @@ float Texture::getMaxV() const
 void Texture::bind( GLuint textureUnit ) const
 {
 	ActiveTextureScope activeTextureScope( textureUnit );
-	glBindTexture( mTarget, mTextureID );
+	glBindTexture( mTarget, mTextureId );
 }
 
 void Texture::unbind( GLuint textureUnit ) const
@@ -653,7 +649,7 @@ void Texture::enableAndBind() const
 {
 	auto ctx = gl::context();
 	ctx->enable( mTarget );
-	glBindTexture( mTarget, mTextureID );
+	glBindTexture( mTarget, mTextureId );
 }
 
 void Texture::disable() const
@@ -679,19 +675,19 @@ TextureCache::TextureCache()
 }
 	
 TextureCache::TextureCache( const Surface8u &prototypeSurface, const Texture::Format &format )
-: mWidth( prototypeSurface.getWidth() ), mHeight( prototypeSurface.getHeight() ), mFormat( format ), mNextId( 0 )
+	: mWidth( prototypeSurface.getWidth() ), mHeight( prototypeSurface.getHeight() ),
+	mFormat( format ), mNextId( 0 )
 {
-	
 }
 
-gl::TextureRef	TextureCache::cache( const Surface8u &data )
+gl::TextureRef TextureCache::cache( const Surface8u &data )
 {
 	pair<int,TextureRef> *resultPair;
 	
 	// find an available slot and update that if possible
 	bool found = false;
-	for ( vector<pair<int,TextureRef> >::iterator texIt = mTextures.begin(); texIt != mTextures.end(); ++texIt ) {
-		if ( texIt->first == -1 ) { // this texture is available, let's use it!
+	for( vector<pair<int,TextureRef> >::iterator texIt = mTextures.begin(); texIt != mTextures.end(); ++texIt ) {
+		if( texIt->first == -1 ) { // this texture is available, let's use it!
 			resultPair = &(*texIt);
 			resultPair->second->update( data );
 			found = true;
@@ -700,16 +696,15 @@ gl::TextureRef	TextureCache::cache( const Surface8u &data )
 	}
 	
 	// we didn't find an available slot, so let's make a new texture
-	if ( ! found ) {
-		mTextures.push_back( make_pair( -1, gl::Texture::create( data, mFormat ) ) );
+	if( ! found ) {
+		TextureRef tex( new Texture( data, mFormat ), textureCacheDeallocator );
+		mTextures.push_back( make_pair( -1, tex ) );
 		resultPair = &mTextures.back();
 	}
 	
 	resultPair->first	= mNextId++;
 	TextureRef result	= resultPair->second;
 	
-	pair<const TextureCache*,int> *refcon = new pair<const TextureCache*,int>( this, resultPair->first );
-	result->setDeallocator( TextureCache::textureCacheDeallocator, refcon );
 	return result;
 }
 

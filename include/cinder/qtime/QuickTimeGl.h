@@ -24,8 +24,8 @@
 
 #if ! defined( __LP64__ )
 
-#include "cinder/qtime/QuickTime.h"
 #include "cinder/gl/gl.h"
+#include "cinder/qtime/QuickTime.h"
 #include "cinder/gl/Texture.h"
 
 namespace cinder { namespace qtime {

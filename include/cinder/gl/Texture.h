@@ -15,15 +15,13 @@ typedef std::shared_ptr<class Texture> TextureRef;
 	
 class Texture
 {
-public:
-struct Format;
+  public:
+	struct Format;
 	
-	//! Default initializer. Points to a null Obj
-	static TextureRef	create();
-	/** \brief Constructs a texture of size(\a aWidth, \a aHeight), storing the data in internal format \a aInternalFormat. **/
-	static TextureRef	create( int aWidth, int aHeight, Format format = Format() );
-	/** \brief Constructs a texture of size(\a aWidth, \a aHeight), storing the data in internal format \a aInternalFormat. Pixel data is provided by \a data and is expected to be interleaved and in format \a dataFormat, for which \c GL_RGB or \c GL_RGBA would be typical values. **/
-	static TextureRef	create( const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format = Format() );
+	/** \brief Constructs a texture of size(\a width, \a height), storing the data in internal format \a aInternalFormat. **/
+	static TextureRef	create( int width, int height, Format format = Format() );
+	/** \brief Constructs a texture of size(\a width, \a height), storing the data in internal format \a aInternalFormat. Pixel data is provided by \a data and is expected to be interleaved and in format \a dataFormat, for which \c GL_RGB or \c GL_RGBA would be typical values. **/
+	static TextureRef	create( const unsigned char *data, int dataFormat, int width, int height, Format format = Format() );
 	/** \brief Constructs a texture based on the contents of \a surface. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
 	static TextureRef	create( const Surface8u &surface, Format format = Format() );
 	/** \brief Constructs a texture based on the contents of \a surface. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
@@ -34,15 +32,11 @@ struct Format;
 	static TextureRef	create( const Channel32f &channel, Format format = Format() );
 	/** \brief Constructs a texture based on \a imageSource. A default value of -1 for \a internalFormat chooses an appropriate internal format based on the contents of \a imageSource. **/
 	static TextureRef	create( ImageSourceRef imageSource, Format format = Format() );
-	//! Constructs a Texture based on an externally initialized OpenGL texture. \a aDoNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
-	static TextureRef	create( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bool aDoNotDispose );
+	//! Constructs a Texture based on an externally initialized OpenGL texture. \a doNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
+	static TextureRef	create( GLenum aTarget, GLuint aTextureID, int width, int height, bool doNotDispose );
 	
 	~Texture();
 	
-	//! Determines whether the Texture will call glDeleteTextures() to free the associated texture objects on destruction
-	void			setDoNotDispose( bool aDoNotDispose = true ) { mDoNotDispose = aDoNotDispose; }
-	//! Installs an optional callback which fires when the texture is destroyed. Useful for integrating with external APIs
-	void			setDeallocator( void(*aDeallocatorFunc)( void * ), void *aDeallocatorRefcon );
 	//! Sets the wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE.
 	void			setWrap( GLenum wrapS, GLenum wrapT ) { setWrapS( wrapS ); setWrapT( wrapT ); }
 	/** \brief Sets the horizontal wrapping behavior when a texture coordinate falls outside the range of [0,1].
@@ -104,7 +98,7 @@ struct Format;
 	//! the Texture's internal format, which is the format that OpenGL stores the texture data in memory. Common values include \c GL_RGB, \c GL_RGBA and \c GL_LUMINANCE
 	GLint			getInternalFormat() const;
 	//! the ID number for the texture, appropriate to pass to calls like \c glBindTexture()
-	GLuint			getId() const { return mTextureID; }
+	GLuint			getId() const { return mTextureId; }
 	//! the target associated with texture. Typical values are \c GL_TEXTURE_2D and \c GL_TEXTURE_RECTANGLE_ARB
 	GLenum			getTarget() const { return mTarget; }
 	//!	whether the texture is flipped vertically
@@ -202,27 +196,26 @@ struct Format;
 		
 		friend class Texture;
 	};
-	
-protected:
-	//! Default initializer. Points to a null Obj
-	Texture() {}
-	/** \brief Constructs a texture of size(\a aWidth, \a aHeight), storing the data in internal format \a aInternalFormat. **/
-	Texture( int aWidth, int aHeight, Format format = Format() );
-	/** \brief Constructs a texture of size(\a aWidth, \a aHeight), storing the data in internal format \a aInternalFormat. Pixel data is provided by \a data and is expected to be interleaved and in format \a dataFormat, for which \c GL_RGB or \c GL_RGBA would be typical values. **/
-	Texture( const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format = Format() );
-	/** \brief Constructs a texture based on the contents of \a surface. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
-	Texture( const Surface8u &surface, Format format = Format() );
-	/** \brief Constructs a texture based on the contents of \a surface. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
-	Texture( const Surface32f &surface, Format format = Format() );
-	/** \brief Constructs a texture based on the contents of \a channel. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
-	Texture( const Channel8u &channel, Format format = Format() );
-	/** \brief Constructs a texture based on the contents of \a channel. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
-	Texture( const Channel32f &channel, Format format = Format() );
-	/** \brief Constructs a texture based on \a imageSource. A default value of -1 for \a internalFormat chooses an appropriate internal format based on the contents of \a imageSource. **/
-	Texture( ImageSourceRef imageSource, Format format = Format() );
-	//! Constructs a Texture based on an externally initialized OpenGL texture. \a aDoNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
-	Texture( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bool aDoNotDispose );
 
+	// These constructors are not protected to allow for shared_ptr's with custom deleters
+	/** Consider Texture::create() instead. Constructs a texture of size(\a width, \a height), storing the data in internal format \a aInternalFormat. **/
+	Texture( int width, int height, Format format = Format() );
+	/** Consider Texture::create() instead. Constructs a texture of size(\a width, \a height), storing the data in internal format \a aInternalFormat. Pixel data is provided by \a data and is expected to be interleaved and in format \a dataFormat, for which \c GL_RGB or \c GL_RGBA would be typical values. **/
+	Texture( const unsigned char *data, int dataFormat, int width, int height, Format format = Format() );
+	/** Consider Texture::create() instead. Constructs a texture based on the contents of \a surface. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
+	Texture( const Surface8u &surface, Format format = Format() );
+	/** Consider Texture::create() instead. Constructs a texture based on the contents of \a surface. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
+	Texture( const Surface32f &surface, Format format = Format() );
+	/** Consider Texture::create() instead. Constructs a texture based on the contents of \a channel. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
+	Texture( const Channel8u &channel, Format format = Format() );
+	/** Consider Texture::create() instead. Constructs a texture based on the contents of \a channel. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
+	Texture( const Channel32f &channel, Format format = Format() );
+	/** Consider Texture::create() instead. Constructs a texture based on \a imageSource. A default value of -1 for \a internalFormat chooses an appropriate internal format based on the contents of \a imageSource. **/
+	Texture( ImageSourceRef imageSource, Format format = Format() );
+	//! Consider Texture::create() instead. Constructs a Texture based on an externally initialized OpenGL texture. \a aDoNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
+	Texture( GLenum aTarget, GLuint aTextureID, int width, int height, bool doNotDispose );
+
+  protected:
 	
 	void	init( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format );
 	void	init( const float *data, GLint dataFormat, const Format &format );
@@ -232,23 +225,23 @@ protected:
 	float			mMaxU, mMaxV;
 	mutable GLint	mInternalFormat;
 	GLenum			mTarget;
-	GLuint			mTextureID;
+	GLuint			mTextureId;
 	bool			mDoNotDispose;
 	bool			mFlipped;
-	void			(*mDeallocatorFunc)(void *refcon);
-	void			*mDeallocatorRefcon;
+	
+	friend class TextureCache;
 };
 
 typedef std::shared_ptr<class TextureCache> TextureCacheRef;
 	
 class TextureCache
 {
-public:
+  public:
 	TextureCacheRef create();
 	TextureCacheRef create( const Surface8u &prototypeSurface, const Texture::Format &format );
 	
 	TextureRef		cache( const Surface8u &data );
-protected:
+  protected:
 	TextureCache();
 	TextureCache( const Surface8u &prototypeSurface, const Texture::Format &format );
 		
@@ -267,21 +260,21 @@ protected:
 
 class SurfaceConstraintsGLTexture : public SurfaceConstraints
 {
-public:
+  public:
 	virtual SurfaceChannelOrder getChannelOrder( bool alpha ) const { return ( alpha ) ? SurfaceChannelOrder::BGRA : SurfaceChannelOrder::BGR; }
 	virtual int32_t				getRowBytes( int requestedWidth, const SurfaceChannelOrder &sco, int elementSize ) const { return requestedWidth * elementSize * sco.getPixelInc(); }
 };
 
 class TextureDataExc : public std::exception
 {
-public:	
+  public:	
 	TextureDataExc( const std::string &log ) throw();
 	virtual const char* what() const throw()
 	{
 		return mMessage;
 	}
 	
-private:
+  private:
 	char	mMessage[ 16001 ];
 	GLint	mShaderType;
 };
