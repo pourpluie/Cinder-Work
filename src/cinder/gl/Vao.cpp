@@ -32,13 +32,16 @@ extern VaoRef createVaoImplEs();
 #else
 extern VaoRef createVaoImplCore();
 #endif
+extern VaoRef createVaoImplSoftware();
 
 VaoRef Vao::create()
 {
 #if defined( CINDER_GLES )
 	return createVaoImplEs();
+//	return createVaoImplSoftware();
 #else
 	return createVaoImplCore();
+//	return createVaoImplSoftware();
 #endif
 }
 

@@ -46,6 +46,10 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	// Does the actual "work" of binding the VAO; called by Context
 	virtual void	bindImpl( class Context *context ) = 0;
 	virtual void	unbindImpl( class Context *context ) = 0;
+	// Analogous to glEnableVertexAttribArray(). Expects this to be the currently bound VAO; called by Context
+	virtual void	enableVertexAttribArrayImpl( GLuint index ) = 0;
+	// Analogous to glVertexAttribPointer(). Expects this to be the currently bound VAO; called by Context
+	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) = 0;
 	// Causes Context to reflect any state cache invalidations due to binding/unbinding a VAO
 	static void		invalidateContext( class Context *context );
 	

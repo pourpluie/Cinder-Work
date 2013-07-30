@@ -38,15 +38,22 @@ class VaoImplSoftware : public Vao {
 	VaoImplSoftware();
 
 	// Does the actual "work" of binding the VAO; called by Context
-	virtual void	bindImpl( class Context *context );
-	virtual void	unbindImpl( class Context *context );
+	virtual void	bindImpl( class Context *context ) override;
+	virtual void	unbindImpl( class Context *context ) override;
+	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
+	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
 	
   protected:
 	struct VertexAttrib {
-		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer )
-			: mSize( size ), mType( type ), mNormalized( normalized ), mStride( stride ), mPointer( pointer )
+		VertexAttrib()
+			: mEnabled( true ), mSize( 0 ), mType( GL_FLOAT ), mNormalized( false ), mStride( 0 ), mPointer( 0 )
 		{}
-	
+		
+		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer )
+			: mEnabled( false ), mSize( size ), mType( type ), mNormalized( normalized ), mStride( stride ), mPointer( pointer )
+		{}
+		
+		bool			mEnabled;
 		GLint			mSize;
 		GLenum			mType;
 		GLboolean		mNormalized;
@@ -74,22 +81,52 @@ VaoImplSoftware::~VaoImplSoftware()
 {
 }
 
+void VaoImplSoftware::enableVertexAttribArrayImpl( GLuint index )
+{
+	auto existing = mVertexAttribs.find( index );
+	if( existing != mVertexAttribs.end() ) {
+		existing->second.mEnabled = true;
+	}
+	else {
+		mVertexAttribs[index] = VertexAttrib();
+	}
+}
+
 void VaoImplSoftware::bindImpl( Context *context )
 {
 	for( auto attribIt = mVertexAttribs.begin(); attribIt != mVertexAttribs.end(); ++attribIt ) {
-		glEnableVertexAttribArray( attribIt->first );
-		glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
+		if( attribIt->second.mEnabled ) {
+			glEnableVertexAttribArray( attribIt->first );
+			glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
+		}
 	}
 }
 
 void VaoImplSoftware::unbindImpl( Context *context )
 {
 	for( auto attribIt = mVertexAttribs.begin(); attribIt != mVertexAttribs.end(); ++attribIt ) {
-		glDisableVertexAttribArray( attribIt->first );
+		if( attribIt->second.mEnabled ) {
+			glDisableVertexAttribArray( attribIt->first );
+		}
 	}	
 	
 	if( context )
 		invalidateContext( context );
+}
+
+void VaoImplSoftware::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
+{
+	auto existing = mVertexAttribs.find( index );
+	if( existing != mVertexAttribs.end() ) {
+		existing->second.mSize = size;
+		existing->second.mType = type;
+		existing->second.mNormalized = normalized;
+		existing->second.mStride = stride;
+		existing->second.mPointer = pointer;
+	}
+	else {
+		mVertexAttribs[index] = VertexAttrib( size, type, normalized, stride, pointer );
+	}
 }
 
 } }

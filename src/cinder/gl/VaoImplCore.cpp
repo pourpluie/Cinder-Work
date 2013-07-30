@@ -35,8 +35,10 @@ class VaoImplCore : public Vao {
 	VaoImplCore();
 
 	// Does the actual "work" of binding the VAO; called by Context
-	virtual void	bindImpl( class Context *context );
-	virtual void	unbindImpl( class Context *context );
+	virtual void	bindImpl( class Context *context ) override;
+	virtual void	unbindImpl( class Context *context ) override;
+	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
+	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
 	
 	friend class Context;
 };
@@ -83,6 +85,16 @@ void VaoImplCore::unbindImpl( Context *context )
 
 	if( context )
 		invalidateContext( context );
+}
+
+void VaoImplCore::enableVertexAttribArrayImpl( GLuint index )
+{
+	glEnableVertexAttribArray( index );
+}
+
+void VaoImplCore::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
+{
+	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
 }
 
 } }

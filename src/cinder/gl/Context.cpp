@@ -78,13 +78,11 @@ ContextRef Context::create()
 // VAO
 void Context::vaoBind( const VaoRef &vao )
 {
-	if( mCachedVao != vao ) {		
+	if( mCachedVao != vao ) {
+		if( mCachedVao )
+			mCachedVao->unbindImpl( this );
 		if( vao ) {
 			vao->bindImpl( this );
-		}
-		else { // unbind current vao
-			if( mCachedVao )
-				mCachedVao->unbindImpl( this );
 		}
 		
 		mCachedVao = vao;
@@ -346,12 +344,16 @@ void Context::printState( std::ostream &os ) const
 // Vertex Attributes
 void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
+	VaoRef vao = vaoGet();
+	if( vao )
+		vao->vertexAttribPointerImpl( index, size, type, normalized, stride, pointer );
 }
 
 void Context::enableVertexAttribArray( GLuint index )
 {
-	glEnableVertexAttribArray( index );
+	VaoRef vao = vaoGet();
+	if( vao )
+		vao->enableVertexAttribArrayImpl( index );
 }
 
 void Context::vertexAttrib1f( GLuint index, float v0 )
