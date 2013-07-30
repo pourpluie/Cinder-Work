@@ -101,6 +101,12 @@ void Context::bindBuffer( GLenum target, GLuint id )
 	if( mCachedBuffer[target] != id ) {
 		mCachedBuffer[target] = id;
 		glBindBuffer( target, id );
+		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
+			VaoRef vao = vaoGet();
+			if( vao ) {
+				vao->reflectBindBuffer( target, id );
+			}
+		}
 	}
 }
 

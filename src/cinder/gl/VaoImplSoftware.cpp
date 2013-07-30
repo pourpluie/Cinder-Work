@@ -38,30 +38,12 @@ class VaoImplSoftware : public Vao {
 	VaoImplSoftware();
 
 	// Does the actual "work" of binding the VAO; called by Context
-	virtual void	bindImpl( class Context *context ) override;
-	virtual void	unbindImpl( class Context *context ) override;
+	virtual void	bindImpl( Context *context ) override;
+	virtual void	unbindImpl( Context *context ) override;
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
 	
   protected:
-	struct VertexAttrib {
-		VertexAttrib()
-			: mEnabled( true ), mSize( 0 ), mType( GL_FLOAT ), mNormalized( false ), mStride( 0 ), mPointer( 0 )
-		{}
-		
-		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer )
-			: mEnabled( false ), mSize( size ), mType( type ), mNormalized( normalized ), mStride( stride ), mPointer( pointer )
-		{}
-		
-		bool			mEnabled;
-		GLint			mSize;
-		GLenum			mType;
-		GLboolean		mNormalized;
-		GLsizei			mStride;
-		const GLvoid*	mPointer;
-	};
-
-	map<GLuint,VertexAttrib>	mVertexAttribs;
 	
 	friend class Context;
 };
@@ -90,6 +72,8 @@ void VaoImplSoftware::enableVertexAttribArrayImpl( GLuint index )
 	else {
 		mVertexAttribs[index] = VertexAttrib();
 	}
+	
+	glEnableVertexAttribArray( index );
 }
 
 void VaoImplSoftware::bindImpl( Context *context )
@@ -97,9 +81,12 @@ void VaoImplSoftware::bindImpl( Context *context )
 	for( auto attribIt = mVertexAttribs.begin(); attribIt != mVertexAttribs.end(); ++attribIt ) {
 		if( attribIt->second.mEnabled ) {
 			glEnableVertexAttribArray( attribIt->first );
+			glBindBuffer( GL_ARRAY_BUFFER, attribIt->second.mArrayBufferBinding );
 			glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
 		}
 	}
+	glBindBuffer( GL_ARRAY_BUFFER, mArrayBufferBinding );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mElementArrayBufferBinding );
 }
 
 void VaoImplSoftware::unbindImpl( Context *context )
@@ -123,10 +110,13 @@ void VaoImplSoftware::vertexAttribPointerImpl( GLuint index, GLint size, GLenum 
 		existing->second.mNormalized = normalized;
 		existing->second.mStride = stride;
 		existing->second.mPointer = pointer;
+		existing->second.mArrayBufferBinding = mArrayBufferBinding;
 	}
 	else {
-		mVertexAttribs[index] = VertexAttrib( size, type, normalized, stride, pointer );
+		mVertexAttribs[index] = VertexAttrib( size, type, normalized, stride, pointer, mArrayBufferBinding );
 	}
+	
+	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
 }
 
 } }

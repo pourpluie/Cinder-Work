@@ -20,6 +20,22 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*	The VAO class abstracts Vertex Array Objects in OpenGL through 3 implementation classes,
+		VaoImplEs for OpenGL ES 2
+		VaoImplCore for desktop OpenGL, both Core and Compatibility profile with approriate extensions
+		VaoImplSoftware for implementations without a native VAO class
+	
+	We don't support the old fixed function data (ie glVertexPointer() and friends).
+	
+	ci::gl::VAO caches the following state:
+		* ELEMENT_ARRAY_BUFFER_BINDING
+		* VERTEX_ATTRIB_ARRAY_BUFFER_BINDING per attribute
+		* All individual attribute data
+	
+	The full list is in Table 6.4 of the OpenGL 3.2 Core Profile spec,
+		http://www.opengl.org/registry/doc/glspec32.core.20090803.pdf
+*/
+
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Context.h"
@@ -37,15 +53,16 @@ extern VaoRef createVaoImplSoftware();
 VaoRef Vao::create()
 {
 #if defined( CINDER_GLES )
-	return createVaoImplEs();
-//	return createVaoImplSoftware();
+//	return createVaoImplEs();
+	return createVaoImplSoftware();
 #else
-	return createVaoImplCore();
-//	return createVaoImplSoftware();
+//	return createVaoImplCore();
+	return createVaoImplSoftware();
 #endif
 }
 
 Vao::Vao()
+	: mArrayBufferBinding( 0 ), mElementArrayBufferBinding( 0 )
 {
 }
 
@@ -66,6 +83,16 @@ void Vao::invalidateContext( Context *context )
 	// binding a VAO invalidates other pieces of cached state
 	context->invalidateBufferBinding( GL_ARRAY_BUFFER );
 	context->invalidateBufferBinding( GL_ELEMENT_ARRAY_BUFFER );
+}
+
+void Vao::reflectBindBuffer( GLenum target, GLuint buffer )
+{
+	if( target == GL_ARRAY_BUFFER ) {
+		mArrayBufferBinding = buffer;
+	}
+	else if( target == GL_ELEMENT_ARRAY_BUFFER ) {
+		mElementArrayBufferBinding = buffer;
+	}
 }
 
 } }

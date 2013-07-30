@@ -25,6 +25,7 @@
 #include "cinder/gl/gl.h"
 #include <memory>
 #include <vector>
+#include <map>
 
 namespace cinder { namespace gl {
 
@@ -43,17 +44,45 @@ class Vao : public std::enable_shared_from_this<Vao> {
   protected:
 	Vao();
 
-	// Does the actual "work" of binding the VAO; called by Context
+	struct VertexAttrib {
+		VertexAttrib()
+			: mEnabled( true ), mSize( 0 ), mType( GL_FLOAT ), mNormalized( false ), mStride( 0 ), mPointer( 0 ), mArrayBufferBinding( 0 )
+		{}
+		
+		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer, GLuint arrayBufferBinding )
+			: mEnabled( false ), mSize( size ), mType( type ), mNormalized( normalized ), mStride( stride ), mPointer( pointer ), mArrayBufferBinding( arrayBufferBinding )
+		{}
+		
+		bool			mEnabled;
+		GLint			mSize;
+		GLenum			mType;
+		GLboolean		mNormalized;
+		GLsizei			mStride;
+		const GLvoid*	mPointer;
+		GLuint			mArrayBufferBinding;
+	};
+
+
+	// Does the actual work of binding the VAO; called by Context
 	virtual void	bindImpl( class Context *context ) = 0;
+	// Does the actual work of unbinding the VAO; called by Context
 	virtual void	unbindImpl( class Context *context ) = 0;
 	// Analogous to glEnableVertexAttribArray(). Expects this to be the currently bound VAO; called by Context
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) = 0;
 	// Analogous to glVertexAttribPointer(). Expects this to be the currently bound VAO; called by Context
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) = 0;
+	// Caches the currently bound buffer; called by Context when GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER changes
+	void			reflectBindBuffer( GLenum target, GLuint buffer );
+
 	// Causes Context to reflect any state cache invalidations due to binding/unbinding a VAO
 	static void		invalidateContext( class Context *context );
+
+
 	
-	GLuint			mId;
+	GLuint							mId;
+	GLuint							mArrayBufferBinding, mElementArrayBufferBinding;
+	std::map<GLuint,VertexAttrib>	mVertexAttribs;
+
 	friend class Context;
 };
 	

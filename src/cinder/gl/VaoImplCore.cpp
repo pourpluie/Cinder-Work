@@ -92,7 +92,7 @@ void VaoImplCore::enableVertexAttribArrayImpl( GLuint index )
 	glEnableVertexAttribArray( index );
 }
 
-void VaoImplCore::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
+void VaoImplCore::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
 }
