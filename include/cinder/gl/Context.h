@@ -34,13 +34,22 @@ typedef std::shared_ptr<Fbo>			FboRef;
 class Context {
   public:
 	~Context();
-	//! Creates based on an existing platform-specific GL context. \a platformContext is CGLContextObj on Mac OS X
+	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. Makes the new Context current.
+	static ContextRef	create( const Context *sharedContext );	
+	//! Creates based on an existing platform-specific GL context. \a platformContext is CGLContextObj on Mac OS X, EAGLContext on iOS
 	static ContextRef	create( void *platformContext );	
 
+	//! Returns the platform-specific OpenGL Context. CGLContextObj on Mac OS X, EAGLContext on iOS
+	void*	getPlatformContext() const { return mPlatformContext; }
+
+	//! Makes this the currently active OpenGL Context
 	void			makeCurrent();
+	//! Returns the thread's currently active OpenGL Context
 	static Context*	getCurrent();
 	
+	//! Binds a VAO. Consider using a VaoScope instead.
 	void		vaoBind( const VaoRef &vao );
+	//! Returns the currently bound VAO
 	VaoRef		vaoGet();
 
 	void		bindBuffer( GLenum target, GLuint id );
@@ -72,25 +81,25 @@ class Context {
 	void		printState( std::ostream &os ) const;
 
 	// Vertex Attributes
-	//! Analogous to glVertexAttribPointer
+	//! Analogous to glVertexAttribPointer()
 	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
-	//! Analogous to glEnableVertexAttribArray
+	//! Analogous to glEnableVertexAttribArray()
 	void		enableVertexAttribArray( GLuint index );
-	//! Analogous to glVertexAttrib1f
+	//! Analogous to glVertexAttrib1f()
 	void		vertexAttrib1f( GLuint index, float v0 );
-	//! Analogous to glVertexAttrib2f
+	//! Analogous to glVertexAttrib2f()
 	void		vertexAttrib2f( GLuint index, float v0, float v1 );
-	//! Analogous to glVertexAttrib3f
+	//! Analogous to glVertexAttrib3f()
 	void		vertexAttrib3f( GLuint index, float v0, float v1, float v2 );
-	//! Analogous to glVertexAttrib4f
+	//! Analogous to glVertexAttrib4f()
 	void		vertexAttrib4f( GLuint index, float v0, float v1, float v2, float v3 );
 
-	//! Parallels glBlendFunc()
+	//! Analogous glBlendFunc(). Consider using a BlendScope instead.
 	void		blendFunc( GLenum sfactor, GLenum dfactor );
-	//! Parallels glBlendFuncSeparate()
+	//! Analogous to glBlendFuncSeparate(). Consider using a BlendScope instead.
 	void		blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
 
-	//! Parallels glDepthMask()
+	//! Analogous to glDepthMask()
 	void		depthMask( GLboolean enable );
 
 #if ! defined( CINDER_GLES )
@@ -311,6 +320,9 @@ struct ActiveTextureScope : public boost::noncopyable
   private:
 	Context		*mCtx;
 	GLenum		mPrevValue;
+};
+
+class ExcContextAllocation : public Exception {
 };
 
 } } // namespace cinder::gl

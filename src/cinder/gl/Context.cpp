@@ -71,6 +71,38 @@ Context::~Context()
 	clear();
 }
 
+ContextRef Context::create( const Context *sharedContext )
+{
+	void *platformContext = NULL;
+#if defined( CINDER_MAC )
+	CGLContextObj sharedContextCgl = (CGLContextObj)sharedContext->getPlatformContext();
+	CGLPixelFormatObj sharedContextPixelFormat = ::CGLGetPixelFormat( sharedContextCgl );
+	if( ::CGLCreateContext( sharedContextPixelFormat, sharedContextCgl, (CGLContextObj*)&platformContext ) != kCGLNoError ) {
+		throw ExcContextAllocation();
+	}
+
+auto b = &glBindBuffer;
+	::CGLSetCurrentContext( (CGLContextObj)platformContext );
+#elif defined( CINDER_COCOA_TOUCH )
+	EAGLContext *sharedContextEagl = (EAGLContext*)sharedContext->getPlatformContext();
+	EAGLSharegroup *sharegroup = sharedContextEagl.sharegroup;
+	platformContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
+	[EAGLContext setCurrentContext:(EAGLContext*)platformContext];
+#elif defined( CINDER_MSW )
+	wglGetCurrent() ?
+#endif
+
+	ContextRef result( std::shared_ptr<Context>( new Context( platformContext ) ) );
+
+#if ! defined( CINDER_GLES )
+ogl_LoadFunctions();
+#endif
+
+	env()->initializeContextDefaults( result.get() );
+
+	return result;
+}
+
 ContextRef Context::create( void *platformContext )
 {
 #if ! defined( CINDER_GLES )
