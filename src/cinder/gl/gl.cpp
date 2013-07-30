@@ -21,11 +21,7 @@ namespace cinder { namespace gl {
 
 Context* context()
 {
-	static ContextRef sContext;
-	if( ! sContext ) {
-		sContext = Context::create();
-	}
-	return sContext.get();
+	return Context::getCurrent();
 }
 
 void enableVerticalSync( bool enable )

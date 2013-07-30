@@ -11,9 +11,17 @@
 #include "cinder/gl/Fbo.h"
 #include "cinder/Utilities.h"
 
+#if defined( CINDER_MAC )
+	#include <OpenGL/OpenGL.h>
+#elif defined( CINDER_COCOA_TOUCH )
+	#import <OpenGLES/EAGL.h>
+#endif
+
 #include "glload/gl_load.h"
 
 #include "cinder/app/App.h"
+
+using namespace std;
 
 // ES 2 Multisampling is available on iOS via an extension
 #if ! defined( CINDER_GLES ) || ( defined( CINDER_COCOA_TOUCH ) )
@@ -28,10 +36,11 @@
 
 namespace cinder { namespace gl {
 
-using namespace std;
-	
-Context::Context()
-	: mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
+static Context *sThreadSpecificCurrentContext = NULL;
+
+Context::Context( void *platformContext )
+	: mPlatformContext( platformContext ),
+	mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
 	mCachedActiveTexture( 0 ), mWireframe( false )
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
@@ -62,16 +71,34 @@ Context::~Context()
 	clear();
 }
 
-ContextRef Context::create()
+ContextRef Context::create( void *platformContext )
 {
 #if ! defined( CINDER_GLES )
 	ogl_LoadFunctions();
 #endif
-	
-	ContextRef result( std::shared_ptr<Context>( new Context() ) );
+
+	ContextRef result( std::shared_ptr<Context>( new Context( platformContext ) ) );
 	env()->initializeContextDefaults( result.get() );
 
 	return result;
+}
+
+void Context::makeCurrent()
+{
+#if defined( CINDER_MAC )
+	::CGLSetCurrentContext( (CGLContextObj)mPlatformContext );
+#elif defined( CINDER_COCOA_TOUCH )
+	[EAGLContext setCurrentContext:(EAGLContext*)mPlatformContext];
+#elif defined( CINDER_MSW )
+	wglMakeCurrent() ?
+#endif
+
+	sThreadSpecificCurrentContext = this;
+}
+
+Context* Context::getCurrent()
+{
+	return sThreadSpecificCurrentContext;
 }
 
 //////////////////////////////////////////////////////////////////

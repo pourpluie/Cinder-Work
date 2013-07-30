@@ -59,13 +59,14 @@
 	else
 		mContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
 	
-	if( ( ! mContext ) || ( ! [EAGLContext setCurrentContext:mContext] ) ) {
+	if( ! mContext ) {
 		[self release];
 		return;
 	}
 	
 	// force Cinder's context to be allocated
-	mCinderContext = cinder::gl::context();
+	mCinderContext = cinder::gl::Context::create( mContext );
+	mCinderContext->makeCurrent();
 
 	// Create default framebuffer object. The backing will be allocated for the current layer in -resizeFromLayer
 	glGenFramebuffers( 1, &mViewFramebuffer );
@@ -131,7 +132,7 @@
 
 - (void)makeCurrentContext
 {
-	[EAGLContext setCurrentContext:mContext];
+	mCinderContext->makeCurrent();
     
 	// This application only creates a single default framebuffer which is already bound at this point.
 	// This call is redundant, but needed if dealing with multiple framebuffers.

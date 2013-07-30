@@ -48,6 +48,13 @@
 	#endif
 #endif
 
+namespace cinder { namespace gl {
+
+class Context;
+typedef std::shared_ptr<Context>		ContextRef;
+
+} } // cinder::gl
+
 namespace cinder { namespace app {
 
 typedef std::shared_ptr<class RendererGl>	RendererGlRef;

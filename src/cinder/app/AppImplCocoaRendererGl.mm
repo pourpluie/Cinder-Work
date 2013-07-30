@@ -22,6 +22,7 @@
 */
 
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Context.h"
 #include "cinder/Camera.h"
 #import <Cocoa/Cocoa.h>
 
@@ -84,9 +85,9 @@ if( ! view )
 	if( retinaEnabled )
 		[view setWantsBestResolutionOpenGLSurface:YES];
 	
-	[[view openGLContext] makeCurrentContext];
-	// force Cinder's context to be allocated
-	cinder::gl::context();
+	void *platformContext = [[view openGLContext] CGLContextObj];
+	mContext = cinder::gl::Context::create( platformContext );
+	mContext->makeCurrent();
 
 	GLint swapInterval = 1;
 	[[view openGLContext] setValues:&swapInterval forParameter:NSOpenGLCPSwapInterval];
@@ -121,7 +122,7 @@ if( ! view )
 
 - (void)makeCurrentContext
 {
-	[[view openGLContext] makeCurrentContext];
+	mContext->makeCurrent();
 }
 
 - (void)flushBuffer

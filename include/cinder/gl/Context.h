@@ -34,7 +34,11 @@ typedef std::shared_ptr<Fbo>			FboRef;
 class Context {
   public:
 	~Context();
-	static ContextRef	create();
+	//! Creates based on an existing platform-specific GL context. \a platformContext is CGLContextObj on Mac OS X
+	static ContextRef	create( void *platformContext );	
+
+	void			makeCurrent();
+	static Context*	getCurrent();
 	
 	void		vaoBind( const VaoRef &vao );
 	VaoRef		vaoGet();
@@ -159,9 +163,10 @@ class Context {
 	GLenum						mMode;
 
   private:
-	Context();
+	Context( void *platformContext );
   
-  
+	void						*mPlatformContext;
+
 	friend class				Environment;
 	friend class				EnvironmentEs2Profile;
 	friend class				EnvironmentCoreProfile;

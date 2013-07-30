@@ -31,7 +31,7 @@
 	cinder::app::App				*mApp;
 	UIView							*mCinderView;
 	EAGLContext						*mContext;
-	cinder::gl::Context				*mCinderContext;
+	cinder::gl::ContextRef			mCinderContext;
 
 	// The pixel dimensions of the CAEAGLLayer
 	GLint 			mBackingWidth, mBackingHeight;
