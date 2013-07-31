@@ -81,6 +81,7 @@ Context::~Context()
 ContextRef Context::create( const Context *sharedContext )
 {
 	void *platformContext = NULL;
+	void *platformContextAdditional = NULL;
 #if defined( CINDER_MAC )
 	CGLContextObj sharedContextCgl = (CGLContextObj)sharedContext->getPlatformContext();
 	CGLPixelFormatObj sharedContextPixelFormat = ::CGLGetPixelFormat( sharedContextCgl );
@@ -97,12 +98,12 @@ ContextRef Context::create( const Context *sharedContext )
 #elif defined( CINDER_MSW )
 	// first make sharedContext the current one
 	HGLRC sharedContextWgl = (HGLRC)sharedContext->getPlatformContext();
-	HDC sharedContextDc = (HDC)sharedContext->mPlatformContextAdditional;
+	platformContextAdditional = sharedContext->mPlatformContextAdditional;
 	platformContext = ::wglCreateContext( sharedContextDc );
 	::wglShareLists( sharedContextWgl, (HGLRC)platformContext );
 #endif
 
-	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, sharedContextDc ) ) );
+	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, platformContextAdditional ) ) );
 
 #if ! defined( CINDER_GLES )
 ogl_LoadFunctions();

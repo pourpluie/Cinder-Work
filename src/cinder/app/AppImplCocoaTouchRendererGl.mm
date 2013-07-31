@@ -65,7 +65,7 @@
 	}
 	
 	// force Cinder's context to be allocated
-	mCinderContext = cinder::gl::Context::create( mContext );
+	mCinderContext = cinder::gl::Context::createFromExisting( mContext, NULL );
 	mCinderContext->makeCurrent();
 
 	// Create default framebuffer object. The backing will be allocated for the current layer in -resizeFromLayer
