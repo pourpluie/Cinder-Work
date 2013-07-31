@@ -37,7 +37,7 @@ class Context {
 	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. Makes the new Context current.
 	static ContextRef	create( const Context *sharedContext );	
 	//! Creates based on an existing platform-specific GL context. \a platformContext is CGLContextObj on Mac OS X, EAGLContext on iOS
-	static ContextRef	create( void *platformContext );	
+	static ContextRef	createFromExisting( void *platformContext );	
 
 	//! Returns the platform-specific OpenGL Context. CGLContextObj on Mac OS X, EAGLContext on iOS
 	void*	getPlatformContext() const { return mPlatformContext; }

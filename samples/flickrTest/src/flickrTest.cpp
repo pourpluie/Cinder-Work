@@ -1,5 +1,5 @@
-#include "cinder/Cinder.h"
 #include "cinder/app/AppBasic.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/URL.h"
 #include "cinder/Xml.h"
 #include "cinder/gl/gl.h"
@@ -23,7 +23,7 @@ class FlickrTestApp : public AppBasic {
 	void keyDown( KeyEvent event );
 	void createTextureFromURL();
 
-	vector<gl::Texture>		mTexts;
+	vector<gl::TextureRef>	mTextures;
 	vector<Url>				mUrls;
 	int						activeTex;
 	double					lastTime;	
@@ -33,7 +33,7 @@ class FlickrTestApp : public AppBasic {
 
 void FlickrTestApp::setup()
 {
-	glEnable( GL_TEXTURE_2D );
+//	glEnable( GL_TEXTURE_2D );
 
 	const XmlTree xml( loadUrl( Url( "http://api.flickr.com/services/feeds/groups_pool.gne?id=1423039@N24&lang=en-us&format=rss_200" ) ) );
 	for( XmlTree::ConstIter item = xml.begin( "rss/channel/item" ); item != xml.end(); ++item ) {
@@ -54,7 +54,7 @@ void FlickrTestApp::update()
 	if( ( getElapsedSeconds() - lastTime ) > 2 ) {
 		lastTime = getElapsedSeconds();
 		activeTex++;
-		if( activeTex >= mTexts.size() ) {
+		if( activeTex >= mTextures.size() ) {
 			activeTex = 0;
 		}
 	}	
@@ -62,7 +62,9 @@ void FlickrTestApp::update()
 
 void FlickrTestApp::draw()
 {	
-	gl::draw( mTexts[activeTex], getWindowBounds() );
+	gl::clear();
+	gl::color( Color::white() );
+	gl::draw( mTextures[activeTex], Rectf( getWindowBounds() ) );
 }
 
 void FlickrTestApp::keyDown( KeyEvent event )
@@ -74,11 +76,11 @@ void FlickrTestApp::keyDown( KeyEvent event )
 
 void FlickrTestApp::createTextureFromURL() 
 {
-	gl::Texture tex = gl::Texture( loadImage( loadUrl( mUrls.back() ) ) );
+	gl::TextureRef tex = gl::Texture::create( loadImage( loadUrl( mUrls.back() ) ) );
 	console() << "Loaded:" << mUrls.back().str() << endl;
 	mUrls.pop_back();
-	mTexts.push_back( tex );
+	mTextures.push_back( tex );
 }
 
 
-CINDER_APP_BASIC( FlickrTestApp, RendererGl )
+CINDER_APP_BASIC( FlickrTestApp, RendererGl( RendererGl::Options().coreProfile( true ) ) )

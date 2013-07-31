@@ -36,7 +36,12 @@ using namespace std;
 
 namespace cinder { namespace gl {
 
-static Context *sThreadSpecificCurrentContext = NULL;
+#if defined( CINDER_COCOA )
+static pthread_key_t sThreadSpecificCurrentContextKey;
+static bool sThreadSpecificCurrentContextInitialized = false;
+#else
+thread_local Context *sThreadSpecificCurrentContext = NULL;
+#endif
 
 Context::Context( void *platformContext )
 	: mPlatformContext( platformContext ),
@@ -81,7 +86,6 @@ ContextRef Context::create( const Context *sharedContext )
 		throw ExcContextAllocation();
 	}
 
-auto b = &glBindBuffer;
 	::CGLSetCurrentContext( (CGLContextObj)platformContext );
 #elif defined( CINDER_COCOA_TOUCH )
 	EAGLContext *sharedContextEagl = (EAGLContext*)sharedContext->getPlatformContext();
@@ -103,7 +107,7 @@ ogl_LoadFunctions();
 	return result;
 }
 
-ContextRef Context::create( void *platformContext )
+ContextRef Context::createFromExisting( void *platformContext )
 {
 #if ! defined( CINDER_GLES )
 	ogl_LoadFunctions();
@@ -125,12 +129,27 @@ void Context::makeCurrent()
 	wglMakeCurrent() ?
 #endif
 
+#if defined( CINDER_COCOA )
+	if( ! sThreadSpecificCurrentContextInitialized ) {
+		pthread_key_create( &sThreadSpecificCurrentContextKey, NULL );
+		sThreadSpecificCurrentContextInitialized = true;
+	}
+	pthread_setspecific( sThreadSpecificCurrentContextKey, this );
+#else
 	sThreadSpecificCurrentContext = this;
+#endif
 }
 
 Context* Context::getCurrent()
 {
+#if defined( CINDER_COCOA )
+	if( ! sThreadSpecificCurrentContextInitialized ) {
+		return NULL;
+	}
+	return reinterpret_cast<Context*>( pthread_getspecific( sThreadSpecificCurrentContextKey ) );
+#else
 	return sThreadSpecificCurrentContext;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////

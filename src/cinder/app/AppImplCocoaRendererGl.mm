@@ -86,7 +86,7 @@ if( ! view )
 		[view setWantsBestResolutionOpenGLSurface:YES];
 	
 	void *platformContext = [[view openGLContext] CGLContextObj];
-	mContext = cinder::gl::Context::create( platformContext );
+	mContext = cinder::gl::Context::createFromExisting( platformContext );
 	mContext->makeCurrent();
 
 	GLint swapInterval = 1;

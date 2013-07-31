@@ -8,6 +8,8 @@
 #include "cinder/Thread.h"
 #include "cinder/ConcurrentCircularBuffer.h"
 
+#include <OpenGL/OpenGL.h>
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -44,7 +46,10 @@ void FlickrTestMTApp::loadImagesThreadFn( gl::Context *sharedGlContext )
 {
 	ci::ThreadSetup threadSetup; // instantiate this if you're talking to Cinder from a secondary thread
 	gl::ContextRef ctx = gl::Context::create( sharedGlContext );
+	ctx->makeCurrent();
 	vector<Url>	urls;
+
+	console() << "loadImagesThreadFn: " << ::CGLGetCurrentContext() << std::endl;
 
 	// parse the image URLS from the XML feed and push them into 'urls'
 	const Url sunFlickrGroup = Url( "http://api.flickr.com/services/feeds/groups_pool.gne?id=52242317293@N01&format=rss_200" );
@@ -83,9 +88,12 @@ void FlickrTestMTApp::update()
 }
 
 void FlickrTestMTApp::draw()
-{	
+{
+	gl::setMatricesWindow( getWindowSize() );
+	console() << "Current on draw: " << ::CGLGetCurrentContext() << std::endl;
+
 	gl::enableAlphaBlending();
-	gl::clear();
+	gl::clear( Color( 0.5, 0.25, 0.7f ) );
 	gl::color( Color::white() );
 	
 	if( mLastTexture ) {
@@ -109,4 +117,4 @@ void FlickrTestMTApp::shutdown()
 	mThread->join();
 }
 
-CINDER_APP_BASIC( FlickrTestMTApp, RendererGl )
+CINDER_APP_BASIC( FlickrTestMTApp, RendererGl( RendererGl::Options().coreProfile( false ) ) )

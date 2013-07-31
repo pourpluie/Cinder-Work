@@ -224,6 +224,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = "$(CINDER_PATH)/lib/libcinder_d.a";
 				PRODUCT_NAME = flickrTest;
+				SYMROOT = ./build;
 			};
 			name = Debug;
 		};
@@ -241,6 +242,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = "$(CINDER_PATH)/lib/libcinder.a";
 				PRODUCT_NAME = flickrTest;
+				SYMROOT = ./build;
 			};
 			name = Release;
 		};
