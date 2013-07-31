@@ -519,6 +519,15 @@
     <ClCompile Include="..\src\glload\wgl_load_cpp.cpp">
       <Filter>Source Files\gl\gllload</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cinder\gl\VaoImplCore.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\gl\VaoImplSoftware.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\gl\VaoImplEs.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\AntTweakBar\AntPerfTimer.h">

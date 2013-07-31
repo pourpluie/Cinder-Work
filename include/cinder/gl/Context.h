@@ -36,14 +36,14 @@ class Context {
 	~Context();
 	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. Makes the new Context current.
 	static ContextRef	create( const Context *sharedContext );	
-	//! Creates based on an existing platform-specific GL context. \a platformContext is CGLContextObj on Mac OS X, EAGLContext on iOS
-	static ContextRef	createFromExisting( void *platformContext );	
+	//! Creates based on an existing platform-specific GL context. \a platformContext is CGLContextObj on Mac OS X, EAGLContext on iOS, HGLRC on MSW. \a platformContext is an HDC on MSW and ignored elsewhere.
+	static ContextRef	createFromExisting( void *platformContext, void *platformContextAdditional = NULL );	
 
 	//! Returns the platform-specific OpenGL Context. CGLContextObj on Mac OS X, EAGLContext on iOS
 	void*	getPlatformContext() const { return mPlatformContext; }
 
 	//! Makes this the currently active OpenGL Context
-	void			makeCurrent();
+	void			makeCurrent() const;
 	//! Returns the thread's currently active OpenGL Context
 	static Context*	getCurrent();
 	
@@ -172,9 +172,10 @@ class Context {
 	GLenum						mMode;
 
   private:
-	Context( void *platformContext );
+	Context( void *platformContext, void *platformContextAdditional );
   
-	void						*mPlatformContext;
+	void						*mPlatformContext; // Mac: CGLContextObj, iOS: EAGLContext, MSW: HGLRC
+	void						*mPlatformContextAdditional; // Mac: ignored, iOS: ignored, MSW: HDC 
 
 	friend class				Environment;
 	friend class				EnvironmentEs2Profile;

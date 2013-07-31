@@ -39,12 +39,14 @@ namespace cinder { namespace gl {
 #if defined( CINDER_COCOA )
 static pthread_key_t sThreadSpecificCurrentContextKey;
 static bool sThreadSpecificCurrentContextInitialized = false;
+#elif defined( _MSC_VER )
+__declspec(thread) Context *sThreadSpecificCurrentContext = NULL;
 #else
 thread_local Context *sThreadSpecificCurrentContext = NULL;
 #endif
 
-Context::Context( void *platformContext )
-	: mPlatformContext( platformContext ),
+Context::Context( void *platformContext, void *platformContextAdditional )
+	: mPlatformContext( platformContext ), mPlatformContextAdditional( platformContextAdditional ),
 	mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
 	mCachedActiveTexture( 0 ), mWireframe( false )
@@ -93,10 +95,14 @@ ContextRef Context::create( const Context *sharedContext )
 	platformContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
 	[EAGLContext setCurrentContext:(EAGLContext*)platformContext];
 #elif defined( CINDER_MSW )
-	wglGetCurrent() ?
+	// first make sharedContext the current one
+	HGLRC sharedContextWgl = (HGLRC)sharedContext->getPlatformContext();
+	HDC sharedContextDc = (HDC)sharedContext->mPlatformContextAdditional;
+	platformContext = ::wglCreateContext( sharedContextDc );
+	::wglShareLists( sharedContextWgl, (HGLRC)platformContext );
 #endif
 
-	ContextRef result( std::shared_ptr<Context>( new Context( platformContext ) ) );
+	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, sharedContextDc ) ) );
 
 #if ! defined( CINDER_GLES )
 ogl_LoadFunctions();
@@ -107,26 +113,26 @@ ogl_LoadFunctions();
 	return result;
 }
 
-ContextRef Context::createFromExisting( void *platformContext )
+ContextRef Context::createFromExisting( void *platformContext, void *platformContextAdditional )
 {
 #if ! defined( CINDER_GLES )
 	ogl_LoadFunctions();
 #endif
 
-	ContextRef result( std::shared_ptr<Context>( new Context( platformContext ) ) );
+	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, platformContextAdditional ) ) );
 	env()->initializeContextDefaults( result.get() );
 
 	return result;
 }
 
-void Context::makeCurrent()
+void Context::makeCurrent() const
 {
 #if defined( CINDER_MAC )
 	::CGLSetCurrentContext( (CGLContextObj)mPlatformContext );
 #elif defined( CINDER_COCOA_TOUCH )
 	[EAGLContext setCurrentContext:(EAGLContext*)mPlatformContext];
 #elif defined( CINDER_MSW )
-	wglMakeCurrent() ?
+	wglMakeCurrent( (HDC)mPlatformContextAdditional, (HGLRC)mPlatformContext );
 #endif
 
 #if defined( CINDER_COCOA )
@@ -136,7 +142,7 @@ void Context::makeCurrent()
 	}
 	pthread_setspecific( sThreadSpecificCurrentContextKey, this );
 #else
-	sThreadSpecificCurrentContext = this;
+	sThreadSpecificCurrentContext = const_cast<Context*>( this );
 #endif
 }
 

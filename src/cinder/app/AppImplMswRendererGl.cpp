@@ -24,6 +24,7 @@
 #include "cinder/app/AppImplMswRendererGl.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Context.h"
 #include "glload/wgl_all.h"
 #include "glload/gl_load.h"
 #include "cinder/app/App.h"
@@ -77,7 +78,7 @@ void AppImplMswRendererGl::swapBuffers() const
 
 void AppImplMswRendererGl::makeCurrentContext()
 {
-	::wglMakeCurrent( mDC, mRC );
+	mCinderContext->makeCurrent();
 }
 
 HWND createDummyWindow( int *width, int *height, bool fullscreen )
@@ -174,7 +175,14 @@ bool AppImplMswRendererGl::initialize( HWND wnd, HDC dc, RendererRef sharedRende
 	RendererGl *sharedRendererGl = dynamic_cast<RendererGl*>( sharedRenderer.get() );
 	HGLRC sharedRC = ( sharedRenderer ) ? sharedRendererGl->mImpl->mRC : NULL;
 
-	return initializeInternal( wnd, dc, sharedRC );
+	if( ! initializeInternal( wnd, dc, sharedRC ) ) {
+		return false;
+	}
+
+	mCinderContext = cinder::gl::Context::createFromExisting( mRC, mDC );
+	mCinderContext->makeCurrent();
+
+	return true;
 }
 
 // We can't use the normal mechanism for this test because we don't have a context yet
@@ -310,8 +318,6 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 	
 	if( sharedRC )
 		::wglShareLists( sharedRC, mRC );
-
-	mCinderContext = cinder::gl::context();
 
 	return true;									// Success
 }

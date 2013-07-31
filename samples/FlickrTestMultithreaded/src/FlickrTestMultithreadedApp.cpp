@@ -29,7 +29,6 @@ class FlickrTestMTApp : public AppBasic {
 	double					mLastTime;
 };
 
-
 void FlickrTestMTApp::setup()
 {
 	mShouldQuit = false;
@@ -87,7 +86,7 @@ void FlickrTestMTApp::update()
 
 void FlickrTestMTApp::draw()
 {
-	gl::clear( Color( 0.1, 0.1, 0.2 ) );
+	gl::clear( Color( 0.1f, 0.1f, 0.2f ) );
 	
 	if( mLastTexture ) {
 		gl::color( 1, 1, 1, 1.0f - mFade );

@@ -47,7 +47,7 @@ RendererGl::Options::Options()
 #else
 	mAntiAliasing = AA_MSAA_16;
 	mCoreProfile = true;
-	mVersion = std::pair<int,int>( 2, 1 );	
+	mVersion = std::pair<int,int>( 3, 2 );	
 #endif
 }
 
@@ -205,7 +205,8 @@ void RendererGl::setup( App *aApp, HWND wnd, HDC dc, RendererRef sharedRenderer 
 	if( ! mImpl )
 		mImpl = new AppImplMswRendererGl( mApp, this );
 
-	mImpl->initialize( wnd, dc, sharedRenderer );
+	if( ! mImpl->initialize( wnd, dc, sharedRenderer ) )
+		throw ExcRendererAllocation();
 }
 
 void RendererGl::kill()

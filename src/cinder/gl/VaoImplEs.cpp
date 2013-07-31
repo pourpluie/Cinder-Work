@@ -23,6 +23,8 @@
 // Concrete implementation of VAO for OpenGL ES 2.
 // Should only be instantiated by Vao::create() in the presence of GL_OES_vertex_array_object
 
+#if defined( CINDER_GLES )
+
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Context.h"
@@ -90,3 +92,5 @@ void VaoImplEs::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, 
 }
 
 } }
+
+#endif // defined( CINDER_GLES )

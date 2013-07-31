@@ -25,6 +25,7 @@
 #pragma once
 
 #include "cinder/Cinder.h"
+#include "cinder/Exception.h"
 #include "cinder/MatrixStack.h"
 
 #if defined( CINDER_MSW )
@@ -202,5 +203,10 @@ class Renderer2d : public Renderer {
 
 #endif
 
+class ExcRenderer : public Exception {
+};
+
+class ExcRendererAllocation : public ExcRenderer {
+};
 
 } } // namespace cinder::app

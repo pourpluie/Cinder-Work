@@ -28,6 +28,7 @@
 
 namespace cinder { namespace gl {
 	class Context;
+	typedef std::shared_ptr<Context>	ContextRef;
 } }
 
 namespace cinder { namespace app {
@@ -49,7 +50,7 @@ class AppImplMswRendererGl : public AppImplMswRenderer {
 	int		initMultisample( PIXELFORMATDESCRIPTOR pfd, int requestedLevelIdx, HDC dc );
 	
 	class RendererGl	*mRenderer;
-	gl::Context			*mCinderContext;
+	gl::ContextRef		mCinderContext;
 
 	bool		mWasFullScreen;
 	bool		mWasVerticalSynced;
