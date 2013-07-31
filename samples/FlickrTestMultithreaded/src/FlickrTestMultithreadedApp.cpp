@@ -1,6 +1,5 @@
 #include "cinder/app/AppBasic.h"
 #include "cinder/app/RendererGl.h"
-#include "cinder/gl/Texture.h"
 #include "cinder/gl/Context.h"
 #include "cinder/Xml.h"
 #include "cinder/Timeline.h"
@@ -8,14 +7,12 @@
 #include "cinder/Thread.h"
 #include "cinder/ConcurrentCircularBuffer.h"
 
-#include <OpenGL/OpenGL.h>
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
 class FlickrTestMTApp : public AppBasic {
- public:		
+  public:		
 	void setup();
 	void update();
 	void draw();
@@ -40,21 +37,22 @@ void FlickrTestMTApp::setup()
 	// create and launch the thread
 	mThread = shared_ptr<thread>( new thread( bind( &FlickrTestMTApp::loadImagesThreadFn, this, gl::context() ) ) );
 	mLastTime = getElapsedSeconds();
+
+	gl::enableAlphaBlending();
 }
 
 void FlickrTestMTApp::loadImagesThreadFn( gl::Context *sharedGlContext )
 {
 	ci::ThreadSetup threadSetup; // instantiate this if you're talking to Cinder from a secondary thread
+	// we create a new Context specific to this thread, but shared with the main Context
+	// so that we can generate Textures from this background thread
 	gl::ContextRef ctx = gl::Context::create( sharedGlContext );
-	ctx->makeCurrent();
 	vector<Url>	urls;
-
-	console() << "loadImagesThreadFn: " << ::CGLGetCurrentContext() << std::endl;
 
 	// parse the image URLS from the XML feed and push them into 'urls'
 	const Url sunFlickrGroup = Url( "http://api.flickr.com/services/feeds/groups_pool.gne?id=52242317293@N01&format=rss_200" );
 	const XmlTree xml( loadUrl( sunFlickrGroup ) );
-	for( XmlTree::ConstIter item = xml.begin( "rss/channel/item" ); item != xml.end(); ++item ) {
+	for( auto item = xml.begin( "rss/channel/item" ); item != xml.end(); ++item ) {
 		const XmlTree &urlXml = ( ( *item / "media:content" ) );
 		urls.push_back( Url( urlXml["url"] ) );
 	}
@@ -89,12 +87,7 @@ void FlickrTestMTApp::update()
 
 void FlickrTestMTApp::draw()
 {
-	gl::setMatricesWindow( getWindowSize() );
-	console() << "Current on draw: " << ::CGLGetCurrentContext() << std::endl;
-
-	gl::enableAlphaBlending();
-	gl::clear( Color( 0.5, 0.25, 0.7f ) );
-	gl::color( Color::white() );
+	gl::clear( Color( 0.1, 0.1, 0.2 ) );
 	
 	if( mLastTexture ) {
 		gl::color( 1, 1, 1, 1.0f - mFade );
@@ -117,4 +110,4 @@ void FlickrTestMTApp::shutdown()
 	mThread->join();
 }
 
-CINDER_APP_BASIC( FlickrTestMTApp, RendererGl( RendererGl::Options().coreProfile( false ) ) )
+CINDER_APP_BASIC( FlickrTestMTApp, RendererGl( RendererGl::Options().coreProfile( true ) ) )
