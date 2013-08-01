@@ -81,7 +81,7 @@ Context::~Context()
 #elif defined( CINDER_MAC )
 		::CGLDestroyContext( (CGLContextObj)mPlatformContext );
 #elif defined( CINDER_COCOA_TOUCH )
-		[(EAGLContext)mPlatformContext release];
+		[(EAGLContext*)mPlatformContext release];
 #endif
 	}
 }
