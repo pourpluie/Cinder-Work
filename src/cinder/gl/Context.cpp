@@ -17,8 +17,6 @@
 	#import <OpenGLES/EAGL.h>
 #endif
 
-#include "glload/gl_load.h"
-
 #include "cinder/app/App.h"
 
 using namespace std;
@@ -96,30 +94,34 @@ ContextRef Context::create( const Context *sharedContext )
 	platformContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
 	[EAGLContext setCurrentContext:(EAGLContext*)platformContext];
 #elif defined( CINDER_MSW )
-	// first make sharedContext the current one
+	// save the current context so we can restore it
+	HGLRC prevContext = ::wglGetCurrentContext();
+	HDC prevDc = ::wglGetCurrentDC();
 	HGLRC sharedContextWgl = (HGLRC)sharedContext->getPlatformContext();
 	platformContextAdditional = sharedContext->mPlatformContextAdditional;
 	platformContext = ::wglCreateContext( (HDC)platformContextAdditional );
-	::wglShareLists( sharedContextWgl, (HGLRC)platformContext );
+	::wglMakeCurrent( NULL, NULL );
+	if( ! ::wglShareLists( sharedContextWgl, (HGLRC)platformContext ) ) {
+		DWORD error = GetLastError();
+		error = error + 0;
+	}
+	::wglMakeCurrent( (HDC)platformContextAdditional, (HGLRC)platformContext );
 #endif
 
 	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, platformContextAdditional ) ) );
-
-#if ! defined( CINDER_GLES )
-ogl_LoadFunctions();
-#endif
-
+	env()->initializeFunctionPointers();
 	env()->initializeContextDefaults( result.get() );
+
+#if defined( CINDER_MSW )
+	::wglMakeCurrent( prevDc, prevContext );
+#endif
 
 	return result;
 }
 
 ContextRef Context::createFromExisting( void *platformContext, void *platformContextAdditional )
 {
-#if ! defined( CINDER_GLES )
-	ogl_LoadFunctions();
-#endif
-
+	env()->initializeFunctionPointers();
 	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, platformContextAdditional ) ) );
 	env()->initializeContextDefaults( result.get() );
 
@@ -133,7 +135,10 @@ void Context::makeCurrent() const
 #elif defined( CINDER_COCOA_TOUCH )
 	[EAGLContext setCurrentContext:(EAGLContext*)mPlatformContext];
 #elif defined( CINDER_MSW )
-	wglMakeCurrent( (HDC)mPlatformContextAdditional, (HGLRC)mPlatformContext );
+	if( ! ::wglMakeCurrent( (HDC)mPlatformContextAdditional, (HGLRC)mPlatformContext ) ) {
+		DWORD error = GetLastError();
+		error = error + 0;
+	}
 #endif
 
 #if defined( CINDER_COCOA )

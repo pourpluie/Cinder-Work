@@ -1,4 +1,5 @@
 #include "cinder/app/AppBasic.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/Rand.h"
 #include <list>
 
@@ -21,10 +22,11 @@ class BasicAppMultiWindow : public AppBasic {
 class WindowData {
   public:
 	WindowData()
-		: mColor( Color( CM_HSV, randFloat(), 0.8f, 0.8f ) ) // a random color
+		: mBackgroundColor( CM_HSV, randFloat(), 0.5f, 0.2f ),
+		mColor( Color( CM_HSV, randFloat(), 0.8f, 0.8f ) ) // a random color
 	{}
   
-	Color			mColor;
+	Color			mBackgroundColor, mColor;
 	list<Vec2f>		mPoints; // the points drawn into this window
 };
 
@@ -66,9 +68,8 @@ void BasicAppMultiWindow::keyDown( KeyEvent event )
 
 void BasicAppMultiWindow::draw()
 {
-	gl::clear( Color( 0.1f, 0.1f, 0.15f ) );
-
 	WindowData *data = getWindow()->getUserData<WindowData>();
+	gl::clear( data->mBackgroundColor );
 
 	gl::color( data->mColor );	
 	gl::begin( GL_LINE_STRIP );

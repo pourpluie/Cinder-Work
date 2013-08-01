@@ -17,8 +17,7 @@ class FlickrTestMTApp : public AppBasic {
 	void update();
 	void draw();
 	void shutdown();
-
-	void loadImagesThreadFn( gl::Context *sharedGlContext );
+	void loadImagesThreadFn( gl::ContextRef sharedGlContext );
 
 	ConcurrentCircularBuffer<gl::TextureRef>	*mImages;
 
@@ -33,19 +32,20 @@ void FlickrTestMTApp::setup()
 {
 	mShouldQuit = false;
 	mImages = new ConcurrentCircularBuffer<gl::TextureRef>( 5 ); // room for 5 images
-	// create and launch the thread
-	mThread = shared_ptr<thread>( new thread( bind( &FlickrTestMTApp::loadImagesThreadFn, this, gl::context() ) ) );
+	// create and launch the thread with a new gl::Context
+	gl::ContextRef backgroundCtx = gl::Context::create( gl::context() );
+	mThread = shared_ptr<thread>( new thread( bind( &FlickrTestMTApp::loadImagesThreadFn, this, backgroundCtx ) ) );
 	mLastTime = getElapsedSeconds();
 
 	gl::enableAlphaBlending();
 }
 
-void FlickrTestMTApp::loadImagesThreadFn( gl::Context *sharedGlContext )
+void FlickrTestMTApp::loadImagesThreadFn( gl::ContextRef context )
 {
 	ci::ThreadSetup threadSetup; // instantiate this if you're talking to Cinder from a secondary thread
 	// we create a new Context specific to this thread, but shared with the main Context
 	// so that we can generate Textures from this background thread
-	gl::ContextRef ctx = gl::Context::create( sharedGlContext );
+	context->makeCurrent();
 	vector<Url>	urls;
 
 	// parse the image URLS from the XML feed and push them into 'urls'
@@ -87,7 +87,7 @@ void FlickrTestMTApp::update()
 void FlickrTestMTApp::draw()
 {
 	gl::clear( Color( 0.1f, 0.1f, 0.2f ) );
-	
+
 	if( mLastTexture ) {
 		gl::color( 1, 1, 1, 1.0f - mFade );
 		Rectf textureBounds = mLastTexture->getBounds();

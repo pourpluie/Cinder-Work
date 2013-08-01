@@ -27,6 +27,11 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Vao.h"
 
+#if ! defined( CINDER_GLES )
+	#include "glload/gl_load.h"
+#endif
+
+
 namespace cinder { namespace gl {
 
 #if ! defined( CINDER_GLES )
@@ -41,12 +46,17 @@ bool Environment::sCoreProfile = true;
 
 class EnvironmentEs2 : public Environment {
   public:
+	virtual void	initializeFunctionPointers() override;
 	virtual void	initializeContextDefaults( Context *context ) override;
 	
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
 };
+
+void EnvironmentEs2::initializeFunctionPointers()
+{
+}
 
 void EnvironmentEs2::initializeContextDefaults( Context *context )
 {
@@ -145,6 +155,7 @@ GlslProgRef	EnvironmentEs2::buildShader( const ShaderDef &shader )
 
 class EnvironmentCoreProfile : public Environment {
   public:
+	virtual void	initializeFunctionPointers() override;
 	virtual void	initializeContextDefaults( Context *context ) override;
 
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
@@ -152,6 +163,14 @@ class EnvironmentCoreProfile : public Environment {
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
 };
 
+void EnvironmentCoreProfile::initializeFunctionPointers()
+{
+	static bool sInitialized = false;
+	if( ! sInitialized ) {
+		ogl_LoadFunctions();
+		sInitialized = true;
+	}
+}
 
 void EnvironmentCoreProfile::initializeContextDefaults( Context *context )
 {
@@ -258,6 +277,7 @@ std::cout << "Core shader frag:" << std::endl << generateFragmentShader( shader 
 
 class EnvironmentCompatibilityProfile : public Environment {
   public:
+	virtual void	initializeFunctionPointers() override;
 	virtual void	initializeContextDefaults( Context *context ) override;
 
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
@@ -265,6 +285,14 @@ class EnvironmentCompatibilityProfile : public Environment {
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
 };
 
+void EnvironmentCompatibilityProfile::initializeFunctionPointers()
+{
+	static bool sInitialized = false;
+	if( ! sInitialized ) {
+		ogl_LoadFunctions();
+		sInitialized = true;
+	}
+}
 
 void EnvironmentCompatibilityProfile::initializeContextDefaults( Context *context )
 {
