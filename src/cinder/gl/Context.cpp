@@ -99,7 +99,7 @@ ContextRef Context::create( const Context *sharedContext )
 	// first make sharedContext the current one
 	HGLRC sharedContextWgl = (HGLRC)sharedContext->getPlatformContext();
 	platformContextAdditional = sharedContext->mPlatformContextAdditional;
-	platformContext = ::wglCreateContext( sharedContextDc );
+	platformContext = ::wglCreateContext( (HDC)platformContextAdditional );
 	::wglShareLists( sharedContextWgl, (HGLRC)platformContext );
 #endif
 
