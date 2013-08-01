@@ -41,7 +41,7 @@ const int RendererGl::sAntiAliasingSamples[] = { 0, 2, 4, 6, 8, 16, 32 };
 RendererGl::Options::Options()
 {
 #if defined( CINDER_COCOA_TOUCH )
-	mAntiAliasing = AA_MSAA_4;
+	mAntiAliasing = AA_NONE;
 	mCoreProfile = false;
 	mVersion = std::pair<int,int>( 2, 0 );
 #else

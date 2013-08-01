@@ -23,6 +23,9 @@
 // Concrete implementation of VAO for OpenGL ES 2.
 // Should only be instantiated by Vao::create() in the presence of GL_OES_vertex_array_object
 
+
+#include "cinder/gl/gl.h"
+
 #if defined( CINDER_GLES )
 
 #include "cinder/gl/Vao.h"

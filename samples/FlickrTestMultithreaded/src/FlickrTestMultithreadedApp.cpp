@@ -1,4 +1,4 @@
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/AppNative.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/Context.h"
 #include "cinder/Xml.h"
@@ -7,11 +7,17 @@
 #include "cinder/Thread.h"
 #include "cinder/ConcurrentCircularBuffer.h"
 
+/*	The heart of this sample is to show how to create a background thread that interacts with OpenGL.
+	It launches a secondary thread which pulls down images from a Flickr group and puts them in a thread-safe buffer.
+	We can allocate a gl::Context which shares resources (specifically Textures) with the primary gl::Context.
+	Note that this Context should be created in the primary thread and passed as a parameter to the secondary thread.
+*/
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-class FlickrTestMTApp : public AppBasic {
+class FlickrTestMTApp : public AppNative {
   public:		
 	void setup();
 	void update();
@@ -35,7 +41,7 @@ void FlickrTestMTApp::setup()
 	// create and launch the thread with a new gl::Context just for that thread
 	gl::ContextRef backgroundCtx = gl::Context::create( gl::context() );
 	mThread = shared_ptr<thread>( new thread( bind( &FlickrTestMTApp::loadImagesThreadFn, this, backgroundCtx ) ) );
-	mLastTime = getElapsedSeconds();
+	mLastTime = getElapsedSeconds() - 10; // force an initial update by make it "ten seconds ago"
 
 	gl::enableAlphaBlending();
 }
@@ -59,12 +65,10 @@ void FlickrTestMTApp::loadImagesThreadFn( gl::ContextRef context )
 	// don't create gl::Textures on a background thread
 	while( ( ! mShouldQuit ) && ( ! urls.empty() ) ) {
 		try {
-			console() << "Loading: " << urls.back() << std::endl;
 			mImages->pushFront( gl::Texture::create( loadImage( loadUrl( urls.back() ) ) ) );
 			urls.pop_back();
 		}
-		catch( ... ) {
-			// just ignore any exceptions
+		catch( ... ) { // just ignore any exceptions
 		}
 	}
 }
@@ -108,4 +112,4 @@ void FlickrTestMTApp::shutdown()
 	mThread->join();
 }
 
-CINDER_APP_BASIC( FlickrTestMTApp, RendererGl( RendererGl::Options().coreProfile( true ) ) )
+CINDER_APP_NATIVE( FlickrTestMTApp, RendererGl )

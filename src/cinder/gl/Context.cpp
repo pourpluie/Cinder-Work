@@ -91,6 +91,7 @@ ContextRef Context::create( const Context *sharedContext )
 	void *platformContext = NULL;
 	void *platformContextAdditional = NULL;
 #if defined( CINDER_MAC )
+	CGLContextObj prevContext = ::CGLGetCurrentContext();
 	CGLContextObj sharedContextCgl = (CGLContextObj)sharedContext->getPlatformContext();
 	CGLPixelFormatObj sharedContextPixelFormat = ::CGLGetPixelFormat( sharedContextCgl );
 	if( ::CGLCreateContext( sharedContextPixelFormat, sharedContextCgl, (CGLContextObj*)&platformContext ) != kCGLNoError ) {
@@ -99,6 +100,7 @@ ContextRef Context::create( const Context *sharedContext )
 
 	::CGLSetCurrentContext( (CGLContextObj)platformContext );
 #elif defined( CINDER_COCOA_TOUCH )
+	EAGLContext *prevContext = [EAGLContext currentContext];
 	EAGLContext *sharedContextEagl = (EAGLContext*)sharedContext->getPlatformContext();
 	EAGLSharegroup *sharegroup = sharedContextEagl.sharegroup;
 	platformContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
@@ -121,7 +123,11 @@ ContextRef Context::create( const Context *sharedContext )
 	env()->initializeFunctionPointers();
 	env()->initializeContextDefaults( result.get() );
 
-#if defined( CINDER_MSW )
+#if defined( CINDER_MAC )
+	::CGLSetCurrentContext( prevContext );
+#elif defined( CINDER_COCOA_TOUCH )
+	[EAGLContext setCurrentContext:prevContext];
+#elif defined( CINDER_MSW )
 	::wglMakeCurrent( prevDc, prevContext );
 #endif
 
