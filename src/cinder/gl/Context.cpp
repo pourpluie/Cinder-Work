@@ -43,8 +43,8 @@ __declspec(thread) Context *sThreadSpecificCurrentContext = NULL;
 thread_local Context *sThreadSpecificCurrentContext = NULL;
 #endif
 
-Context::Context( void *platformContext, void *platformContextAdditional )
-	: mPlatformContext( platformContext ), mPlatformContextAdditional( platformContextAdditional ),
+Context::Context( void *platformContext, void *platformContextAdditional, bool assumeOwnership )
+	: mPlatformContext( platformContext ), mPlatformContextAdditional( platformContextAdditional ), mOwnsPlatformContext( assumeOwnership ),
 	mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
 	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
 	mCachedActiveTexture( 0 ), mWireframe( false )
@@ -74,6 +74,16 @@ Context::Context( void *platformContext, void *platformContextAdditional )
 Context::~Context()
 {
 	clear();
+	if( mOwnsPlatformContext ) {
+#if defined( CINDER_MSW )
+		::wglMakeCurrent( NULL, NULL );
+		::wglDeleteContext( (HGLRC)mPlatformContext );
+#elif defined( CINDER_MAC )
+		::CGLDestroyContext( (CGLContextObj)mPlatformContext );
+#elif defined( CINDER_COCOA_TOUCH )
+		[(EAGLContext)mPlatformContext release];
+#endif
+	}
 }
 
 ContextRef Context::create( const Context *sharedContext )
@@ -102,13 +112,12 @@ ContextRef Context::create( const Context *sharedContext )
 	platformContext = ::wglCreateContext( (HDC)platformContextAdditional );
 	::wglMakeCurrent( NULL, NULL );
 	if( ! ::wglShareLists( sharedContextWgl, (HGLRC)platformContext ) ) {
-		DWORD error = GetLastError();
-		error = error + 0;
+		// DWORD error = GetLastError();
 	}
 	::wglMakeCurrent( (HDC)platformContextAdditional, (HGLRC)platformContext );
 #endif
 
-	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, platformContextAdditional ) ) );
+	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, platformContextAdditional, true ) ) );
 	env()->initializeFunctionPointers();
 	env()->initializeContextDefaults( result.get() );
 
@@ -122,7 +131,7 @@ ContextRef Context::create( const Context *sharedContext )
 ContextRef Context::createFromExisting( void *platformContext, void *platformContextAdditional )
 {
 	env()->initializeFunctionPointers();
-	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, platformContextAdditional ) ) );
+	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, platformContextAdditional, false ) ) );
 	env()->initializeContextDefaults( result.get() );
 
 	return result;
@@ -136,8 +145,7 @@ void Context::makeCurrent() const
 	[EAGLContext setCurrentContext:(EAGLContext*)mPlatformContext];
 #elif defined( CINDER_MSW )
 	if( ! ::wglMakeCurrent( (HDC)mPlatformContextAdditional, (HGLRC)mPlatformContext ) ) {
-		DWORD error = GetLastError();
-		error = error + 0;
+		// DWORD error = GetLastError();
 	}
 #endif
 

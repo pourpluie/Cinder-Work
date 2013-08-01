@@ -34,9 +34,9 @@ typedef std::shared_ptr<Fbo>			FboRef;
 class Context {
   public:
 	~Context();
-	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. Makes the new Context current.
+	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. This (essentially) must be done from the primary thread on MSW. Destroys the platform Context on destruction.
 	static ContextRef	create( const Context *sharedContext );	
-	//! Creates based on an existing platform-specific GL context. \a platformContext is CGLContextObj on Mac OS X, EAGLContext on iOS, HGLRC on MSW. \a platformContext is an HDC on MSW and ignored elsewhere.
+	//! Creates based on an existing platform-specific GL context. \a platformContext is CGLContextObj on Mac OS X, EAGLContext on iOS, HGLRC on MSW. \a platformContext is an HDC on MSW and ignored elsewhere. Does not assume ownership of the platform's context.
 	static ContextRef	createFromExisting( void *platformContext, void *platformContextAdditional = NULL );	
 
 	//! Returns the platform-specific OpenGL Context. CGLContextObj on Mac OS X, EAGLContext on iOS
@@ -172,8 +172,9 @@ class Context {
 	GLenum						mMode;
 
   private:
-	Context( void *platformContext, void *platformContextAdditional );
+	Context( void *platformContext, void *platformContextAdditional, bool assumeOwnership );
   
+	bool						mOwnsPlatformContext;
 	void						*mPlatformContext; // Mac: CGLContextObj, iOS: EAGLContext, MSW: HGLRC
 	void						*mPlatformContextAdditional; // Mac: ignored, iOS: ignored, MSW: HDC 
 

@@ -32,7 +32,7 @@ void FlickrTestMTApp::setup()
 {
 	mShouldQuit = false;
 	mImages = new ConcurrentCircularBuffer<gl::TextureRef>( 5 ); // room for 5 images
-	// create and launch the thread with a new gl::Context
+	// create and launch the thread with a new gl::Context just for that thread
 	gl::ContextRef backgroundCtx = gl::Context::create( gl::context() );
 	mThread = shared_ptr<thread>( new thread( bind( &FlickrTestMTApp::loadImagesThreadFn, this, backgroundCtx ) ) );
 	mLastTime = getElapsedSeconds();
@@ -43,8 +43,7 @@ void FlickrTestMTApp::setup()
 void FlickrTestMTApp::loadImagesThreadFn( gl::ContextRef context )
 {
 	ci::ThreadSetup threadSetup; // instantiate this if you're talking to Cinder from a secondary thread
-	// we create a new Context specific to this thread, but shared with the main Context
-	// so that we can generate Textures from this background thread
+	// we received as a parameter a gl::Context we can use safely that shares resources with the primary Context
 	context->makeCurrent();
 	vector<Url>	urls;
 
