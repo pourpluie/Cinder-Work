@@ -13,7 +13,7 @@ void Material::enable( bool enabled )
 {
 	auto ctx			= gl::context();
 //	ctx->mMaterialEnabled	= enabled;
-//	ctx->mMaterial			= enabled ? *this : Material();
+//		ctx->mMaterial			= enabled ? *this : Material();
 }
 
 float Material::getAmbient() const
