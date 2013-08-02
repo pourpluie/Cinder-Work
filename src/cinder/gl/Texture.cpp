@@ -457,7 +457,7 @@ void Texture::update( const Surface &surface, const Area &area, int mipLevel )
 	else {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
 		
-		Vec2i mipMapSize = calcMipLevelSize( mipLevel, area );
+		Vec2i mipMapSize = calcMipLevelSize( mipLevel, area.getWidth(), area.getHeight() );
 		
 		glBindTexture( mTarget, mTextureId );
 		glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), mipMapSize.x, mipMapSize.y, dataFormat, type, surface.getData( area.getUL() ) );
@@ -509,7 +509,7 @@ void Texture::update( const Channel8u &channel, const Area &area, int mipLevel )
 		}
 	}
 	else {
-		Vec2i mipMapSize = calcMipLevelSize( mipLevel, area );
+		Vec2i mipMapSize = calcMipLevelSize( mipLevel, area.getWidth(), area.getHeight() );
 		
 		// if the data is not already contiguous, we'll need to create a block of memory that is
 		if( ( channel.getIncrement() != 1 ) || ( channel.getRowBytes() != channel.getWidth() * sizeof(uint8_t) ) ) {
