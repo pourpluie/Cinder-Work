@@ -391,11 +391,11 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
 }
 
-void Texture::update( const Surface &surface, int level )
+void Texture::update( const Surface &surface, int mipLevel )
 {
 	GLint dataFormat;
 	GLenum type;
-	if( level == 0 ) {
+	if( mipLevel == 0 ) {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
 		if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) ) {
 			throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
@@ -403,24 +403,24 @@ void Texture::update( const Surface &surface, int level )
 	
 		glBindTexture( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-		glTexImage2D( mTarget, level, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, type, surface.getData() );
+		glTexImage2D( mTarget, mipLevel, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, type, surface.getData() );
 	}
 	else {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
 		
-		Vec2i mipMapSize = calcMipLevelSize( level, getWidth(), getHeight() );
+		Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
 		
 		glBindTexture( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-		glTexImage2D( mTarget, level, getInternalFormat(), mipMapSize.x, mipMapSize.y, 0, dataFormat, type, surface.getData() );
+		glTexImage2D( mTarget, mipLevel, getInternalFormat(), mipMapSize.x, mipMapSize.y, 0, dataFormat, type, surface.getData() );
 	}
 }
 
-void Texture::update( const Surface32f &surface, int level )
+void Texture::update( const Surface32f &surface, int mipLevel )
 {
 	GLint dataFormat;
 	GLenum type;
-	if( level == 0 ) {
+	if( mipLevel == 0 ) {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
 		if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) ) {
 			throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
@@ -429,66 +429,65 @@ void Texture::update( const Surface32f &surface, int level )
 		glBindTexture( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		// @TODO: type does not seem to be pulling out the right value..
-		glTexImage2D( mTarget, level, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, GL_FLOAT, surface.getData() );
+		glTexImage2D( mTarget, mipLevel, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, GL_FLOAT, surface.getData() );
 	}
 	else {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
 		
-		Vec2i mipMapSize = calcMipLevelSize( level, getWidth(), getHeight() );
+		Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
 		
 		glBindTexture( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		// @TODO: type does not seem to be pulling out the right value..
-		glTexImage2D( mTarget, level, getInternalFormat(), mipMapSize.x, mipMapSize.y, 0, dataFormat, GL_FLOAT, surface.getData() );
+		glTexImage2D( mTarget, mipLevel, getInternalFormat(), mipMapSize.x, mipMapSize.y, 0, dataFormat, GL_FLOAT, surface.getData() );
 	}
 }
 
-void Texture::update( const Surface &surface, const Area &area, int level )
+void Texture::update( const Surface &surface, const Area &area, int mipLevel )
 {
 	GLint dataFormat;
 	GLenum type;
 
-	if( level == 0 ) {
+	if( mipLevel == 0 ) {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
 		
 		glBindTexture( mTarget, mTextureId );
-		glTexSubImage2D( mTarget, level, area.getX1(), area.getY1(), area.getWidth(), area.getHeight(), dataFormat, type, surface.getData( area.getUL() ) );
+		glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), area.getWidth(), area.getHeight(), dataFormat, type, surface.getData( area.getUL() ) );
 	}
 	else {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
 		
-		Vec2i mipMapSize = calcMipLevelSize( level, area );
+		Vec2i mipMapSize = calcMipLevelSize( mipLevel, area );
 		
 		glBindTexture( mTarget, mTextureId );
-		glTexSubImage2D( mTarget, level, area.getX1(), area.getY1(), mipMapSize.x, mipMapSize.y, dataFormat, type, surface.getData( area.getUL() ) );
+		glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), mipMapSize.x, mipMapSize.y, dataFormat, type, surface.getData( area.getUL() ) );
 	}
 }
 
-void Texture::update( const Channel32f &channel, int level )
+void Texture::update( const Channel32f &channel, int mipLevel )
 {
 
-	if( level == 0 ) {
+	if( mipLevel == 0 ) {
 		if( ( channel.getWidth() != getWidth() ) || ( channel.getHeight() != getHeight() ) ) {
 			throw TextureDataExc( "Invalid Texture::update() channel dimensions" );
 		}
 		
 		glBindTexture( mTarget, mTextureId );
-		glTexSubImage2D( mTarget, level, 0, 0, getWidth(), getHeight(), GL_LUMINANCE, GL_FLOAT, channel.getData() );
+		glTexSubImage2D( mTarget, mipLevel, 0, 0, getWidth(), getHeight(), GL_LUMINANCE, GL_FLOAT, channel.getData() );
 	}
 	else {
 		
-		Vec2i mipMapSize = calcMipLevelSize( level, getWidth(), getHeight() );
+		Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
 		
 		glBindTexture( mTarget, mTextureId );
-		glTexSubImage2D( mTarget, level, 0, 0, mipMapSize.x, mipMapSize.y, GL_LUMINANCE, GL_FLOAT, channel.getData() );
+		glTexSubImage2D( mTarget, mipLevel, 0, 0, mipMapSize.x, mipMapSize.y, GL_LUMINANCE, GL_FLOAT, channel.getData() );
 	}
 }
 
-void Texture::update( const Channel8u &channel, const Area &area, int level )
+void Texture::update( const Channel8u &channel, const Area &area, int mipLevel )
 {
-
 	glBindTexture( mTarget, mTextureId );
-	if( level == 0 ) {
+	if( mipLevel == 0 ) {
 		// if the data is not already contiguous, we'll need to create a block of memory that is
 		if( ( channel.getIncrement() != 1 ) || ( channel.getRowBytes() != channel.getWidth() * sizeof(uint8_t) ) ) {
 			shared_ptr<uint8_t> data( new uint8_t[area.getWidth() * area.getHeight()], checked_array_deleter<uint8_t>() );
@@ -503,15 +502,14 @@ void Texture::update( const Channel8u &channel, const Area &area, int level )
 				}
 			}
 			
-			glTexSubImage2D( mTarget, level, area.getX1(), area.getY1(), area.getWidth(), area.getHeight(), GL_LUMINANCE, GL_UNSIGNED_BYTE, data.get() );
+			glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), area.getWidth(), area.getHeight(), GL_LUMINANCE, GL_UNSIGNED_BYTE, data.get() );
 		}
 		else {
-			glTexSubImage2D( mTarget, level, area.getX1(), area.getY1(), area.getWidth(), area.getHeight(), GL_LUMINANCE, GL_UNSIGNED_BYTE, channel.getData( area.getUL() ) );
+			glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), area.getWidth(), area.getHeight(), GL_LUMINANCE, GL_UNSIGNED_BYTE, channel.getData( area.getUL() ) );
 		}
 	}
 	else {
-		
-		Vec2i mipMapSize = calcMipLevelSize( level, area );
+		Vec2i mipMapSize = calcMipLevelSize( mipLevel, area );
 		
 		// if the data is not already contiguous, we'll need to create a block of memory that is
 		if( ( channel.getIncrement() != 1 ) || ( channel.getRowBytes() != channel.getWidth() * sizeof(uint8_t) ) ) {
@@ -527,38 +525,25 @@ void Texture::update( const Channel8u &channel, const Area &area, int level )
 				}
 			}
 			
-			
-			
-			glTexSubImage2D( mTarget, level, area.getX1(), area.getY1(), mipMapSize.x, mipMapSize.y, GL_LUMINANCE, GL_UNSIGNED_BYTE, data.get() );
+			glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), mipMapSize.x, mipMapSize.y, GL_LUMINANCE, GL_UNSIGNED_BYTE, data.get() );
 		}
 		else {
-			glTexSubImage2D( mTarget, level, area.getX1(), area.getY1(), mipMapSize.x, mipMapSize.y, GL_LUMINANCE, GL_UNSIGNED_BYTE, channel.getData( area.getUL() ) );
+			glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), mipMapSize.x, mipMapSize.y, GL_LUMINANCE, GL_UNSIGNED_BYTE, channel.getData( area.getUL() ) );
 		}
 	}
 }
-	
-Vec2i Texture::calcMipLevelSize( int level, const Area &area )
-{
-	return calcMipLevelSize( level, area.getWidth(), area.getHeight() );
-}
-    
-Vec2i Texture::calcMipLevelSize( int level, const Vec2i &original )
-{
-    return calcMipLevelSize( level, original.x, original.y );
-}
-	
-Vec2i Texture::calcMipLevelSize( int level, GLint width, GLint height )
+
+Vec2i Texture::calcMipLevelSize( int mipLevel, GLint width, GLint height )
 {
 	Vec2i result( width, height );
 	
-	result.x >>= level;
-	result.y >>= level;
+	result.x >>= mipLevel;
+	result.y >>= mipLevel;
 	
 	if ( result.x >= 1 && result.y >= 1 ) 
 		return result;
 	else
 		return Vec2i( 1, 1 ); // TODO: This should probably be where we notify that we've reached the last level.
-		
 }
 
 void Texture::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )
