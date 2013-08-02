@@ -734,6 +734,44 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	gl::setDefaultShaderVars();
 	gl::drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
+	
+void drawSolidRect( const Rectf& r )
+{
+	drawSolidRect( r, Rectf( 0, 0, 1, 1 ) );
+}
+
+void drawSolidRect( const Rectf &r, const Rectf &texcoords )
+{
+	Context *ctx = context();
+	GLfloat data[8+8]; // both verts and texCoords
+	GLfloat *verts = data, *texCoords = data + 8;
+	
+	verts[0*2+0] = r.getX2(); texCoords[0*2+0] = texcoords.getX2();
+	verts[0*2+1] = r.getY1(); texCoords[0*2+1] = texcoords.getY1();
+	verts[1*2+0] = r.getX1(); texCoords[1*2+0] = texcoords.getX1();
+	verts[1*2+1] = r.getY1(); texCoords[1*2+1] = texcoords.getY1();
+	verts[2*2+0] = r.getX2(); texCoords[2*2+0] = texcoords.getX2();
+	verts[2*2+1] = r.getY2(); texCoords[2*2+1] = texcoords.getY2();
+	verts[3*2+0] = r.getX1(); texCoords[3*2+0] = texcoords.getX1();
+	verts[3*2+1] = r.getY2(); texCoords[3*2+1] = texcoords.getY2();
+	
+	VaoRef vao = Vao::create();
+	VaoScope vaoScope( vao );
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(data) );
+	arrayVbo->bind();
+	arrayVbo->bufferData( sizeof(data), data, GL_DYNAMIC_DRAW );
+	
+	gl::GlslProgRef shader = ctx->getCurrentShader();
+	int posLoc = shader->getAttribSemanticLocation( ATTRIB_POSITION );
+	enableVertexAttribArray( posLoc );
+	vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+	int texLoc = shader->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
+	enableVertexAttribArray( texLoc );
+	vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
+	
+	gl::setDefaultShaderVars();
+	gl::drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+}
 
 void draw( const TextureRef &texture, const Vec2f &v )
 {

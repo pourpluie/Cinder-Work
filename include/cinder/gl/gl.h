@@ -155,6 +155,8 @@ void drawCube( const Vec3f &center, const Vec3f &size );
 void drawColorCube( const Vec3f &center, const Vec3f &size );
 void drawTorus( float outerRadius, float innerRadius, int longitudeSegments, int latitudeSegments );
 
+void drawSolidRect( const Rectf &r );
+void drawSolidRect( const Rectf &r, const Rectf &texcoords );
 
 // Vertex Attributes
 //! Analogous to glVertexAttribPointer
