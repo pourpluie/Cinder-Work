@@ -72,12 +72,6 @@ void enableAdditiveBlending();
 void enableAlphaTest( float value = 0.5f, int func = GL_GREATER );
 void disableAlphaTest();
 
-void enableLighting( bool enable = true );
-void disableLighting();
-
-void enableWireframe( bool enable = true );
-void disableWireframe();
-	
 void disableDepthRead();
 void disableDepthWrite();
 void enableDepthRead( bool enable = true );
@@ -154,8 +148,6 @@ void draw( const VboMeshRef &mesh );
 void draw( const TextureRef &texture, const Rectf &rect );
 void draw( const TextureRef &texture, const Vec2f &v );
 void drawRange( const VboMeshRef& mesh, GLint start = 0, GLsizei count = 0 );
-void draw( const VboRef &vbo );
-void drawRange( const VboRef& vbo, GLint start = 0, GLsizei count = 0 );
 
 //! Renders a solid cube centered at \a center of size \a size. Normals and created texture coordinates are generated.
 void drawCube( const Vec3f &center, const Vec3f &size );

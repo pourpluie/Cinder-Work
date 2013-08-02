@@ -16,7 +16,7 @@ mShine( shine ), mSpecular( specular ), mType( type )
 
 void Light::enable( bool enabled )
 {
-	auto ctx = gl::context();
+/*	auto ctx = gl::context();
 	if ( enabled ) {
 		ctx->mLights.push_back( *this );
 	} else {
@@ -27,7 +27,7 @@ void Light::enable( bool enabled )
 				++iter;
 			}
 		}
-	}
+	}*/
 }
 
 const ColorAf& Light::getAmbient() const

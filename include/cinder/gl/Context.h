@@ -46,6 +46,15 @@ class Context {
 	void			makeCurrent() const;
 	//! Returns the thread's currently active OpenGL Context
 	static Context*	getCurrent();
+
+	//! Returns a reference to the stack of ModelView matrices
+	std::vector<Matrix44f>&	getModelViewStack() { return mModelViewStack; }
+	//! Returns a const reference to the stack of ModelView matrices
+	const std::vector<Matrix44f>&	getModelViewStack() const { return mModelViewStack; }
+	//! Returns a reference to the stack of Projection matrices
+	std::vector<Matrix44f>&			getProjectionStack() { return mProjectionStack; }
+	//! Returns a const reference to the stack of Projection matrices
+	const std::vector<Matrix44f>&	getProjectionStack() const { return mProjectionStack; }
 	
 	//! Binds a VAO. Consider using a VaoScope instead.
 	void		vaoBind( const VaoRef &vao );
@@ -108,13 +117,14 @@ class Context {
 #endif
 
 	//! Returns the current active color, used in immediate-mode emulation and as UNIFORM_COLOR
-	const ColorAf&	getCurrentColor() const;
+	const ColorAf&	getCurrentColor() const { return mColor; }
+	void			setCurrentColor( const ColorAf &color ) { mColor = color; }
 	GlslProgRef		getStockShader( const ShaderDef &shaderDef );
 
 	VboRef			getDefaultArrayVbo( size_t requiredSize );
 	VboRef			getDefaultElementVbo( size_t requiredSize );
 
-  private:
+  protected:
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
 	VaoRef						mCachedVao;
@@ -135,48 +145,19 @@ class Context {
 	VaoRef						mDefaultVao;	
 	VboRef						mDefaultArrayVbo, mDefaultElementVbo;
 	
-	
-  public:
-	struct Vertex
-	{
-		ColorAf					mColor;
-		Vec3f					mNormal;
-		Vec3f					mPosition;
-		Vec4f					mTexCoord;
-		float					unused[ 2 ]; // 64
-	};
-	
-	Fog							mFog;
-	bool						mFogEnabled;
-	std::vector<Light>			mLights;
-	Material					mMaterial;
-	bool						mMaterialEnabled;
-	
-	VaoRef						mImmVao; // Immediate-mode VAO
-	VboRef						mImmVbo; // Immediate-mode VBO
-	
-	void						clear();
-
-	bool						mLighting;
-	ci::Vec3f					mNormal;
-	ci::Vec4f					mTexCoord;
-	bool						mWireframe;
-
-	std::vector<Vertex>			mVertices;
-	void						pushBack( const Vec4f &v );
-
-	ci::ColorAf					mColor;	
-	std::vector<Matrix44f>		mModelView;
-	std::vector<Matrix44f>		mProjection;
-
-	GLenum						mMode;
-
   private:
 	Context( void *platformContext, void *platformContextAdditional, bool assumeOwnership );
   
 	bool						mOwnsPlatformContext;
 	void						*mPlatformContext; // Mac: CGLContextObj, iOS: EAGLContext, MSW: HGLRC
 	void						*mPlatformContextAdditional; // Mac: ignored, iOS: ignored, MSW: HDC 
+
+	VaoRef						mImmVao; // Immediate-mode VAO
+	VboRef						mImmVbo; // Immediate-mode VBO
+	
+	ci::ColorAf					mColor;	
+	std::vector<Matrix44f>		mModelViewStack;
+	std::vector<Matrix44f>		mProjectionStack;
 
 	friend class				Environment;
 	friend class				EnvironmentEs2Profile;

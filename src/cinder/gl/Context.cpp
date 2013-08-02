@@ -45,9 +45,7 @@ thread_local Context *sThreadSpecificCurrentContext = NULL;
 
 Context::Context( void *platformContext, void *platformContextAdditional, bool assumeOwnership )
 	: mPlatformContext( platformContext ), mPlatformContextAdditional( platformContextAdditional ), mOwnsPlatformContext( assumeOwnership ),
-	mColor( ColorAf::white() ), mFogEnabled( false ), mLighting( false ), mMaterialEnabled( false ),
-	mMode( GL_TRIANGLES ), mNormal( Vec3f( 0.0f, 0.0f, 1.0f ) ), mTexCoord( Vec4f::zero() ),
-	mCachedActiveTexture( 0 ), mWireframe( false )
+	mColor( ColorAf::white() ), mCachedActiveTexture( 0 )
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	,mCachedFramebuffer( -1 )
 #else
@@ -64,16 +62,14 @@ Context::Context( void *platformContext, void *platformContextAdditional, bool a
 	mDefaultVao->bindImpl( NULL );
 #endif
 
-	clear();
-	mModelView.push_back( Matrix44f() );
-	mModelView.back().setToIdentity();
-	mProjection.push_back( Matrix44f() );
-	mProjection.back().setToIdentity();
+	mModelViewStack.push_back( Matrix44f() );
+	mModelViewStack.back().setToIdentity();
+	mProjectionStack.push_back( Matrix44f() );
+	mProjectionStack.back().setToIdentity();
 }
 
 Context::~Context()
 {
-	clear();
 	if( mOwnsPlatformContext ) {
 #if defined( CINDER_MSW )
 		::wglMakeCurrent( NULL, NULL );
@@ -114,7 +110,7 @@ ContextRef Context::create( const Context *sharedContext )
 	platformContext = ::wglCreateContext( (HDC)platformContextAdditional );
 	::wglMakeCurrent( NULL, NULL );
 	if( ! ::wglShareLists( sharedContextWgl, (HGLRC)platformContext ) ) {
-		// DWORD error = GetLastError();
+		throw ExcContextAllocation();
 	}
 	::wglMakeCurrent( (HDC)platformContextAdditional, (HGLRC)platformContext );
 #endif
@@ -545,11 +541,6 @@ void Context::polygonMode( GLenum face, GLenum mode )
 
 #endif // defined( CINDER_GLES )
 
-const ColorAf& Context::getCurrentColor() const
-{
-	return mColor;
-}
-
 GlslProgRef	Context::getStockShader( const ShaderDef &shaderDef )
 {
 	auto existing = mStockShaders.find( shaderDef );
@@ -584,23 +575,6 @@ VboRef Context::getDefaultElementVbo( size_t requiredSize )
 	}
 	
 	return mDefaultElementVbo;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-void Context::clear()
-{
-	mVertices.clear();
-}
-	
-void Context::pushBack( const ci::Vec4f &v )
-{
-	Vertex vertex;		
-	vertex.mColor		= mColor;
-	vertex.mNormal		= mNormal;
-	vertex.mPosition	= v.xyz();
-	vertex.mTexCoord	= mTexCoord;
-	
-	mVertices.push_back( vertex );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -214,117 +214,93 @@ void disableDepthWrite()
 	gl::context()->depthMask( GL_FALSE );
 }
 
-void enableLighting( bool enable )
-{
-	auto ctx	= gl::context();
-	ctx->mLighting	= enable;
-}
-
-void disableLighting()
-{
-	auto ctx	= gl::context();
-	ctx->mLighting	= false;
-}
-	
-void enableWireframe( bool enable )
-{
-	auto ctx	= gl::context();
-	ctx->mWireframe = enable;
-}
-
-void disableWireframe()
-{
-	auto ctx	= gl::context();
-	ctx->mWireframe = false;
-}
-	
 void setMatrices( const ci::Camera& cam )
 {
 	auto ctx	= gl::context();
-	ctx->mModelView.back() = cam.getModelViewMatrix();
-	ctx->mProjection.back() = cam.getProjectionMatrix();
+	ctx->getModelViewStack().back() = cam.getModelViewMatrix();
+	ctx->getProjectionStack().back() = cam.getProjectionMatrix();
 }
 
 void setModelView( const ci::Matrix44f &m )
 {
-	gl::context()->mModelView.back() = m;
+	gl::context()->getModelViewStack().back() = m;
 }
 
 void setModelView( const ci::Camera& cam )
 {
 	auto ctx	= gl::context();
-	ctx->mModelView.back() = cam.getModelViewMatrix();
+	ctx->getModelViewStack().back() = cam.getModelViewMatrix();
 }
 
 void setProjection( const ci::Camera& cam )
 {
 	auto ctx	= gl::context();
-	ctx->mProjection.back() = cam.getProjectionMatrix();
+	ctx->getProjectionStack().back() = cam.getProjectionMatrix();
 }
 
 void setProjection( const ci::Matrix44f &m )
 {
-	gl::context()->mProjection.back() = m;
+	gl::context()->getProjectionStack().back() = m;
 }
 
 void pushModelView()
 {
 	auto ctx	= gl::context();
-	ctx->mModelView.push_back( ctx->mModelView.back() );
+	ctx->getModelViewStack().push_back( ctx->getModelViewStack().back() );
 }
 
 void popModelView()
 {
 	auto ctx	= gl::context();
-	ctx->mModelView.pop_back();
+	ctx->getModelViewStack().pop_back();
 }
 
 void pushProjection( const ci::Camera& cam )
 {
 	auto ctx	= gl::context();
-	ctx->mProjection.push_back( cam.getProjectionMatrix().m );
+	ctx->getProjectionStack().push_back( cam.getProjectionMatrix().m );
 }
 
 void pushMatrices()
 {
 	auto ctx		= gl::context();
-	Matrix44f modelView		= ctx->mModelView.back();
-	Matrix44f projection	= ctx->mProjection.back();
-	ctx->mModelView.push_back( modelView );
-	ctx->mProjection.push_back( projection );
+	Matrix44f modelView		= ctx->getModelViewStack().back();
+	Matrix44f projection	= ctx->getProjectionStack().back();
+	ctx->getModelViewStack().push_back( modelView );
+	ctx->getProjectionStack().push_back( projection );
 }
 
 void popMatrices()
 {
 	auto ctx	= gl::context();
-	if ( ctx->mModelView.size() > 1 && ctx->mProjection.size() > 1 ) {
-		ctx->mModelView.pop_back();
-		ctx->mProjection.pop_back();
+	if ( ctx->getModelViewStack().size() > 1 && ctx->getProjectionStack().size() > 1 ) {
+		ctx->getModelViewStack().pop_back();
+		ctx->getProjectionStack().pop_back();
 	}
 }
 
 void multModelView( const ci::Matrix44f& mtx )
 {
-	auto ctx	= gl::context();
-	ctx->mModelView.back() *= mtx;
+	auto ctx = gl::context();
+	ctx->getModelViewStack().back() *= mtx;
 }
 
 void multProjection( const ci::Matrix44f& mtx )
 {
-	auto ctx	= gl::context();
-	ctx->mProjection.back() *= mtx;
+	auto ctx = gl::context();
+	ctx->getProjectionStack().back() *= mtx;
 }
 
 Matrix44f getModelView()
 {
-	auto ctx	= gl::context();
-	return ctx->mModelView.back();
+	auto ctx = gl::context();
+	return ctx->getModelViewStack().back();
 }
 
 Matrix44f getProjection()
 {
-	auto ctx	= gl::context();
-	return ctx->mProjection.back();
+	auto ctx = gl::context();
+	return ctx->getProjectionStack().back();
 }
 
 Matrix33f calcNormalMatrix()
@@ -340,8 +316,8 @@ void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees
 	// TODO add perspective
 	// TODO enable origin
 	auto ctx	= gl::context();
-	ctx->mModelView.back().setToIdentity();
-	ctx->mProjection.back().setRows( Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
+	ctx->getModelViewStack().back().setToIdentity();
+	ctx->getProjectionStack().back().setRows( Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
 										Vec4f( 0.0f, 2.0f / -(float)screenHeight, 0.0f, 1.0f ),
 										Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
 										Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
@@ -356,8 +332,8 @@ void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft 
 {
 	// TODO enable origin
 	auto ctx	= gl::context();
-	ctx->mModelView.back().setToIdentity();
-	ctx->mProjection.back().setRows( Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
+	ctx->getModelViewStack().back().setToIdentity();
+	ctx->getProjectionStack().back().setRows( Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
 										Vec4f( 0.0f, 2.0f / -(float)screenHeight, 0.0f, 1.0f ),
 										Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
 										Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
@@ -371,26 +347,26 @@ void setMatricesWindow( const ci::Vec2i& screenSize, bool originUpperLeft )
 void rotate( const ci::Vec3f& v )
 {
 	auto ctx	= gl::context();
-	ctx->mModelView.back().rotate( Vec3f( toRadians( v.x ), toRadians( v.y ), toRadians( v.z ) ) );
+	ctx->getModelViewStack().back().rotate( Vec3f( toRadians( v.x ), toRadians( v.y ), toRadians( v.z ) ) );
 }
 	
 void scale( const ci::Vec3f& v )
 {
 	auto ctx	= gl::context();
-	ctx->mModelView.back().scale( v );
+	ctx->getModelViewStack().back().scale( v );
 }
 
 void translate( const ci::Vec3f& v )
 {
 	auto ctx	= gl::context();
-	ctx->mModelView.back().translate( v );
+	ctx->getModelViewStack().back().translate( v );
 }
 	
 void begin( GLenum mode )
 {
-	auto ctx	= gl::context();
+/*	auto ctx	= gl::context();
 	ctx->mMode		= mode;
-	ctx->clear();
+	ctx->clear();*/
 }
 
 void end()
@@ -401,122 +377,122 @@ void end()
 
 void color( float r, float g, float b )
 {
-	auto ctx	= gl::context();
-	ctx->mColor		= ColorAf( r, g, b, 1.0f );
+	auto ctx = gl::context();
+	ctx->setCurrentColor( ColorAf( r, g, b, 1.0f ) );
 }
 
 void color( float r, float g, float b, float a )
 {
-	auto ctx	= gl::context();
-	ctx->mColor		= ColorAf( r, g, b, a );
+	auto ctx = gl::context();
+	ctx->setCurrentColor( ColorAf( r, g, b, a ) );
 }
 
 void color( const ci::Color& c )
 {
-	auto ctx	= gl::context();
-	ctx->mColor		= ColorAf( c );
+	auto ctx = gl::context();
+	ctx->setCurrentColor( c );
 }
 
 void color( const ci::ColorA& c )
 {
-	auto ctx	= gl::context();
-	ctx->mColor		= ColorAf( c );
+	auto ctx = gl::context();
+	ctx->setCurrentColor( c );
 }
 
 void color( const ci::Color8u& c )
 {
-	auto ctx	= gl::context();
-	ctx->mColor		= ColorAf( c );
+	auto ctx = gl::context();
+	ctx->setCurrentColor( c );
 }
 
 void color( const ci::ColorA8u& c )
 {
-	auto ctx	= gl::context();
-	ctx->mColor		= ColorAf( c );
+	auto ctx = gl::context();
+	ctx->setCurrentColor( c );
 }
 
 void normal( const ci::Vec3f& v )
 {
 	auto ctx	= gl::context();
-	ctx->mNormal	= v;
+//	ctx->mNormal	= v;
 }
 
 void texCoord( float s )
 {
 	auto ctx	= gl::context();
-	ctx->mTexCoord	= Vec4f( s, 0.0f, 0.0f, 0.0f );
+//	ctx->mTexCoord	= Vec4f( s, 0.0f, 0.0f, 0.0f );
 }
 
 void texCoord( float s, float t )
 {
 	auto ctx	= gl::context();
-	ctx->mTexCoord	= Vec4f( s, t, 0.0f, 0.0f );
+//	ctx->mTexCoord	= Vec4f( s, t, 0.0f, 0.0f );
 }
 
 void texCoord( float s, float t, float r )
 {
 	auto ctx	= gl::context();
-	ctx->mTexCoord	= Vec4f( s, t, r, 0.0f );
+//	ctx->mTexCoord	= Vec4f( s, t, r, 0.0f );
 }
 
 void texCoord( float s, float t, float r, float q )
 {
 	auto ctx	= gl::context();
-	ctx->mTexCoord	= Vec4f( s, t, r, q );
+//	ctx->mTexCoord	= Vec4f( s, t, r, q );
 }
 
 void texCoord( const ci::Vec2f& v )
 {
 	auto ctx	= gl::context();
-	ctx->mTexCoord	= Vec4f( v.x, v.y, 0.0f, 0.0f );
+//	ctx->mTexCoord	= Vec4f( v.x, v.y, 0.0f, 0.0f );
 }
 
 void texCoord( const ci::Vec3f& v )
 {
 	auto ctx	= gl::context();
-	ctx->mTexCoord	= Vec4f( v.x, v.y, v.z, 0.0f );
+//	ctx->mTexCoord	= Vec4f( v.x, v.y, v.z, 0.0f );
 }
 
 void texCoord( const ci::Vec4f& v )	
 {
 	auto ctx	= gl::context();
-	ctx->mTexCoord	= v;
+//	ctx->mTexCoord	= v;
 }
 
 void vertex( float x, float y )
 {
 	auto ctx	= gl::context();
-	ctx->pushBack( Vec4f( x, y, 0.0f, 0.0f ) );
+//	ctx->pushBack( Vec4f( x, y, 0.0f, 0.0f ) );
 }
 
 void vertex( float x, float y, float z )
 {
 	auto ctx	= gl::context();
-	ctx->pushBack( Vec4f( x, y, z, 0.0f ) );
+//	ctx->pushBack( Vec4f( x, y, z, 0.0f ) );
 }
 
 void vertex( float x, float y, float z, float w )
 {
 	auto ctx	= gl::context();
-	ctx->pushBack( Vec4f( x, y, z, w ) );
+//	ctx->pushBack( Vec4f( x, y, z, w ) );
 }
 
 void vertex( const ci::Vec2f& v )
 {
 	auto ctx	= gl::context();
-	ctx->pushBack( Vec4f( v.x, v.y, 0.0f, 0.0f ) );
+//	ctx->pushBack( Vec4f( v.x, v.y, 0.0f, 0.0f ) );
 }
 
 void vertex( const ci::Vec3f& v )
 {
 	auto ctx	= gl::context();
-	ctx->pushBack( Vec4f( v.x, v.y, v.z, 0.0f ) );
+//	ctx->pushBack( Vec4f( v.x, v.y, v.z, 0.0f ) );
 }
 	
 void vertex( const ci::Vec4f& v )
 {
 	auto ctx	= gl::context();
-	ctx->pushBack( v );
+//	ctx->pushBack( v );
 }
 
 #if ! defined( CINDER_GLES )
@@ -526,33 +502,6 @@ void polygonMode( GLenum face, GLenum mode )
 	ctx->polygonMode( face, mode );
 }
 #endif
-
-void draw( const VboRef& vbo )
-{
-	drawRange( vbo );
-}
-
-void drawRange( const VboRef& vbo, GLint start, GLsizei count )
-{
-	auto ctx	= gl::context();
-	GLenum mode			= ctx->mMode;
-	if ( ctx->mWireframe && mode != GL_POINTS ) {
-		mode = GL_LINE_STRIP;
-	}
-	
-	vbo->bind();
-	if ( vbo->getUsage() == GL_STATIC_DRAW ) {
-		if ( vbo->getTarget() == GL_ELEMENT_ARRAY_BUFFER && vbo->getSize() >= sizeof( GLuint ) ) {
-			if ( count == 0 ) {
-				count = vbo->getSize() / sizeof( GLuint ) - start;
-			}
-			glDrawElements( mode, count, GL_UNSIGNED_INT, (const GLvoid*)start );
-		}
-	} else {
-		glDrawArrays( mode, start, count );
-	}
-	vbo->unbind();
-}
 
 void draw( const VboMeshRef& mesh )
 {

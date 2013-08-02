@@ -12,8 +12,8 @@ Material::Material( const ColorAf& color, float ambient, float diffuse, float sp
 void Material::enable( bool enabled )
 {
 	auto ctx			= gl::context();
-	ctx->mMaterialEnabled	= enabled;
-	ctx->mMaterial			= enabled ? *this : Material();
+//	ctx->mMaterialEnabled	= enabled;
+//	ctx->mMaterial			= enabled ? *this : Material();
 }
 
 float Material::getAmbient() const

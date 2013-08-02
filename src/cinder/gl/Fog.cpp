@@ -13,8 +13,8 @@ Fog::Fog()
 void Fog::enable( bool enabled )
 {
 	auto ctx		= gl::context();
-	ctx->mFogEnabled	= enabled;
-	ctx->mFog			= enabled ? *this : Fog();
+//	ctx->mFogEnabled	= enabled;
+//	ctx->mFog			= enabled ? *this : Fog();
 }
 
 const ColorAf& Fog::getColor() const
