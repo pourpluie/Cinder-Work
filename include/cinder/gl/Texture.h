@@ -56,17 +56,19 @@ class Texture
 	void			setCleanTexCoords( float maxU, float maxV );
 	
 	//! Replaces the pixels of a texture with contents of \a surface. Expects \a surface's size to match the Texture's.
-	void			update( const Surface &surface );
+	void			update( const Surface &surface, int mipLevel = 0 );
 	//! Replaces the pixels of a texture with contents of \a surface. Expects \a surface's size to match the Texture's.
-	void			update( const Surface32f &surface );
+	void			update( const Surface32f &surface, int mipLevel = 0 );
 	/** \brief Replaces the pixels of a texture with contents of \a surface. Expects \a area's size to match the Texture's.
 	 \todo Method for updating a subrectangle with an offset into the source **/
-	void			update( const Surface &surface, const Area &area );
+	void			update( const Surface &surface, const Area &area, int mipLevel = 0 );
 	//! Replaces the pixels of a texture with contents of \a channel. Expects \a channel's size to match the Texture's.
-	void			update( const Channel32f &channel );
+	void			update( const Channel32f &channel, int mipLevel = 0 );
 	//! Replaces the pixels of a texture with contents of \a channel. Expects \a area's size to match the Texture's.
-	void			update( const Channel8u &channel, const Area &area );
+	void			update( const Channel8u &channel, const Area &area, int mipLevel = 0 );
 	
+	//! calculate the size of mipMap for the corresponding level
+	static Vec2i	calcMipLevelSize( int level, GLint width, GLint height ) ;
 	//! the width of the texture in pixels
 	GLint			getWidth() const;
 	//! the height of the texture in pixels
