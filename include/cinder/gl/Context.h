@@ -30,6 +30,8 @@ class GlslProg;
 typedef std::shared_ptr<GlslProg>		GlslProgRef;
 class Fbo;
 typedef std::shared_ptr<Fbo>			FboRef;
+class VertBatch;
+typedef std::shared_ptr<VertBatch>		VertBatchRef;
 
 class Context {
   public:
@@ -124,6 +126,9 @@ class Context {
 	VboRef			getDefaultArrayVbo( size_t requiredSize );
 	VboRef			getDefaultElementVbo( size_t requiredSize );
 
+	//! Returns a reference to the immediate mode emulation structure. Generally use gl::begin() and friends instead.
+	VertBatch&		immediate() { return *mImmediateMode; }
+
   protected:
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
@@ -144,6 +149,7 @@ class Context {
 	
 	VaoRef						mDefaultVao;	
 	VboRef						mDefaultArrayVbo, mDefaultElementVbo;
+	VertBatchRef				mImmediateMode;
 	
   private:
 	Context( void *platformContext, void *platformContextAdditional, bool assumeOwnership );

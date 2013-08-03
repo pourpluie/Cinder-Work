@@ -9,6 +9,7 @@
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Fbo.h"
+#include "cinder/gl/Batch.h"
 #include "cinder/Utilities.h"
 
 #if defined( CINDER_MAC )
@@ -61,6 +62,8 @@ Context::Context( void *platformContext, void *platformContextAdditional, bool a
 	mCachedVao = mDefaultVao = Vao::create();
 	mDefaultVao->bindImpl( NULL );
 #endif
+
+//	mImmediateMode = gl::VertBatch::create();
 
 	mModelViewStack.push_back( Matrix44f() );
 	mModelViewStack.back().setToIdentity();
