@@ -4,6 +4,8 @@
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Texture.h"
+#include "cinder/gl/Batch.h"
+#include "cinder/gl/Shader.h"
 
 #include "cinder/app/App.h"
 #include "cinder/Utilities.h"
@@ -364,15 +366,21 @@ void translate( const ci::Vec3f& v )
 	
 void begin( GLenum mode )
 {
-/*	auto ctx	= gl::context();
-	ctx->mMode		= mode;
-	ctx->clear();*/
+	auto ctx = gl::context();
+	ctx->immediate().begin( mode );
 }
 
 void end()
 {
 	auto ctx = gl::context();
-//	ctx->draw();
+	
+	if( ctx->immediate().empty() )
+		return;
+	else {
+		ShaderScope shaderScope( ctx->getStockShader( ShaderDef().color() ) );
+		ctx->immediate().draw();
+		ctx->immediate().clear();
+	}
 }
 
 void color( float r, float g, float b )
@@ -387,112 +395,100 @@ void color( float r, float g, float b, float a )
 	ctx->setCurrentColor( ColorAf( r, g, b, a ) );
 }
 
-void color( const ci::Color& c )
+void color( const ci::Color &c )
 {
 	auto ctx = gl::context();
 	ctx->setCurrentColor( c );
 }
 
-void color( const ci::ColorA& c )
+void color( const ci::ColorA &c )
 {
 	auto ctx = gl::context();
 	ctx->setCurrentColor( c );
 }
 
-void color( const ci::Color8u& c )
+void color( const ci::Color8u &c )
 {
 	auto ctx = gl::context();
 	ctx->setCurrentColor( c );
 }
 
-void color( const ci::ColorA8u& c )
+void color( const ci::ColorA8u &c )
 {
 	auto ctx = gl::context();
 	ctx->setCurrentColor( c );
-}
-
-void normal( const ci::Vec3f& v )
-{
-	auto ctx	= gl::context();
-//	ctx->mNormal	= v;
-}
-
-void texCoord( float s )
-{
-	auto ctx	= gl::context();
-//	ctx->mTexCoord	= Vec4f( s, 0.0f, 0.0f, 0.0f );
 }
 
 void texCoord( float s, float t )
 {
-	auto ctx	= gl::context();
-//	ctx->mTexCoord	= Vec4f( s, t, 0.0f, 0.0f );
+	auto ctx = gl::context();
+	ctx->immediate().texCoord( s, t );
 }
 
 void texCoord( float s, float t, float r )
 {
-	auto ctx	= gl::context();
-//	ctx->mTexCoord	= Vec4f( s, t, r, 0.0f );
+	auto ctx = gl::context();
+	ctx->immediate().texCoord( s, t, r );
 }
 
 void texCoord( float s, float t, float r, float q )
 {
-	auto ctx	= gl::context();
-//	ctx->mTexCoord	= Vec4f( s, t, r, q );
+	auto ctx = gl::context();
+	ctx->immediate().texCoord( s, t, r, q );
 }
 
-void texCoord( const ci::Vec2f& v )
+void texCoord( const ci::Vec2f &v )
 {
-	auto ctx	= gl::context();
-//	ctx->mTexCoord	= Vec4f( v.x, v.y, 0.0f, 0.0f );
+	auto ctx = gl::context();
+	ctx->immediate().texCoord( v.x, v.y );
 }
 
-void texCoord( const ci::Vec3f& v )
+void texCoord( const ci::Vec3f &v )
 {
-	auto ctx	= gl::context();
-//	ctx->mTexCoord	= Vec4f( v.x, v.y, v.z, 0.0f );
+	auto ctx = gl::context();
+	ctx->immediate().texCoord( v );
 }
 
-void texCoord( const ci::Vec4f& v )	
+void texCoord( const ci::Vec4f &v )	
 {
-	auto ctx	= gl::context();
-//	ctx->mTexCoord	= v;
+	auto ctx = gl::context();
+	ctx->immediate().texCoord( v );
 }
 
 void vertex( float x, float y )
 {
-	auto ctx	= gl::context();
-//	ctx->pushBack( Vec4f( x, y, 0.0f, 0.0f ) );
+	auto ctx = gl::context();
+	ctx->immediate().vertex( Vec4f( x, y, 0, 1 ), ctx->getCurrentColor() );
 }
 
 void vertex( float x, float y, float z )
 {
-	auto ctx	= gl::context();
-//	ctx->pushBack( Vec4f( x, y, z, 0.0f ) );
+	auto ctx = gl::context();
+	ctx->immediate().vertex( Vec4f( x, y, z, 1 ), ctx->getCurrentColor() );
 }
 
 void vertex( float x, float y, float z, float w )
 {
-	auto ctx	= gl::context();
-//	ctx->pushBack( Vec4f( x, y, z, w ) );
+	auto ctx = gl::context();
+	ctx->immediate().vertex( Vec4f( x, y, z, w ), ctx->getCurrentColor() );
 }
 
-void vertex( const ci::Vec2f& v )
+void vertex( const ci::Vec2f &v )
 {
-	auto ctx	= gl::context();
-//	ctx->pushBack( Vec4f( v.x, v.y, 0.0f, 0.0f ) );
+	auto ctx = gl::context();
+	ctx->immediate().vertex( Vec4f( v.x, v.y, 0, 1 ), ctx->getCurrentColor() );
 }
 
-void vertex( const ci::Vec3f& v )
+void vertex( const ci::Vec3f &v )
 {
-	auto ctx	= gl::context();
-//	ctx->pushBack( Vec4f( v.x, v.y, v.z, 0.0f ) );
+	auto ctx = gl::context();
+	ctx->immediate().vertex( Vec4f( v.x, v.y, v.z, 1 ), ctx->getCurrentColor() );
 }
 	
-void vertex( const ci::Vec4f& v )
+void vertex( const ci::Vec4f &v )
 {
-	auto ctx	= gl::context();
-//	ctx->pushBack( v );
+	auto ctx = gl::context();
+	ctx->immediate().vertex( v, ctx->getCurrentColor() );
 }
 
 #if ! defined( CINDER_GLES )

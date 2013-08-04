@@ -30,7 +30,6 @@
 #include "cinder/Function.h"
 
 #if defined( CINDER_MAC )
-	#include <OpenGL/CGLTypes.h>
 	#ifdef __OBJC__
 		@class AppImplCocoaBasic;
 		@class WindowImplBasicCocoa;

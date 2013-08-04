@@ -123,9 +123,6 @@ void color( const ci::ColorA &c );
 void color( const ci::Color8u &c );
 void color( const ci::ColorA8u &c );
 
-void normal( const ci::Vec3f &v );
-
-void texCoord( float s );
 void texCoord( float s, float t );
 void texCoord( float s, float t, float r );
 void texCoord( float s, float t, float r, float q );

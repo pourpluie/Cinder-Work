@@ -63,7 +63,7 @@ Context::Context( void *platformContext, void *platformContextAdditional, bool a
 	mDefaultVao->bindImpl( NULL );
 #endif
 
-//	mImmediateMode = gl::VertBatch::create();
+	mImmediateMode = gl::VertBatch::create();
 
 	mModelViewStack.push_back( Matrix44f() );
 	mModelViewStack.back().setToIdentity();

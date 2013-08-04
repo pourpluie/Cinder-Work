@@ -34,6 +34,16 @@ VertBatch::VertBatch( GLenum primType )
 {
 }
 
+VertBatchRef VertBatch::create( GLenum primType )
+{
+	return VertBatchRef( new VertBatch( primType ) ); 
+}
+
+void VertBatch::setType( GLenum primType )
+{
+	mPrimType = primType;
+}
+
 void VertBatch::normal( const Vec3f &n )
 {
 	mNormals.push_back( n );
@@ -44,39 +54,25 @@ void VertBatch::color( const Colorf &color )
 	mColors.push_back( color );
 }
 
-void VertBatch::color( float r, float g, float b, float a )
-{
-	mColors.push_back( ColorAf( r, g, b, a ) );
-}
-
 void VertBatch::color( const ColorAf &color )
 {
 	mColors.push_back( color );
 }
 
-void VertBatch::vertex( const Vec3f &v )
-{
-	addVertex( Vec4f( v.x, v.y, v.z, 1 ) );
-}
-
-void VertBatch::vertex( float x, float y, float z, float w )
-{
-	addVertex( Vec4f( x, y, z, w ) );
-}
-
-void VertBatch::texCoord( const Vec2f &t )
-{
-	mTexCoords.push_back( Vec4f( t.x, t.y, 0, 1 ) );
-}
-
-void VertBatch::texCoord( const Vec3f &t )
-{
-	mTexCoords.push_back( Vec4f( t.x, t.y, t.z, 1 ) );
-}
-
 void VertBatch::texCoord( const Vec4f &t )
 {
 	mTexCoords.push_back( t );
+}
+
+void VertBatch::vertex( const Vec4f &v )
+{
+	addVertex( Vec4f( v.x, v.y, v.z, v.w ) );
+}
+
+void VertBatch::vertex( const Vec4f &v, const ColorAf &c )
+{
+	mColors.push_back( c );
+	addVertex( v );
 }
 
 void VertBatch::addVertex( const Vec4f &v )
@@ -99,9 +95,24 @@ void VertBatch::addVertex( const Vec4f &v )
 	}
 }
 
+void VertBatch::begin( GLenum primType )
+{
+	clear();
+	mPrimType = primType;
+}
+
 void VertBatch::end()
 {
-//	setupBuffers();
+}
+
+void VertBatch::clear()
+{
+	mVertices.clear();
+	mNormals.clear();
+	mColors.clear();
+	mTexCoords.clear();
+	mVbo.reset();
+	mVao.reset();
 }
 
 void VertBatch::draw()

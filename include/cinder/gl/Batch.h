@@ -30,7 +30,8 @@
 
 namespace cinder { namespace gl {
 
-typedef std::shared_ptr<class Batch>	BatchRef;
+typedef std::shared_ptr<class Batch>		BatchRef;
+typedef std::shared_ptr<class VertBatch>	VertBatchRef;
 
 class Batch {
   public:
@@ -39,20 +40,36 @@ class Batch {
 //! Cannot be shared across contexts
 class VertBatch {
   public:
+	VertBatch( GLenum primType = GL_POINTS );
+	static VertBatchRef create( GLenum primType = GL_POINTS );
 
-	VertBatch( GLenum type = GL_POINTS );
+	void	setType( GLenum type );
+	GLenum	getType() const { return mPrimType; }
 	
+	void	color( float r, float g, float b, float a = 1.0f ) { color( ColorAf( r, g, b, a ) ); }
 	void	color( const Colorf &color );
-	void	color( float r, float g, float b, float a = 1.0f );
 	void	color( const ColorAf &color );
+
+	void	normal( float x, float y, float z ) { normal( Vec3f( x, y, z ) ); }
 	void	normal( const Vec3f &n );
-	void	vertex( const Vec3f &v );
-	void	vertex( float x, float y, float z = 0, float w = 1 );
-	void	texCoord( const Vec2f &t );
-	void	texCoord( const Vec3f &t );
-	void	texCoord( const Vec4f &t );	
+
+	void	vertex( float x, float y, float z = 0, float w = 1 ) { vertex( Vec4f( x, y, z, w ) ); }
+	void	vertex( const Vec2f &v ) { vertex( Vec4f( v.x, v.y, 0, 1 ) ); }
+	void	vertex( const Vec3f &v ) { vertex( Vec4f( v.x, v.y, v.z, 1 ) ); }
+	void	vertex( const Vec4f &v );
+	//! Sets the vertex and the color simultaneously. Should not be called if you have called color() prior.
+	void	vertex( const Vec4f &v, const ColorAf &c );
+
+	void	texCoord( float s, float t, float r = 0, float q = 1 ) { texCoord( Vec4f( s, t, r, q ) ); }	
+	void	texCoord( const Vec2f &t ) { texCoord( Vec4f( t.x, t.y, 0, 1 ) ); }
+	void	texCoord( const Vec3f &t ) { texCoord( Vec4f( t.x, t.y, t.z, 1 ) ); }
+	void	texCoord( const Vec4f &t );
 	
+	void	begin( GLenum type );
 	void	end();
+	void	clear();
+
+	bool	empty() const { return mVertices.empty(); }
 	
 	void	draw();
 	
