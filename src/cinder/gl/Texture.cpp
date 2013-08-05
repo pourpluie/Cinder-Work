@@ -535,15 +535,26 @@ void Texture::update( const Channel8u &channel, const Area &area, int mipLevel )
 
 Vec2i Texture::calcMipLevelSize( int mipLevel, GLint width, GLint height )
 {
+	width = max( 1, (int)floor( width >>= mipLevel ) );
+	height = max( 1, (int)floor( height >>= mipLevel ) );
+	
 	Vec2i result( width, height );
 	
-	result.x >>= mipLevel;
-	result.y >>= mipLevel;
+	return result;
+}
 	
-	if ( result.x >= 1 && result.y >= 1 ) 
-		return result;
-	else
-		return Vec2i( 1, 1 ); // TODO: This should probably be where we notify that we've reached the last level.
+GLint Texture::getMipLevels() const
+{
+	GLint mipLevels;
+	
+	while( true ) {
+		Vec2i currLevelSize = calcMipLevelSize( mipLevels, mWidth, mHeight );
+		
+		if( currLevelSize != Vec2i( 1, 1 ) )
+			mipLevels++;
+		else
+			return mipLevels;
+	}
 }
 
 void Texture::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )
