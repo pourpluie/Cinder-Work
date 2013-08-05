@@ -535,26 +535,20 @@ void Texture::update( const Channel8u &channel, const Area &area, int mipLevel )
 
 Vec2i Texture::calcMipLevelSize( int mipLevel, GLint width, GLint height )
 {
-	width = max( 1, (int)floor( width >>= mipLevel ) );
-	height = max( 1, (int)floor( height >>= mipLevel ) );
+	width = max( 1, (int)floor( width >> mipLevel ) );
+	height = max( 1, (int)floor( height >> mipLevel ) );
 	
-	Vec2i result( width, height );
-	
-	return result;
+	return Vec2i( width, height );
 }
 	
-int Texture::getMipLevels() const
+int Texture::getNumMipLevels() const
 {
 	int mipLevels = 0;
 	
-	while( true ) {
-		Vec2i currLevelSize = calcMipLevelSize( mipLevels, getWidth(), getHeight() );
-		
-		if( currLevelSize != Vec2i( 1, 1 ) )
-			mipLevels++;
-		else
-			return ++mipLevels;
+	while( calcMipLevelSize( mipLevels, getWidth(), getHeight() ) != Vec2i( 1, 1 )  ) {
+			++mipLevels;
 	}
+	return ++mipLevels;
 }
 
 void Texture::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )

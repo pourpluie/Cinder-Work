@@ -70,7 +70,7 @@ class Texture
 	//! calculate the size of mipMap for the corresponding level
 	static Vec2i	calcMipLevelSize( int level, GLint width, GLint height );
 	//! calculates and sets the total levels of mipmap
-	GLint			getMipLevels() const;
+	GLint			getNumMipLevels() const;
 	//! the width of the texture in pixels
 	GLint			getWidth() const;
 	//! the height of the texture in pixels
