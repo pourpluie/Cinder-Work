@@ -543,12 +543,12 @@ Vec2i Texture::calcMipLevelSize( int mipLevel, GLint width, GLint height )
 	
 int Texture::getNumMipLevels() const
 {
-	int mipLevels = 0;
+	int mipLevels = 1;
 	
-	while( calcMipLevelSize( mipLevels, getWidth(), getHeight() ) != Vec2i( 1, 1 )  ) {
-			++mipLevels;
+	while( calcMipLevelSize( mipLevels, getWidth(), getHeight() ) != Vec2i( 1, 1 ) ) {
+		++mipLevels;
 	}
-	return ++mipLevels;
+	return mipLevels;
 }
 
 void Texture::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )
