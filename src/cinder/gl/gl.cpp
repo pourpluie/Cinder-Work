@@ -698,8 +698,8 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	Context *ctx = context();
 	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture( texture ).color() );
 	ShaderScope shaderScope( shader );
-	
-	texture->bind();
+	TextureBindScope texBindScope( texture );
+
 	shader->uniform( "uTex0", 0 );
 		
 	GLfloat data[8+8]; // both verts and texCoords
@@ -799,42 +799,4 @@ std::string getErrorString( GLenum err )
 	}
 }
 	
-SaveTextureBindState::SaveTextureBindState( GLint target )
-: mTarget( target ), mOldID( -1 )
-{
-	switch( target ) {
-		case GL_TEXTURE_2D:
-			glGetIntegerv( GL_TEXTURE_BINDING_2D, &mOldID );
-			break;
-		default:
-			throw gl::ExceptionUnknownTarget();
-	}
-}
-
-SaveTextureBindState::~SaveTextureBindState()
-{
-	glBindTexture( mTarget, mOldID );
-}
-
-BoolState::BoolState( GLint target )
-: mTarget( target )
-{
-	glGetBooleanv( target, &mOldValue );
-}
-
-BoolState::~BoolState()
-{
-	if ( mOldValue ) {
-		gl::enable( mTarget );
-	} else {
-		gl::disable( mTarget );
-	}
-}
-
-ClientBoolState::ClientBoolState( GLint target )
-: mTarget( target )
-{
-	mOldValue = glIsEnabled( target );
-}
-
-} }
+} } // namespace cinder::gl

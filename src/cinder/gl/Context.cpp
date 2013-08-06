@@ -266,6 +266,70 @@ GlslProgRef Context::getCurrentShader()
 }
 
 //////////////////////////////////////////////////////////////////
+// TextureBinding
+void Context::bindTexture( GLenum target, GLuint texture )
+{
+	auto cachedIt = mCachedTextureBinding.find( target );
+	if( ( cachedIt == mCachedTextureBinding.end() ) || ( cachedIt->second != texture ) ) {
+		mCachedTextureBinding[target] = texture;
+		glBindTexture( target, texture );
+	}
+}
+
+GLenum Context::getTextureBinding( GLenum target )
+{
+	auto cachedIt = mCachedTextureBinding.find( target );
+	if( (cachedIt == mCachedTextureBinding.end()) || ( cachedIt->second == -1 ) ) {
+		GLint queriedInt = -1;
+		switch( target ) {
+			case GL_TEXTURE_2D:
+				glGetIntegerv( GL_TEXTURE_BINDING_2D, &queriedInt );
+			break;
+			case GL_TEXTURE_CUBE_MAP:
+				glGetIntegerv( GL_TEXTURE_BINDING_CUBE_MAP, &queriedInt );
+			break;
+#if ! defined( CINDER_GLES )
+			case GL_TEXTURE_RECTANGLE:
+				glGetIntegerv( GL_TEXTURE_BINDING_RECTANGLE, &queriedInt );
+			break;
+			case GL_TEXTURE_1D:
+				glGetIntegerv( GL_TEXTURE_BINDING_1D, &queriedInt );
+			break;
+			case GL_TEXTURE_3D:
+				glGetIntegerv( GL_TEXTURE_BINDING_3D, &queriedInt );
+			break;
+			case GL_TEXTURE_2D_ARRAY:
+				glGetIntegerv( GL_TEXTURE_BINDING_2D_ARRAY, &queriedInt );
+			break;
+			case GL_TEXTURE_1D_ARRAY:
+				glGetIntegerv( GL_TEXTURE_BINDING_1D_ARRAY, &queriedInt );
+			break;
+			case GL_TEXTURE_CUBE_MAP_ARRAY:
+				glGetIntegerv( GL_TEXTURE_BINDING_CUBE_MAP_ARRAY, &queriedInt );
+			break;			
+			case GL_TEXTURE_BUFFER:
+				glGetIntegerv( GL_TEXTURE_BINDING_BUFFER, &queriedInt );
+			break;			
+			case GL_TEXTURE_2D_MULTISAMPLE:
+				glGetIntegerv( GL_TEXTURE_BINDING_2D_MULTISAMPLE, &queriedInt );
+			break;
+			case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
+				glGetIntegerv( GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY, &queriedInt );
+			break;
+#endif
+			default:
+				; // warning?
+		}
+		
+		mCachedTextureBinding[target] = queriedInt;
+		return (GLuint)queriedInt;
+	}
+	else
+		return (GLuint)cachedIt->second;
+
+}
+
+//////////////////////////////////////////////////////////////////
 // ActiveTexture
 void Context::activeTexture( GLenum textureUnit )
 {
@@ -279,7 +343,6 @@ GLenum Context::getActiveTexture()
 {
 	return mCachedActiveTexture;
 }
-
 
 //////////////////////////////////////////////////////////////////
 // Framebuffers

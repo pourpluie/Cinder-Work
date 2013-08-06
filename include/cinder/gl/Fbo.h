@@ -231,7 +231,7 @@ class Fbo {
 	void		init();
 	bool		initMultisample( bool csaa );
 	void		resolveTextures() const;
-	void		updateMipmaps( bool bindFirst, int attachment ) const;
+	void		updateMipmaps( int attachment ) const;
 	bool		checkStatus( class FboExceptionInvalidSpecification *resultExc );
 
 	int					mWidth, mHeight;

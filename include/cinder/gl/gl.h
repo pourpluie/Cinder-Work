@@ -180,41 +180,6 @@ void	drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indice
 GLenum getError();
 std::string getErrorString( GLenum err );
 
-struct SaveTextureBindState
-{
-	SaveTextureBindState( GLint target );
-	~SaveTextureBindState();
-private:
-	GLint	mTarget;
-	GLint	mOldID;
-};
-
-struct BoolState
-{
-	BoolState( GLint target );
-	~BoolState();
-private:
-	GLint		mTarget;
-	GLboolean	mOldValue;
-};
-
-struct ClientBoolState
-{
-	ClientBoolState( GLint target );
-	~ClientBoolState();
-private:
-	GLint		mTarget;
-	GLboolean	mOldValue;
-};
-
-struct SaveColorState
-{
-	SaveColorState();
-	~SaveColorState();
-private:
-	GLfloat		mOldValues[ 4 ];
-};
-
 class Exception : public cinder::Exception {
 };
 

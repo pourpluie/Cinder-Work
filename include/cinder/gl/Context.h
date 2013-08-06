@@ -73,6 +73,9 @@ class Context {
 	void		unbindShader();
 	GlslProgRef	getCurrentShader();
 
+	void		bindTexture( GLenum target, GLuint texture );
+	GLuint		getTextureBinding( GLenum target );
+
 	void		activeTexture( GLenum textureUnit );
 	GLenum		getActiveTexture();
 
@@ -144,6 +147,7 @@ class Context {
 	
 	std::map<GLenum,GLboolean>	mCachedStateBoolean;
 	std::map<GLenum,GLint>		mCachedStateInt;
+	std::map<GLenum,GLint>		mCachedTextureBinding;
 	GLint						mCachedActiveTexture;
 	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
 	
@@ -294,11 +298,11 @@ struct FramebufferScope : public boost::noncopyable
 
 struct ActiveTextureScope : public boost::noncopyable
 {
-	ActiveTextureScope( GLenum texture )
+	ActiveTextureScope( GLenum textureUnit )
 		: mCtx( gl::context() )
 	{
 		mPrevValue = mCtx->getActiveTexture();
-		mCtx->activeTexture( texture );
+		mCtx->activeTexture( textureUnit );
 	}
 	
 	~ActiveTextureScope()
@@ -309,6 +313,33 @@ struct ActiveTextureScope : public boost::noncopyable
   private:
 	Context		*mCtx;
 	GLenum		mPrevValue;
+};
+
+struct TextureBindScope : public boost::noncopyable
+{
+	TextureBindScope( GLenum target, GLuint texture )
+		: mCtx( gl::context() ), mTarget( target )
+	{
+		mPrevValue = mCtx->getTextureBinding( mTarget );
+		mCtx->bindTexture( mTarget, texture );
+	}
+
+	TextureBindScope( const TextureRef &texture )
+		: mCtx( gl::context() ), mTarget( texture->getTarget() )
+	{
+		mPrevValue = mCtx->getTextureBinding( mTarget );
+		mCtx->bindTexture( mTarget, texture->getId() );
+	}
+	
+	~TextureBindScope()
+	{
+		mCtx->bindTexture( mTarget, mPrevValue );
+	}
+	
+  private:
+	Context		*mCtx;
+	GLenum		mTarget;
+	GLuint		mPrevValue;
 };
 
 class ExcContextAllocation : public Exception {

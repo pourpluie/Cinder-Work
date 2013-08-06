@@ -345,7 +345,7 @@ bool Fbo::initMultisample( bool csaa )
 TextureRef Fbo::getTexture( int attachment )
 {
 	resolveTextures();
-	updateMipmaps( true, attachment );
+	updateMipmaps( attachment );
 	return mColorTextures[attachment];
 }
 
@@ -358,7 +358,7 @@ void Fbo::bindTexture( int textureUnit, int attachment )
 {
 	resolveTextures();
 	mColorTextures[attachment]->bind( textureUnit );
-	updateMipmaps( false, attachment );
+	updateMipmaps( attachment );
 }
 
 void Fbo::unbindTexture()
@@ -417,17 +417,12 @@ void Fbo::resolveTextures() const
 	mNeedsResolve = false;
 }
 
-void Fbo::updateMipmaps( bool bindFirst, int attachment ) const
+void Fbo::updateMipmaps( int attachment ) const
 {
 	if( ! mNeedsMipmapUpdate )
 		return;
-	
-	if( bindFirst ) {
-		SaveTextureBindState state( getTarget() );
-		mColorTextures[attachment]->bind();
-		glGenerateMipmap( getTarget() );
-	}
 	else {
+		TextureBindScope textureBind( getTarget(), mColorTextures[attachment]->getId() );
 		glGenerateMipmap( getTarget() );
 	}
 
