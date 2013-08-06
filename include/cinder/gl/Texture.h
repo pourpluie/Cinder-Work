@@ -51,6 +51,10 @@ class Texture
 	/** Sets the filtering behavior when a texture is displayed at a higher resolution than its native resolution.
 	 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 	void			setMagFilter( GLenum magFilter );
+	/** Sets the anisotropic filtering amount **/
+	void			setAnisotropicAmount( GLfloat aniAmount );
+	/** Sets the maximum anisotropic filtering amount allowed by the extension **/
+	void			setMaxAnisotropicAmount();
 	
 	/** Designed to accommodate texture where not all pixels are "clean", meaning the maximum texture coordinate value may not be 1.0 (or the texture's width in \c GL_TEXTURE_RECTANGLE_ARB) **/
 	void			setCleanTexCoords( float maxU, float maxV );
@@ -174,7 +178,7 @@ class Texture
 		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 		void	setMagFilter( GLenum magFilter ) { mMagFilter = magFilter; }
 		//! Sets the anisotropic filter amount. If not set and enabled, the max amount will be set.
-		void    setAniAmount( GLfloat aniAmount ) { mAniAmount = aniAmount; }
+		void    setAnisotropicAmount( GLfloat aniAmount ) { mAniAmount = aniAmount; }
 		
 		//! Returns the texture's target
 		GLenum	getTarget() const { return mTarget; }
@@ -197,7 +201,7 @@ class Texture
 		//! Returns the texture magnifying function, which is used whenever the pixel being textured maps to an area less than or equal to one texture element.
 		GLenum	getMagFilter() const { return mMagFilter; }
 		//! Returns the texture anisotropic filtering amount
-		GLfloat getAniAmount() const { return mAniAmount; }
+		GLfloat getAnisotropicAmount() const { return mAniAmount; }
 		
 	protected:
 		GLenum			mTarget;
