@@ -272,18 +272,8 @@ void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataF
 	if( format.mMipmapping ) 
 		glGenerateMipmap( mTarget );
 	
-	if ( format.mAnisotropicFiltering ) {
-		if ( isExtensionAvailable( "GL_EXT_texture_filter_anisotropic" ) ) {
-			if ( format.mAniAmount <= 1.0f ) {
-				GLfloat* aniAmount = const_cast<GLfloat*>( &format.mAniAmount );
-				glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
-			}
-			glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
-		}
-		else {
-			cerr << "Error: Anisotropic extension is unavailable." << endl;
-		}
-	}
+	if( format.mAnisotropicFiltering ) 
+		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
 	
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
@@ -317,18 +307,9 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
     if( format.mMipmapping ) 
 		glGenerateMipmap( mTarget );
 	
-	if ( format.mAnisotropicFiltering ) {
-		if ( isExtensionAvailable( "GL_EXT_texture_filter_anisotropic" ) ) {
-			if ( format.mAniAmount <= 1.0f ) {
-				GLfloat* aniAmount = const_cast<GLfloat*>( &format.mAniAmount );
-				glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
-			}
-			glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
-		}
-		else {
-			cerr << "Error: Anisotropic extension is unavailable." << endl;
-		}
-	}
+	if( format.mAnisotropicFiltering )
+		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
+	
 		
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
@@ -413,18 +394,9 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
     if( format.mMipmapping )
 		glGenerateMipmap( mTarget );
 	
-	if ( format.mAnisotropicFiltering ) {
-		if ( isExtensionAvailable( "GL_EXT_texture_filter_anisotropic" ) ) {
-			if ( format.mAniAmount <= 1.0f ) {
-				GLfloat* aniAmount = const_cast<GLfloat*>( &format.mAniAmount );
-				glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
-			}
-			glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
-		}
-		else {
-			cerr << "Error: Anisotropic extension is unavailable." << endl;
-		}
-	}
+	if( format.mAnisotropicFiltering ) 
+		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
+		
 	
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );

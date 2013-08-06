@@ -177,8 +177,10 @@ class Texture
 		/** Sets the filtering behavior when a texture is displayed at a higher resolution than its native resolution. Default is \c GL_LINEAR
 		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 		void	setMagFilter( GLenum magFilter ) { mMagFilter = magFilter; }
-		//! Sets the anisotropic filter amount. If not set and enabled, the max amount will be set.
+		//! Sets the anisotropic filter amount
 		void    setAnisotropicAmount( GLfloat aniAmount ) { mAniAmount = aniAmount; }
+		//! Query's the max anisotropic filter amount and sets it
+		void	setMaxAnisotropy() { glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &mAniAmount ); }
 		
 		//! Returns the texture's target
 		GLenum	getTarget() const { return mTarget; }
