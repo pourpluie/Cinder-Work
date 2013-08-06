@@ -151,6 +151,8 @@ class Texture
 		
 		//! Enables or disables mipmapping. Default is disabled.
 		void	enableMipmapping( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; }
+		//! Enables or disables anisotropic filtering when mipmaping.
+		void    enableAnisotropicFilter( bool enableAnisotropicFilter = true ) { mAnisotropicFiltering = enableAnisotropicFilter; }
 		
 		//! Sets the Texture's internal format. A value of -1 implies selecting the best format for the context.
 		void	setInternalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; }
@@ -171,11 +173,15 @@ class Texture
 		/** Sets the filtering behavior when a texture is displayed at a higher resolution than its native resolution. Default is \c GL_LINEAR
 		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 		void	setMagFilter( GLenum magFilter ) { mMagFilter = magFilter; }
+		//! Sets the anisotropic filter amount. If not set and enabled, the max amount will be set.
+		void    setAniAmount( GLfloat aniAmount ) { mAniAmount = aniAmount; }
 		
 		//! Returns the texture's target
 		GLenum	getTarget() const { return mTarget; }
 		//! Returns whether the texture has mipmapping enabled
 		bool	hasMipmapping() const { return mMipmapping; }
+		//! Returns whether the texture has anisotropic enabled
+		bool    hasAnisotropic() const { return mAnisotropicFiltering; }
 		
 		//! Returns the Texture's internal format. A value of -1 implies automatic selection of the internal format based on the context.
 		GLint	getInternalFormat() const { return mInternalFormat; }
@@ -190,12 +196,16 @@ class Texture
 		GLenum	getMinFilter() const { return mMinFilter; }
 		//! Returns the texture magnifying function, which is used whenever the pixel being textured maps to an area less than or equal to one texture element.
 		GLenum	getMagFilter() const { return mMagFilter; }
+		//! Returns the texture anisotropic filtering amount
+		GLfloat getAniAmount() const { return mAniAmount; }
 		
 	protected:
 		GLenum			mTarget;
 		GLenum			mWrapS, mWrapT;
 		GLenum			mMinFilter, mMagFilter;
 		bool			mMipmapping;
+		bool            mAnisotropicFiltering;
+		GLfloat         mAniAmount;
 		GLint			mInternalFormat;
 		
 		friend class Texture;

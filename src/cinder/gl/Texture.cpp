@@ -53,6 +53,8 @@ Texture::Format::Format()
 	mMagFilter = GL_LINEAR;
 	mMipmapping = false;
 	mInternalFormat = -1;
+	mAniAmount = 1.0f;
+	mAnisotropicFiltering = false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -270,6 +272,14 @@ void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataF
 	if( format.mMipmapping ) 
 		glGenerateMipmap( mTarget );
 	
+	if ( format.mAnisotropicFiltering ) {
+		if ( format.mAniAmount >= 1.0f ) {
+			GLfloat* aniAmount = const_cast<GLfloat*>( &format.mAniAmount );
+			glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
+		}
+		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
+	}
+	
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
 	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
@@ -301,6 +311,14 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
     
     if( format.mMipmapping ) 
 		glGenerateMipmap( mTarget );
+	
+	if ( format.mAnisotropicFiltering ) {
+		if ( format.mAniAmount >= 1.0f ) {
+			GLfloat* aniAmount = const_cast<GLfloat*>( &format.mAniAmount );
+			glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
+		}
+		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
+	}
 		
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
@@ -384,6 +402,14 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 	
     if( format.mMipmapping )
 		glGenerateMipmap( mTarget );
+	
+	if ( format.mAnisotropicFiltering ) {
+		if ( format.mAniAmount >= 1.0f ) {
+			GLfloat* aniAmount = const_cast<GLfloat*>( &format.mAniAmount );
+			glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
+		}
+		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
+	}
 	
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
@@ -543,12 +569,12 @@ Vec2i Texture::calcMipLevelSize( int mipLevel, GLint width, GLint height )
 	
 int Texture::getNumMipLevels() const
 {
-	int mipLevels = 1;
+	int mipLevels = 0;
 	
 	while( calcMipLevelSize( mipLevels, getWidth(), getHeight() ) != Vec2i( 1, 1 ) ) {
 		++mipLevels;
 	}
-	return mipLevels;
+	return ++mipLevels;
 }
 
 void Texture::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )
