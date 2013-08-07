@@ -16,7 +16,6 @@ class HighDynamicRangeApp : public AppNative {
   public:
 	void setup() override;
 	void mouseDrag( MouseEvent event ) override;	
-	void update() override;
 	void draw() override;
 	void fileDrop( FileDropEvent event ) override;
 
@@ -47,8 +46,7 @@ void HighDynamicRangeApp::setup()
 			
 	mShader = gl::GlslProg::create( gl::GlslProg::Format().vertex( loadAsset( "shader.vert" ) )
 																.fragment( loadAsset( "shader.frag" ) ) );
-	mExposure = 1.0f;
-	
+	mExposure = 1.0f;	
 }
 
 void HighDynamicRangeApp::fileDrop( FileDropEvent event )
@@ -58,12 +56,8 @@ void HighDynamicRangeApp::fileDrop( FileDropEvent event )
 
 void HighDynamicRangeApp::mouseDrag( MouseEvent event )
 {
-	mExposure = powf( 10, event.getPos().x / (float)getWindowWidth() - 0.5f ) * 50;
+	mExposure = powf( event.getPos().x / (float)getWindowWidth() * 2, 4 );
 	console() << "Exposure: " << mExposure;
-}
-
-void HighDynamicRangeApp::update()
-{
 }
 
 void HighDynamicRangeApp::draw()
