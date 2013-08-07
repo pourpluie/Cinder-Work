@@ -556,12 +556,7 @@ Vec2i Texture::calcMipLevelSize( int mipLevel, GLint width, GLint height )
 	
 int Texture::getNumMipLevels() const
 {
-	int mipLevels = 0;
-	
-	while( calcMipLevelSize( mipLevels, getWidth(), getHeight() ) != Vec2i( 1, 1 ) ) {
-		++mipLevels;
-	}
-	return ++mipLevels;
+	return floor( log2( std::max( mWidth, mHeight ) ) ) + 1;
 }
 
 void Texture::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )
