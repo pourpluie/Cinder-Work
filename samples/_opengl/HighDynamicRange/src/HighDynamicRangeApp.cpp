@@ -4,9 +4,13 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/GlslProg.h"
 
+#include "HdrLoader.h"
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
+
+// output = ((input*exposure) + offset)^(1/gamma)
 
 class HighDynamicRangeApp : public AppNative {
   public:
@@ -16,32 +20,30 @@ class HighDynamicRangeApp : public AppNative {
 	void draw() override;
 	void fileDrop( FileDropEvent event ) override;
 
+	void loadHdr( const fs::path &path );
+
 	float				mExposure;
 	gl::TextureRef		mHdrTexture;
 	gl::GlslProgRef		mShader;
 };
 
-void HighDynamicRangeApp::setup()
+void HighDynamicRangeApp::loadHdr( const fs::path &path )
 {
-//glClampColorARB(GL_CLAMP_VERTEX_COLOR_ARB, GL_FALSE);
-//glClampColorARB(GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE);
-//glClampColorARB(GL_CLAMP_READ_COLOR_ARB, GL_FALSE);
-glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
-glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
-glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
-
-
-	Surface32f s = loadImage( loadAsset( "Desk_oBA2_scaled.hdr" ) );
-	for( int32_t y = 0; y < s.getHeight(); ++y ) {
-		for( int32_t x = 0; x < s.getWidth(); ++x ) {
-			ColorA c( y / (float)s.getHeight() * 10, x / (float)s.getWidth(), y / (float)s.getHeight() );
-			s.setPixel( Vec2i( x, y ), c );
-		}
-	}
+	HDRLoaderResult result;
+	if( ! HDRLoader::load( path.string().c_str(), result ) )
+		return;
+	
+	Surface32f s( result.cols, result.width, result.height, result.width * 3, SurfaceChannelOrder::RGB );
+	mExposure = 1.0f;
 	
 	gl::Texture::Format fmt;
 	fmt.setInternalFormat( GL_RGB32F );
-	mHdrTexture = gl::Texture::create( s, fmt );//gl::Texture::create( loadImage( loadAsset( "Desk_oBA2_scaled.hdr" ) ) );
+	mHdrTexture = gl::Texture::create( s, fmt );
+}
+
+void HighDynamicRangeApp::setup()
+{
+	loadHdr( getAssetPath( "Desk_oBA2_scaled.hdr" ) );
 			
 	mShader = gl::GlslProg::create( gl::GlslProg::Format().vertex( loadAsset( "shader.vert" ) )
 																.fragment( loadAsset( "shader.frag" ) ) );
@@ -51,27 +53,12 @@ glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
 
 void HighDynamicRangeApp::fileDrop( FileDropEvent event )
 {
-	gl::Texture::Format fmt;
-	fmt.setInternalFormat( GL_RGB32F );
-
-	mHdrTexture = gl::Texture::create( loadImage( event.getFile( 0 ) ), fmt );
-	mExposure = 1.0f;
-	
-	Surface32f s2( *mHdrTexture );
-	for( int32_t y = 0; y < s2.getHeight(); ++y ) {
-		for( int32_t x = 0; x < s2.getWidth(); ++x ) {
-			ColorA c = s2.getPixel( Vec2i( x, y ) );
-			if( c.g > 1.0f || c.b > 1.0f ) {
-				std::cout << c;
-				break;
-			}
-		}
-	}	
+	loadImage( event.getFile( 0 ) );
 }
 
 void HighDynamicRangeApp::mouseDrag( MouseEvent event )
 {
-	mExposure = ( event.getPos().x / (float)getWindowWidth() ) * 50;
+	mExposure = powf( 10, event.getPos().x / (float)getWindowWidth() - 0.5f ) * 50;
 	console() << "Exposure: " << mExposure;
 }
 
@@ -81,13 +68,12 @@ void HighDynamicRangeApp::update()
 
 void HighDynamicRangeApp::draw()
 {
-	// clear out the window with black
 	gl::clear( Color( 0, 0, 0 ) );
-	gl::color( Color::white() );
+
+
 	gl::ShaderScope shader( mShader );
 	mShader->uniform( "uExposure", mExposure );
 	gl::drawSolidRect( mHdrTexture->getBounds() );
-//	gl::draw( mHdrTexture, Vec2f::zero() );
 }
 
 //CINDER_APP_NATIVE( HighDynamicRangeApp, RendererGl( RendererGl::Options().coreProfile(false) ) )
