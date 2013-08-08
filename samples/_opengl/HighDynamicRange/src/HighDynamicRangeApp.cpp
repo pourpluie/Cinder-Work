@@ -51,7 +51,7 @@ void HighDynamicRangeApp::setup()
 
 void HighDynamicRangeApp::fileDrop( FileDropEvent event )
 {
-	loadImage( event.getFile( 0 ) );
+	loadHdr( event.getFile( 0 ) );
 }
 
 void HighDynamicRangeApp::mouseDrag( MouseEvent event )
