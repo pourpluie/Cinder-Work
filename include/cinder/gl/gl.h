@@ -3,14 +3,18 @@
 #include "cinder/Cinder.h"
 
 #if ! defined( CINDER_COCOA_TOUCH )
-	#pragma clang diagnostic push
-	#pragma clang diagnostic ignored "-Wtypedef-redefinition"
+	#if defined( __clang__ )
+		#pragma clang diagnostic push
+		#pragma clang diagnostic ignored "-Wtypedef-redefinition"
+	#endif
 	#if ! defined( CINDER_GL_LEGACY )
 		#include "glload/gl_core.h"
 	#else
 		#include "glload/gl_all.h"
 	#endif
-	#pragma clang diagnostic pop
+	#if defined( __clang__ )
+		#pragma clang diagnostic pop
+	#endif
 #else
 	#include <OpenGLES/ES2/gl.h>
 	#include <OpenGLES/ES2/glext.h>
