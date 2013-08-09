@@ -1,8 +1,11 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
-#include "glload/gl_all.h"
-#include "glload/gl_load.h"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtypedef-redefinition"
+	#include "glload/gl_all.h"
+	#include "glload/gl_load.h"
+#pragma clang diagnostic pop
 
 #if defined(__APPLE__)
 #include <mach-o/dyld.h>

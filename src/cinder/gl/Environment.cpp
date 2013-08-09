@@ -23,402 +23,43 @@
 */
 
 #include "cinder/gl/Environment.h"
-#include "cinder/gl/Shader.h"
-#include "cinder/gl/Context.h"
-#include "cinder/gl/Vao.h"
-
-#if ! defined( CINDER_GLES )
-	#include "glload/gl_load.h"
-#endif
-
 
 namespace cinder { namespace gl {
 
+extern Environment* allocateEnvironmentCore();
+extern Environment* allocateEnvironmentLegacy();
+extern Environment* allocateEnvironmentEs2();
+static Environment *sEnvironment = NULL;
+
 #if ! defined( CINDER_GLES )
-bool Environment::sCoreProfile = true;
-#endif
-
-
-//////////////////////////////////////////////////////////////////////////////////
-// GL ES 2
-
-#if defined( CINDER_GLES )
-
-class EnvironmentEs2 : public Environment {
-  public:
-	virtual void	initializeFunctionPointers() override;
-	virtual void	initializeContextDefaults( Context *context ) override;
-	
-	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
-	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
-	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
-};
-
-void EnvironmentEs2::initializeFunctionPointers()
+void Environment::setCore()
 {
+	if( ! sEnvironment ) {
+		sEnvironment = allocateEnvironmentCore();
+	}
 }
 
-void EnvironmentEs2::initializeContextDefaults( Context *context )
+void Environment::setLegacy()
 {
-}
-
-std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )
-{
-	std::string s;
-	
-	s +=		"uniform mat4	uModelViewProjection;\n"
-				"\n"
-				"attribute vec4		vPosition;\n"
-				;
-			
-	if( shader.mTextureMapping ) {
-		s +=	"attribute vec2		vTexCoord0;\n"
-				"varying highp vec2	TexCoord;\n"
-				;
+	if( ! sEnvironment ) {
+		sEnvironment = allocateEnvironmentLegacy();
 	}
-	if( shader.mColor ) {
-		s +=	"attribute vec4		vColor;\n"
-				"varying vec4		Color;\n"
-				;
-	}
-
-	s +=		"void main( void )\n"
-				"{\n"
-				"	gl_Position	= uModelViewProjection * vPosition;\n"
-				;
-				
-	if( shader.mTextureMapping ) {	
-		s +=	"	TexCoord = vTexCoord0;\n"
-				;
-	}
-	if( shader.mColor ) {
-		s +=	"	Color = vColor;\n"
-				;
-	}
-	
-	s +=		"}\n";
-	
-	return s;
-}
-
-std::string	EnvironmentEs2::generateFragmentShader( const ShaderDef &shader )
-{
-	std::string s;
-
-	s +=		"precision highp float;\n"
-				;
-
-	if( shader.mTextureMapping ) {	
-		s +=	"uniform sampler2D	uTex0;\n"
-				"varying highp vec2	TexCoord;\n"
-				;
-	}
-	if( shader.mColor ) {
-		s +=	"varying lowp vec4	Color;\n"
-				;
-	}
-
-	s +=		"void main( void )\n"
-				"{\n"
-				;
-	
-	if( shader.mTextureMapping && shader.mColor ) {
-		s +=	"	gl_FragColor = texture2D( uTex0, TexCoord.st ) * Color;\n"
-				;
-	}
-	else if( shader.mTextureMapping ) {
-		s +=	"	gl_FragColor = texture2D( uTex0, TexCoord.st );\n"
-				;
-	}
-	else if( shader.mColor ) {
-		s +=	"	gl_FragColor = Color;\n"
-				;
-	}
-	
-	s +=		"}\n"
-				;
-	
-	return s;
-}
-
-
-GlslProgRef	EnvironmentEs2::buildShader( const ShaderDef &shader )
-{
-	std::cout << "ES 2 Shader Vert: " << generateVertexShader( shader ) << std::endl;
-	std::cout << "ES 2 Shader Frag: " << generateFragmentShader( shader ) << std::endl;	
-	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
 }
 
 #else
-//////////////////////////////////////////////////////////////////////////////////
-// GL Core Profile
 
-class EnvironmentCoreProfile : public Environment {
-  public:
-	virtual void	initializeFunctionPointers() override;
-	virtual void	initializeContextDefaults( Context *context ) override;
-
-	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
-	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
-	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
-};
-
-void EnvironmentCoreProfile::initializeFunctionPointers()
+void Environment::setEs2()
 {
-	static bool sInitialized = false;
-	if( ! sInitialized ) {
-		ogl_LoadFunctions();
-		sInitialized = true;
+	if( ! sEnvironment ) {
+		sEnvironment = allocateEnvironmentEs2();
 	}
 }
 
-void EnvironmentCoreProfile::initializeContextDefaults( Context *context )
-{
-}
-
-std::string	EnvironmentCoreProfile::generateVertexShader( const ShaderDef &shader )
-{
-	std::string s;
-	
-	s +=		"#version 150\n"
-				"\n"
-				"uniform mat4	uModelViewProjection;\n"
-				"\n"
-				"in vec4		vPosition;\n"
-				;
-	
-	if( shader.mTextureMapping ) {
-		s +=	"in vec2		vTexCoord0;\n"
-				"out highp vec2	TexCoord;\n"
-				;
-	}
-	if( shader.mColor ) {
-		s +=	"in vec4		vColor;\n"
-				"out lowp vec4	Color;\n"
-				;
-	}
-
-	s +=		"void main( void )\n"
-				"{\n"
-				"	gl_Position	= uModelViewProjection * vPosition;\n"
-				;
-	if( shader.mColor ) {
-		s +=	"	Color = vColor;\n"
-				;
-	}
-	if( shader.mTextureMapping ) {	
-		s +=	"	TexCoord	= vTexCoord0;\n"
-				;
-	}
-	
-	s +=		"}\n";
-	
-	return s;
-}
-
-std::string	EnvironmentCoreProfile::generateFragmentShader( const ShaderDef &shader )
-{
-	std::string s;
-	
-	s+=			"#version 150\n"
-				"\n"
-				"out vec4 oColor;\n"
-				;
-
-	if( shader.mColor ) {
-		s +=	"in vec4		Color;\n";
-	}
-
-	if( shader.mTextureMapping ) {
-		if( shader.mTextureMappingRectangleArb )
-			s +="uniform sampler2DRect uTex0;\n";
-		else
-			s +="uniform sampler2D uTex0;\n";
-		s	+=	"in vec2	TexCoord;\n";
-				;
-	}
-
-	s +=		"void main( void )\n"
-				"{\n"
-				;
-	
-	if( shader.mTextureMapping && shader.mColor ) {
-		s +=	"	oColor = texture( uTex0, TexCoord.st ) * Color;\n"
-				;
-	}
-	else if( shader.mTextureMapping ) {
-		s +=	"	oColor = texture( uTex0, TexCoord.st );\n"
-				;
-	}
-	else if( shader.mColor ) {
-		s +=	"	oColor = Color;\n"
-				;
-	}
-	
-	s +=		"}\n"
-				;
-	
-	return s;
-}
-
-
-GlslProgRef	EnvironmentCoreProfile::buildShader( const ShaderDef &shader )
-{
-std::cout << "Core shader vert:" << std::endl << generateVertexShader( shader ).c_str() << std::endl;
-std::cout << "Core shader frag:" << std::endl << generateFragmentShader( shader ).c_str() << std::endl;
-	return GlslProg::create( GlslProg::Format().vertex( generateVertexShader( shader ).c_str() )
-												.fragment( generateFragmentShader( shader ).c_str() )
-												.attribLocation( "vPosition", 0 )
-												);
-}
-
-//////////////////////////////////////////////////////////////////////////////////
-// GL Compatibility Profile
-
-class EnvironmentCompatibilityProfile : public Environment {
-  public:
-	virtual void	initializeFunctionPointers() override;
-	virtual void	initializeContextDefaults( Context *context ) override;
-
-	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
-	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
-	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
-};
-
-void EnvironmentCompatibilityProfile::initializeFunctionPointers()
-{
-	static bool sInitialized = false;
-	if( ! sInitialized ) {
-		ogl_LoadFunctions();
-		sInitialized = true;
-	}
-}
-
-void EnvironmentCompatibilityProfile::initializeContextDefaults( Context *context )
-{
-}
-
-std::string	EnvironmentCompatibilityProfile::generateVertexShader( const ShaderDef &shader )
-{
-	std::string s;
-	
-	s +=		"#version 120\n"
-				"\n"
-				"uniform mat4	uModelViewProjection;\n"
-				"\n"
-				"attribute vec4	vPosition;\n"
-				;
-			
-	if( shader.mTextureMapping ) {
-		s +=	"attribute vec2	vTexCoord0;\n"
-				"varying vec2	TexCoord;\n"
-				;
-	}
-
-	if( shader.mColor ) {
-		s +=	"attribute vec4 vColor;\n"
-				"varying vec4 Color;\n"
-				;
-	}
-
-	s +=		"void main( void )\n"
-				"{\n"
-				"	gl_Position	= uModelViewProjection * vPosition;\n"
-				;
-				
-	if( shader.mTextureMapping ) {	
-		s +=	"	TexCoord = vTexCoord0;\n"
-				;
-	}
-	
-	if( shader.mColor ) {
-		s +=	"	Color = vColor;\n"
-				;
-	}
-	
-	s +=		"}\n";
-	
-	return s;
-}
-
-std::string	EnvironmentCompatibilityProfile::generateFragmentShader( const ShaderDef &shader )
-{
-	std::string s;
-	
-	s+=			"#version 120\n"
-				"\n"
-				;
-
-	if( shader.mColor ) {
-		s +=	"varying vec4		Color;\n";
-	}
-
-	if( shader.mTextureMapping ) {	
-		if( shader.mTextureMappingRectangleArb )
-			s +="uniform sampler2DRect uTex0;\n";
-		else
-			s +="uniform sampler2D	uTex0;\n";
-		s	+=	"varying vec2		TexCoord;\n"
-				;
-	}
-
-	s +=		"void main( void )\n"
-				"{\n"
-				;
-	
-	if( shader.mColor && shader.mTextureMapping ) {
-		if( shader.mTextureMappingRectangleArb )
-			s +="	gl_FragColor = texture2DRect( uTex0, TexCoord.st ) * Color;\n";
-		else
-			s +="	gl_FragColor = texture2D( uTex0, TexCoord.st ) * Color;\n";
-	}
-	else if( shader.mTextureMapping ) {
-		if( shader.mTextureMappingRectangleArb )
-			s +="	gl_FragColor = texture2DRect( uTex0, TexCoord.st );\n";
-		else
-			s +="	gl_FragColor = texture2D( uTex0, TexCoord.st );\n";
-				;
-	}
-	else if( shader.mColor ) {
-		s +=	"	gl_FragColor = Color;\n"
-				;
-	}
-	
-	s +=		"}\n"
-				;
-	
-	return s;
-}
-
-
-GlslProgRef	EnvironmentCompatibilityProfile::buildShader( const ShaderDef &shader )
-{
-std::cout << "Compat shader vert:" << std::endl << generateVertexShader( shader ).c_str() << std::endl;
-std::cout << "Compat shader frag:" << std::endl << generateFragmentShader( shader ).c_str() << std::endl;
-
-	return GlslProg::create( GlslProg::Format().vertex( generateVertexShader( shader ).c_str() )
-												.fragment( generateFragmentShader( shader ).c_str() )
-												.attribLocation( "vPosition", 0 )
-												);
-}
-
-#endif // if defined( CINDER_GLES )
-///////////////////////////////////////////////////////////////////////////////////
+#endif
 
 Environment* env()
 {
-	static Environment *sEnvironment = NULL;
-	if( ! sEnvironment ) {
-#if defined( CINDER_GLES )
-		sEnvironment = new EnvironmentEs2();
-#else
-		if( Environment::isCoreProfile() )
-			sEnvironment = new EnvironmentCoreProfile();
-		else
-			sEnvironment = new EnvironmentCompatibilityProfile();
-#endif
-	}
-	
+	assert( sEnvironment );
 	return sEnvironment;
 }
 

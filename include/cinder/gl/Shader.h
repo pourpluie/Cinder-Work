@@ -20,8 +20,8 @@ class ShaderDef {
 	
 	bool			mColor;
 	
-	friend class EnvironmentCoreProfile;
-	friend class EnvironmentCompatibilityProfile;
+	friend class EnvironmentCore;
+	friend class EnvironmentLegacy;
 	friend class EnvironmentEs2;	
 };
 	

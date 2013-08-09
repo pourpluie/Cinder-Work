@@ -7,7 +7,7 @@
 //
 //  ---------------------------------------------------------------------------
 
-
+#define CINDER_GL_LEGACY
 #include "TwPrecomp.h"
 #include "LoadOGL.h"
 #if defined( CINDER_COCOA )

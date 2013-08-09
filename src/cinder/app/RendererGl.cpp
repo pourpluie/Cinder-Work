@@ -38,19 +38,6 @@ namespace cinder { namespace app {
 
 const int RendererGl::sAntiAliasingSamples[] = { 0, 2, 4, 6, 8, 16, 32 };
 
-RendererGl::Options::Options()
-{
-#if defined( CINDER_COCOA_TOUCH )
-	mAntiAliasing = AA_NONE;
-	mCoreProfile = false;
-	mVersion = std::pair<int,int>( 2, 0 );
-#else
-	mAntiAliasing = AA_MSAA_16;
-	mCoreProfile = true;
-	mVersion = std::pair<int,int>( 3, 2 );	
-#endif
-}
-
 RendererGl::RendererGl( const RendererGl::Options &options )
 	: Renderer(), mImpl( 0 ), mOptions( options )
 {}

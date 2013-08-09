@@ -1,3 +1,5 @@
+#define CINDER_GL_LEGACY
+
 #ifdef __OBJC__
     #import <Cocoa/Cocoa.h>
 #endif

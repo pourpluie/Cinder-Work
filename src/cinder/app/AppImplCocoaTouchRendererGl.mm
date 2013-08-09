@@ -26,6 +26,7 @@
 
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Context.h"
+#include "cinder/gl/Environment.h"
 
 @implementation AppImplCocoaTouchRendererGl
 
@@ -63,6 +64,8 @@
 		[self release];
 		return;
 	}
+	
+	cinder::gl::Environment::setEs2();
 	
 	// force Cinder's context to be allocated
 	mCinderContext = cinder::gl::Context::createFromExisting( mContext, NULL );

@@ -154,5 +154,4 @@ gl::context()->sanityCheck();
 	}
 }
 
-auto renderOptions = RendererGl::Options().coreProfile( false );
-CINDER_APP_NATIVE( CoreProfileApp, RendererGl( renderOptions ) )
+CINDER_APP_NATIVE( CoreProfileApp, RendererGl() )
