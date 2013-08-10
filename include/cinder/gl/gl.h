@@ -2,7 +2,13 @@
 
 #include "cinder/Cinder.h"
 
-#if ! defined( CINDER_COCOA_TOUCH )
+#if defined( CINDER_GL_ANGLE )
+	#define GL_GLEXT_PROTOTYPES
+	#include "GLES2/gl2.h"
+	#include "GLES2/gl2ext.h"
+	#define CINDER_GLES
+	#define CINDER_GLES2
+#elif ! defined( CINDER_COCOA_TOUCH )
 	#if defined( __clang__ )
 		#pragma clang diagnostic push
 		#pragma clang diagnostic ignored "-Wtypedef-redefinition"
