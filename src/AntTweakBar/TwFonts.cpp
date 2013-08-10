@@ -7,8 +7,9 @@
 //
 //  ---------------------------------------------------------------------------
 
-
 #include "TwPrecomp.h"
+#if ! defined( CINDER_ANT_TW_BAR_IGNORE )
+
 #include "TwMgr.h"
 #include "TwFonts.h"
 
@@ -4896,3 +4897,4 @@ void TwDeleteDefaultFonts()
 }
 
 //  ---------------------------------------------------------------------------
+#endif // #if ! defined( CINDER_ANT_TW_BAR_IGNORE )

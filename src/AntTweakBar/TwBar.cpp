@@ -7,8 +7,9 @@
 //
 //  ---------------------------------------------------------------------------
 
-
 #include "TwPrecomp.h"
+
+#if ! defined( CINDER_ANT_TW_BAR_IGNORE )
 #include <AntTweakBar.h>
 #include "TwMgr.h"
 #include "TwBar.h"
@@ -7768,4 +7769,4 @@ bool CTwBar::EditInPlaceSetClipboard(const std::string& _String)
 
 //  ---------------------------------------------------------------------------
 
-
+#if // ! defined( CINDER_ANT_TW_BAR_IGNORE )
