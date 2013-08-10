@@ -22,6 +22,9 @@
 
 // Concrete implementation of VAO for desktop GL
 
+#include "cinder/gl/gl.h"
+
+#if ! defined( CINDER_GLES )
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Context.h"
@@ -98,3 +101,5 @@ void VaoImplCore::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type
 }
 
 } }
+
+#endif // ! defined( CINDER_GLES )

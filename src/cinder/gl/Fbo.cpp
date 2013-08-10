@@ -78,7 +78,7 @@ void Renderbuffer::init( int aWidth, int aHeight, GLenum internalFormat, int msa
 	mInternalFormat = internalFormat;
 	mSamples = msaaSamples;
 	mCoverageSamples = coverageSamples;
-#if defined( CINDER_MSW )
+#if defined( CINDER_MSW ) && ( ! defined( CINDER_GL_ANGLE ) )
 	static bool csaaSupported = ( glext_NV_framebuffer_multisample_coverage != 0 );
 #else
 	static bool csaaSupported = false;

@@ -913,3 +913,4 @@ void CTwGraphOpenGL::DrawTriangles(int _NumTriangles, int *_Vertices, color32 *_
 }
 
 //  ---------------------------------------------------------------------------
+#endif // ! defined( CINDER_ANT_TW_BAR_IGNORE )

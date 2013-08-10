@@ -21,6 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+#if ! defined( CINDER_GL_ANGLE )
 #include "cinder/app/AppImplMswRendererGl.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
@@ -179,6 +180,10 @@ bool AppImplMswRendererGl::initialize( HWND wnd, HDC dc, RendererRef sharedRende
 		return false;
 	}
 
+	if( mRenderer->getOptions().getCoreProfile() )
+		gl::Environment::setCore();
+	else
+		gl::Environment::setLegacy();
 	mCinderContext = cinder::gl::Context::createFromExisting( mRC, mDC );
 	mCinderContext->makeCurrent();
 
@@ -386,3 +391,4 @@ void AppImplMswRendererGl::kill()
 }
 
 } } // namespace cinder::app
+#endif // ! defined( CINDER_GL_ANGLE )

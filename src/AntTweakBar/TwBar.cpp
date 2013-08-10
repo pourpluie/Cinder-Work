@@ -7769,4 +7769,4 @@ bool CTwBar::EditInPlaceSetClipboard(const std::string& _String)
 
 //  ---------------------------------------------------------------------------
 
-#if // ! defined( CINDER_ANT_TW_BAR_IGNORE )
+#endif // ! defined( CINDER_ANT_TW_BAR_IGNORE )
