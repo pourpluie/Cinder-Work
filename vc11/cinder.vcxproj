@@ -103,6 +103,7 @@
     <ClCompile Include="..\src\cinder\app\AppImplMswRendererDx.cpp" />
     <ClCompile Include="..\src\cinder\app\AppImplMswScreenSaver.cpp" />
     <ClCompile Include="..\src\cinder\app\AppScreenSaver.cpp" />
+    <ClCompile Include="..\src\cinder\app\RendererAngle.cpp" />
     <ClCompile Include="..\src\cinder\app\RendererDx.cpp" />
     <ClCompile Include="..\src\cinder\app\RendererGl.cpp" />
     <ClCompile Include="..\src\cinder\app\Window.cpp" />
@@ -252,6 +253,7 @@
     <ClInclude Include="..\include\cinder\app\AppImplMswRendererDx.h" />
     <ClInclude Include="..\include\cinder\app\AppNative.h" />
     <ClInclude Include="..\include\cinder\app\Event.h" />
+    <ClInclude Include="..\include\cinder\app\RendererAngle.h" />
     <ClInclude Include="..\include\cinder\app\RendererDx.h" />
     <ClInclude Include="..\include\cinder\app\RendererGl.h" />
     <ClInclude Include="..\include\cinder\app\ResizeEvent.h" />
