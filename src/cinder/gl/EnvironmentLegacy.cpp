@@ -22,6 +22,8 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+#if ( ! defined( CINDER_GLES ) ) && ( ! defined( CINDER_GL_ANGLE ) )
+
 #define CINDER_GL_LEGACY // to force appropriate GL headers
 #include "glload/gl_all.h"
 #include "cinder/gl/Environment.h"
@@ -31,8 +33,6 @@
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Vao.h"
-
-#if ! defined( CINDER_GLES )
 
 namespace cinder { namespace gl {
 
@@ -171,4 +171,4 @@ std::cout << "Compat shader frag:" << std::endl << generateFragmentShader( shade
 
 } } // namespace cinder::gl
 
-#endif // ! defined( CINDER_GLES )
+#endif // ( ! defined( CINDER_GLES ) ) && ( ! defined( CINDER_GL_ANGLE ) )
