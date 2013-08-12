@@ -23,6 +23,17 @@
 */
 
 #include "cinder/gl/Environment.h"
+#include "cinder/gl/Context.h"
+
+#if defined( CINDER_MAC )
+	#include <OpenGL/OpenGL.h>
+#elif defined( CINDER_COCOA_TOUCH )
+	#import <OpenGLES/EAGL.h>
+#elif defined( CINDER_GL_ANGLE )
+	#include "EGL/egl.h"
+#endif
+
+using namespace std;
 
 namespace cinder { namespace gl {
 
@@ -61,6 +72,112 @@ Environment* env()
 {
 	assert( sEnvironment );
 	return sEnvironment;
+}
+
+namespace {
+void destroyPlatformData( Context::PlatformData *data )
+{
+#if defined( CINDER_MAC )
+	auto platformData = dynamic_cast<PlatformDataMac*>( data );
+	::CGLDestroyContext( platformData->mCglContext );
+#elif defined( CINDER_COCOA_TOUCH )
+	auto platformData = dynamic_cast<PlatformDataIos*>( data );
+	[(EAGLContext*)platformData->mEaglContext release];
+#elif defined( CINDER_GL_ANGLE )
+	auto platformData = dynamic_cast<PlatformDataAngle*>( data );
+	::eglDestroyContext( platformData->mDisplay, platformData->mContext );
+#elif defined( CINDER_MSW )
+	auto platformData = dynamic_cast<PlatformDataMsw*>( data );
+	::wglMakeCurrent( NULL, NULL );
+	::wglDeleteContext( platformData->mGlrc );
+#endif
+
+	delete data;
+}
+} // anonymous namespace
+
+ContextRef Environment::createSharedContext( const Context *sharedContext )
+{
+#if defined( CINDER_MAC )
+	auto sharedContextPlatformData = dynamic_pointer_cast<PlatformDataMac>( sharedContext->getPlatformData() );
+	CGLContextObj prevContext = ::CGLGetCurrentContext();
+	CGLContextObj sharedContextCgl = sharedContextPlatformData->mCglContext;
+	CGLPixelFormatObj sharedContextPixelFormat = ::CGLGetPixelFormat( sharedContextCgl );
+	CGLContextObj cglContext;
+	if( ::CGLCreateContext( sharedContextPixelFormat, sharedContextCgl, (CGLContextObj*)&cglContext ) != kCGLNoError ) {
+		throw ExcContextAllocation();
+	}
+
+	::CGLSetCurrentContext( cglContext );
+	shared_ptr<Context::PlatformData> platformData = shared_ptr<Context::PlatformData>( new PlatformDataMac( cglContext ), destroyPlatformData );	
+#elif defined( CINDER_COCOA_TOUCH )
+	auto sharedContextPlatformData = dynamic_pointer_cast<PlatformDataIos>( sharedContext->getPlatformData() );
+	EAGLContext *prevContext = [EAGLContext currentContext];
+	EAGLContext *sharedContextEagl = sharedContextPlatformData->mEaglContext;
+	EAGLSharegroup *sharegroup = sharedContextEagl.sharegroup;
+	EAGLContext *eaglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
+	[EAGLContext setCurrentContext:eaglContext];
+	shared_ptr<Context::PlatformData> platformData = shared_ptr<Context::PlatformData>( new PlatformDataIos( eaglContext ), destroyPlatformData );
+#elif defined( CINDER_GL_ANGLE )
+	auto sharedContextPlatformData = dynamic_pointer_cast<PlatformDataAngle>( sharedContext->getPlatformData() );
+	EGLContext prevEglContext = ::eglGetCurrentContext();
+	EGLDisplay prevEglDisplay = ::eglGetCurrentDisplay();
+	EGLSurface prevEglSurface = ::eglGetCurrentSurface( EGL_DRAW );
+
+	EGLint surfaceAttribList[] = { EGL_NONE, EGL_NONE };
+	EGLContext eglContext = ::eglCreateContext( prevEglDisplay, sharedContextPlatformData->mConfig, prevEglContext, surfaceAttribList );
+
+	shared_ptr<Context::PlatformData> platformData( new PlatformDataAngle( eglContext, sharedContextPlatformData->mDisplay, sharedContextPlatformData->mSurface, sharedContextPlatformData->mConfig ), destroyPlatformData );
+#elif defined( CINDER_MSW )
+	// save the current context so we can restore it
+	HGLRC prevContext = ::wglGetCurrentContext();
+	HDC prevDc = ::wglGetCurrentDC();
+	auto sharedContextPlatformData = dynamic_pointer_cast<PlatformDataMsw>( sharedContext->getPlatformData() );
+	HGLRC sharedContextRc = sharedContextPlatformData->mGlrc;
+	HDC sharedContextDc = sharedContextPlatformData->mDc;
+	HGLRC rc = ::wglCreateContext( sharedContextDc );
+	::wglMakeCurrent( NULL, NULL );
+	if( ! ::wglShareLists( sharedContextRc, rc ) ) {
+		throw ExcContextAllocation();
+	}
+	::wglMakeCurrent( sharedContextDc, rc );
+	shared_ptr<Context::PlatformData> platformData = shared_ptr<Context::PlatformData>( new PlatformDataMsw( rc, sharedContextDc ), destroyPlatformData );
+#endif
+
+	ContextRef result( new Context( platformData ) );
+	env()->initializeFunctionPointers();
+
+#if defined( CINDER_MAC )
+	::CGLSetCurrentContext( prevContext );
+#elif defined( CINDER_COCOA_TOUCH )
+	[EAGLContext setCurrentContext:prevContext];
+#elif defined( CINDER_GL_ANGLE )
+	EGLBoolean status = ::eglMakeCurrent( prevEglDisplay, prevEglSurface, prevEglSurface, prevEglContext );
+	assert( status );
+#elif defined( CINDER_MSW )
+	::wglMakeCurrent( prevDc, prevContext );
+#endif
+
+	return result;
+}
+
+void Environment::makeContextCurrent( const Context *context )
+{
+#if defined( CINDER_MAC )
+	auto platformData = dynamic_pointer_cast<PlatformDataMac>( context->getPlatformData() );
+	::CGLSetCurrentContext( platformData->mCglContext );
+#elif defined( CINDER_COCOA_TOUCH )
+	auto platformData = dynamic_pointer_cast<PlatformDataIos>( context->getPlatformData() );
+	[EAGLContext setCurrentContext:platformData->mEaglContext];
+#elif defined( CINDER_GL_ANGLE )
+	auto platformData = dynamic_pointer_cast<PlatformDataAngle>( context->getPlatformData() );
+	assert( ::eglMakeCurrent( platformData->mDisplay, platformData->mSurface, platformData->mSurface, platformData->mContext ) );
+#elif defined( CINDER_MSW )
+	auto platformData = dynamic_pointer_cast<PlatformDataMsw>( context->getPlatformData() );
+	if( ! ::wglMakeCurrent( platformData->mDc, platformData->mGlrc ) ) {
+		// DWORD error = GetLastError();
+	}
+#endif
 }
 
 } } // namespace cinder::gl

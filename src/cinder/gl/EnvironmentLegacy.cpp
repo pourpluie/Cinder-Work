@@ -22,6 +22,8 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+#if ( ! defined( CINDER_GLES ) ) && ( ! defined( CINDER_GL_ANGLE ) )
+
 #define CINDER_GL_LEGACY // to force appropriate GL headers
 #include "glload/gl_all.h"
 #include "cinder/gl/Environment.h"
@@ -32,14 +34,12 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Vao.h"
 
-#if ! defined( CINDER_GLES )
-
 namespace cinder { namespace gl {
 
 class EnvironmentLegacy : public Environment {
   public:
 	virtual void	initializeFunctionPointers() override;
-	virtual void	initializeContextDefaults( Context *context ) override;
+	virtual bool	supportsHardwareVao() override;
 
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
@@ -60,8 +60,10 @@ void EnvironmentLegacy::initializeFunctionPointers()
 	}
 }
 
-void EnvironmentLegacy::initializeContextDefaults( Context *context )
+bool EnvironmentLegacy::supportsHardwareVao()
 {
+	// TODO: extension string test
+	return true;
 }
 
 std::string	EnvironmentLegacy::generateVertexShader( const ShaderDef &shader )
@@ -171,4 +173,4 @@ std::cout << "Compat shader frag:" << std::endl << generateFragmentShader( shade
 
 } } // namespace cinder::gl
 
-#endif // ! defined( CINDER_GLES )
+#endif // ( ! defined( CINDER_GLES ) ) && ( ! defined( CINDER_GL_ANGLE ) )

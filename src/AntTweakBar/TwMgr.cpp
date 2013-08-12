@@ -7,8 +7,9 @@
 //
 //  ---------------------------------------------------------------------------
 
-
 #include "TwPrecomp.h"
+
+#if ! defined( CINDER_ANT_TW_BAR_IGNORE )
 #include <AntTweakBar.h>
 #include "TwMgr.h"
 #include "TwBar.h"
@@ -6764,4 +6765,4 @@ bool CRect::Subtract(const vector<CRect>& _Rects, vector<CRect>& _OutRects) cons
 }
 
 //  ---------------------------------------------------------------------------
-
+#endif // #if ! defined( CINDER_ANT_TW_BAR_IGNORE )

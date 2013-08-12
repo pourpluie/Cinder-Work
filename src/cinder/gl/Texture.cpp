@@ -565,7 +565,11 @@ void Texture::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder 
 		break;
 		case SurfaceChannelOrder::BGRA:
 		case SurfaceChannelOrder::BGRX:
+#if defined( CINDER_GLES )
+			*dataFormat = GL_BGRA_EXT;
+#else
 			*dataFormat = GL_BGRA;
+#endif
 			*type = GL_UNSIGNED_BYTE;
 		break;
 		default:

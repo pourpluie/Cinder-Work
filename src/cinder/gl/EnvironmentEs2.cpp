@@ -36,7 +36,8 @@ namespace cinder { namespace gl {
 class EnvironmentEs2 : public Environment {
   public:
 	virtual void	initializeFunctionPointers() override;
-	virtual void	initializeContextDefaults( Context *context ) override;
+
+	virtual bool	supportsHardwareVao() override;
 	
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
@@ -52,8 +53,13 @@ void EnvironmentEs2::initializeFunctionPointers()
 {
 }
 
-void EnvironmentEs2::initializeContextDefaults( Context *context )
+bool EnvironmentEs2::supportsHardwareVao()
 {
+#if defined( CINDER_COCOA_TOUCH )
+	return true;
+#else
+	return false;
+#endif
 }
 
 std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )

@@ -8,7 +8,10 @@
 //  ---------------------------------------------------------------------------
 
 #define CINDER_GL_LEGACY
+
 #include "TwPrecomp.h"
+
+#if ! defined( CINDER_ANT_TW_BAR_IGNORE )
 #include "LoadOGL.h"
 #if defined( CINDER_COCOA )
 	#include <OpenGL/gl.h>
@@ -546,4 +549,5 @@ namespace GL { PFNGLGetProcAddress _glGetProcAddress = NULL; }
    
 #endif // defined(ANT_UNIX)
 
+#endif // #if ! defined( CINDER_ANT_TW_BAR_IGNORE )
 //  ---------------------------------------------------------------------------

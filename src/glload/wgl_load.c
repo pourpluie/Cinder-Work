@@ -4,6 +4,8 @@
 #include "glload/wgl_all.h"
 #include "glload/wgl_load.h"
 
+#if ! defined( CINDER_GL_ANGLE )
+
 #if defined(__APPLE__)
 #include <mach-o/dyld.h>
 
@@ -817,3 +819,4 @@ int wgl_LoadFunctions(HDC hdc)
 	return numFailed;
 }
 
+#endif // defined( CINDER_GL_ANGLE )

@@ -378,5 +378,4 @@ TW_COMPILE_TIME_ASSERT(TW_DOUBLE,  sizeof(double)  == 8);
     }   // extern "C"
 #endif  // __cplusplus
 
-
 #endif  // !defined TW_INCLUDED

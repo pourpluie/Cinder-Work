@@ -36,7 +36,8 @@ namespace cinder { namespace gl {
 class EnvironmentCore : public Environment {
   public:
 	virtual void	initializeFunctionPointers() override;
-	virtual void	initializeContextDefaults( Context *context ) override;
+
+	virtual bool	supportsHardwareVao() override;
 
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
@@ -57,8 +58,9 @@ void EnvironmentCore::initializeFunctionPointers()
 	}
 }
 
-void EnvironmentCore::initializeContextDefaults( Context *context )
+bool EnvironmentCore::supportsHardwareVao()
 {
+	return true;
 }
 
 std::string	EnvironmentCore::generateVertexShader( const ShaderDef &shader )

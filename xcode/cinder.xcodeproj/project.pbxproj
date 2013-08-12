@@ -1016,8 +1016,8 @@
 		009FD55410C9DB0600D63B1B /* ImageSourceFileQuartz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageSourceFileQuartz.h; sourceTree = "<group>"; };
 		009FD55610CAB8B700D63B1B /* ImageSourceFileQuartz.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = ImageSourceFileQuartz.cpp; sourceTree = "<group>"; };
 		00A06F6F1760EFAD00D8BE17 /* BufferObj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BufferObj.cpp; path = gl/BufferObj.cpp; sourceTree = "<group>"; };
-		00A06F701760EFAD00D8BE17 /* Context.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = Context.cpp; path = gl/Context.cpp; sourceTree = "<group>"; };
-		00A06F711760EFAD00D8BE17 /* Environment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Environment.cpp; path = gl/Environment.cpp; sourceTree = "<group>"; };
+		00A06F701760EFAD00D8BE17 /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Context.cpp; path = gl/Context.cpp; sourceTree = "<group>"; };
+		00A06F711760EFAD00D8BE17 /* Environment.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = Environment.cpp; path = gl/Environment.cpp; sourceTree = "<group>"; };
 		00A06F721760EFAD00D8BE17 /* Fbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fbo.cpp; path = gl/Fbo.cpp; sourceTree = "<group>"; };
 		00A06F731760EFAD00D8BE17 /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fog.cpp; path = gl/Fog.cpp; sourceTree = "<group>"; };
 		00A06F741760EFAD00D8BE17 /* gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gl.cpp; path = gl/gl.cpp; sourceTree = "<group>"; };

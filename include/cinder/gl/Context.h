@@ -35,14 +35,17 @@ typedef std::shared_ptr<VertBatch>		VertBatchRef;
 
 class Context {
   public:
-	~Context();
-	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. This (essentially) must be done from the primary thread on MSW. Destroys the platform Context on destruction.
+	struct PlatformData {
+		virtual ~PlatformData() {}
+	};
+
+	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. This (essentially) must be done from the primary thread on MSW. ANGLE doesn't support multithreaded use. Destroys the platform Context on destruction.
 	static ContextRef	create( const Context *sharedContext );	
 	//! Creates based on an existing platform-specific GL context. \a platformContext is CGLContextObj on Mac OS X, EAGLContext on iOS, HGLRC on MSW. \a platformContext is an HDC on MSW and ignored elsewhere. Does not assume ownership of the platform's context.
-	static ContextRef	createFromExisting( void *platformContext, void *platformContextAdditional = NULL );	
+	static ContextRef	createFromExisting( const std::shared_ptr<PlatformData> &platformData );	
 
 	//! Returns the platform-specific OpenGL Context. CGLContextObj on Mac OS X, EAGLContext on iOS
-	void*	getPlatformContext() const { return mPlatformContext; }
+	const std::shared_ptr<PlatformData>		getPlatformData() const { return mPlatformData; }
 
 	//! Makes this the currently active OpenGL Context
 	void			makeCurrent() const;
@@ -156,11 +159,9 @@ class Context {
 	VertBatchRef				mImmediateMode;
 	
   private:
-	Context( void *platformContext, void *platformContextAdditional, bool assumeOwnership );
+	Context( const std::shared_ptr<PlatformData> &platformData );
   
-	bool						mOwnsPlatformContext;
-	void						*mPlatformContext; // Mac: CGLContextObj, iOS: EAGLContext, MSW: HGLRC
-	void						*mPlatformContextAdditional; // Mac: ignored, iOS: ignored, MSW: HDC 
+	std::shared_ptr<PlatformData>	mPlatformData;
 
 	VaoRef						mImmVao; // Immediate-mode VAO
 	VboRef						mImmVbo; // Immediate-mode VBO
