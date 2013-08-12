@@ -29,6 +29,8 @@
 	#include <OpenGL/OpenGL.h>
 #elif defined( CINDER_COCOA_TOUCH )
 	#import <OpenGLES/EAGL.h>
+#elif defined( CINDER_GL_ANGLE )
+	#include "EGL/egl.h"
 #endif
 
 using namespace std;
@@ -82,6 +84,8 @@ void destroyPlatformData( Context::PlatformData *data )
 	auto platformData = dynamic_cast<PlatformDataIos*>( data );
 	[(EAGLContext*)platformData->mEaglContext release];
 #elif defined( CINDER_GL_ANGLE )
+	auto platformData = dynamic_cast<PlatformDataAngle*>( data );
+	::eglDestroyContext( platformData->mDisplay, platformData->mContext );
 #elif defined( CINDER_MSW )
 	auto platformData = dynamic_cast<PlatformDataMsw*>( data );
 	::wglMakeCurrent( NULL, NULL );
@@ -115,7 +119,15 @@ ContextRef Environment::createSharedContext( const Context *sharedContext )
 	[EAGLContext setCurrentContext:eaglContext];
 	shared_ptr<Context::PlatformData> platformData = shared_ptr<Context::PlatformData>( new PlatformDataIos( eaglContext ), destroyPlatformData );
 #elif defined( CINDER_GL_ANGLE )
+	auto sharedContextPlatformData = dynamic_pointer_cast<PlatformDataAngle>( sharedContext->getPlatformData() );
+	EGLContext prevEglContext = ::eglGetCurrentContext();
+	EGLDisplay prevEglDisplay = ::eglGetCurrentDisplay();
+	EGLSurface prevEglSurface = ::eglGetCurrentSurface( EGL_DRAW );
 
+	EGLint surfaceAttribList[] = { EGL_NONE, EGL_NONE };
+	EGLContext eglContext = ::eglCreateContext( prevEglDisplay, sharedContextPlatformData->mConfig, prevEglContext, surfaceAttribList );
+
+	shared_ptr<Context::PlatformData> platformData( new PlatformDataAngle( eglContext, sharedContextPlatformData->mDisplay, sharedContextPlatformData->mSurface, sharedContextPlatformData->mConfig ), destroyPlatformData );
 #elif defined( CINDER_MSW )
 	// save the current context so we can restore it
 	HGLRC prevContext = ::wglGetCurrentContext();
@@ -139,6 +151,9 @@ ContextRef Environment::createSharedContext( const Context *sharedContext )
 	::CGLSetCurrentContext( prevContext );
 #elif defined( CINDER_COCOA_TOUCH )
 	[EAGLContext setCurrentContext:prevContext];
+#elif defined( CINDER_GL_ANGLE )
+	EGLBoolean status = ::eglMakeCurrent( prevEglDisplay, prevEglSurface, prevEglSurface, prevEglContext );
+	assert( status );
 #elif defined( CINDER_MSW )
 	::wglMakeCurrent( prevDc, prevContext );
 #endif
@@ -154,6 +169,9 @@ void Environment::makeContextCurrent( const Context *context )
 #elif defined( CINDER_COCOA_TOUCH )
 	auto platformData = dynamic_pointer_cast<PlatformDataIos>( context->getPlatformData() );
 	[EAGLContext setCurrentContext:platformData->mEaglContext];
+#elif defined( CINDER_GL_ANGLE )
+	auto platformData = dynamic_pointer_cast<PlatformDataAngle>( context->getPlatformData() );
+	assert( ::eglMakeCurrent( platformData->mDisplay, platformData->mSurface, platformData->mSurface, platformData->mContext ) );
 #elif defined( CINDER_MSW )
 	auto platformData = dynamic_pointer_cast<PlatformDataMsw>( context->getPlatformData() );
 	if( ! ::wglMakeCurrent( platformData->mDc, platformData->mGlrc ) ) {

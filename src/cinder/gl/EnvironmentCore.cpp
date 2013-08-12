@@ -37,6 +37,8 @@ class EnvironmentCore : public Environment {
   public:
 	virtual void	initializeFunctionPointers() override;
 
+	virtual bool	supportsHardwareVao() override;
+
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
@@ -54,6 +56,11 @@ void EnvironmentCore::initializeFunctionPointers()
 		ogl_LoadFunctions();
 		sInitialized = true;
 	}
+}
+
+bool EnvironmentCore::supportsHardwareVao()
+{
+	return true;
 }
 
 std::string	EnvironmentCore::generateVertexShader( const ShaderDef &shader )

@@ -53,11 +53,11 @@ void AngleTest1App::setup()
 {
 	checkGlStatus();
 
-	console() << "gl version: " << gl::getVersionString() << endl;
+//	console() << "gl version: " << gl::getVersionString() << endl;
 
 	const char *extStr = reinterpret_cast<const char*>( glGetString( GL_EXTENSIONS ) );
 
-	console() << "extensions:" << endl << extStr << endl; 
+//	console() << "extensions:" << endl << extStr << endl; 
 
 	mTex = gl::Texture::create( loadImage( loadAsset( "texture.jpg" ) ) );
 	checkGlStatus();

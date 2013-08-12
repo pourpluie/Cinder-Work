@@ -31,7 +31,7 @@ void enableVerticalSync( bool enable )
 #if defined( CINDER_MAC )
 	GLint sync = ( enable ) ? 1 : 0;
 	::CGLSetParameter( ::CGLGetCurrentContext(), kCGLCPSwapInterval, &sync );
-#elif defined( CINDER_MSW )
+#elif defined( CINDER_MSW ) && ! defined( CINDER_GL_ANGLE )
 	GLint sync = ( enable ) ? 1 : 0;
 	if( wglext_EXT_swap_control )
 		::wglSwapIntervalEXT( sync );
@@ -44,7 +44,7 @@ bool isVerticalSyncEnabled()
 	GLint enabled;
 	::CGLGetParameter( ::CGLGetCurrentContext(), kCGLCPSwapInterval, &enabled );
 	return enabled > 0;
-#elif defined( CINDER_MSW )
+#elif defined( CINDER_MSW ) && ! defined( CINDER_GL_ANGLE )
 	if( wglext_EXT_swap_control )
 		return ::wglGetSwapIntervalEXT() > 0;
 	else

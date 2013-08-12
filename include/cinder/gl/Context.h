@@ -39,7 +39,7 @@ class Context {
 		virtual ~PlatformData() {}
 	};
 
-	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. This (essentially) must be done from the primary thread on MSW. Destroys the platform Context on destruction.
+	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. This (essentially) must be done from the primary thread on MSW. ANGLE doesn't support multithreaded use. Destroys the platform Context on destruction.
 	static ContextRef	create( const Context *sharedContext );	
 	//! Creates based on an existing platform-specific GL context. \a platformContext is CGLContextObj on Mac OS X, EAGLContext on iOS, HGLRC on MSW. \a platformContext is an HDC on MSW and ignored elsewhere. Does not assume ownership of the platform's context.
 	static ContextRef	createFromExisting( const std::shared_ptr<PlatformData> &platformData );	

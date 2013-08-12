@@ -35,6 +35,11 @@
 	#else
 		typedef void*	EAGLContext;
 	#endif
+#elif defined( CINDER_GL_ANGLE )
+	typedef void*		EGLContext;
+	typedef void*		EGLDisplay;
+	typedef void*		EGLSurface;
+	typedef void*		EGLConfig;
 #endif
 
 namespace cinder { namespace gl {
@@ -52,6 +57,8 @@ class Environment {
 	ContextRef				createSharedContext( const Context *sharedContext );
 	void					makeContextCurrent( const Context *context );
 	
+	virtual bool			supportsHardwareVao() = 0;
+
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) = 0;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) = 0;
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) = 0;
@@ -85,6 +92,14 @@ struct PlatformDataMac : public Context::PlatformData {
 
 #elif defined( CINDER_MSW ) && defined( CINDER_GL_ANGLE )
 struct PlatformDataAngle : public Context::PlatformData {
+	PlatformDataAngle( EGLContext context, EGLDisplay display, EGLSurface surface, EGLConfig eglConfig )
+		: mContext( context ), mDisplay( display ), mSurface( surface ), mConfig( eglConfig )
+	{}
+
+	EGLContext		mContext;
+	EGLDisplay		mDisplay;
+	EGLSurface		mSurface;
+	EGLConfig		mConfig;
 };
 
 #elif defined( CINDER_MSW ) // normal MSW desktop GL

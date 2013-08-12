@@ -24,6 +24,7 @@
 #include "cinder/app/RendererAngle.h"
 
 #include "cinder/app/App.h"
+#include "cinder/gl/Environment.h"
 #include <signal.h>
 
 #define DEBUG_GL 1
@@ -121,13 +122,11 @@ void RendererAngle::setup( App *app, HWND wnd, HDC dc, RendererRef /*sharedRende
 
 	checkGlStatus();
 	
-	gl::Context::EglPlatformData platformData;
+	gl::Environment::setEs2();
 
-	platformData.context = &mContext;
-	platformData.display = &mDisplay;
-	platformData.surface = &mSurface;
+	std::shared_ptr<gl::PlatformDataAngle> platformData( new gl::PlatformDataAngle( mContext, mDisplay, mSurface, config ) );
 
-	mCinderContext = cinder::gl::Context::createFromExisting( &platformData );
+	mCinderContext = gl::Context::createFromExisting( platformData );
 	checkGlStatus();
 
 	mCinderContext->makeCurrent();
@@ -240,12 +239,13 @@ void checkGlStatus()
 		CI_BREAK();
 	}
 
-
+#if ! defined( CINDER_GL_ANGLE )
 	GLenum lastGlError = ci::gl::getError();
 	if( lastGlError != GL_NO_ERROR ) {
 		ci::app::console() << "GL ERROR: " << ci::gl::getErrorString( lastGlError ) << std::endl;
 		CI_BREAK();
 	}
+#endif
 #endif // DEBUG_GL
 }
 

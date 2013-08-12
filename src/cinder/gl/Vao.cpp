@@ -39,6 +39,7 @@
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Context.h"
+#include "cinder/gl/Environment.h"
 
 namespace cinder { namespace gl {
 
@@ -53,8 +54,16 @@ extern VaoRef createVaoImplSoftware();
 VaoRef Vao::create()
 {
 #if defined( CINDER_GLES )
-	return createVaoImplEs();
-//	return createVaoImplSoftware();
+	#if defined( CINDER_COCOA_TOUCH )
+		return createVaoImplEs();
+	#elif defined( CINDER_GL_ANGLE )
+		return createVaoImplSoftware();
+	#else
+		if( env()->supportsHardwareVao() )
+			return createVaoImplEs();
+		else
+			return createVaoImplSoftware();
+	#endif
 #else
 	return createVaoImplCore();
 //	return createVaoImplSoftware();
