@@ -16,9 +16,11 @@ class BufferObj {
 	
 	void				bufferData( GLsizeiptr size, const GLvoid *data, GLenum usage );
 	void				bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *data );
-	
+
+#if ! defined( CINDER_GL_ANGLE )	
 	uint8_t*			map( GLenum access ) const;
 	void				unmap() const;
+#endif
 	
 	GLuint				getId() const { return mId; }
 	size_t				getSize() const;

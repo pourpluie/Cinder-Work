@@ -42,7 +42,8 @@ void BufferObj::bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *d
 	BufferScope bufferBind( mTarget, mId );
 	glBufferSubData( mTarget, offset, size, data );
 }
-	
+
+#if ! defined( CINDER_GL_ANGLE )	
 uint8_t* BufferObj::map( GLenum access ) const
 {
 	BufferScope bufferBind( mTarget, mId );
@@ -65,6 +66,7 @@ void BufferObj::unmap() const
 		//throw BufferFailedUnmapExc();
 	}
 }
+#endif // ! defined( CINDER_GL_ANGLE )
 
 size_t BufferObj::getSize() const
 {

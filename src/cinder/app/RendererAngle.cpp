@@ -39,16 +39,6 @@
 // TODO: these gl stubs should not be necessary once gl calls go through env()
 #if defined( CINDER_GL_ANGLE )
 
-void* GL_APIENTRY glMapBufferOES (GLenum target, GLenum access)
-{
-	return NULL;
-}
-
-GLboolean GL_APIENTRY glUnmapBufferOES (GLenum target)
-{
-	return false;
-}
-
 namespace cinder { namespace app {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
