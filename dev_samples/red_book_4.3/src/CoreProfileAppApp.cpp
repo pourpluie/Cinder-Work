@@ -10,6 +10,7 @@ const GLuint  NumVertices = 6;
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/GlslProg.h"
+#include "cinder/gl/Context.h"
 
 #include "Resources.h"
 
@@ -32,7 +33,7 @@ class CoreProfileApp : public AppNative {
 void CoreProfileApp::setup()
 {
 	mTriangleVao = gl::Vao::create();
-	mTriangleVao->bind();
+	gl::VaoScope vaoScope( mTriangleVao );
 
 	struct VertexData {
 		GLfloat color[3];
@@ -57,15 +58,15 @@ void CoreProfileApp::setup()
 	GLint vColorLoc = mShader->getAttribLocation( "vColor" );
 	GLint vPosLoc = mShader->getAttribLocation( "vPosition" );
 
-	mVertexVbo->bind();
-	mTriangleVao->vertexAttribPointer( vColorLoc, 3, GL_FLOAT,
+	gl::bindBuffer( mVertexVbo );
+	gl::vertexAttribPointer( vColorLoc, 3, GL_FLOAT,
 						   GL_TRUE, sizeof(VertexData), (const void*)(0) );
-	mTriangleVao->vertexAttribPointer( vPosLoc, 2, GL_FLOAT,
+	gl::vertexAttribPointer( vPosLoc, 2, GL_FLOAT,
 						   GL_FALSE, sizeof(VertexData),
 						   (const void*)(sizeof(vertices[0].color)) );
 
-	mTriangleVao->enableVertexAttribArray( vColorLoc );
-	mTriangleVao->enableVertexAttribArray( vPosLoc );
+	gl::enableVertexAttribArray( vColorLoc );
+	gl::enableVertexAttribArray( vPosLoc );
 }
 
 void CoreProfileApp::keyDown( KeyEvent event )
