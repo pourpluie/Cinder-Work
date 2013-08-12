@@ -29,6 +29,12 @@
 
 #if defined( CINDER_MAC )
 	typedef struct _CGLContextObject       *CGLContextObj;
+#elif defined( CINDER_COCOA_TOUCH )
+	#if defined( __OBJC__ )
+		@class EAGLContext;
+	#else
+		typedef void*	EAGLContext;
+	#endif
 #endif
 
 namespace cinder { namespace gl {
@@ -61,6 +67,11 @@ class Environment {
 
 #if defined( CINDER_COCOA_TOUCH )
 struct PlatformDataIos : public Context::PlatformData {
+	PlatformDataIos( EAGLContext *eaglContext )
+		: mEaglContext( eaglContext )
+	{}
+	
+	EAGLContext		*mEaglContext;
 };
 
 #elif defined( CINDER_MAC )

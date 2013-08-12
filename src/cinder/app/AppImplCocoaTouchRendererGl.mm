@@ -68,7 +68,8 @@
 	cinder::gl::Environment::setEs2();
 	
 	// force Cinder's context to be allocated
-	mCinderContext = cinder::gl::Context::createFromExisting( mContext, NULL );
+	std::shared_ptr<cinder::gl::Context::PlatformData> platformData( new cinder::gl::PlatformDataIos( mContext ) );
+	mCinderContext = cinder::gl::Context::createFromExisting( platformData );
 	mCinderContext->makeCurrent();
 
 	// Create default framebuffer object. The backing will be allocated for the current layer in -resizeFromLayer

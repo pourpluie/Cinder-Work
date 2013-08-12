@@ -79,7 +79,8 @@ void destroyPlatformData( Context::PlatformData *data )
 	auto platformData = dynamic_cast<PlatformDataMac*>( data );
 	::CGLDestroyContext( platformData->mCglContext );
 #elif defined( CINDER_COCOA_TOUCH )
-	[(EAGLContext*)mPlatformContext release];
+	auto platformData = dynamic_cast<PlatformDataIos*>( data );
+	[(EAGLContext*)platformData->mEaglContext release];
 #elif defined( CINDER_GL_ANGLE )
 #elif defined( CINDER_MSW )
 	auto platformData = dynamic_cast<PlatformDataMsw*>( data );
@@ -106,11 +107,13 @@ ContextRef Environment::createSharedContext( const Context *sharedContext )
 	::CGLSetCurrentContext( cglContext );
 	shared_ptr<Context::PlatformData> platformData = shared_ptr<Context::PlatformData>( new PlatformDataMac( cglContext ), destroyPlatformData );	
 #elif defined( CINDER_COCOA_TOUCH )
+	auto sharedContextPlatformData = dynamic_pointer_cast<PlatformDataIos>( sharedContext->getPlatformData() );
 	EAGLContext *prevContext = [EAGLContext currentContext];
-	EAGLContext *sharedContextEagl = (EAGLContext*)sharedContext->getPlatformContext();
+	EAGLContext *sharedContextEagl = sharedContextPlatformData->mEaglContext;
 	EAGLSharegroup *sharegroup = sharedContextEagl.sharegroup;
-	platformContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
-	[EAGLContext setCurrentContext:(EAGLContext*)platformContext];
+	EAGLContext *eaglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
+	[EAGLContext setCurrentContext:eaglContext];
+	shared_ptr<Context::PlatformData> platformData = shared_ptr<Context::PlatformData>( new PlatformDataIos( eaglContext ), destroyPlatformData );
 #elif defined( CINDER_GL_ANGLE )
 
 #elif defined( CINDER_MSW )
@@ -149,7 +152,8 @@ void Environment::makeContextCurrent( const Context *context )
 	auto platformData = dynamic_pointer_cast<PlatformDataMac>( context->getPlatformData() );
 	::CGLSetCurrentContext( platformData->mCglContext );
 #elif defined( CINDER_COCOA_TOUCH )
-	[EAGLContext setCurrentContext:(EAGLContext*)mPlatformContext];
+	auto platformData = dynamic_pointer_cast<PlatformDataIos>( context->getPlatformData() );
+	[EAGLContext setCurrentContext:platformData->mEaglContext];
 #elif defined( CINDER_MSW )
 	auto platformData = dynamic_pointer_cast<PlatformDataMsw>( context->getPlatformData() );
 	if( ! ::wglMakeCurrent( platformData->mDc, platformData->mGlrc ) ) {
