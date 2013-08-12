@@ -35,7 +35,8 @@ typedef std::shared_ptr<GlslProg>		GlslProgRef;
 class Environment {
   public:
 	virtual void			initializeFunctionPointers() = 0;
-	virtual void			initializeContextDefaults( Context *context ) = 0;
+	
+	ContextRef				createContext( 
 	
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) = 0;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) = 0;

@@ -132,6 +132,10 @@ class Context {
 	//! Returns a reference to the immediate mode emulation structure. Generally use gl::begin() and friends instead.
 	VertBatch&		immediate() { return *mImmediateMode; }
 
+	struct PlatformData {
+		virtual ~PlatformData() {}
+	};
+
   protected:
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
@@ -156,11 +160,9 @@ class Context {
 	VertBatchRef				mImmediateMode;
 	
   private:
-	Context( void *platformContext, void *platformContextAdditional, bool assumeOwnership );
+	Context( PlatformData *platformData, bool assumeOwnership );
   
-	bool						mOwnsPlatformContext;
-	void						*mPlatformContext; // Mac: CGLContextObj, iOS: EAGLContext, MSW: HGLRC
-	void						*mPlatformContextAdditional; // Mac: ignored, iOS: ignored, MSW: HDC 
+	std::shared_ptr<PlatformData>	mPlatformData;
 
 	VaoRef						mImmVao; // Immediate-mode VAO
 	VboRef						mImmVbo; // Immediate-mode VBO
@@ -180,6 +182,9 @@ class Context {
 	friend class				Texture;
 };
 
+#if defined( CINDER_GLES ) && defined( CINDER_COCOA_TOUCH )
+struct PlatformDataIos : public Context::PlatformData {
+};
 
 struct VaoScope : public boost::noncopyable {
 	VaoScope( const VaoRef &vao )
