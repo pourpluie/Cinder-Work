@@ -12,12 +12,6 @@
 #include "cinder/gl/Batch.h"
 #include "cinder/Utilities.h"
 
-#if defined( CINDER_MAC )
-	#include <OpenGL/OpenGL.h>
-#elif defined( CINDER_COCOA_TOUCH )
-	#import <OpenGLES/EAGL.h>
-#endif
-
 #include "cinder/app/App.h"
 
 using namespace std;

@@ -89,8 +89,9 @@ if( ! view )
 	else
 		cinder::gl::Environment::setLegacy();
 	
-	void *platformContext = [[view openGLContext] CGLContextObj];
-	mContext = cinder::gl::Context::createFromExisting( platformContext );
+	CGLContextObj cglContext = (CGLContextObj)[[view openGLContext] CGLContextObj];
+	auto platformData = std::shared_ptr<cinder::gl::Context::PlatformData>( new cinder::gl::PlatformDataMac( cglContext ) );
+	mContext = cinder::gl::Context::createFromExisting( platformData );
 	mContext->makeCurrent();
 
 	GLint swapInterval = 1;

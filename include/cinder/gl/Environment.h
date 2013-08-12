@@ -27,6 +27,10 @@
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Context.h"
 
+#if defined( CINDER_MAC )
+	typedef struct _CGLContextObject       *CGLContextObj;
+#endif
+
 namespace cinder { namespace gl {
 
 class ShaderDef;
@@ -61,6 +65,11 @@ struct PlatformDataIos : public Context::PlatformData {
 
 #elif defined( CINDER_MAC )
 struct PlatformDataMac : public Context::PlatformData {
+	PlatformDataMac( CGLContextObj cglContext )
+		: mCglContext( cglContext )
+	{}
+	
+	CGLContextObj		mCglContext;
 };
 
 #elif defined( CINDER_MSW ) && defined( CINDER_GL_ANGLE )
