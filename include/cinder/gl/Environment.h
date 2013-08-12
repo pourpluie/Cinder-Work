@@ -25,18 +25,22 @@
 #pragma once
 
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Context.h"
 
 namespace cinder { namespace gl {
 
 class ShaderDef;
 class GlslProg;
 typedef std::shared_ptr<GlslProg>		GlslProgRef;
+class Context;
+typedef std::shared_ptr<Context>		ContextRef;
 
 class Environment {
   public:
 	virtual void			initializeFunctionPointers() = 0;
 	
-	ContextRef				createContext( 
+	ContextRef				createSharedContext( const Context *sharedContext );
+	void					makeContextCurrent( const Context *context );
 	
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) = 0;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) = 0;
@@ -49,5 +53,29 @@ class Environment {
 	static void				setEs2();
 #endif
 };
+
+
+#if defined( CINDER_COCOA_TOUCH )
+struct PlatformDataIos : public Context::PlatformData {
+};
+
+#elif defined( CINDER_MAC )
+struct PlatformDataMac : public Context::PlatformData {
+};
+
+#elif defined( CINDER_MSW ) && defined( CINDER_GL_ANGLE )
+struct PlatformDataAngle : public Context::PlatformData {
+};
+
+#elif defined( CINDER_MSW ) // normal MSW desktop GL
+struct PlatformDataMsw : public Context::PlatformData {
+	PlatformDataMsw( HGLRC glrc, HDC dc )
+		: mGlrc( glrc ), mDc( dc )
+	{}
+
+	HGLRC	mGlrc;
+	HDC		mDc;
+};
+#endif
 
 } } // namespace cinder::gl

@@ -39,7 +39,6 @@ namespace cinder { namespace gl {
 class EnvironmentLegacy : public Environment {
   public:
 	virtual void	initializeFunctionPointers() override;
-	virtual void	initializeContextDefaults( Context *context ) override;
 
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
@@ -58,10 +57,6 @@ void EnvironmentLegacy::initializeFunctionPointers()
 		ogl_LoadFunctions();
 		sInitialized = true;
 	}
-}
-
-void EnvironmentLegacy::initializeContextDefaults( Context *context )
-{
 }
 
 std::string	EnvironmentLegacy::generateVertexShader( const ShaderDef &shader )

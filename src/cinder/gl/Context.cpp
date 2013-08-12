@@ -36,16 +36,16 @@ using namespace std;
 namespace cinder { namespace gl {
 
 #if defined( CINDER_COCOA )
-static pthread_key_t sThreadSpecificCurrentContextKey;
-static bool sThreadSpecificCurrentContextInitialized = false;
+	static pthread_key_t sThreadSpecificCurrentContextKey;
+	static bool sThreadSpecificCurrentContextInitialized = false;
 #elif defined( _MSC_VER )
-__declspec(thread) Context *sThreadSpecificCurrentContext = NULL;
+	__declspec(thread) Context *sThreadSpecificCurrentContext = NULL;
 #else
-thread_local Context *sThreadSpecificCurrentContext = NULL;
+	thread_local Context *sThreadSpecificCurrentContext = NULL;
 #endif
 
-Context::Context( void *platformContext, void *platformContextAdditional, bool assumeOwnership )
-	: mPlatformContext( platformContext ), mPlatformContextAdditional( platformContextAdditional ), mOwnsPlatformContext( assumeOwnership ),
+Context::Context( const std::shared_ptr<PlatformData> &platformData )
+	: mPlatformData( platformData ),
 	mColor( ColorAf::white() ), mCachedActiveTexture( 0 )
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	,mCachedFramebuffer( -1 )
@@ -56,7 +56,6 @@ Context::Context( void *platformContext, void *platformContextAdditional, bool a
 	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL )
 #endif
 {
-
 	// setup default VAO
 #if ! defined( CINDER_GLES )
 	mCachedVao = mDefaultVao = Vao::create();
@@ -71,88 +70,23 @@ Context::Context( void *platformContext, void *platformContextAdditional, bool a
 	mProjectionStack.back().setToIdentity();
 }
 
-Context::~Context()
-{
-	if( mOwnsPlatformContext ) {
-#if defined( CINDER_MSW )
-		::wglMakeCurrent( NULL, NULL );
-		::wglDeleteContext( (HGLRC)mPlatformContext );
-#elif defined( CINDER_MAC )
-		::CGLDestroyContext( (CGLContextObj)mPlatformContext );
-#elif defined( CINDER_COCOA_TOUCH )
-		[(EAGLContext*)mPlatformContext release];
-#endif
-	}
-}
-
 ContextRef Context::create( const Context *sharedContext )
 {
-	void *platformContext = NULL;
-	void *platformContextAdditional = NULL;
-#if defined( CINDER_MAC )
-	CGLContextObj prevContext = ::CGLGetCurrentContext();
-	CGLContextObj sharedContextCgl = (CGLContextObj)sharedContext->getPlatformContext();
-	CGLPixelFormatObj sharedContextPixelFormat = ::CGLGetPixelFormat( sharedContextCgl );
-	if( ::CGLCreateContext( sharedContextPixelFormat, sharedContextCgl, (CGLContextObj*)&platformContext ) != kCGLNoError ) {
-		throw ExcContextAllocation();
-	}
+	return env()->createSharedContext( sharedContext );
 
-	::CGLSetCurrentContext( (CGLContextObj)platformContext );
-#elif defined( CINDER_COCOA_TOUCH )
-	EAGLContext *prevContext = [EAGLContext currentContext];
-	EAGLContext *sharedContextEagl = (EAGLContext*)sharedContext->getPlatformContext();
-	EAGLSharegroup *sharegroup = sharedContextEagl.sharegroup;
-	platformContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
-	[EAGLContext setCurrentContext:(EAGLContext*)platformContext];
-#elif defined( CINDER_MSW )
-	// save the current context so we can restore it
-	HGLRC prevContext = ::wglGetCurrentContext();
-	HDC prevDc = ::wglGetCurrentDC();
-	HGLRC sharedContextWgl = (HGLRC)sharedContext->getPlatformContext();
-	platformContextAdditional = sharedContext->mPlatformContextAdditional;
-	platformContext = ::wglCreateContext( (HDC)platformContextAdditional );
-	::wglMakeCurrent( NULL, NULL );
-	if( ! ::wglShareLists( sharedContextWgl, (HGLRC)platformContext ) ) {
-		throw ExcContextAllocation();
-	}
-	::wglMakeCurrent( (HDC)platformContextAdditional, (HGLRC)platformContext );
-#endif
-
-	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, platformContextAdditional, true ) ) );
-	env()->initializeFunctionPointers();
-	env()->initializeContextDefaults( result.get() );
-
-#if defined( CINDER_MAC )
-	::CGLSetCurrentContext( prevContext );
-#elif defined( CINDER_COCOA_TOUCH )
-	[EAGLContext setCurrentContext:prevContext];
-#elif defined( CINDER_MSW )
-	::wglMakeCurrent( prevDc, prevContext );
-#endif
-
-	return result;
 }
 
-ContextRef Context::createFromExisting( void *platformContext, void *platformContextAdditional )
+ContextRef Context::createFromExisting( const std::shared_ptr<PlatformData> &platformData )
 {
 	env()->initializeFunctionPointers();
-	ContextRef result( std::shared_ptr<Context>( new Context( platformContext, platformContextAdditional, false ) ) );
-	env()->initializeContextDefaults( result.get() );
+	ContextRef result( std::shared_ptr<Context>( new Context( platformData ) ) );
 
 	return result;
 }
 
 void Context::makeCurrent() const
 {
-#if defined( CINDER_MAC )
-	::CGLSetCurrentContext( (CGLContextObj)mPlatformContext );
-#elif defined( CINDER_COCOA_TOUCH )
-	[EAGLContext setCurrentContext:(EAGLContext*)mPlatformContext];
-#elif defined( CINDER_MSW )
-	if( ! ::wglMakeCurrent( (HDC)mPlatformContextAdditional, (HGLRC)mPlatformContext ) ) {
-		// DWORD error = GetLastError();
-	}
-#endif
+	env()->makeContextCurrent( this );
 
 #if defined( CINDER_COCOA )
 	if( ! sThreadSpecificCurrentContextInitialized ) {

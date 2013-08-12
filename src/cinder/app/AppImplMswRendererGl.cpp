@@ -184,7 +184,7 @@ bool AppImplMswRendererGl::initialize( HWND wnd, HDC dc, RendererRef sharedRende
 		gl::Environment::setCore();
 	else
 		gl::Environment::setLegacy();
-	mCinderContext = cinder::gl::Context::createFromExisting( mRC, mDC );
+	mCinderContext = gl::Context::createFromExisting( std::shared_ptr<gl::Context::PlatformData>( new gl::PlatformDataMsw( mRC, mDC ) ) );
 	mCinderContext->makeCurrent();
 
 	return true;
