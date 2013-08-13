@@ -54,34 +54,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		002A0B9C174ADB680080C3CB /* BufferObj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BufferObj.cpp; path = ../../../src/cinder/gl/BufferObj.cpp; sourceTree = "<group>"; };
-		002A0B9D174ADB680080C3CB /* Fbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fbo.cpp; path = ../../../src/cinder/gl/Fbo.cpp; sourceTree = "<group>"; };
-		002A0B9E174ADB680080C3CB /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Fog.cpp; path = ../../../src/cinder/gl/Fog.cpp; sourceTree = "<group>"; };
-		002A0B9F174ADB680080C3CB /* gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = gl.cpp; path = ../../../src/cinder/gl/gl.cpp; sourceTree = "<group>"; };
-		002A0BA0174ADB680080C3CB /* GlslProg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GlslProg.cpp; path = ../../../src/cinder/gl/GlslProg.cpp; sourceTree = "<group>"; };
-		002A0BA1174ADB680080C3CB /* Light.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Light.cpp; path = ../../../src/cinder/gl/Light.cpp; sourceTree = "<group>"; };
-		002A0BA2174ADB680080C3CB /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Context.cpp; path = ../../../src/cinder/gl/Context.cpp; sourceTree = "<group>"; };
-		002A0BA3174ADB680080C3CB /* Material.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Material.cpp; path = ../../../src/cinder/gl/Material.cpp; sourceTree = "<group>"; };
-		002A0BA4174ADB680080C3CB /* Pbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pbo.cpp; path = ../../../src/cinder/gl/Pbo.cpp; sourceTree = "<group>"; };
-		002A0BA5174ADB680080C3CB /* Shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shader.cpp; path = ../../../src/cinder/gl/Shader.cpp; sourceTree = "<group>"; };
-		002A0BA6174ADB680080C3CB /* Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Texture.cpp; path = ../../../src/cinder/gl/Texture.cpp; sourceTree = "<group>"; };
-		002A0BA7174ADB680080C3CB /* Vao.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vao.cpp; path = ../../../src/cinder/gl/Vao.cpp; sourceTree = "<group>"; };
-		002A0BA8174ADB680080C3CB /* Vbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vbo.cpp; path = ../../../src/cinder/gl/Vbo.cpp; sourceTree = "<group>"; };
-		002A0BA9174ADB680080C3CB /* VboMesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VboMesh.cpp; path = ../../../src/cinder/gl/VboMesh.cpp; sourceTree = "<group>"; };
-		002A0BBA174ADB890080C3CB /* BufferObj.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BufferObj.h; path = ../../../include/cinder/gl/BufferObj.h; sourceTree = "<group>"; };
-		002A0BBB174ADB890080C3CB /* Fbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fbo.h; path = ../../../include/cinder/gl/Fbo.h; sourceTree = "<group>"; };
-		002A0BBC174ADB890080C3CB /* Fog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fog.h; path = ../../../include/cinder/gl/Fog.h; sourceTree = "<group>"; };
-		002A0BBD174ADB890080C3CB /* gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl.h; path = ../../../include/cinder/gl/gl.h; sourceTree = "<group>"; };
-		002A0BBE174ADB890080C3CB /* GlslProg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlslProg.h; path = ../../../include/cinder/gl/GlslProg.h; sourceTree = "<group>"; };
-		002A0BBF174ADB890080C3CB /* Light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Light.h; path = ../../../include/cinder/gl/Light.h; sourceTree = "<group>"; };
-		002A0BC0174ADB890080C3CB /* Context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = Context.h; path = ../../../include/cinder/gl/Context.h; sourceTree = "<group>"; };
-		002A0BC1174ADB890080C3CB /* Material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Material.h; path = ../../../include/cinder/gl/Material.h; sourceTree = "<group>"; };
-		002A0BC2174ADB890080C3CB /* Pbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Pbo.h; path = ../../../include/cinder/gl/Pbo.h; sourceTree = "<group>"; };
-		002A0BC3174ADB890080C3CB /* Shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Shader.h; path = ../../../include/cinder/gl/Shader.h; sourceTree = "<group>"; };
-		002A0BC4174ADB890080C3CB /* Texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Texture.h; path = ../../../include/cinder/gl/Texture.h; sourceTree = "<group>"; };
-		002A0BC5174ADB890080C3CB /* Vao.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vao.h; path = ../../../include/cinder/gl/Vao.h; sourceTree = "<group>"; };
-		002A0BC6174ADB890080C3CB /* Vbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vbo.h; path = ../../../include/cinder/gl/Vbo.h; sourceTree = "<group>"; };
-		002A0BC7174ADB890080C3CB /* VboMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VboMesh.h; path = ../../../include/cinder/gl/VboMesh.h; sourceTree = "<group>"; };
 		002A0BD9174BD2AA0080C3CB /* frag.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = frag.glsl; path = ../resources/frag.glsl; sourceTree = "<group>"; };
 		002A0BDA174BD2AA0080C3CB /* texture.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = texture.jpg; path = ../resources/texture.jpg; sourceTree = "<group>"; };
 		002A0BDB174BD2AA0080C3CB /* vert.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = vert.glsl; path = ../resources/vert.glsl; sourceTree = "<group>"; };
@@ -91,8 +63,6 @@
 		00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		00B784B10FF439BC000DE1D7 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		00B784B20FF439BC000DE1D7 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
-		00F85D1A174DBE2D00F1E23E /* Environment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Environment.h; path = ../../../include/cinder/gl/Environment.h; sourceTree = "<group>"; };
-		00F85D1B174DBE4300F1E23E /* Environment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Environment.cpp; path = ../../../src/cinder/gl/Environment.cpp; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		18CC64E66609466E9CD3A369 /* CoreProfileApp_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = CoreProfileApp_Prefix.pch; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -125,50 +95,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		002A0BB9174ADB6C0080C3CB /* gl */ = {
-			isa = PBXGroup;
-			children = (
-				00F85D1B174DBE4300F1E23E /* Environment.cpp */,
-				002A0BA2174ADB680080C3CB /* Context.cpp */,
-				002A0B9C174ADB680080C3CB /* BufferObj.cpp */,
-				002A0B9D174ADB680080C3CB /* Fbo.cpp */,
-				002A0B9E174ADB680080C3CB /* Fog.cpp */,
-				002A0B9F174ADB680080C3CB /* gl.cpp */,
-				002A0BA0174ADB680080C3CB /* GlslProg.cpp */,
-				002A0BA1174ADB680080C3CB /* Light.cpp */,
-				002A0BA3174ADB680080C3CB /* Material.cpp */,
-				002A0BA4174ADB680080C3CB /* Pbo.cpp */,
-				002A0BA5174ADB680080C3CB /* Shader.cpp */,
-				002A0BA6174ADB680080C3CB /* Texture.cpp */,
-				002A0BA7174ADB680080C3CB /* Vao.cpp */,
-				002A0BA8174ADB680080C3CB /* Vbo.cpp */,
-				002A0BA9174ADB680080C3CB /* VboMesh.cpp */,
-			);
-			name = gl;
-			sourceTree = "<group>";
-		};
-		002A0BC8174ADB900080C3CB /* gl */ = {
-			isa = PBXGroup;
-			children = (
-				00F85D1A174DBE2D00F1E23E /* Environment.h */,
-				002A0BC0174ADB890080C3CB /* Context.h */,
-				002A0BBA174ADB890080C3CB /* BufferObj.h */,
-				002A0BBB174ADB890080C3CB /* Fbo.h */,
-				002A0BBC174ADB890080C3CB /* Fog.h */,
-				002A0BBD174ADB890080C3CB /* gl.h */,
-				002A0BBE174ADB890080C3CB /* GlslProg.h */,
-				002A0BBF174ADB890080C3CB /* Light.h */,
-				002A0BC1174ADB890080C3CB /* Material.h */,
-				002A0BC2174ADB890080C3CB /* Pbo.h */,
-				002A0BC3174ADB890080C3CB /* Shader.h */,
-				002A0BC4174ADB890080C3CB /* Texture.h */,
-				002A0BC5174ADB890080C3CB /* Vao.h */,
-				002A0BC6174ADB890080C3CB /* Vbo.h */,
-				002A0BC7174ADB890080C3CB /* VboMesh.h */,
-			);
-			name = gl;
-			sourceTree = "<group>";
-		};
 		00A070151760F5B800D8BE17 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -189,7 +115,6 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				002A0BB9174ADB6C0080C3CB /* gl */,
 				AD0AC0CFCEBE467B845D85CC /* CoreProfileAppApp.cpp */,
 			);
 			name = Source;
@@ -244,7 +169,6 @@
 		29B97315FDCFA39411CA2CEA /* Headers */ = {
 			isa = PBXGroup;
 			children = (
-				002A0BC8174ADB900080C3CB /* gl */,
 				823ABA5EB47B42E094F30864 /* Resources.h */,
 				18CC64E66609466E9CD3A369 /* CoreProfileApp_Prefix.pch */,
 			);

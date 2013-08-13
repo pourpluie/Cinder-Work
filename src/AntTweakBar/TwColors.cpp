@@ -7,8 +7,10 @@
 //
 //  ---------------------------------------------------------------------------
 
-
 #include "TwPrecomp.h"
+
+#if ! defined( CINDER_ANT_TW_BAR_IGNORE )
+
 #include "TwColors.h"
 
 
@@ -150,4 +152,4 @@ color32 ColorBlend(color32 _Color1, color32 _Color2, float _S)
     return Color32FromARGBf(t*a1+_S*a2, t*r1+_S*r2, t*g1+_S*g2, t*b1+_S*b2);
 }
 
-
+#endif // #if ! defined( CINDER_ANT_TW_BAR_IGNORE )

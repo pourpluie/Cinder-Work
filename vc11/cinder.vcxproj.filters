@@ -528,6 +528,21 @@
     <ClCompile Include="..\src\cinder\gl\VaoImplEs.cpp">
       <Filter>Source Files\gl</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cinder\gl\Batch.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\gl\EnvironmentCore.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\gl\EnvironmentEs2.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\gl\EnvironmentLegacy.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\app\RendererAngle.cpp">
+      <Filter>Source Files\app</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\AntTweakBar\AntPerfTimer.h">
@@ -1068,6 +1083,9 @@
       <Filter>Header Files\gl</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cinder\app\RendererGl.h">
+      <Filter>Header Files\app</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\app\RendererAngle.h">
       <Filter>Header Files\app</Filter>
     </ClInclude>
   </ItemGroup>

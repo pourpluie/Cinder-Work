@@ -26,7 +26,7 @@
 
 #include "cinder/gl/gl.h"
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GLES ) && ! defined( CINDER_GL_ANGLE )
 
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
@@ -96,4 +96,4 @@ void VaoImplEs::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, 
 
 } }
 
-#endif // defined( CINDER_GLES )
+#endif // defined( CINDER_GLES ) && ! defined( CINDER_GL_ANGLE )

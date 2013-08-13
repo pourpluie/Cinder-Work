@@ -355,6 +355,10 @@
 		0087343A17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087343917A4C17600BC2063 /* VaoImplSoftware.cpp */; };
 		0087343B17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087343917A4C17600BC2063 /* VaoImplSoftware.cpp */; };
 		0087343C17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087343917A4C17600BC2063 /* VaoImplSoftware.cpp */; };
+		0087344617B46F0C00BC2063 /* EnvironmentEs2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087344517B46F0C00BC2063 /* EnvironmentEs2.cpp */; };
+		0087344717B46F0C00BC2063 /* EnvironmentEs2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087344517B46F0C00BC2063 /* EnvironmentEs2.cpp */; };
+		0087344A17B46F9600BC2063 /* EnvironmentLegacy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087344817B46F9500BC2063 /* EnvironmentLegacy.cpp */; };
+		0087344D17B4702500BC2063 /* EnvironmentCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087344C17B4702400BC2063 /* EnvironmentCore.cpp */; };
 		008876560F957E7300FD55C5 /* Arcball.h in Headers */ = {isa = PBXBuildFile; fileRef = 008876550F957E7300FD55C5 /* Arcball.h */; };
 		0088773C0F96671600FD55C5 /* FileDropEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 0088773B0F96671600FD55C5 /* FileDropEvent.h */; };
 		00887AC10F9C279700FD55C5 /* MayaCamUI.h in Headers */ = {isa = PBXBuildFile; fileRef = 00887AC00F9C279700FD55C5 /* MayaCamUI.h */; };
@@ -966,6 +970,9 @@
 		0087343117A4769E00BC2063 /* VaoImplCore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VaoImplCore.cpp; path = gl/VaoImplCore.cpp; sourceTree = "<group>"; };
 		0087343517A4BC6E00BC2063 /* VaoImplEs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VaoImplEs.cpp; path = gl/VaoImplEs.cpp; sourceTree = "<group>"; };
 		0087343917A4C17600BC2063 /* VaoImplSoftware.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VaoImplSoftware.cpp; path = gl/VaoImplSoftware.cpp; sourceTree = "<group>"; };
+		0087344517B46F0C00BC2063 /* EnvironmentEs2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EnvironmentEs2.cpp; path = gl/EnvironmentEs2.cpp; sourceTree = "<group>"; };
+		0087344817B46F9500BC2063 /* EnvironmentLegacy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EnvironmentLegacy.cpp; path = gl/EnvironmentLegacy.cpp; sourceTree = "<group>"; };
+		0087344C17B4702400BC2063 /* EnvironmentCore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EnvironmentCore.cpp; path = gl/EnvironmentCore.cpp; sourceTree = "<group>"; };
 		008876550F957E7300FD55C5 /* Arcball.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Arcball.h; sourceTree = "<group>"; };
 		0088773B0F96671600FD55C5 /* FileDropEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileDropEvent.h; path = app/FileDropEvent.h; sourceTree = "<group>"; };
 		00887AC00F9C279700FD55C5 /* MayaCamUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MayaCamUI.h; sourceTree = "<group>"; };
@@ -1009,8 +1016,8 @@
 		009FD55410C9DB0600D63B1B /* ImageSourceFileQuartz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageSourceFileQuartz.h; sourceTree = "<group>"; };
 		009FD55610CAB8B700D63B1B /* ImageSourceFileQuartz.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = ImageSourceFileQuartz.cpp; sourceTree = "<group>"; };
 		00A06F6F1760EFAD00D8BE17 /* BufferObj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BufferObj.cpp; path = gl/BufferObj.cpp; sourceTree = "<group>"; };
-		00A06F701760EFAD00D8BE17 /* Context.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = Context.cpp; path = gl/Context.cpp; sourceTree = "<group>"; };
-		00A06F711760EFAD00D8BE17 /* Environment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Environment.cpp; path = gl/Environment.cpp; sourceTree = "<group>"; };
+		00A06F701760EFAD00D8BE17 /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Context.cpp; path = gl/Context.cpp; sourceTree = "<group>"; };
+		00A06F711760EFAD00D8BE17 /* Environment.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = Environment.cpp; path = gl/Environment.cpp; sourceTree = "<group>"; };
 		00A06F721760EFAD00D8BE17 /* Fbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fbo.cpp; path = gl/Fbo.cpp; sourceTree = "<group>"; };
 		00A06F731760EFAD00D8BE17 /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fog.cpp; path = gl/Fog.cpp; sourceTree = "<group>"; };
 		00A06F741760EFAD00D8BE17 /* gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gl.cpp; path = gl/gl.cpp; sourceTree = "<group>"; };
@@ -1678,6 +1685,9 @@
 				00A06F6F1760EFAD00D8BE17 /* BufferObj.cpp */,
 				00A06F701760EFAD00D8BE17 /* Context.cpp */,
 				00A06F711760EFAD00D8BE17 /* Environment.cpp */,
+				0087344C17B4702400BC2063 /* EnvironmentCore.cpp */,
+				0087344517B46F0C00BC2063 /* EnvironmentEs2.cpp */,
+				0087344817B46F9500BC2063 /* EnvironmentLegacy.cpp */,
 				00A06F721760EFAD00D8BE17 /* Fbo.cpp */,
 				00A06F731760EFAD00D8BE17 /* Fog.cpp */,
 				00A06F741760EFAD00D8BE17 /* gl.cpp */,
@@ -2476,6 +2486,7 @@
 				0087340F17958FBA00BC2063 /* Batch.cpp in Sources */,
 				0087343717A4BC6E00BC2063 /* VaoImplEs.cpp in Sources */,
 				0087343B17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
+				0087344617B46F0C00BC2063 /* EnvironmentEs2.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2596,6 +2607,7 @@
 				0087341017958FBA00BC2063 /* Batch.cpp in Sources */,
 				0087343817A4BC6E00BC2063 /* VaoImplEs.cpp in Sources */,
 				0087343C17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
+				0087344717B46F0C00BC2063 /* EnvironmentEs2.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2734,6 +2746,8 @@
 				0087343217A4769E00BC2063 /* VaoImplCore.cpp in Sources */,
 				0087343A17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
 				00E3914217A327BF00952CA0 /* QuickTimeGl.cpp in Sources */,
+				0087344A17B46F9600BC2063 /* EnvironmentLegacy.cpp in Sources */,
+				0087344D17B4702500BC2063 /* EnvironmentCore.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

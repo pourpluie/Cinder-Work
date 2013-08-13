@@ -573,7 +573,11 @@ void Texture::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder 
 		break;
 		case SurfaceChannelOrder::BGRA:
 		case SurfaceChannelOrder::BGRX:
+#if defined( CINDER_GLES )
+			*dataFormat = GL_BGRA_EXT;
+#else
 			*dataFormat = GL_BGRA;
+#endif
 			*type = GL_UNSIGNED_BYTE;
 		break;
 		default:
@@ -847,6 +851,81 @@ void TextureCache::textureCacheDeallocator( void *aDeallocatorRefcon )
 	refconPair->first->markTextureAsFree( refconPair->second );
 	delete refconPair;
 }
+
+/////////////////////////////////////////////////////////////////////////////////
+// ImageSourceTexture
+#if ! defined( CINDER_GLES )
+class ImageSourceTexture : public ImageSource {
+  public:
+	ImageSourceTexture( const Texture &texture )
+		: ImageSource()
+	{
+		mWidth = texture.getWidth();
+		mHeight = texture.getHeight();
+		
+		GLint internalFormat = texture.getInternalFormat();
+		GLenum format;
+		switch( internalFormat ) {
+			case GL_RGB: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGB; break;
+			case GL_RGBA: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGBA; break;
+			case GL_LUMINANCE: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_LUMINANCE; break;
+			case GL_LUMINANCE_ALPHA: setChannelOrder( ImageIo::YA ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_LUMINANCE_ALPHA; break;
+#if ! defined( CINDER_GLES )
+			case GL_RGBA8: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); format = GL_RGBA; break; 
+			case GL_RGB8: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); format = GL_RGB; break;
+			case GL_BGR: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGB; break;
+			case 0x8040/*GL_LUMINANCE8*/: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::UINT8 ); format = GL_LUMINANCE; break;
+			case 0x8045/*GL_LUMINANCE8_ALPHA8*/: setChannelOrder( ImageIo::YA ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::UINT8 ); format = GL_LUMINANCE_ALPHA; break; 
+			case GL_DEPTH_COMPONENT16: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::UINT16 ); format = GL_DEPTH_COMPONENT; break;
+			case GL_DEPTH_COMPONENT24: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_DEPTH_COMPONENT; break;
+			case GL_DEPTH_COMPONENT32: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_DEPTH_COMPONENT; break;
+			case GL_RGBA32F_ARB: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGBA; break; 
+			case GL_RGB32F_ARB: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGB; break;
+			case GL_LUMINANCE32F_ARB: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_LUMINANCE; break;
+			case GL_LUMINANCE_ALPHA32F_ARB: setChannelOrder( ImageIo::YA ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_LUMINANCE_ALPHA; break;
+#endif
+			default: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); break;
+		}
+
+		GLenum dataType = GL_UNSIGNED_BYTE;
+		int dataSize = 1;
+		if( mDataType == ImageIo::UINT16 ) {
+			dataType = GL_UNSIGNED_SHORT;
+			dataSize = 2;
+		}
+		else if( mDataType == ImageIo::FLOAT32 ) {
+			dataType = GL_FLOAT;
+			dataSize = 4;
+		}
+			
+		mRowBytes = mWidth * ImageIo::channelOrderNumChannels( mChannelOrder ) * dataSize;
+		mData = shared_ptr<uint8_t>( new uint8_t[mRowBytes * mHeight], boost::checked_array_delete<uint8_t> );
+		gl::TextureBindScope tbScope( texture.getTarget(), texture.getId() );
+		glPixelStorei( GL_PACK_ALIGNMENT, 1 );
+		glGetTexImage( texture.getTarget(), 0, format, dataType, mData.get() );
+	}
+
+	void load( ImageTargetRef target ) {
+		// get a pointer to the ImageSource function appropriate for handling our data configuration
+		ImageSource::RowFunc func = setupRowFunc( target );
+		
+		const uint8_t *data = mData.get();
+		for( int32_t row = 0; row < mHeight; ++row ) {
+			((*this).*func)( target, row, data );
+			data += mRowBytes;
+		}
+	}
+	
+	shared_ptr<uint8_t>	mData;
+	int32_t				mRowBytes;
+};
+
+Texture::operator ImageSourceRef() const
+{
+	return shared_ptr<ImageSource>( new ImageSourceTexture( *this ) );
+}
+
+#endif // ! defined( CINDER_GLES )
 
 /////////////////////////////////////////////////////////////////////////////////
 // ImageTargetGLTexture

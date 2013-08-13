@@ -96,6 +96,11 @@
 #include "cinder/gl/gl.h"
 #endif
 
+// this removes AntTweakBar from the project at compile time
+#if defined( CINDER_GL_ANGLE )
+	#define CINDER_ANT_TW_BAR_IGNORE
+#endif
+
 #if defined( CINDER_WINRT )
 #include "cinder/WinRTUtils.h"
 #endif

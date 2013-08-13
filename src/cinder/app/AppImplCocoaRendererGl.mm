@@ -62,7 +62,6 @@
 	renderer = aRenderer;
 
 	cinder::app::RendererGl::Options options = renderer->getOptions();
-	cinder::gl::Environment::setCoreProfile( options.getCoreProfile() );
 	NSOpenGLPixelFormat* fmt = [AppImplCocoaRendererGl defaultPixelFormat:options.getAntiAliasing() legacy:(options.getCoreProfile()==false)];
 	GLint aaSamples;
 	[fmt getValues:&aaSamples forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
@@ -85,8 +84,14 @@ if( ! view )
 	if( retinaEnabled )
 		[view setWantsBestResolutionOpenGLSurface:YES];
 	
-	void *platformContext = [[view openGLContext] CGLContextObj];
-	mContext = cinder::gl::Context::createFromExisting( platformContext );
+	if( options.getCoreProfile() )
+		cinder::gl::Environment::setCore();
+	else
+		cinder::gl::Environment::setLegacy();
+	
+	CGLContextObj cglContext = (CGLContextObj)[[view openGLContext] CGLContextObj];
+	auto platformData = std::shared_ptr<cinder::gl::Context::PlatformData>( new cinder::gl::PlatformDataMac( cglContext ) );
+	mContext = cinder::gl::Context::createFromExisting( platformData );
 	mContext->makeCurrent();
 
 	GLint swapInterval = 1;

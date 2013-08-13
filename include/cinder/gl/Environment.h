@@ -25,30 +25,92 @@
 #pragma once
 
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Context.h"
+
+#if defined( CINDER_MAC )
+	typedef struct _CGLContextObject       *CGLContextObj;
+#elif defined( CINDER_COCOA_TOUCH )
+	#if defined( __OBJC__ )
+		@class EAGLContext;
+	#else
+		typedef void*	EAGLContext;
+	#endif
+#elif defined( CINDER_GL_ANGLE )
+	typedef void*		EGLContext;
+	typedef void*		EGLDisplay;
+	typedef void*		EGLSurface;
+	typedef void*		EGLConfig;
+#endif
 
 namespace cinder { namespace gl {
 
 class ShaderDef;
 class GlslProg;
 typedef std::shared_ptr<GlslProg>		GlslProgRef;
+class Context;
+typedef std::shared_ptr<Context>		ContextRef;
 
 class Environment {
   public:
 	virtual void			initializeFunctionPointers() = 0;
-	virtual void			initializeContextDefaults( Context *context ) = 0;
 	
+	ContextRef				createSharedContext( const Context *sharedContext );
+	void					makeContextCurrent( const Context *context );
+	
+	virtual bool			supportsHardwareVao() = 0;
+
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) = 0;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) = 0;
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) = 0;
-	
-  #if ! defined( CINDER_GLES )
-  	static bool				isCoreProfile() { return sCoreProfile; }
-	//! Must be called before a call to gl::env()
-	static void				setCoreProfile( bool enable = true ) { sCoreProfile = enable; }
-  
-  protected:
-	static bool				sCoreProfile;
-  #endif
+
+#if ! defined( CINDER_GLES )	
+	static void				setCore();
+	static void				setLegacy();
+#else
+	static void				setEs2();
+#endif
 };
+
+
+#if defined( CINDER_COCOA_TOUCH )
+struct PlatformDataIos : public Context::PlatformData {
+	PlatformDataIos( EAGLContext *eaglContext )
+		: mEaglContext( eaglContext )
+	{}
+	
+	EAGLContext		*mEaglContext;
+};
+
+#elif defined( CINDER_MAC )
+struct PlatformDataMac : public Context::PlatformData {
+	PlatformDataMac( CGLContextObj cglContext )
+		: mCglContext( cglContext )
+	{}
+	
+	CGLContextObj		mCglContext;
+};
+
+#elif defined( CINDER_MSW ) && defined( CINDER_GL_ANGLE )
+struct PlatformDataAngle : public Context::PlatformData {
+	PlatformDataAngle( EGLContext context, EGLDisplay display, EGLSurface surface, EGLConfig eglConfig )
+		: mContext( context ), mDisplay( display ), mSurface( surface ), mConfig( eglConfig )
+	{}
+
+	EGLContext		mContext;
+	EGLDisplay		mDisplay;
+	EGLSurface		mSurface;
+	EGLConfig		mConfig;
+};
+
+#elif defined( CINDER_MSW ) // normal MSW desktop GL
+struct PlatformDataMsw : public Context::PlatformData {
+	PlatformDataMsw( HGLRC glrc, HDC dc )
+		: mGlrc( glrc ), mDc( dc )
+	{}
+
+	HGLRC	mGlrc;
+	HDC		mDc;
+};
+#endif
 
 } } // namespace cinder::gl

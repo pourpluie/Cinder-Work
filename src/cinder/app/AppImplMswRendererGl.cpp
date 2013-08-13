@@ -21,12 +21,13 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+#if ! defined( CINDER_GL_ANGLE )
 #include "cinder/app/AppImplMswRendererGl.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Context.h"
+#include "cinder/gl/Environment.h"
 #include "glload/wgl_all.h"
-#include "glload/gl_load.h"
 #include "cinder/app/App.h"
 #include "cinder/Camera.h"
 #include <windowsx.h>
@@ -179,7 +180,11 @@ bool AppImplMswRendererGl::initialize( HWND wnd, HDC dc, RendererRef sharedRende
 		return false;
 	}
 
-	mCinderContext = cinder::gl::Context::createFromExisting( mRC, mDC );
+	if( mRenderer->getOptions().getCoreProfile() )
+		gl::Environment::setCore();
+	else
+		gl::Environment::setLegacy();
+	mCinderContext = gl::Context::createFromExisting( std::shared_ptr<gl::Context::PlatformData>( new gl::PlatformDataMsw( mRC, mDC ) ) );
 	mCinderContext->makeCurrent();
 
 	return true;
@@ -294,11 +299,11 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 		return false;								
 	}
 
-	static bool oglLoadCalled = false;
-	if( ! oglLoadCalled ) {
-		oglLoadCalled = true;
-		ogl_LoadFunctions();
-	}
+	if( mRenderer->getOptions().getCoreProfile() )
+		gl::Environment::setCore();
+	else
+		gl::Environment::setLegacy();
+	gl::env()->initializeFunctionPointers();
 
 	if( ( ! sMultisampleSupported ) && ( mRenderer->getOptions().getAntiAliasing() > RendererGl::AA_NONE ) )  {
 		int level = initMultisample( pfd, mRenderer->getOptions().getAntiAliasing(), dc );
@@ -311,7 +316,7 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 	}
 
 	if( mPrevRC )
-		BOOL success = ::wglCopyContext( mPrevRC, mRC, GL_ALL_ATTRIB_BITS );
+		BOOL success = ::wglCopyContext( mPrevRC, mRC, 0xFFFFFFFF /*GL_ALL_ATTRIB_BITS*/ );
 
 	if( mPrevRC )
 		::wglShareLists( mPrevRC, mRC );
@@ -386,3 +391,4 @@ void AppImplMswRendererGl::kill()
 }
 
 } } // namespace cinder::app
+#endif // ! defined( CINDER_GL_ANGLE )

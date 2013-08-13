@@ -7,8 +7,12 @@
 //
 //  ---------------------------------------------------------------------------
 
-
+// this forces the right GL headers
+#define CINDER_GL_LEGACY
 #include "TwPrecomp.h"
+
+#if ! defined( CINDER_ANT_TW_BAR_IGNORE )
+
 #include "LoadOGL.h"
 #include "TwOpenGL.h"
 #include "TwMgr.h"
@@ -909,3 +913,4 @@ void CTwGraphOpenGL::DrawTriangles(int _NumTriangles, int *_Vertices, color32 *_
 }
 
 //  ---------------------------------------------------------------------------
+#endif // ! defined( CINDER_ANT_TW_BAR_IGNORE )

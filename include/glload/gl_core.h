@@ -8,6 +8,7 @@
 #include "_int_gl_type.h"
 #include "_int_gl_exts.h"
 
+#include "_int_gl_1_0.h"
 #include "_int_gl_1_1.h"
 #include "_int_gl_1_2.h"
 #include "_int_gl_1_3.h"
@@ -21,4 +22,5 @@
 #include "_int_gl_3_3.h"
 #include "_int_gl_4_0.h"
 #include "_int_gl_4_3.h"
+#include "_int_gl_4_4.h"
 #endif /*OPENGL_GEN_CORE_H*/
