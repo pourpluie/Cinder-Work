@@ -146,6 +146,16 @@ class Texture
 		//! Default constructor, sets the target to \c GL_TEXTURE_2D, wrap to \c GL_CLAMP, disables mipmapping, the internal format to "automatic"
 		Format();
 		
+		//! Chaining functions for Format class.
+		Format& target( GLenum target ) { mTarget = target; return *this; }
+		Format& glMipMap( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; return *this; }
+		Format& anisotropic( float aniAmount ) { mAnisotropicFiltering = true; mAniAmount = aniAmount; return *this; }
+		Format& internalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; return *this; }
+		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
+		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
+		Format& minFilter( GLenum minFilter ) { mMinFilter = minFilter; return *this; }
+		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
+		
 		//! Specifies the texture's target. The default is \c GL_TEXTURE_2D
 		void	setTarget( GLenum target ) { mTarget = target; }
 		//! Sets the texture's target to be \c GL_TEXTURE_RECTANGLE. Not available in OpenGL ES.

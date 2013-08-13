@@ -641,21 +641,14 @@ void Texture::setMagFilter( GLenum magFilter )
 	
 void Texture::setAnisotropicAmount( GLfloat aniAmount )
 {
-	if ( isExtensionAvailable( "GL_EXT_texture_filter_anisotropic" ) ) {
-		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
-	}
+	glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
 }
 
 void Texture::setMaxAnisotropicAmount()
 {
-	if ( isExtensionAvailable( "GL_EXT_texture_filter_anisotropic" ) ) {
-		GLfloat aniAmount;
-		glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniAmount );
-		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
-	}
-	else {
-		cerr << "Error: Anisotropic Extension not available" << endl;
-	}
+	GLfloat aniAmount;
+	glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniAmount );
+	glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
 }
 	
 void Texture::setCleanTexCoords( float maxU, float maxV )
