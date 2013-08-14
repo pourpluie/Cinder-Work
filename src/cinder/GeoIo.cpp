@@ -21,8 +21,66 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
+#include "GeoIo.h"
 
-namespace cinder {
+namespace cinder { namespace geo {
 
-} // namespace cinder
+///////////////////////////////////////////////////////////////////////////////////////
+// Cube
+Cube::Cube()
+	: mPos( Vec3f::zero() ), mScale( Vec3f::zero() )
+{
+	mHasColor = mHasTexCoord0 = mHasNormals = false;
+}
+
+bool Cube::hasAttrib( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION: return true;
+		case Attrib::COLOR: return mHasColor;
+		case Attrib::TEX_COORD_0: return mHasTexCoord0;
+		case Attrib::NORMAL: return mHasNormals;
+		default:
+			return false;
+	}
+}
+
+bool Cube::canProvideAttrib( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION:
+		case Attrib::COLOR:
+		case Attrib::TEX_COORD_0:
+		case Attrib::NORMAL:
+			return true;
+		default:
+			return false;
+	}
+}
+
+void Cube::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, void *dest ) const
+{
+	if( ! canProvideAttrib( attr ) )
+		throw ExcMissingAttrib();
+	
+	switch( attr ) {
+		case Attrib::POSITION:
+//			GeoSource::copyData( 
+		break;
+	}
+}
+
+uint8_t	Cube::getAttribDims( Attrib attr ) const
+{
+	if( ! canProvideAttrib( attr ) )
+		return 0;
+
+	switch( attr ) {
+		case Attrib::POSITION: return 3;
+		case Attrib::COLOR: return 3;
+		case Attrib::TEX_COORD_0: return 2;
+		case Attrib::NORMAL: return 3;
+	}	
+}
+
+} } // namespace cinder::geo

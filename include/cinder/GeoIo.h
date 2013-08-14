@@ -23,16 +23,58 @@
 
 #pragma once
 
-namespace cinder {
+#include "cinder/Cinder.h"
+#include "cinder/Exception.h"
+#include "cinder/Vector.h"
 
-class GeoIo {
+namespace cinder { namespace geo {
+
+enum class Attrib { POSITION, COLOR, TEX_COORD_0, NORMAL, TANGENT, BITANGET }; 
+
+class Source {
   public:
-	enum { ATTRIB_POSITION, ATTRIB_NORMAL, ATTRIB_TEX_COORD_0, ATTRIB_COLOR }; 
+	virtual size_t		getNumVerts() const = 0;
+	
+	virtual bool		hasAttrib( Attrib attr ) const = 0;
+	virtual bool		canProvideAttrib( Attrib attr ) const = 0;
+	virtual uint8_t		getAttribDims( Attrib attr ) const = 0;	
+	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, void *dest ) const = 0;
+	
+	virtual bool		isIndexed() const = 0;
+	virtual size_t		getNumIndices() const = 0;
 };
 
-class GeoSource : GeoIo {
+class Cube : public Source {
   public:
-	bool		has
+	Cube();
+	
+	Cube&		colors() { mHasColor = true; return *this; }
+	Cube&		texCoords() { mHasTexCoord0 = true; return *this; }
+	Cube&		normals() { mHasNormals = true; return *this; }
+	Cube&		position( const Vec3f &pos ) { mPos = pos; return *this; }
+	Cube&		scale( const Vec3f &scale ) { mScale = scale; return *this; }
+	Cube&		scale( float s ) { mScale = Vec3f( s, s, s ); return *this; }
+  
+	virtual size_t		getNumVerts() const override { return 8; }
+	
+	virtual bool		hasAttrib( Attrib attr ) const override;
+	virtual bool		canProvideAttrib( Attrib attr ) const override;
+	virtual uint8_t		getAttribDims( Attrib attr ) const override;
+	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, void *dest ) const override ;
+	
+	virtual bool		isIndexed() const override { return true; }
+	virtual size_t		getNumIndices() const override { return 24; }
+	
+	Vec3f		mPos, mScale;
+	bool		mHasColor;
+	bool		mHasTexCoord0;
+	bool		mHasNormals;
 };
 
-} // namespace cinder
+class Exc : public Exception {
+};
+
+class ExcMissingAttrib : public Exception {
+};
+
+} } // namespace cinder::geo
