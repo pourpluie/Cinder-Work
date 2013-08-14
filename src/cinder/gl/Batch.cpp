@@ -28,6 +28,35 @@
 namespace cinder { namespace gl {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Batch
+Batch::Batch( const GeoSource &source, const gl::GlslProgRef &glsl )
+	: mGlsl( glsl )
+{
+/*	const size_t numVerts = source.getNumVerts();
+	size_t dataSizeBytes = 0;
+	bool hasPosition = glsl->hasAttribSemantic( ATTRIB_POSITION ) && source.hasAttrib( GeoIo::POSTION ) > 0;
+	if( hasPosition )
+		dataSize += numVerts * sizeof(float) * source.getAttribSize( GeoIo::POSITION );
+	
+	// allocate VBO dataSize
+	// if we have mapBuffer, do that, else allocate temporary
+	
+	if( hasPosition )
+		source->copyAttrib( GeoIo::POSITION, &buffer[0], positionOffset, dataStride );
+	
+	if( source.isIndexed() ) {
+		// allocate VBO for indexed
+		mIndexed = true;
+		mIndicesVbo = Vbo(...);
+	}*/
+}
+
+void Batch::draw()
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // VertBatch
 VertBatch::VertBatch( GLenum primType )
 	: mPrimType( primType )

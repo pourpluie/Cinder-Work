@@ -35,6 +35,11 @@ typedef std::shared_ptr<class VertBatch>	VertBatchRef;
 
 class Batch {
   public:
+	Batch( const GeoSource &source, const gl::GlslProgRef &glsl );
+
+	void	draw();
+	
+	GlslProgRef		mGlsl;
 };
 
 //! Cannot be shared across contexts
