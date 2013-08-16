@@ -28,6 +28,69 @@
 namespace cinder { namespace gl {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Batch
+Batch::Batch( const geo::Source &source, const gl::GlslProgRef &glsl )
+	: mGlsl( glsl )
+{
+/*	const size_t numVerts = source.getNumVerts();
+	size_t dataSizeBytes = 0;
+	size_t curOffset = 0, offsetPosition, offsetColor, offsetTexCoord0, offsetNormals;
+	bool hasPosition = glsl->hasAttribSemantic( ATTRIB_POSITION ) && source.canProvideAttrib( geo::Attrib::POSITION );
+	bool hasColor = glsl->hasAttribSemantic( ATTRIB_COLOR ) && source.canProvideAttrib( geo::Attrib::COLOR );
+	bool hasTexCoord0 = glsl->hasAttribSemantic( ATTRIB_TEX_COORD_0 ) && source.canProvideAttrib( geo::Attrib::TEX_COORD_0 );
+	bool hasNormals = glsl->hasAttribSemantic( ATTRIB_NORMAL ) && source.canProvideAttrib( geo::Attrib::NORMAL );
+	
+	if( hasPosition ) {
+		dataSizeBytes += numVerts * sizeof(float) * source.getAttribDims( geo::Attrib::POSITION );
+		offsetPosition = curOffset;
+		curOffset += dataSizeBytes;
+	}
+
+	if( hasColor ) {
+		dataSizeBytes += numVerts * sizeof(float) * source.getAttribDims( geo::Attrib::COLOR );
+		offsetColor = curOffset;
+		curOffset += dataSizeBytes;
+	}
+
+	if( hasTexCoord0 ) {
+		dataSizeBytes += numVerts * sizeof(float) * source.getAttribDims( geo::Attrib::TEX_COORD_0 );
+		offsetTexCoord0 = curOffset;
+		curOffset += dataSizeBytes;
+	}
+	
+	if( hasNormals ) {
+		dataSizeBytes += numVerts * sizeof(float) * source.getAttribDims( geo::Attrib::NORMAL );
+		offsetNormals = curOffset;
+		curOffset += dataSizeBytes;	
+	}
+	
+	// allocate VBO dataSize
+	// if we have mapBuffer, do that, else allocate temporary
+	
+	float buffer[] = new float[dataSizeBytes];
+	
+	curOffset = 0;
+	if( hasPosition ) {
+		source.copyAttrib( geo::Attrib::POSITION, &buffer[offsetPosition], positionOffset, dataStride );
+		curOffset += d
+	}
+	
+	if( source.isIndexed() ) {
+		// allocate VBO for indexed
+		mIndexed = true;
+		mIndicesVbo = Vbo(...);
+		if( shortElements )
+			source.copyIndices<unint16_t>(  ) );
+			
+	delete [] buffer;*/
+}
+
+void Batch::draw()
+{
+	
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // VertBatch
 VertBatch::VertBatch( GLenum primType )
 	: mPrimType( primType )

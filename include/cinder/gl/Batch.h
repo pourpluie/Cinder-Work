@@ -26,7 +26,7 @@
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Vao.h"
-#include "cinder/GeoSource.h"
+#include "cinder/GeoIo.h"
 
 namespace cinder { namespace gl {
 
@@ -35,6 +35,11 @@ typedef std::shared_ptr<class VertBatch>	VertBatchRef;
 
 class Batch {
   public:
+	Batch( const geo::Source &source, const gl::GlslProgRef &glsl );
+
+	void	draw();
+	
+	GlslProgRef		mGlsl;
 };
 
 //! Cannot be shared across contexts
