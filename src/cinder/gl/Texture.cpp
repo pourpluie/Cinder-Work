@@ -53,8 +53,7 @@ Texture::Format::Format()
 	mMagFilter = GL_LINEAR;
 	mMipmapping = false;
 	mInternalFormat = -1;
-	mAniAmount = 1.0f;
-	mAnisotropicFiltering = false;
+	mAnisotropicMax = -1.0f;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -272,8 +271,8 @@ void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataF
 	if( format.mMipmapping ) 
 		glGenerateMipmap( mTarget );
 	
-	if( format.mAnisotropicFiltering ) 
-		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
+	if( format.mAnisotropicMax > 1.0f )
+		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAnisotropicMax );
 	
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
@@ -307,8 +306,8 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
     if( format.mMipmapping ) 
 		glGenerateMipmap( mTarget );
 	
-	if( format.mAnisotropicFiltering )
-		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
+	if( format.mAnisotropicMax > 1.0f )
+		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAnisotropicMax );
 	
 		
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
@@ -394,8 +393,8 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
     if( format.mMipmapping )
 		glGenerateMipmap( mTarget );
 	
-	if( format.mAnisotropicFiltering ) 
-		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAniAmount );
+	if( format.mAnisotropicMax > 1.0f )
+		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mAnisotropicMax );
 		
 	
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
@@ -639,16 +638,16 @@ void Texture::setMagFilter( GLenum magFilter )
 	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, magFilter );
 }
 	
-void Texture::setAnisotropicAmount( GLfloat aniAmount )
+void Texture::setAnisotropicMax( GLfloat anisotropicMax )
 {
-	glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
+	glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropicMax );
 }
 
-void Texture::setMaxAnisotropicAmount()
+GLfloat Texture::getMaxAnisotropicMax()
 {
-	GLfloat aniAmount;
-	glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &aniAmount );
-	glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniAmount );
+	GLfloat maxAnisotropicMax;
+	glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropicMax );
+	return maxAnisotropicMax;
 }
 	
 void Texture::setCleanTexCoords( float maxU, float maxV )

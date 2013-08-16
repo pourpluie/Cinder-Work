@@ -52,9 +52,7 @@ class Texture
 	 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 	void			setMagFilter( GLenum magFilter );
 	/** Sets the anisotropic filtering amount **/
-	void			setAnisotropicAmount( GLfloat aniAmount );
-	/** Sets the maximum anisotropic filtering amount allowed by the extension **/
-	void			setMaxAnisotropicAmount();
+	void			setAnisotropicMax( GLfloat anisotropicMax );
 	
 	/** Designed to accommodate texture where not all pixels are "clean", meaning the maximum texture coordinate value may not be 1.0 (or the texture's width in \c GL_TEXTURE_RECTANGLE_ARB) **/
 	void			setCleanTexCoords( float maxU, float maxV );
@@ -73,6 +71,8 @@ class Texture
 	
 	//! calculate the size of mipMap for the corresponding level
 	static Vec2i	calcMipLevelSize( int level, GLint width, GLint height );
+	/** Gets the maximum anisotropic filtering maximum allowed by the extension **/
+	static GLfloat	getMaxAnisotropicMax();
 	//! calculates and sets the total levels of mipmap
 	GLint			getNumMipLevels() const;
 	//! the width of the texture in pixels
@@ -149,7 +149,7 @@ class Texture
 		//! Chaining functions for Format class.
 		Format& target( GLenum target ) { mTarget = target; return *this; }
 		Format& glMipMap( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; return *this; }
-		Format& anisotropic( float aniAmount ) { mAnisotropicFiltering = true; mAniAmount = aniAmount; return *this; }
+		Format& anisotropicMax( float anisotropicMax ) { mAnisotropicMax = anisotropicMax; return *this; }
 		Format& internalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; return *this; }
 		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
 		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
@@ -165,8 +165,6 @@ class Texture
 		
 		//! Enables or disables mipmapping. Default is disabled.
 		void	enableMipmapping( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; }
-		//! Enables or disables anisotropic filtering when mipmaping.
-		void    enableAnisotropicFilter( bool enableAnisotropicFilter = true ) { mAnisotropicFiltering = enableAnisotropicFilter; }
 		
 		//! Sets the Texture's internal format. A value of -1 implies selecting the best format for the context.
 		void	setInternalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; }
@@ -188,16 +186,12 @@ class Texture
 		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 		void	setMagFilter( GLenum magFilter ) { mMagFilter = magFilter; }
 		//! Sets the anisotropic filter amount
-		void    setAnisotropicAmount( GLfloat aniAmount ) { mAniAmount = aniAmount; }
-		//! Query's the max anisotropic filter amount and sets it
-		void	setMaxAnisotropy() { glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &mAniAmount ); }
+		void    setAnisotropicAmount( GLfloat anisotropicMax ) { mAnisotropicMax = anisotropicMax; }
 		
 		//! Returns the texture's target
 		GLenum	getTarget() const { return mTarget; }
 		//! Returns whether the texture has mipmapping enabled
 		bool	hasMipmapping() const { return mMipmapping; }
-		//! Returns whether the texture has anisotropic enabled
-		bool    hasAnisotropic() const { return mAnisotropicFiltering; }
 		
 		//! Returns the Texture's internal format. A value of -1 implies automatic selection of the internal format based on the context.
 		GLint	getInternalFormat() const { return mInternalFormat; }
@@ -213,15 +207,14 @@ class Texture
 		//! Returns the texture magnifying function, which is used whenever the pixel being textured maps to an area less than or equal to one texture element.
 		GLenum	getMagFilter() const { return mMagFilter; }
 		//! Returns the texture anisotropic filtering amount
-		GLfloat getAnisotropicAmount() const { return mAniAmount; }
+		GLfloat getAnisotropicAmount() const { return mAnisotropicMax; }
 		
 	protected:
 		GLenum			mTarget;
 		GLenum			mWrapS, mWrapT;
 		GLenum			mMinFilter, mMagFilter;
 		bool			mMipmapping;
-		bool            mAnisotropicFiltering;
-		GLfloat         mAniAmount;
+		GLfloat         mAnisotropicMax;
 		GLint			mInternalFormat;
 		
 		friend class Texture;
