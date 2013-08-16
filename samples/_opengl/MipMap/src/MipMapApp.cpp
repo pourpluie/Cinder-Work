@@ -87,8 +87,8 @@ void TextureMipmappingApp::setup()
     
     // Creating the 3 Texture formats
     gl::Texture::Format mFormat;
-    mFormat.magFilter(GL_LINEAR).minFilter(GL_LINEAR_MIPMAP_LINEAR)
-        .anisotropicMax(4.0f).wrapT(GL_REPEAT).wrapS(GL_REPEAT).target(GL_TEXTURE_2D).glMipMap();
+    mFormat.magFilter( GL_LINEAR ).minFilter( GL_LINEAR_MIPMAP_LINEAR )
+        .anisotropicMax( 4.0f ).wrapT( GL_REPEAT ).wrapS( GL_REPEAT ).target( GL_TEXTURE_2D ).glMipMap();
     
     createGlGenMip( mFormat );
     
@@ -123,7 +123,7 @@ void TextureMipmappingApp::update()
         mCamXLook += 0.01f;
     }
     
-    mCam.lookAt( Vec3f( 0, 0, -1), Vec3f( mCamXLook, 0, 1) );
+    mCam.lookAt( Vec3f( 0, 0, -1 ), Vec3f( mCamXLook, 0, 1 ) );
 }
 
 void TextureMipmappingApp::draw()
@@ -157,7 +157,6 @@ void TextureMipmappingApp::mouseUp( MouseEvent event )
 {
     int y = toPixels( event.getY() );
     int windowSection = toPixels( getWindowHeight() ) / 3 ;
-    cout << y << " " << windowSection << endl;
     
     // CREATING A DIVISION IN THE SCREEN TO BIND DIFFERENT TEXTURES
     if ( buttonContains( mMinRect, event.getPos() ) ) {
@@ -169,7 +168,6 @@ void TextureMipmappingApp::mouseUp( MouseEvent event )
     else if ( buttonContains( mAnisoRect, event.getPos() ) ) {
         mAnisoFilterAmount = ( (float) ( event.getPos().x - mAnisoRect.getUpperLeft().x ) / (float) 100 ) * mMaxAnisoFilterAmount;
         mAnisoFilterPushed = true;
-        cout << mAnisoFilterAmount << endl;
     }
     else if ( y < windowSection ) {
         mTextureChoice = 0;
@@ -189,7 +187,7 @@ void TextureMipmappingApp::mouseUp( MouseEvent event )
 void TextureMipmappingApp::renderFilterButtons()
 {
     if ( mMinFilterPushed ) {
-        switch ( mMinFilterChoice) {
+        switch ( mMinFilterChoice ) {
             case 0:
                 mMinTexture = gl::Texture::create( loadImage( loadResource( MIN_FILTER_LIN_LIN ) ) );
                 break;
@@ -249,7 +247,6 @@ void TextureMipmappingApp::bindMinAndAnisoChange( const gl::TextureRef texture )
         }
     }
     if ( mAnisoFilterPushed ) {
-        cout << mAnisoFilterAmount << endl;
         texture->setAnisotropicMax( mAnisoFilterAmount );
         mAnisoFilterPushed = false;
     }
