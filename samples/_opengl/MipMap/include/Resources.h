@@ -10,8 +10,12 @@
 
 #define ANISOTROPIC             CINDER_RESOURCE( ../resources/, anisotropicbutton.png, 132, IMAGE )
 
-#define CHECKER_BOARD           CINDER_RESOURCE( ../resources/, checkerboard.png, 133, IMAGE )
-#define NON_POT_CHECKER         CINDER_RESOURCE( ../resources/, non_pot_checkerboard.png, 134, IMAGE )
+#define GL_GEN                  CINDER_RESOURCE( ../resources/, glgenmipmap.png, 133, IMAGE )
+#define USER_GEN                CINDER_RESOURCE( ../resources/, usergenmipmap.png, 134, IMAGE )
+#define USER_RESIZE             CINDER_RESOURCE( ../resources/, userresizedmipmap.png, 135, IMAGE )
+
+#define CHECKER_BOARD           CINDER_RESOURCE( ../resources/, checkerboard.png, 136, IMAGE )
+#define NON_POT_CHECKER         CINDER_RESOURCE( ../resources/, non_pot_checkerboard.png, 137, IMAGE )
 
 
 

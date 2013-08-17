@@ -23,6 +23,7 @@ public:
 	void setup();
 	void update();
 	void draw();
+    void mouseDrag( MouseEvent event );
     void mouseUp( MouseEvent event );
     
     void renderFilterButtons();
@@ -39,30 +40,28 @@ public:
     gl::TextureRef          mGlGeneratedMipmap;
     gl::TextureRef          mUserResizedMipmap;
     Surface                 mCheckerBoard;
-    int                     mTextureChoice;
+    
     
     CameraPersp             mCam;
     Matrix44f               mPlaneRotation;
     Matrix44f               mPlaneTranslation;
-
-    float                   mCamXLook;
-    
-    bool                    forward;
     
     // Button variables
     bool                    mMinFilterPushed;
     int                     mMinFilterChoice;
-    Surface                 mMinFilterImage;
     gl::TextureRef          mMinTexture;
     Rectf                   mMinRect;
     
     bool                    mAnisoFilterPushed;
     float                   mAnisoFilterAmount;
-    Surface                 mAnisoFilterImage;
     gl::TextureRef          mAnisoTexture;
     float                   mMaxAnisoFilterAmount;
     Rectf                   mAnisoRect;
     
+    bool                    mTexturePushed;
+    int                     mTextureChoice;
+    gl::TextureRef          mTextureTexture;
+    Rectf                   mTextureRect;
 };
 
 void TextureMipmappingApp::setup()
@@ -76,14 +75,16 @@ void TextureMipmappingApp::setup()
 #endif
     mMinTexture = gl::Texture::create( loadImage( loadResource( MIN_FILTER_LIN_LIN ) ) );
     mAnisoTexture = gl::Texture::create( loadImage( loadResource( ANISOTROPIC ) ) );
+    mTextureTexture = gl::Texture::create( loadImage( loadResource( GL_GEN ) ) );
     
-    mAnisoFilterAmount = mMinFilterChoice = mTextureChoice = mCamXLook = 0;
-    mAnisoFilterPushed = mMinFilterPushed = forward = false;
+    mAnisoFilterAmount = mMinFilterChoice = mTextureChoice = 0;
+    mAnisoFilterPushed = mMinFilterPushed = mTexturePushed = false;
     
     // getting max Anisotropic maximum sampling available on the graphics card
     mMaxAnisoFilterAmount = gl::Texture::getMaxAnisotropicMax();
     
     mCam.setPerspective( 60, getWindowAspectRatio(), 1, 10000 );
+    mCam.lookAt( Vec3f( 0, 0, -1 ), Vec3f( 0, 0, 1 ) );
     
     // Creating the 3 Texture formats
     gl::Texture::Format mFormat;
@@ -102,28 +103,15 @@ void TextureMipmappingApp::setup()
     mPlaneTranslation.translate( Vec3f( - 10000 / 2, - getWindowHeight() / 2, 0 ) );
     mPlaneRotation.rotate( Vec3f( 1, 0, 0 ), toRadians( 85.0f ) );
     
-    mMinRect = Rectf( ( getWindowWidth() / 4 ) - 50 , ( getWindowHeight() / 10 ) , ( getWindowWidth() / 4 ) + 50, ( getWindowHeight() / 10 ) + 30 );
-    mAnisoRect = Rectf( ( getWindowWidth() / 4 ) * 3 - 50, ( getWindowHeight() / 10 ) , ( getWindowWidth() / 4 ) * 3 + 50, ( getWindowHeight() / 10 ) + 30 );
+    mMinRect = Rectf( ( getWindowWidth() / 6 ) - 50 , ( getWindowHeight() / 10 ) , ( getWindowWidth() / 6 ) + 50, ( getWindowHeight() / 10 ) + 30 );
+    mTextureRect = Rectf( ( getWindowWidth() / 6 ) * 3 - 50, ( getWindowHeight() / 10 ) , ( getWindowWidth() / 6 ) * 3 + 50, ( getWindowHeight() / 10 ) + 30 );
+    mAnisoRect = Rectf( ( getWindowWidth() / 6 ) * 5 - 50, ( getWindowHeight() / 10 ) , ( getWindowWidth() / 6 ) * 5 + 50, ( getWindowHeight() / 10 ) + 30 );
+    
 }
 
 void TextureMipmappingApp::update()
 {
     
-    if( mCamXLook > 2 ) {
-        forward = true;
-    }
-    else if ( mCamXLook < -2 ) {
-        forward = false;
-    }
-    
-    if( forward ) {
-        mCamXLook -= 0.01f;
-    }
-    else {
-        mCamXLook += 0.01f;
-    }
-    
-    mCam.lookAt( Vec3f( 0, 0, -1 ), Vec3f( mCamXLook, 0, 1 ) );
 }
 
 void TextureMipmappingApp::draw()
@@ -153,10 +141,15 @@ void TextureMipmappingApp::draw()
     renderFilterButtons();
 }
 
+void TextureMipmappingApp::mouseDrag( MouseEvent event )
+{
+    float normalizedX = ( (float) event.getPos().x / (float) getWindowWidth() ) * 4 - 2;
+    
+    mCam.lookAt( Vec3f( 0, 0, -1 ), Vec3f( normalizedX, 0, 1 ) );
+}
+
 void TextureMipmappingApp::mouseUp( MouseEvent event )
 {
-    int y = toPixels( event.getY() );
-    int windowSection = toPixels( getWindowHeight() ) / 3 ;
     
     // CREATING A DIVISION IN THE SCREEN TO BIND DIFFERENT TEXTURES
     if ( buttonContains( mMinRect, event.getPos() ) ) {
@@ -169,17 +162,11 @@ void TextureMipmappingApp::mouseUp( MouseEvent event )
         mAnisoFilterAmount = ( (float) ( event.getPos().x - mAnisoRect.getUpperLeft().x ) / (float) 100 ) * mMaxAnisoFilterAmount;
         mAnisoFilterPushed = true;
     }
-    else if ( y < windowSection ) {
-        mTextureChoice = 0;
-        mMinFilterPushed = true;
-    }
-    else if ( y < ( windowSection * 2 ) ) {
-        mTextureChoice = 1;
-        mMinFilterPushed = true;
-    }
-    else if ( y < ( windowSection * 3 ) ) {
-        mTextureChoice = 2;
-        mMinFilterPushed = true;
+    else if ( buttonContains( mTextureRect, event.getPos())) {
+        mTexturePushed = true;
+        mTextureChoice++;
+        if ( mTextureChoice > 2) 
+            mTextureChoice = 0;
     }
     
 }
@@ -205,6 +192,22 @@ void TextureMipmappingApp::renderFilterButtons()
         }
         mMinFilterPushed = false;
     }
+    if ( mTexturePushed ) {
+        switch ( mTextureChoice ) {
+            case 0:
+                mTextureTexture = gl::Texture::create( loadImage( loadResource( GL_GEN ) ) );
+                break;
+            case 1:
+                mTextureTexture = gl::Texture::create( loadImage( loadResource( USER_GEN ) ) );
+                break;
+            case 2:
+                mTextureTexture = gl::Texture::create( loadImage( loadResource( USER_RESIZE ) ) );
+                break;
+            default:
+                break;
+        }
+        mTexturePushed = false;
+    }
     
     gl::pushModelView();
         gl::setMatricesWindow( getWindowSize() );
@@ -216,6 +219,10 @@ void TextureMipmappingApp::renderFilterButtons()
         mAnisoTexture->bind();
             gl::drawSolidRect( mAnisoRect );
         mAnisoTexture->unbind();
+    
+        mTextureTexture->bind();
+            gl::drawSolidRect( mTextureRect );
+        mTextureTexture->unbind();
     gl::popModelView();
 }
 
