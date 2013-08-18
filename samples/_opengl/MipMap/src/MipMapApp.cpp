@@ -81,7 +81,7 @@ void TextureMipmappingApp::setup()
     mAnisoFilterPushed = mMinFilterPushed = mTexturePushed = false;
     
     // getting max Anisotropic maximum sampling available on the graphics card
-    mMaxAnisoFilterAmount = gl::Texture::getMaxAnisotropicMax();
+    mMaxAnisoFilterAmount = gl::Texture::getMaxMaxAnisotropy();
     
     mCam.setPerspective( 60, getWindowAspectRatio(), 1, 10000 );
     mCam.lookAt( Vec3f( 0, 0, -1 ), Vec3f( 0, 0, 1 ) );
@@ -89,7 +89,7 @@ void TextureMipmappingApp::setup()
     // Creating the 3 Texture formats
     gl::Texture::Format mFormat;
     mFormat.magFilter( GL_LINEAR ).minFilter( GL_LINEAR_MIPMAP_LINEAR )
-        .anisotropicMax( 4.0f ).wrapT( GL_REPEAT ).wrapS( GL_REPEAT ).target( GL_TEXTURE_2D ).glMipMap();
+        .maxAnisotropy( 4.0f ).wrapT( GL_REPEAT ).wrapS( GL_REPEAT ).target( GL_TEXTURE_2D ).mipMap();
     
     createGlGenMip( mFormat );
     
@@ -254,7 +254,7 @@ void TextureMipmappingApp::bindMinAndAnisoChange( const gl::TextureRef texture )
         }
     }
     if ( mAnisoFilterPushed ) {
-        texture->setAnisotropicMax( mAnisoFilterAmount );
+        texture->setMaxAnisotropy( mAnisoFilterAmount );
         mAnisoFilterPushed = false;
     }
 }

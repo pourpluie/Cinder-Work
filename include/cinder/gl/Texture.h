@@ -52,7 +52,7 @@ class Texture
 	 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 	void			setMagFilter( GLenum magFilter );
 	/** Sets the anisotropic filtering amount **/
-	void			setAnisotropicMax( GLfloat anisotropicMax );
+	void			setMaxAnisotropy( GLfloat maxAnisotropy );
 	
 	/** Designed to accommodate texture where not all pixels are "clean", meaning the maximum texture coordinate value may not be 1.0 (or the texture's width in \c GL_TEXTURE_RECTANGLE_ARB) **/
 	void			setCleanTexCoords( float maxU, float maxV );
@@ -149,7 +149,7 @@ class Texture
 		//! Chaining functions for Format class.
 		Format& target( GLenum target ) { mTarget = target; return *this; }
 		Format& mipMap( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; return *this; }
-		Format& maxAnisotropy( float anisotropicMax ) { mAnisotropicMax = anisotropicMax; return *this; }
+		Format& maxAnisotropy( float maxAnisotropy ) { mMaxAnisotropy = maxAnisotropy; return *this; }
 		Format& internalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; return *this; }
 		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
 		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
@@ -186,7 +186,7 @@ class Texture
 		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 		void	setMagFilter( GLenum magFilter ) { mMagFilter = magFilter; }
 		//! Sets the anisotropic filter amount
-		void    setAnisotropicMax( GLfloat anisotropicMax ) { mAnisotropicMax = anisotropicMax; }
+		void    setMaxAnisotropic( GLfloat maxAnisotropy ) { mMaxAnisotropy = maxAnisotropy; }
 		
 		//! Returns the texture's target
 		GLenum	getTarget() const { return mTarget; }
@@ -207,14 +207,14 @@ class Texture
 		//! Returns the texture magnifying function, which is used whenever the pixel being textured maps to an area less than or equal to one texture element.
 		GLenum	getMagFilter() const { return mMagFilter; }
 		//! Returns the texture anisotropic filtering amount
-		GLfloat getAnisotropicMax() const { return mAnisotropicMax; }
+		GLfloat getMaxAnisotropy() const { return mMaxAnisotropy; }
 		
 	protected:
 		GLenum			mTarget;
 		GLenum			mWrapS, mWrapT;
 		GLenum			mMinFilter, mMagFilter;
 		bool			mMipmapping;
-		GLfloat         mAnisotropicMax;
+		GLfloat         mMaxAnisotropy;
 		GLint			mInternalFormat;
 		
 		friend class Texture;
