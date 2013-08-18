@@ -643,7 +643,7 @@ void Texture::setAnisotropicMax( GLfloat anisotropicMax )
 	glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropicMax );
 }
 
-GLfloat Texture::getMaxAnisotropicMax()
+GLfloat Texture::getMaxMaxAnisotropy()
 {
 	GLfloat maxAnisotropicMax;
 	glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropicMax );

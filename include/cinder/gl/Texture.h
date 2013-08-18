@@ -72,7 +72,7 @@ class Texture
 	//! calculate the size of mipMap for the corresponding level
 	static Vec2i	calcMipLevelSize( int level, GLint width, GLint height );
 	/** Gets the maximum anisotropic filtering maximum allowed by the extension **/
-	static GLfloat	getMaxAnisotropicMax();
+	static GLfloat	getMaxMaxAnisotropy();
 	//! calculates and sets the total levels of mipmap
 	GLint			getNumMipLevels() const;
 	//! the width of the texture in pixels
@@ -148,8 +148,8 @@ class Texture
 		
 		//! Chaining functions for Format class.
 		Format& target( GLenum target ) { mTarget = target; return *this; }
-		Format& glMipMap( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; return *this; }
-		Format& anisotropicMax( float anisotropicMax ) { mAnisotropicMax = anisotropicMax; return *this; }
+		Format& mipMap( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; return *this; }
+		Format& maxAnisotropy( float anisotropicMax ) { mAnisotropicMax = anisotropicMax; return *this; }
 		Format& internalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; return *this; }
 		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
 		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
@@ -186,7 +186,7 @@ class Texture
 		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 		void	setMagFilter( GLenum magFilter ) { mMagFilter = magFilter; }
 		//! Sets the anisotropic filter amount
-		void    setAnisotropicAmount( GLfloat anisotropicMax ) { mAnisotropicMax = anisotropicMax; }
+		void    setAnisotropicMax( GLfloat anisotropicMax ) { mAnisotropicMax = anisotropicMax; }
 		
 		//! Returns the texture's target
 		GLenum	getTarget() const { return mTarget; }
@@ -207,7 +207,7 @@ class Texture
 		//! Returns the texture magnifying function, which is used whenever the pixel being textured maps to an area less than or equal to one texture element.
 		GLenum	getMagFilter() const { return mMagFilter; }
 		//! Returns the texture anisotropic filtering amount
-		GLfloat getAnisotropicAmount() const { return mAnisotropicMax; }
+		GLfloat getAnisotropicMax() const { return mAnisotropicMax; }
 		
 	protected:
 		GLenum			mTarget;
