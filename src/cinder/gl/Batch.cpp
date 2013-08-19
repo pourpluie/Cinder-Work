@@ -29,65 +29,130 @@ namespace cinder { namespace gl {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Batch
+BatchRef Batch::create( const geo::Source &source, const gl::GlslProgRef &glsl )
+{
+	return BatchRef( new Batch( source, glsl ) );
+}
+
 Batch::Batch( const geo::Source &source, const gl::GlslProgRef &glsl )
 	: mGlsl( glsl )
 {
-/*	const size_t numVerts = source.getNumVerts();
+	mNumVertices = source.getNumVerts();
+	
 	size_t dataSizeBytes = 0;
-	size_t curOffset = 0, offsetPosition, offsetColor, offsetTexCoord0, offsetNormals;
+	size_t offsetPosition, offsetColor, offsetTexCoord0, offsetNormals;
 	bool hasPosition = glsl->hasAttribSemantic( ATTRIB_POSITION ) && source.canProvideAttrib( geo::Attrib::POSITION );
 	bool hasColor = glsl->hasAttribSemantic( ATTRIB_COLOR ) && source.canProvideAttrib( geo::Attrib::COLOR );
 	bool hasTexCoord0 = glsl->hasAttribSemantic( ATTRIB_TEX_COORD_0 ) && source.canProvideAttrib( geo::Attrib::TEX_COORD_0 );
 	bool hasNormals = glsl->hasAttribSemantic( ATTRIB_NORMAL ) && source.canProvideAttrib( geo::Attrib::NORMAL );
 	
 	if( hasPosition ) {
-		dataSizeBytes += numVerts * sizeof(float) * source.getAttribDims( geo::Attrib::POSITION );
-		offsetPosition = curOffset;
-		curOffset += dataSizeBytes;
+		offsetPosition = dataSizeBytes;
+		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geo::Attrib::POSITION );
 	}
 
 	if( hasColor ) {
-		dataSizeBytes += numVerts * sizeof(float) * source.getAttribDims( geo::Attrib::COLOR );
-		offsetColor = curOffset;
-		curOffset += dataSizeBytes;
+		offsetColor = dataSizeBytes;
+		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geo::Attrib::COLOR );
 	}
 
 	if( hasTexCoord0 ) {
-		dataSizeBytes += numVerts * sizeof(float) * source.getAttribDims( geo::Attrib::TEX_COORD_0 );
-		offsetTexCoord0 = curOffset;
-		curOffset += dataSizeBytes;
+		offsetTexCoord0 = dataSizeBytes;
+		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geo::Attrib::TEX_COORD_0 );
 	}
 	
 	if( hasNormals ) {
-		dataSizeBytes += numVerts * sizeof(float) * source.getAttribDims( geo::Attrib::NORMAL );
-		offsetNormals = curOffset;
-		curOffset += dataSizeBytes;	
+		offsetNormals = dataSizeBytes;
+		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geo::Attrib::NORMAL );
 	}
 	
 	// allocate VBO dataSize
 	// if we have mapBuffer, do that, else allocate temporary
 	
-	float buffer[] = new float[dataSizeBytes];
+	uint8_t *buffer = new uint8_t[dataSizeBytes];
 	
-	curOffset = 0;
-	if( hasPosition ) {
-		source.copyAttrib( geo::Attrib::POSITION, &buffer[offsetPosition], positionOffset, dataStride );
-		curOffset += d
+	if( hasPosition )
+		source.copyAttrib( geo::Attrib::POSITION, source.getAttribDims( geo::Attrib::POSITION ), 0, (float*)&buffer[offsetPosition] );
+
+	if( hasColor )
+		source.copyAttrib( geo::Attrib::COLOR, source.getAttribDims( geo::Attrib::COLOR ), 0, (float*)&buffer[offsetColor] );
+
+	if( hasTexCoord0 )
+		source.copyAttrib( geo::Attrib::TEX_COORD_0, source.getAttribDims( geo::Attrib::TEX_COORD_0 ), 0, (float*)&buffer[offsetTexCoord0] );
+
+	if( hasNormals )
+		source.copyAttrib( geo::Attrib::NORMAL, source.getAttribDims( geo::Attrib::NORMAL ), 0, (float*)&buffer[offsetNormals] );
+	
+	mVertexArray = Vbo::create( GL_ARRAY_BUFFER, dataSizeBytes, buffer );
+
+	delete [] buffer;
+	
+	mNumIndices = source.getNumIndices();
+	if( mNumIndices ) {		
+		if( mNumIndices < 65536 ) {
+			mIndexType = GL_UNSIGNED_SHORT;
+			uint16_t *indices = new uint16_t[mNumIndices];
+			source.copyIndices( indices );
+			mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, mNumIndices * sizeof(uint16_t), indices );
+			delete [] indices;
+		}
+		else {
+			mIndexType = GL_UNSIGNED_INT;
+			uint32_t *indices = new uint32_t[mNumIndices];
+			source.copyIndices( indices );
+			mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, mNumIndices * sizeof(uint32_t), indices );
+			delete [] indices;
+		}
 	}
-	
-	if( source.isIndexed() ) {
-		// allocate VBO for indexed
-		mIndexed = true;
-		mIndicesVbo = Vbo(...);
-		if( shortElements )
-			source.copyIndices<unint16_t>(  ) );
-			
-	delete [] buffer;*/
+
+	{
+		// PREPARE VAO
+		mVao = Vao::create();
+		VaoScope vaoScope( mVao );
+
+		auto ctx = gl::context();
+		
+		mVertexArray->bind();
+		if( hasPosition ) {
+			int loc = glsl->getAttribSemanticLocation( ATTRIB_POSITION );
+			ctx->enableVertexAttribArray( loc );
+			ctx->vertexAttribPointer( loc, source.getAttribDims( geo::Attrib::POSITION ), GL_FLOAT, GL_FALSE, 0, (void*)offsetPosition );
+		}
+
+		if( hasColor ) {
+			int loc = glsl->getAttribSemanticLocation( ATTRIB_COLOR );
+			ctx->enableVertexAttribArray( loc );
+			ctx->vertexAttribPointer( loc, source.getAttribDims( geo::Attrib::COLOR ), GL_FLOAT, GL_FALSE, 0, (void*)offsetColor );
+		}
+
+		if( hasTexCoord0 ) {
+			int loc = glsl->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
+			ctx->enableVertexAttribArray( loc );
+			ctx->vertexAttribPointer( loc, source.getAttribDims( geo::Attrib::TEX_COORD_0 ), GL_FLOAT, GL_FALSE, 0, (void*)offsetTexCoord0 );
+		}
+
+		if( hasNormals ) {
+			int loc = glsl->getAttribSemanticLocation( ATTRIB_NORMAL );
+			ctx->enableVertexAttribArray( loc );
+			ctx->vertexAttribPointer( loc, source.getAttribDims( geo::Attrib::NORMAL ), GL_FLOAT, GL_FALSE, 0, (void*)offsetNormals );
+		}
+		
+		if( mNumIndices > 0 )
+			mElements->bind();
+	}
 }
 
 void Batch::draw()
 {
+	auto ctx = gl::context();
 	
+	gl::ShaderScope shaderScope( mGlsl );
+	gl::VaoScope vaoScope( mVao );
+	gl::setDefaultShaderVars();
+	if( mNumIndices )
+		gl::drawElements( GL_TRIANGLES, mNumIndices, mIndexType, 0 );
+	else
+		gl::drawArrays( GL_TRIANGLES, 0, mNumVertices );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////

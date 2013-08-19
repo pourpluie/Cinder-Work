@@ -675,7 +675,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 		int loc = curShader->getAttribSemanticLocation( ATTRIB_COLOR );
 		gl::bindBuffer( arrayVbo );
 		enableVertexAttribArray( loc );
-		vertexAttribPointer( loc, 3, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)curBufferOffset );
+		vertexAttribPointer( loc, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)curBufferOffset );
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(colors), colors );
 		curBufferOffset += sizeof(colors);
 	}
