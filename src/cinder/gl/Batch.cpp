@@ -148,11 +148,11 @@ void Batch::draw()
 	
 	gl::ShaderScope shaderScope( mGlsl );
 	gl::VaoScope vaoScope( mVao );
-	gl::setDefaultShaderVars();
+	ctx->setDefaultShaderVars();
 	if( mNumIndices )
-		gl::drawElements( GL_TRIANGLES, mNumIndices, mIndexType, 0 );
+		ctx->drawElements( GL_TRIANGLES, mNumIndices, mIndexType, 0 );
 	else
-		gl::drawArrays( GL_TRIANGLES, 0, mNumVertices );
+		ctx->drawArrays( GL_TRIANGLES, 0, mNumVertices );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -248,8 +248,9 @@ void VertBatch::draw()
 	setupBuffers();
 	VaoScope vao( mVao );
 	
-	gl::setDefaultShaderVars();
-	gl::drawArrays( mPrimType, 0, mVertices.size() );
+	auto ctx = context();
+	ctx->setDefaultShaderVars();
+	ctx->drawArrays( mPrimType, 0, mVertices.size() );
 }
 
 void VertBatch::setupBuffers()

@@ -535,6 +535,20 @@ void Context::polygonMode( GLenum face, GLenum mode )
 
 #endif // defined( CINDER_GLES )
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// draw*
+void Context::drawArrays( GLenum mode, GLint first, GLsizei count )
+{
+	glDrawArrays( mode, first, count );
+}
+
+void Context::drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices )
+{
+	glDrawElements( mode, count, type, indices );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// Shaders
 GlslProgRef	Context::getStockShader( const ShaderDef &shaderDef )
 {
 	auto existing = mStockShaders.find( shaderDef );
@@ -545,6 +559,36 @@ GlslProgRef	Context::getStockShader( const ShaderDef &shaderDef )
 	}
 	else
 		return existing->second;
+}
+
+void Context::setDefaultShaderVars()
+{
+	auto ctx = gl::context();
+	auto glslProg = ctx->getCurrentShader();
+	if( glslProg ) {
+		auto uniforms = glslProg->getUniformSemantics();
+		for( auto unifIt = uniforms.cbegin(); unifIt != uniforms.end(); ++unifIt ) {
+			switch( unifIt->second ) {
+				case UNIFORM_MODELVIEWPROJECTION:
+					glslProg->uniform( unifIt->first, gl::getProjection() * gl::getModelView() );
+				break;
+			}
+		}		
+
+		auto attribs = glslProg->getAttribSemantics();
+		for( auto attribIt = attribs.begin(); attribIt != attribs.end(); ++attribIt ) {
+			switch( attribIt->second ) {
+				case ATTRIB_COLOR: {
+					int loc = glslProg->getAttribLocation( attribIt->first );
+					ColorA c = ctx->getCurrentColor();
+					gl::vertexAttrib4f( loc, c.r, c.g, c.b, c.a );
+				}
+				break;
+				default:
+					;
+			}
+		}
+	}
 }
 
 VboRef Context::getDefaultArrayVbo( size_t requiredSize )
