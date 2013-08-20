@@ -20,6 +20,8 @@ class RotatingCubeApp : public AppNative {
 	CameraPersp			mCam;
 	Matrix44f			mCubeRotation;
 	gl::BatchRef		mCubeBatch;
+	gl::TextureRef		mTexture;
+	gl::GlslProgRef		mGlsl;
 };
 
 void RotatingCubeApp::setup()
@@ -27,8 +29,11 @@ void RotatingCubeApp::setup()
 	mCam.lookAt( Vec3f( 3, 2, -3 ), Vec3f::zero() );
 	mCubeRotation.setToIdentity();
 	
-	gl::bindStockShader( gl::ShaderDef().color() );
-	mCubeBatch = gl::Batch::create( geo::Cube(), gl::getStockShader( gl::ShaderDef().color() ) );
+	mTexture = gl::Texture::create( loadImage( loadAsset( "texture.jpg" ) ) );
+	
+	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) );
+//	mCubeBatch = gl::Batch::create( geo::Cube(), gl::getStockShader( gl::ShaderDef().texture().color() ) );
+	mCubeBatch = gl::Batch::create( geo::Cube(), mGlsl );
 
 	gl::enableDepthWrite();
 	gl::enableDepthRead();

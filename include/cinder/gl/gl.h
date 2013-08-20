@@ -40,7 +40,8 @@
 namespace cinder { namespace gl {
 
 enum UniformSemantic {
-	UNIFORM_MODELVIEWPROJECTION
+	UNIFORM_MODELVIEWPROJECTION,
+	UNIFORM_NORMAL_MATRIX
 };
 
 enum AttribSemantic {

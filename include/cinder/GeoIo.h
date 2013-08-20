@@ -45,8 +45,8 @@ class Source {
 	virtual void		copyIndices( uint32_t *dest ) const = 0;
 	
   protected:
-	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t dataLength, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
-	static void	copyDataMultAdd( uint8_t srcDimensions, const float *srcData, size_t dataLength,
+	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
+	static void	copyDataMultAdd( uint8_t srcDimensions, const float *srcData, size_t numElements,
 							uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add );
 };
 
@@ -79,6 +79,9 @@ class Cube : public Source {
 	
 	static float	sVertices[24*3];
 	static float	sColors[24*3];
+	static float	sTexCoords[24*2];
+	static float	sNormals[24*3];	
+	
 	static uint16_t	sIndices[36];
 };
 
