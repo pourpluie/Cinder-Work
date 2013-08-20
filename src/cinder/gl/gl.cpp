@@ -115,32 +115,7 @@ void bindStockShader( const class ShaderDef &shaderDef )
 
 void setDefaultShaderVars()
 {
-	auto ctx = gl::context();
-	auto glslProg = ctx->getCurrentShader();
-	if( glslProg ) {
-		auto uniforms = glslProg->getUniformSemantics();
-		for( auto unifIt = uniforms.cbegin(); unifIt != uniforms.end(); ++unifIt ) {
-			switch( unifIt->second ) {
-				case UNIFORM_MODELVIEWPROJECTION:
-					glslProg->uniform( unifIt->first, gl::getProjection() * gl::getModelView() );
-				break;
-			}
-		}		
-
-		auto attribs = glslProg->getAttribSemantics();
-		for( auto attribIt = attribs.begin(); attribIt != attribs.end(); ++attribIt ) {
-			switch( attribIt->second ) {
-				case ATTRIB_COLOR: {
-					int loc = glslProg->getAttribLocation( attribIt->first );
-					ColorA c = ctx->getCurrentColor();
-					gl::vertexAttrib4f( loc, c.r, c.g, c.b, c.a );
-				}
-				break;
-				default:
-					;
-			}
-		}
-	}
+	gl::context()->setDefaultShaderVars();
 }
 
 void clear( const ColorA& color, bool clearDepthBuffer )
@@ -577,12 +552,12 @@ void bindBuffer( const BufferObjRef &buffer )
 // Draw*
 void drawArrays( GLenum mode, GLint first, GLsizei count )
 {
-	glDrawArrays( mode, first, count );
+	context()->drawArrays( mode, first, count );
 }
 
 void drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices )
 {
-	glDrawElements( mode, count, type, indices );
+	context()->drawElements( mode, count, type, indices );
 }
 
 void drawCube( const Vec3f &c, const Vec3f &size )
@@ -675,7 +650,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 		int loc = curShader->getAttribSemanticLocation( ATTRIB_COLOR );
 		gl::bindBuffer( arrayVbo );
 		enableVertexAttribArray( loc );
-		vertexAttribPointer( loc, 3, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)curBufferOffset );
+		vertexAttribPointer( loc, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)curBufferOffset );
 		arrayVbo->bufferSubData( curBufferOffset, sizeof(colors), colors );
 		curBufferOffset += sizeof(colors);
 	}
@@ -686,8 +661,8 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	//BufferScope elementScope( elementVbo );
 	arrayVbo->bind();
 	elementVbo->bind();
-	gl::setDefaultShaderVars();
-	gl::drawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
+	ctx->setDefaultShaderVars();
+	ctx->drawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
 
 	arrayVbo->unbind();
 	elementVbo->unbind();
@@ -727,8 +702,8 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	enableVertexAttribArray( texLoc );	
 	vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 	
-	gl::setDefaultShaderVars();
-	gl::drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+	ctx->setDefaultShaderVars();
+	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
 	
 void drawSolidRect( const Rectf& r )
@@ -765,8 +740,8 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	enableVertexAttribArray( texLoc );
 	vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 	
-	gl::setDefaultShaderVars();
-	gl::drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+	ctx->setDefaultShaderVars();
+	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
 
 void draw( const TextureRef &texture, const Vec2f &v )

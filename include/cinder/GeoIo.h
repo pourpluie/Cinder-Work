@@ -38,10 +38,16 @@ class Source {
 	virtual bool		hasAttrib( Attrib attr ) const = 0;
 	virtual bool		canProvideAttrib( Attrib attr ) const = 0;
 	virtual uint8_t		getAttribDims( Attrib attr ) const = 0;	
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, void *dest ) const = 0;
+	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const = 0;
 	
-	virtual bool		isIndexed() const = 0;
 	virtual size_t		getNumIndices() const = 0;
+	virtual void		copyIndices( uint16_t *dest ) const = 0;
+	virtual void		copyIndices( uint32_t *dest ) const = 0;
+	
+  protected:
+	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t dataLength, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
+	static void	copyDataMultAdd( uint8_t srcDimensions, const float *srcData, size_t dataLength,
+							uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add );
 };
 
 class Cube : public Source {
@@ -55,26 +61,37 @@ class Cube : public Source {
 	Cube&		scale( const Vec3f &scale ) { mScale = scale; return *this; }
 	Cube&		scale( float s ) { mScale = Vec3f( s, s, s ); return *this; }
   
-	virtual size_t		getNumVerts() const override { return 8; }
+	virtual size_t		getNumVerts() const override { return 24; }
 	
 	virtual bool		hasAttrib( Attrib attr ) const override;
 	virtual bool		canProvideAttrib( Attrib attr ) const override;
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, void *dest ) const override ;
+	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override ;
 	
-	virtual bool		isIndexed() const override { return true; }
-	virtual size_t		getNumIndices() const override { return 24; }
+	virtual size_t		getNumIndices() const override { return 36; }
+	virtual void		copyIndices( uint16_t *dest ) const override;
+	virtual void		copyIndices( uint32_t *dest ) const override;
 	
 	Vec3f		mPos, mScale;
 	bool		mHasColor;
 	bool		mHasTexCoord0;
 	bool		mHasNormals;
+	
+	static float	sVertices[24*3];
+	static float	sColors[24*3];
+	static uint16_t	sIndices[36];
 };
 
 class Exc : public Exception {
 };
 
 class ExcMissingAttrib : public Exception {
+};
+
+class ExcIllegalSourceDimensions : public Exception {
+};
+
+class ExcIllegalDestDimensions : public Exception {
 };
 
 } } // namespace cinder::geo

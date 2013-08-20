@@ -124,10 +124,14 @@ class Context {
 	void		polygonMode( GLenum face, GLenum mode );
 #endif
 
+	void		drawArrays( GLenum mode, GLint first, GLsizei count );
+	void		drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices );
+
 	//! Returns the current active color, used in immediate-mode emulation and as UNIFORM_COLOR
 	const ColorAf&	getCurrentColor() const { return mColor; }
 	void			setCurrentColor( const ColorAf &color ) { mColor = color; }
 	GlslProgRef		getStockShader( const ShaderDef &shaderDef );
+	void			setDefaultShaderVars();
 
 	VboRef			getDefaultArrayVbo( size_t requiredSize );
 	VboRef			getDefaultElementVbo( size_t requiredSize );
