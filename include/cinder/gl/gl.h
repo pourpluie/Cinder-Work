@@ -78,8 +78,15 @@ void setDefaultShaderVars();
 void clear( const ColorA &color = ColorA::black(), bool clearDepthBuffer = true );
 
 Area getViewport();
-void setViewport( const Area &area );
+void viewport( const Area &area );
+void viewport( int x, int y, int width, int height );
+	
+Area getScissor();
+void scissor( const Area &area );
+void viewport( int x, int y, int width, int height );
 
+Area convertULToLLCoords( const Area &area );
+	
 void enable( GLenum state, bool enable = true );
 inline void disable( GLenum state ) { enable( state, false ); }
 

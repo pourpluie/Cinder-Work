@@ -131,15 +131,39 @@ void clear( const ColorA& color, bool clearDepthBuffer )
 
 Area getViewport()
 {
-	GLint params[ 4 ];
-	glGetIntegerv( GL_VIEWPORT, params );
-	Area result;
-	return Area( params[ 0 ], params[ 1 ], params[ 0 ] + params[ 2 ], params[ 1 ] + params[ 3 ] );
+	Area view = gl::context()->getViewport();
+	return view;
 }
 
-void setViewport( const Area& area )
+void viewport( const Area& area )
 {
-	glViewport( area.x1, area.y1, ( area.x2 - area.x1 ), ( area.y2 - area.y1 ) );
+	gl::context()->setViewport( convertULToLLCoords( area ) );
+}
+	
+void viewport( int x, int y, int width, int height )
+{
+	gl::context()->setViewport( Area( x, y, width, height ) );
+}
+    
+Area getScissor()
+{
+    Area scissor = gl::context()->getScissor();
+    return scissor;
+}
+    
+void scissor( const Area& scissor )
+{
+    gl::context()->setScissor( convertULToLLCoords( scissor ) );
+}
+    
+void scissor( int x, int y, int width, int height )
+{
+    gl::context()->setScissor( Area( x, y, x + width, y + height ) );
+}
+    
+Area convertULToLLCoords( const Area &area )
+{
+    return Area( area.x1, app::getWindowHeight() - area.y2, area.getWidth(), area.getHeight() );
 }
 
 void enable( GLenum state, bool enable )

@@ -18,9 +18,9 @@
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		8F4C0DBE39714CA887CA9946 /* MipMapApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D322729045D142E7BE0BF29A /* MipMapApp.cpp */; };
 		B3246BDB17BED8C8006C3463 /* non_pot_checkerboard.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BDA17BED8C8006C3463 /* non_pot_checkerboard.png */; };
-		B3246BFF17BFE525006C3463 /* glgenmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BFC17BFE525006C3463 /* glgenmipmap.png */; };
-		B3246C0017BFE525006C3463 /* usergenmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BFD17BFE525006C3463 /* usergenmipmap.png */; };
-		B3246C0117BFE525006C3463 /* userresizedmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BFE17BFE525006C3463 /* userresizedmipmap.png */; };
+		B3246BED17BFE347006C3463 /* glgenmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BEA17BFE347006C3463 /* glgenmipmap.png */; };
+		B3246BEE17BFE347006C3463 /* usergenmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BEB17BFE347006C3463 /* usergenmipmap.png */; };
+		B3246BEF17BFE347006C3463 /* userresizedmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BEC17BFE347006C3463 /* userresizedmipmap.png */; };
 		B3781A6717BEC8E20069128C /* anisotropicbutton.png in Resources */ = {isa = PBXBuildFile; fileRef = B3781A6117BEC8E20069128C /* anisotropicbutton.png */; };
 		B3781A6817BEC8E20069128C /* checkerboard.png in Resources */ = {isa = PBXBuildFile; fileRef = B3781A6217BEC8E20069128C /* checkerboard.png */; };
 		B3781A6917BEC8E20069128C /* GL_LIN_MIP_LIN.png in Resources */ = {isa = PBXBuildFile; fileRef = B3781A6317BEC8E20069128C /* GL_LIN_MIP_LIN.png */; };
@@ -46,9 +46,9 @@
 		923DAB3837074406816D5A56 /* MipMap_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = MipMap_Prefix.pch; sourceTree = "<group>"; };
 		9C8E149101C242D7B61041E2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B3246BDA17BED8C8006C3463 /* non_pot_checkerboard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = non_pot_checkerboard.png; path = ../resources/non_pot_checkerboard.png; sourceTree = "<group>"; };
-		B3246BFC17BFE525006C3463 /* glgenmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = glgenmipmap.png; path = ../resources/glgenmipmap.png; sourceTree = "<group>"; };
-		B3246BFD17BFE525006C3463 /* usergenmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = usergenmipmap.png; path = ../resources/usergenmipmap.png; sourceTree = "<group>"; };
-		B3246BFE17BFE525006C3463 /* userresizedmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = userresizedmipmap.png; path = ../resources/userresizedmipmap.png; sourceTree = "<group>"; };
+		B3246BEA17BFE347006C3463 /* glgenmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = glgenmipmap.png; path = ../resources/glgenmipmap.png; sourceTree = "<group>"; };
+		B3246BEB17BFE347006C3463 /* usergenmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = usergenmipmap.png; path = ../resources/usergenmipmap.png; sourceTree = "<group>"; };
+		B3246BEC17BFE347006C3463 /* userresizedmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = userresizedmipmap.png; path = ../resources/userresizedmipmap.png; sourceTree = "<group>"; };
 		B3781A6117BEC8E20069128C /* anisotropicbutton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = anisotropicbutton.png; path = ../resources/anisotropicbutton.png; sourceTree = "<group>"; };
 		B3781A6217BEC8E20069128C /* checkerboard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = checkerboard.png; path = ../resources/checkerboard.png; sourceTree = "<group>"; };
 		B3781A6317BEC8E20069128C /* GL_LIN_MIP_LIN.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = GL_LIN_MIP_LIN.png; path = ../resources/GL_LIN_MIP_LIN.png; sourceTree = "<group>"; };
@@ -149,9 +149,9 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				B3246BFC17BFE525006C3463 /* glgenmipmap.png */,
-				B3246BFD17BFE525006C3463 /* usergenmipmap.png */,
-				B3246BFE17BFE525006C3463 /* userresizedmipmap.png */,
+				B3246BEA17BFE347006C3463 /* glgenmipmap.png */,
+				B3246BEB17BFE347006C3463 /* usergenmipmap.png */,
+				B3246BEC17BFE347006C3463 /* userresizedmipmap.png */,
 				B3246BDA17BED8C8006C3463 /* non_pot_checkerboard.png */,
 				B3781A6117BEC8E20069128C /* anisotropicbutton.png */,
 				B3781A6217BEC8E20069128C /* checkerboard.png */,
@@ -232,9 +232,9 @@
 				B3781A6B17BEC8E20069128C /* GL_NEA_MIP_LIN.png in Resources */,
 				B3781A6C17BEC8E20069128C /* GL_NEA_MIP_NEA.png in Resources */,
 				B3246BDB17BED8C8006C3463 /* non_pot_checkerboard.png in Resources */,
-				B3246BFF17BFE525006C3463 /* glgenmipmap.png in Resources */,
-				B3246C0017BFE525006C3463 /* usergenmipmap.png in Resources */,
-				B3246C0117BFE525006C3463 /* userresizedmipmap.png in Resources */,
+				B3246BED17BFE347006C3463 /* glgenmipmap.png in Resources */,
+				B3246BEE17BFE347006C3463 /* usergenmipmap.png in Resources */,
+				B3246BEF17BFE347006C3463 /* userresizedmipmap.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

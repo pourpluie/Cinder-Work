@@ -65,6 +65,12 @@ class Context {
 	void		vaoBind( const VaoRef &vao );
 	//! Returns the currently bound VAO
 	VaoRef		vaoGet();
+	
+	const Area	getViewport() const { return mViewport; }
+	void		setViewport( const Area &view );
+	
+	const Area  getScissor() const { return mScissor; }
+	void		setScissor( const Area &scissor );
 
 	void		bindBuffer( GLenum target, GLuint id );
 	GLuint		getBufferBinding( GLenum target );
@@ -166,6 +172,9 @@ class Context {
 	Context( const std::shared_ptr<PlatformData> &platformData );
   
 	std::shared_ptr<PlatformData>	mPlatformData;
+	
+	Area						mViewport;
+	Area						mScissor;
 
 	VaoRef						mImmVao; // Immediate-mode VAO
 	VboRef						mImmVbo; // Immediate-mode VBO
@@ -345,6 +354,21 @@ struct TextureBindScope : public boost::noncopyable
 	Context		*mCtx;
 	GLenum		mTarget;
 	GLuint		mPrevValue;
+};
+	
+struct ScissorScope : public boost::noncopyable
+{
+public:
+	ScissorScope( const Area &view );
+	ScissorScope();
+	ScissorScope( int x, int y, int width, int height );
+	
+	~ScissorScope();
+	
+private:
+	Context		*mCtx;
+	GLboolean	mPrevState;
+	ci::Area	mPrevScissor;
 };
 
 class ExcContextAllocation : public Exception {

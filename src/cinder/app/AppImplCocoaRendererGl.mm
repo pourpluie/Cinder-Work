@@ -150,7 +150,7 @@ if( ! view )
 {
 	NSSize nsSize = [view frame].size;
 	NSSize backingSize = [view convertSizeToBacking:nsSize];
-	glViewport( 0, 0, backingSize.width, backingSize.height );
+	ci::gl::viewport( 0, 0, backingSize.width, backingSize.height );
 	cinder::CameraPersp cam( nsSize.width, nsSize.height, 60.0f );
 
 	ci::gl::setProjection( cam.getProjectionMatrix() );

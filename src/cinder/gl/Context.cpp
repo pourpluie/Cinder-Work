@@ -57,8 +57,16 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 #endif
 
 	mImmediateMode = gl::VertBatch::create();
-
-	mModelViewStack.push_back( Matrix44f() );
+	
+	GLint params[ 4 ];
+	glGetIntegerv( GL_VIEWPORT, params );
+	mViewport = Area( params[ 0 ], params[ 1 ], params[ 0 ] + params[ 2 ], params[ 1 ] + params[ 3 ] );
+    
+    glGetIntegerv( GL_SCISSOR_BOX, params );
+    mScissor = Area( params[ 0 ], params[ 1 ], params[ 0 ] + params[ 2 ], params[ 1 ] + params[ 3 ] );
+    
+	
+    mModelViewStack.push_back( Matrix44f() );
 	mModelViewStack.back().setToIdentity();
 	mProjectionStack.push_back( Matrix44f() );
 	mProjectionStack.back().setToIdentity();
@@ -123,6 +131,23 @@ void Context::vaoBind( const VaoRef &vao )
 VaoRef Context::vaoGet()
 {
 	return mCachedVao;
+}
+
+//////////////////////////////////////////////////////////////////
+// Viewport
+	
+void Context::setViewport( const Area &view )
+{
+	mViewport = view;
+	glViewport( mViewport.x1, mViewport.y1, mViewport.getWidth(), mViewport.getHeight() );
+}
+    
+//////////////////////////////////////////////////////////////////
+// Scissor Test
+void Context::setScissor( const Area &scissor )
+{
+    mScissor = scissor;
+    glScissor( mScissor.x1, mScissor.y1, mScissor.getWidth(), mScissor.getHeight() );
 }
 
 //////////////////////////////////////////////////////////////////
@@ -720,5 +745,33 @@ FramebufferScope::~FramebufferScope()
 #endif
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+ScissorScope::ScissorScope( const Area &scissor )
+	: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
+{
+	mCtx->setScissor( scissor );
+    mCtx->enable( GL_SCISSOR_TEST );
+}
+	
+ScissorScope::ScissorScope()
+	: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
+{
+	mCtx->setScissor( mCtx->getViewport() );
+    mCtx->enable( GL_SCISSOR_TEST );
+}
+
+ScissorScope::ScissorScope( int x, int y, int width, int height )
+    :mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
+{
+    mCtx->setScissor( Area( x, y, width, height ) );
+    mCtx->enable( GL_SCISSOR_TEST );
+}
+	
+ScissorScope::~ScissorScope()
+{
+    mCtx->enable( GL_SCISSOR_TEST, GL_FALSE );
+	mCtx->setScissor( mPrevScissor );
+}
+	
 
 } } // namespace cinder::gl
