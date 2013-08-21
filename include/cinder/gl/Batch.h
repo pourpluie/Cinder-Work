@@ -47,6 +47,7 @@ class Batch {
 	VboRef		mElements;
 	VaoRef		mVao;
 	
+	GLenum		mMode;
 	size_t		mNumVertices;
 	size_t		mNumIndices;
 	GLenum		mIndexType;

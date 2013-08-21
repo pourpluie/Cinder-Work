@@ -29,25 +29,27 @@
 
 namespace cinder { namespace geo {
 
-enum class Attrib { POSITION, COLOR, TEX_COORD_0, NORMAL, TANGENT, BITANGET }; 
+enum class Attrib { POSITION, COLOR, TEX_COORD_0, NORMAL, TANGENT, BITANGET };
+enum class Mode { TRIANGLES, TRIANGLE_STRIP }; 
 
 class Source {
   public:
 	virtual size_t		getNumVerts() const = 0;
+	virtual Mode		getMode() const = 0;
 	
 	virtual bool		hasAttrib( Attrib attr ) const = 0;
 	virtual bool		canProvideAttrib( Attrib attr ) const = 0;
 	virtual uint8_t		getAttribDims( Attrib attr ) const = 0;	
 	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const = 0;
 	
-	virtual size_t		getNumIndices() const = 0;
-	virtual void		copyIndices( uint16_t *dest ) const = 0;
-	virtual void		copyIndices( uint32_t *dest ) const = 0;
+	virtual size_t		getNumIndices() const { return 0; }
+	virtual void		copyIndices( uint16_t *dest ) const;
+	virtual void		copyIndices( uint32_t *dest ) const;
 	
   protected:
 	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
-	static void	copyDataMultAdd( uint8_t srcDimensions, const float *srcData, size_t numElements,
-							uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add );
+	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec2f &mult, const Vec2f &add );
+	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add );
 };
 
 class Cube : public Source {
@@ -62,6 +64,7 @@ class Cube : public Source {
 	Cube&		scale( float s ) { mScale = Vec3f( s, s, s ); return *this; }
   
 	virtual size_t		getNumVerts() const override { return 24; }
+	virtual Mode		getMode() const { return Mode::TRIANGLES; }
 	
 	virtual bool		hasAttrib( Attrib attr ) const override;
 	virtual bool		canProvideAttrib( Attrib attr ) const override;
@@ -85,6 +88,37 @@ class Cube : public Source {
 	static uint16_t	sIndices[36];
 };
 
+class Rect : public Source {
+  public:
+	Rect();
+	
+	Rect&		colors() { mHasColor = true; return *this; }
+	Rect&		texCoords() { mHasTexCoord0 = true; return *this; }
+	Rect&		normals() { mHasNormals = true; return *this; }
+	Rect&		position( const Vec2f &pos ) { mPos = pos; return *this; }
+	Rect&		scale( const Vec2f &scale ) { mScale = scale; return *this; }
+	Rect&		scale( float s ) { mScale = Vec2f( s, s ); return *this; }
+  
+	virtual size_t		getNumVerts() const override { return 4; }
+	virtual Mode		getMode() const { return Mode::TRIANGLE_STRIP; }
+	
+	virtual bool		hasAttrib( Attrib attr ) const override;
+	virtual bool		canProvideAttrib( Attrib attr ) const override;
+	virtual uint8_t		getAttribDims( Attrib attr ) const override;
+	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override ;
+
+	Vec2f		mPos, mScale;
+	bool		mHasColor;
+	bool		mHasTexCoord0;
+	bool		mHasNormals;
+	
+	static float	sVertices[4*2];
+	static float	sColors[4*3];
+	static float	sTexCoords[4*2];
+	static float	sNormals[4*3];
+};
+
+
 class Exc : public Exception {
 };
 
@@ -95,6 +129,9 @@ class ExcIllegalSourceDimensions : public Exception {
 };
 
 class ExcIllegalDestDimensions : public Exception {
+};
+
+class ExcNoIndices : public Exception {
 };
 
 } } // namespace cinder::geo

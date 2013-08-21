@@ -39,6 +39,15 @@ Batch::Batch( const geo::Source &source, const gl::GlslProgRef &glsl )
 {
 	mNumVertices = source.getNumVerts();
 	
+	switch( source.getMode() ) {
+		case geo::Mode::TRIANGLES:
+			mMode = GL_TRIANGLES;
+		break;
+		case geo::Mode::TRIANGLE_STRIP:
+			mMode = GL_TRIANGLE_STRIP;
+		break;
+	}
+	
 	size_t dataSizeBytes = 0;
 	size_t offsetPosition, offsetColor, offsetTexCoord0, offsetNormals;
 	bool hasPosition = glsl->hasAttribSemantic( ATTRIB_POSITION ) && source.canProvideAttrib( geo::Attrib::POSITION );
@@ -150,9 +159,9 @@ void Batch::draw()
 	gl::VaoScope vaoScope( mVao );
 	ctx->setDefaultShaderVars();
 	if( mNumIndices )
-		ctx->drawElements( GL_TRIANGLES, mNumIndices, mIndexType, 0 );
+		ctx->drawElements( mMode, mNumIndices, mIndexType, 0 );
 	else
-		ctx->drawArrays( GL_TRIANGLES, 0, mNumVertices );
+		ctx->drawArrays( mMode, 0, mNumVertices );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -30,10 +30,14 @@ void RotatingCubeApp::setup()
 	mCubeRotation.setToIdentity();
 	
 	mTexture = gl::Texture::create( loadImage( loadAsset( "texture.jpg" ) ) );
-	
+
+#if defined( CINDER_GLES )
+	mGlsl = gl::GlslProg::create( loadAsset( "shader_es2.vert" ), loadAsset( "shader_es2.frag" ) );
+#else
 	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) );
-//	mCubeBatch = gl::Batch::create( geo::Cube(), gl::getStockShader( gl::ShaderDef().texture().color() ) );
-	mCubeBatch = gl::Batch::create( geo::Cube(), mGlsl );
+#endif
+	mCubeBatch = gl::Batch::create( geo::Cube(), gl::getStockShader( gl::ShaderDef().texture().color() ) );
+	mCubeBatch = gl::Batch::create( geo::Rect(), mGlsl );
 
 	gl::enableDepthWrite();
 	gl::enableDepthRead();

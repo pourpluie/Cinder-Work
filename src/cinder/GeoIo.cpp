@@ -54,6 +54,28 @@ void copyDataImpl( const float *srcData, size_t numElements, size_t dstStrideByt
 }
 
 template<uint8_t DSTDIM>
+void copyDataMultAddImpl( const float *srcData, size_t numElements, size_t dstStrideBytes, float *dstData, const Vec2f &mult, const Vec2f &add )
+{
+	static const float sFillerData[4] = { 0, 0, 0, 1 };
+	const uint8_t MINDIM = (2 < DSTDIM) ? 2 : DSTDIM;
+	
+	if( dstStrideBytes == 0 )
+		dstStrideBytes = DSTDIM * sizeof(float);
+	
+	for( size_t v = 0; v < numElements; ++v ) {
+		uint8_t d;
+		for( d = 0; d < MINDIM; ++d ) {
+			dstData[d] = srcData[d] * mult[d] + add[d];
+		}
+		for( ; d < DSTDIM; ++d ) {
+			dstData[d] = sFillerData[d];
+		}
+		srcData += 2;
+		dstData = (float*)((uint8_t*)dstData + dstStrideBytes);
+	}
+}
+
+template<uint8_t DSTDIM>
 void copyDataMultAddImpl( const float *srcData, size_t numElements, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add )
 {
 	static const float sFillerData[4] = { 0, 0, 0, 1 };
@@ -115,7 +137,7 @@ void Source::copyData( uint8_t srcDimensions, const float *srcData, size_t numEl
 	}
 }
 
-void Source::copyDataMultAdd( uint8_t srcDimensions, const float *srcData, size_t numElements,
+void Source::copyDataMultAdd( const float *srcData, size_t numElements,
 		uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add )
 {
 	switch( dstDimensions) {
@@ -123,6 +145,101 @@ void Source::copyDataMultAdd( uint8_t srcDimensions, const float *srcData, size_
 		case 3: copyDataMultAddImpl<3>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
 		case 4: copyDataMultAddImpl<4>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
 		default: throw ExcIllegalDestDimensions();
+	}
+}
+
+void Source::copyDataMultAdd( const float *srcData, size_t numElements,
+		uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec2f &mult, const Vec2f &add )
+{
+	switch( dstDimensions) {
+		case 2: copyDataMultAddImpl<2>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
+		case 3: copyDataMultAddImpl<3>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
+		case 4: copyDataMultAddImpl<4>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
+		default: throw ExcIllegalDestDimensions();
+	}
+}
+
+void Source::copyIndices( uint16_t *dest ) const
+{
+	throw ExcNoIndices();
+}
+
+void Source::copyIndices( uint32_t *dest ) const
+{
+	throw ExcNoIndices();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Rect
+float Rect::sVertices[4*2] = { 0.5f,-0.5f,	-0.5f,-0.5f,	0.5f,0.5f,	-0.5f,0.5f };
+float Rect::sColors[4*3] = { 1, 0, 1,	0, 0, 1,	1, 1, 1,	0, 1, 1 };
+float Rect::sTexCoords[4*2] = { 1, 1,	0, 1,		1, 0,		0, 0 };
+float Rect::sNormals[4*3] = {0, 0, 1,	0, 0, 1,	0, 0, 1,	0, 0, 1 };
+
+Rect::Rect()
+	: mPos( Vec2f::zero() ), mScale( Vec2f::one() )
+{
+	mHasColor = mHasTexCoord0 = mHasNormals = false;
+}
+
+bool Rect::hasAttrib( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION: return true;
+		case Attrib::COLOR: return mHasColor;
+		case Attrib::TEX_COORD_0: return mHasTexCoord0;
+		case Attrib::NORMAL: return mHasNormals;
+		default:
+			return false;
+	}
+}
+
+bool Rect::canProvideAttrib( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION:
+		case Attrib::COLOR:
+		case Attrib::TEX_COORD_0:
+		case Attrib::NORMAL:
+			return true;
+		default:
+			return false;
+	}
+}
+
+void Rect::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION:
+			copyDataMultAdd( sVertices, 4, dimensions, stride, dest, mScale, mPos );
+		break;
+		case Attrib::COLOR:
+			copyData( 3, sColors, 4, dimensions, stride, dest );
+		break;
+		case Attrib::TEX_COORD_0:
+			copyData( 2, sTexCoords, 4, dimensions, stride, dest );
+		break;
+		case Attrib::NORMAL:
+			copyData( 3, sNormals, 4, dimensions, stride, dest );
+		break;
+		default:
+			throw ExcMissingAttrib();
+	}
+}
+
+uint8_t	Rect::getAttribDims( Attrib attr ) const
+{
+	if( ! canProvideAttrib( attr ) )
+		return 0;
+
+	switch( attr ) {
+		case Attrib::POSITION: return 2;
+		case Attrib::COLOR: return 3;
+		case Attrib::TEX_COORD_0: return 2;
+		case Attrib::NORMAL: return 3;
+		default:
+			return 0;
 	}
 }
 
@@ -199,7 +316,7 @@ void Cube::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, float *de
 {
 	switch( attr ) {
 		case Attrib::POSITION:
-			copyDataMultAdd( 3, sVertices, 24, dimensions, stride, dest, mScale, mPos );
+			copyDataMultAdd( sVertices, 24, dimensions, stride, dest, mScale, mPos );
 		break;
 		case Attrib::COLOR:
 			copyData( 3, sColors, 24, dimensions, stride, dest );
