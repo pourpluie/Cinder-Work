@@ -37,7 +37,7 @@ BatchRef Batch::create( const geo::Source &source, const gl::GlslProgRef &glsl )
 Batch::Batch( const geo::Source &source, const gl::GlslProgRef &glsl )
 	: mGlsl( glsl )
 {
-	mNumVertices = source.getNumVerts();
+	mNumVertices = source.getNumVertices();
 	
 	switch( source.getMode() ) {
 		case geo::Mode::TRIANGLES:

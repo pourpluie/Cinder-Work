@@ -26,6 +26,7 @@ class RotatingCubeApp : public AppNative {
 
 void RotatingCubeApp::setup()
 {
+	disableFrameRate();
 	mCam.lookAt( Vec3f( 3, 2, 4 ), Vec3f::zero() );
 	mCubeRotation.setToIdentity();
 	
@@ -39,7 +40,7 @@ void RotatingCubeApp::setup()
 //mGlsl = gl::getStockShader( gl::ShaderDef().texture() );
 	//mCubeBatch = gl::Batch::create( geo::Rect(), mGlsl );
 //	mCubeBatch = gl::Batch::create( geo::Cube(), mGlsl );
-	mCubeBatch = gl::Batch::create( geo::Teapot().grid( 6 ), mGlsl );
+	mCubeBatch = gl::Batch::create( geo::Teapot().subdivision( 6 ), mGlsl );
 
 	gl::enableDepthWrite();
 	gl::enableDepthRead();

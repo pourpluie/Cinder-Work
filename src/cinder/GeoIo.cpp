@@ -409,12 +409,12 @@ const float Teapot::sCurveData[][3] =
 	-1.5f, 0.075f}, {0.f, -1.425f, 0.f}, {1.5f, -0.84f, 0.075f}, {0.84f, -1.5f, 0.075f} };
 
 Teapot::Teapot()
-	: mGrid( 7 ), mPos( Vec3f::zero() ), mScale( Vec3f::one() ), mCalculationsCached( false )
+	: mSubdivision( 4 ), mPos( Vec3f::zero() ), mScale( Vec3f::one() ), mCalculationsCached( false )
 {
 	mHasTexCoord0 = mHasNormals = false;
 }
 
-size_t Teapot::getNumVerts() const
+size_t Teapot::getNumVertices() const
 {
 	calculate();
 	
@@ -504,15 +504,15 @@ void Teapot::calculate() const
 	if( mCalculationsCached )
 		return;
 	
-	mNumVertices = 32 * (mGrid + 1) * (mGrid + 1);
-	int numFaces = mGrid * mGrid * 32;
+	mNumVertices = 32 * (mSubdivision + 1) * (mSubdivision + 1);
+	int numFaces = mSubdivision * mSubdivision * 32;
 	mNumIndices = numFaces * 6;
 	mVertices = unique_ptr<float>( new float[mNumVertices * 3] );
 	mTexCoords = unique_ptr<float>( new float[mNumVertices * 2] );	
 	mNormals = unique_ptr<float>( new float[mNumVertices * 3] );
 	mIndices = unique_ptr<uint32_t>( new uint32_t[mNumIndices] );
 
-	generatePatches( mVertices.get(), mNormals.get(), mTexCoords.get(), mIndices.get(), mGrid );
+	generatePatches( mVertices.get(), mNormals.get(), mTexCoords.get(), mIndices.get(), mSubdivision );
 	
 	mCalculationsCached = true;
 }

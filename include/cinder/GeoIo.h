@@ -35,7 +35,7 @@ enum class Mode { TRIANGLES, TRIANGLE_STRIP };
 
 class Source {
   public:
-	virtual size_t		getNumVerts() const = 0;
+	virtual size_t		getNumVertices() const = 0;
 	virtual Mode		getMode() const = 0;
 	
 	virtual bool		hasAttrib( Attrib attr ) const = 0;
@@ -64,7 +64,7 @@ class Rect : public Source {
 	Rect&		scale( const Vec2f &scale ) { mScale = scale; return *this; }
 	Rect&		scale( float s ) { mScale = Vec2f( s, s ); return *this; }
   
-	virtual size_t		getNumVerts() const override { return 4; }
+	virtual size_t		getNumVertices() const override { return 4; }
 	virtual Mode		getMode() const { return Mode::TRIANGLE_STRIP; }
 	
 	virtual bool		hasAttrib( Attrib attr ) const override;
@@ -94,7 +94,7 @@ class Cube : public Source {
 	Cube&		scale( const Vec3f &scale ) { mScale = scale; return *this; }
 	Cube&		scale( float s ) { mScale = Vec3f( s, s, s ); return *this; }
   
-	virtual size_t		getNumVerts() const override { return 24; }
+	virtual size_t		getNumVertices() const override { return 24; }
 	virtual Mode		getMode() const { return Mode::TRIANGLES; }
 	
 	virtual bool		hasAttrib( Attrib attr ) const override;
@@ -129,9 +129,9 @@ class Teapot : public Source {
 	Teapot&		position( const Vec3f &pos ) { mPos = pos; return *this; }
 	Teapot&		scale( const Vec3f &scale ) { mScale = scale; return *this; }
 	Teapot&		scale( float s ) { mScale = Vec3f( s, s, s ); return *this; }
-	Teapot&		grid( int g ) { mGrid = g; return *this; }
+	Teapot&		subdivision( int sub ) { mSubdivision = sub; return *this; }
   
-	virtual size_t		getNumVerts() const override;
+	virtual size_t		getNumVertices() const override;
 	virtual Mode		getMode() const { return Mode::TRIANGLES; }
 	
 	virtual bool		hasAttrib( Attrib attr ) const override;
@@ -156,7 +156,7 @@ class Teapot : public Source {
 	static Vec3f	evaluate( int gridU, int gridV, const float *B, const Vec3f patch[][4] );
 	static Vec3f	evaluateNormal( int gridU, int gridV, const float *B, const float *dB, const Vec3f patch[][4] );
 
-	int			mGrid;
+	int			mSubdivision;
 	Vec3f		mPos, mScale;
 	bool		mHasTexCoord0;
 	bool		mHasNormals;
