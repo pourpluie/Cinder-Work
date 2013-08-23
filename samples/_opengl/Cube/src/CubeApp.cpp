@@ -26,7 +26,8 @@ class RotatingCubeApp : public AppNative {
 
 void RotatingCubeApp::setup()
 {
-	mCam.lookAt( Vec3f( 3, 2, -3 ), Vec3f::zero() );
+	disableFrameRate();
+	mCam.lookAt( Vec3f( 3, 2, 4 ), Vec3f::zero() );
 	mCubeRotation.setToIdentity();
 	
 	mTexture = gl::Texture::create( loadImage( loadAsset( "texture.jpg" ) ) );
@@ -36,8 +37,10 @@ void RotatingCubeApp::setup()
 #else
 	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) );
 #endif
-	mCubeBatch = gl::Batch::create( geo::Cube(), gl::getStockShader( gl::ShaderDef().texture().color() ) );
-	mCubeBatch = gl::Batch::create( geo::Rect(), mGlsl );
+//mGlsl = gl::getStockShader( gl::ShaderDef().texture() );
+	//mCubeBatch = gl::Batch::create( geo::Rect(), mGlsl );
+//	mCubeBatch = gl::Batch::create( geo::Cube(), mGlsl );
+	mCubeBatch = gl::Batch::create( geo::Teapot().subdivision( 6 ).scale( 0.5f ), mGlsl );
 
 	gl::enableDepthWrite();
 	gl::enableDepthRead();
@@ -55,7 +58,7 @@ void RotatingCubeApp::resize()
 void RotatingCubeApp::update()
 {
 	// Rotate the cube by .03 radians around an arbitrary axis
-	mCubeRotation.rotate( Vec3f( 1, 1, 1 ), 0.03f );
+	mCubeRotation.rotate( Vec3f( 1, 1.3, 0.5 ).normalized(), 0.03f );
 }
 
 void RotatingCubeApp::draw()
