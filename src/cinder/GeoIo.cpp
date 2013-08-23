@@ -599,8 +599,8 @@ void Teapot::buildPatch( Vec3f patch[][4], float *B, float *dB, float *v, float 
 			if( abs(pt.x) < 0.01f && abs(pt.y) < 0.01f )
 				norm = ( pt.z < 1 ) ? -Vec3f::zAxis() : Vec3f::zAxis();
 
-			v[index] = pt.x; v[index+1] = pt.y; v[index+2] = pt.z;
-			n[index] = norm.x; n[index+1] = norm.y; n[index+2] = norm.z;
+			v[index] = pt.x; v[index+1] = pt.z; v[index+2] = pt.y;
+			n[index] = norm.x; n[index+1] = norm.z; n[index+2] = norm.y;
 			tc[tcIndex] = i * tcFactor; tc[tcIndex+1] = j * tcFactor;
 
 			index += 3;
