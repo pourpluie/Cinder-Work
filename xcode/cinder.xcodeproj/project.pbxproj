@@ -15,6 +15,9 @@
 		0005630C11513B9400ECFD91 /* AppImplCocoaTouchRendererQuartz.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0005630A11513B9400ECFD91 /* AppImplCocoaTouchRendererQuartz.mm */; };
 		000F468F114FE1CE00421982 /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0049C1B61010E5B10015B4B9 /* Renderer.cpp */; };
 		000F4690114FE1CF00421982 /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0049C1B61010E5B10015B4B9 /* Renderer.cpp */; };
+		000FAB3B17C7B771002A300D /* GeomIo.h in Headers */ = {isa = PBXBuildFile; fileRef = 000FAB3A17C7B771002A300D /* GeomIo.h */; };
+		000FAB3C17C7B771002A300D /* GeomIo.h in Headers */ = {isa = PBXBuildFile; fileRef = 000FAB3A17C7B771002A300D /* GeomIo.h */; };
+		000FAB3D17C7B771002A300D /* GeomIo.h in Headers */ = {isa = PBXBuildFile; fileRef = 000FAB3A17C7B771002A300D /* GeomIo.h */; };
 		0012529312344FAA00080A0D /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0012529212344FAA00080A0D /* Ray.cpp */; };
 		0012529412344FAA00080A0D /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0012529212344FAA00080A0D /* Ray.cpp */; };
 		0012529512344FAA00080A0D /* Ray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0012529212344FAA00080A0D /* Ray.cpp */; };
@@ -359,12 +362,9 @@
 		0087345217BB0FC100BC2063 /* GeoSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 0087345117BB0FC100BC2063 /* GeoSource.h */; };
 		0087345317BB0FCA00BC2063 /* GeoSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 0087345117BB0FC100BC2063 /* GeoSource.h */; };
 		0087345417BB0FCB00BC2063 /* GeoSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 0087345117BB0FC100BC2063 /* GeoSource.h */; };
-		0087345E17BB11A900BC2063 /* GeoIo.h in Headers */ = {isa = PBXBuildFile; fileRef = 0087345D17BB11A900BC2063 /* GeoIo.h */; };
-		0087345F17BB11A900BC2063 /* GeoIo.h in Headers */ = {isa = PBXBuildFile; fileRef = 0087345D17BB11A900BC2063 /* GeoIo.h */; };
-		0087346017BB11A900BC2063 /* GeoIo.h in Headers */ = {isa = PBXBuildFile; fileRef = 0087345D17BB11A900BC2063 /* GeoIo.h */; };
-		0087346217BB120600BC2063 /* GeoIo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087346117BB120600BC2063 /* GeoIo.cpp */; };
-		0087346317BB120600BC2063 /* GeoIo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087346117BB120600BC2063 /* GeoIo.cpp */; };
-		0087346417BB120600BC2063 /* GeoIo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087346117BB120600BC2063 /* GeoIo.cpp */; };
+		0087346217BB120600BC2063 /* GeomIo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087346117BB120600BC2063 /* GeomIo.cpp */; };
+		0087346317BB120600BC2063 /* GeomIo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087346117BB120600BC2063 /* GeomIo.cpp */; };
+		0087346417BB120600BC2063 /* GeomIo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0087346117BB120600BC2063 /* GeomIo.cpp */; };
 		008876560F957E7300FD55C5 /* Arcball.h in Headers */ = {isa = PBXBuildFile; fileRef = 008876550F957E7300FD55C5 /* Arcball.h */; };
 		0088773C0F96671600FD55C5 /* FileDropEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 0088773B0F96671600FD55C5 /* FileDropEvent.h */; };
 		00887AC10F9C279700FD55C5 /* MayaCamUI.h in Headers */ = {isa = PBXBuildFile; fileRef = 00887AC00F9C279700FD55C5 /* MayaCamUI.h */; };
@@ -843,6 +843,7 @@
 		0005291F0FFBF4C200F19492 /* Text.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = Text.cpp; sourceTree = "<group>"; };
 		0005630611513B1D00ECFD91 /* AppImplCocoaTouchRendererQuartz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppImplCocoaTouchRendererQuartz.h; path = app/AppImplCocoaTouchRendererQuartz.h; sourceTree = "<group>"; };
 		0005630A11513B9400ECFD91 /* AppImplCocoaTouchRendererQuartz.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppImplCocoaTouchRendererQuartz.mm; path = app/AppImplCocoaTouchRendererQuartz.mm; sourceTree = "<group>"; };
+		000FAB3A17C7B771002A300D /* GeomIo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeomIo.h; sourceTree = "<group>"; };
 		0012529212344FAA00080A0D /* Ray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Ray.cpp; sourceTree = "<group>"; };
 		0014407E14CDB8D900D99000 /* Plane.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Plane.h; sourceTree = "<group>"; };
 		001E355E115D5EFA000C228C /* Xml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Xml.cpp; sourceTree = "<group>"; };
@@ -979,8 +980,7 @@
 		0087344817B46F9500BC2063 /* EnvironmentLegacy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EnvironmentLegacy.cpp; path = gl/EnvironmentLegacy.cpp; sourceTree = "<group>"; };
 		0087344C17B4702400BC2063 /* EnvironmentCore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EnvironmentCore.cpp; path = gl/EnvironmentCore.cpp; sourceTree = "<group>"; };
 		0087345117BB0FC100BC2063 /* GeoSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeoSource.h; sourceTree = "<group>"; };
-		0087345D17BB11A900BC2063 /* GeoIo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeoIo.h; sourceTree = "<group>"; };
-		0087346117BB120600BC2063 /* GeoIo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GeoIo.cpp; sourceTree = "<group>"; };
+		0087346117BB120600BC2063 /* GeomIo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GeomIo.cpp; sourceTree = "<group>"; };
 		008876550F957E7300FD55C5 /* Arcball.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Arcball.h; sourceTree = "<group>"; };
 		0088773B0F96671600FD55C5 /* FileDropEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileDropEvent.h; path = app/FileDropEvent.h; sourceTree = "<group>"; };
 		00887AC00F9C279700FD55C5 /* MayaCamUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MayaCamUI.h; sourceTree = "<group>"; };
@@ -1554,7 +1554,7 @@
 				009FD55410C9DB0600D63B1B /* ImageSourceFileQuartz.h */,
 				00BC89F110D2EA2200D6DC59 /* ImageTargetFileQuartz.h */,
 				0087345117BB0FC100BC2063 /* GeoSource.h */,
-				0087345D17BB11A900BC2063 /* GeoIo.h */,
+				000FAB3A17C7B771002A300D /* GeomIo.h */,
 			);
 			name = cinder;
 			path = ../include/cinder;
@@ -1626,7 +1626,7 @@
 				00A121E71362778200081873 /* TimelineItem.cpp */,
 				00A121E81362778200081873 /* Tween.cpp */,
 				008733CB1794D07400BC2063 /* GeoSource.cpp */,
-				0087346117BB120600BC2063 /* GeoIo.cpp */,
+				0087346117BB120600BC2063 /* GeomIo.cpp */,
 			);
 			name = cinder;
 			path = ../src/cinder;
@@ -1982,7 +1982,7 @@
 				00A06FEA1760EFC500D8BE17 /* VboMesh.h in Headers */,
 				008734161795901B00BC2063 /* Batch.h in Headers */,
 				0087345317BB0FCA00BC2063 /* GeoSource.h in Headers */,
-				0087345F17BB11A900BC2063 /* GeoIo.h in Headers */,
+				000FAB3C17C7B771002A300D /* GeomIo.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2125,7 +2125,7 @@
 				00A06FEB1760EFC500D8BE17 /* VboMesh.h in Headers */,
 				008734171795901B00BC2063 /* Batch.h in Headers */,
 				0087345417BB0FCB00BC2063 /* GeoSource.h in Headers */,
-				0087346017BB11A900BC2063 /* GeoIo.h in Headers */,
+				000FAB3D17C7B771002A300D /* GeomIo.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2293,7 +2293,7 @@
 				00A06FE91760EFC500D8BE17 /* VboMesh.h in Headers */,
 				008734151795901B00BC2063 /* Batch.h in Headers */,
 				0087345217BB0FC100BC2063 /* GeoSource.h in Headers */,
-				0087345E17BB11A900BC2063 /* GeoIo.h in Headers */,
+				000FAB3B17C7B771002A300D /* GeomIo.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2500,7 +2500,7 @@
 				0087343717A4BC6E00BC2063 /* VaoImplEs.cpp in Sources */,
 				0087343B17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
 				0087344617B46F0C00BC2063 /* EnvironmentEs2.cpp in Sources */,
-				0087346317BB120600BC2063 /* GeoIo.cpp in Sources */,
+				0087346317BB120600BC2063 /* GeomIo.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2622,7 +2622,7 @@
 				0087343817A4BC6E00BC2063 /* VaoImplEs.cpp in Sources */,
 				0087343C17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
 				0087344717B46F0C00BC2063 /* EnvironmentEs2.cpp in Sources */,
-				0087346417BB120600BC2063 /* GeoIo.cpp in Sources */,
+				0087346417BB120600BC2063 /* GeomIo.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2763,7 +2763,7 @@
 				00E3914217A327BF00952CA0 /* QuickTimeGl.cpp in Sources */,
 				0087344A17B46F9600BC2063 /* EnvironmentLegacy.cpp in Sources */,
 				0087344D17B4702500BC2063 /* EnvironmentCore.cpp in Sources */,
-				0087346217BB120600BC2063 /* GeoIo.cpp in Sources */,
+				0087346217BB120600BC2063 /* GeomIo.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

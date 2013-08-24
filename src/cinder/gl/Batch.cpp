@@ -29,50 +29,50 @@ namespace cinder { namespace gl {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Batch
-BatchRef Batch::create( const geo::Source &source, const gl::GlslProgRef &glsl )
+BatchRef Batch::create( const geom::Source &source, const gl::GlslProgRef &glsl )
 {
 	return BatchRef( new Batch( source, glsl ) );
 }
 
-Batch::Batch( const geo::Source &source, const gl::GlslProgRef &glsl )
+Batch::Batch( const geom::Source &source, const gl::GlslProgRef &glsl )
 	: mGlsl( glsl )
 {
 	mNumVertices = source.getNumVertices();
 	
 	switch( source.getMode() ) {
-		case geo::Mode::TRIANGLES:
+		case geom::Mode::TRIANGLES:
 			mMode = GL_TRIANGLES;
 		break;
-		case geo::Mode::TRIANGLE_STRIP:
+		case geom::Mode::TRIANGLE_STRIP:
 			mMode = GL_TRIANGLE_STRIP;
 		break;
 	}
 	
 	size_t dataSizeBytes = 0;
 	size_t offsetPosition, offsetColor, offsetTexCoord0, offsetNormals;
-	bool hasPosition = glsl->hasAttribSemantic( ATTRIB_POSITION ) && source.canProvideAttrib( geo::Attrib::POSITION );
-	bool hasColor = glsl->hasAttribSemantic( ATTRIB_COLOR ) && source.canProvideAttrib( geo::Attrib::COLOR );
-	bool hasTexCoord0 = glsl->hasAttribSemantic( ATTRIB_TEX_COORD_0 ) && source.canProvideAttrib( geo::Attrib::TEX_COORD_0 );
-	bool hasNormals = glsl->hasAttribSemantic( ATTRIB_NORMAL ) && source.canProvideAttrib( geo::Attrib::NORMAL );
+	bool hasPosition = glsl->hasAttribSemantic( geom::Attrib::POSITION ) && source.canProvideAttrib( geom::Attrib::POSITION );
+	bool hasColor = glsl->hasAttribSemantic( geom::Attrib::COLOR ) && source.canProvideAttrib( geom::Attrib::COLOR );
+	bool hasTexCoord0 = glsl->hasAttribSemantic( geom::Attrib::TEX_COORD_0 ) && source.canProvideAttrib( geom::Attrib::TEX_COORD_0 );
+	bool hasNormals = glsl->hasAttribSemantic( geom::Attrib::NORMAL ) && source.canProvideAttrib( geom::Attrib::NORMAL );
 	
 	if( hasPosition ) {
 		offsetPosition = dataSizeBytes;
-		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geo::Attrib::POSITION );
+		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geom::Attrib::POSITION );
 	}
 
 	if( hasColor ) {
 		offsetColor = dataSizeBytes;
-		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geo::Attrib::COLOR );
+		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geom::Attrib::COLOR );
 	}
 
 	if( hasTexCoord0 ) {
 		offsetTexCoord0 = dataSizeBytes;
-		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geo::Attrib::TEX_COORD_0 );
+		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geom::Attrib::TEX_COORD_0 );
 	}
 	
 	if( hasNormals ) {
 		offsetNormals = dataSizeBytes;
-		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geo::Attrib::NORMAL );
+		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geom::Attrib::NORMAL );
 	}
 	
 	// allocate VBO dataSize
@@ -81,16 +81,16 @@ Batch::Batch( const geo::Source &source, const gl::GlslProgRef &glsl )
 	uint8_t *buffer = new uint8_t[dataSizeBytes];
 	
 	if( hasPosition )
-		source.copyAttrib( geo::Attrib::POSITION, source.getAttribDims( geo::Attrib::POSITION ), 0, (float*)&buffer[offsetPosition] );
+		source.copyAttrib( geom::Attrib::POSITION, source.getAttribDims( geom::Attrib::POSITION ), 0, (float*)&buffer[offsetPosition] );
 
 	if( hasColor )
-		source.copyAttrib( geo::Attrib::COLOR, source.getAttribDims( geo::Attrib::COLOR ), 0, (float*)&buffer[offsetColor] );
+		source.copyAttrib( geom::Attrib::COLOR, source.getAttribDims( geom::Attrib::COLOR ), 0, (float*)&buffer[offsetColor] );
 
 	if( hasTexCoord0 )
-		source.copyAttrib( geo::Attrib::TEX_COORD_0, source.getAttribDims( geo::Attrib::TEX_COORD_0 ), 0, (float*)&buffer[offsetTexCoord0] );
+		source.copyAttrib( geom::Attrib::TEX_COORD_0, source.getAttribDims( geom::Attrib::TEX_COORD_0 ), 0, (float*)&buffer[offsetTexCoord0] );
 
 	if( hasNormals )
-		source.copyAttrib( geo::Attrib::NORMAL, source.getAttribDims( geo::Attrib::NORMAL ), 0, (float*)&buffer[offsetNormals] );
+		source.copyAttrib( geom::Attrib::NORMAL, source.getAttribDims( geom::Attrib::NORMAL ), 0, (float*)&buffer[offsetNormals] );
 	
 	mVertexArray = Vbo::create( GL_ARRAY_BUFFER, dataSizeBytes, buffer );
 
@@ -123,27 +123,27 @@ Batch::Batch( const geo::Source &source, const gl::GlslProgRef &glsl )
 		
 		mVertexArray->bind();
 		if( hasPosition ) {
-			int loc = glsl->getAttribSemanticLocation( ATTRIB_POSITION );
+			int loc = glsl->getAttribSemanticLocation( geom::Attrib::POSITION );
 			ctx->enableVertexAttribArray( loc );
-			ctx->vertexAttribPointer( loc, source.getAttribDims( geo::Attrib::POSITION ), GL_FLOAT, GL_FALSE, 0, (void*)offsetPosition );
+			ctx->vertexAttribPointer( loc, source.getAttribDims( geom::Attrib::POSITION ), GL_FLOAT, GL_FALSE, 0, (void*)offsetPosition );
 		}
 
 		if( hasColor ) {
-			int loc = glsl->getAttribSemanticLocation( ATTRIB_COLOR );
+			int loc = glsl->getAttribSemanticLocation( geom::Attrib::COLOR );
 			ctx->enableVertexAttribArray( loc );
-			ctx->vertexAttribPointer( loc, source.getAttribDims( geo::Attrib::COLOR ), GL_FLOAT, GL_FALSE, 0, (void*)offsetColor );
+			ctx->vertexAttribPointer( loc, source.getAttribDims( geom::Attrib::COLOR ), GL_FLOAT, GL_FALSE, 0, (void*)offsetColor );
 		}
 
 		if( hasTexCoord0 ) {
-			int loc = glsl->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
+			int loc = glsl->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 			ctx->enableVertexAttribArray( loc );
-			ctx->vertexAttribPointer( loc, source.getAttribDims( geo::Attrib::TEX_COORD_0 ), GL_FLOAT, GL_FALSE, 0, (void*)offsetTexCoord0 );
+			ctx->vertexAttribPointer( loc, source.getAttribDims( geom::Attrib::TEX_COORD_0 ), GL_FLOAT, GL_FALSE, 0, (void*)offsetTexCoord0 );
 		}
 
 		if( hasNormals ) {
-			int loc = glsl->getAttribSemanticLocation( ATTRIB_NORMAL );
+			int loc = glsl->getAttribSemanticLocation( geom::Attrib::NORMAL );
 			ctx->enableVertexAttribArray( loc );
-			ctx->vertexAttribPointer( loc, source.getAttribDims( geo::Attrib::NORMAL ), GL_FLOAT, GL_FALSE, 0, (void*)offsetNormals );
+			ctx->vertexAttribPointer( loc, source.getAttribDims( geom::Attrib::NORMAL ), GL_FLOAT, GL_FALSE, 0, (void*)offsetNormals );
 		}
 		
 		if( mNumIndices > 0 )
@@ -323,29 +323,29 @@ void VertBatch::setupBuffers()
 	VaoScope vaoScope( mVao );
 	BufferScope vboScope( mVbo );
 	size_t offset = 0;
-	if( shader->hasAttribSemantic( ATTRIB_POSITION ) ) {
-		int loc = shader->getAttribSemanticLocation( ATTRIB_POSITION );
+	if( shader->hasAttribSemantic( geom::Attrib::POSITION ) ) {
+		int loc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 		ctx->enableVertexAttribArray( loc );
 		ctx->vertexAttribPointer( loc, 4, GL_FLOAT, false, 0, (const GLvoid*)offset );
 		offset += verticesSizeBytes;
 	}
 
-	if( shader->hasAttribSemantic( ATTRIB_NORMAL ) && ( ! mNormals.empty() ) ) {
-		int loc = shader->getAttribSemanticLocation( ATTRIB_NORMAL );
+	if( shader->hasAttribSemantic( geom::Attrib::NORMAL ) && ( ! mNormals.empty() ) ) {
+		int loc = shader->getAttribSemanticLocation( geom::Attrib::NORMAL );
 		ctx->enableVertexAttribArray( loc );
 		ctx->vertexAttribPointer( loc, 3, GL_FLOAT, false, 0, (const GLvoid*)offset );
 		offset += normalsSizeBytes;
 	}
 
-	if( shader->hasAttribSemantic( ATTRIB_COLOR ) && ( ! mColors.empty() ) ) {
-		int loc = shader->getAttribSemanticLocation( ATTRIB_COLOR );
+	if( shader->hasAttribSemantic( geom::Attrib::COLOR ) && ( ! mColors.empty() ) ) {
+		int loc = shader->getAttribSemanticLocation( geom::Attrib::COLOR );
 		ctx->enableVertexAttribArray( loc );
 		ctx->vertexAttribPointer( loc, 4, GL_FLOAT, false, 0, (const GLvoid*)offset );
 		offset += colorsSizeBytes;
 	}
 
-	if( shader->hasAttribSemantic( ATTRIB_TEX_COORD_0 ) && ( ! mTexCoords.empty() ) ) {
-		int loc = shader->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
+	if( shader->hasAttribSemantic( geom::Attrib::TEX_COORD_0 ) && ( ! mTexCoords.empty() ) ) {
+		int loc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 		ctx->enableVertexAttribArray( loc );
 		ctx->vertexAttribPointer( loc, 4, GL_FLOAT, false, 0, (const GLvoid*)offset );
 	}
@@ -353,7 +353,7 @@ void VertBatch::setupBuffers()
 /*	VertexLayout vtxl;
 	vtxl.attrib( ATTRIB_VERTEX, &mVertices );
 	if( ! mNormals.empty() )
-		vtxl.attrib( ATTRIB_NORMAL, &mNormals );
+		vtxl.attrib( geom::Attrib::NORMAL, &mNormals );
 	if( ! layoutMatches( mCachedLayout ) ) {
 		buildBuffers( vtxl, ctx->getShader(), &mVbo, &mVao );
 		mCachedLayout = vtxl;

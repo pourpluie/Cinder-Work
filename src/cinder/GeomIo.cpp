@@ -21,11 +21,11 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "GeoIo.h"
+#include "cinder/GeomIo.h"
 
 using namespace std;
 
-namespace cinder { namespace geo {
+namespace cinder { namespace geom {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////

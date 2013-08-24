@@ -34,6 +34,7 @@
 #include "cinder/Color.h"
 #include "cinder/Matrix.h"
 #include "cinder/DataSource.h"
+#include "cinder/GeomIo.h"
 
 namespace cinder { namespace gl {
 	
@@ -63,7 +64,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	};
   
 	typedef std::map<std::string,UniformSemantic>	UniformSemanticMap;
-	typedef std::map<std::string,AttribSemantic>	AttribSemanticMap;
+	typedef std::map<std::string,geom::Attrib>		AttribSemanticMap;
 
 	static GlslProgRef create( const Format &format );  
 	static GlslProgRef create( DataSourceRef vertexShader, DataSourceRef fragmentShader = DataSourceRef() );
@@ -101,9 +102,9 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	const UniformSemanticMap&		getUniformSemantics() const;
 	const AttribSemanticMap&		getAttribSemantics() const;
 	
-	bool	hasAttribSemantic( AttribSemantic semantic ) const;
-	GLint	getAttribSemanticLocation( AttribSemantic semantic ) const;
-	GLint	operator[]( AttribSemantic sem ) const { return getAttribSemanticLocation( sem ); }
+	bool	hasAttribSemantic( geom::Attrib semantic ) const;
+	GLint	getAttribSemanticLocation( geom::Attrib semantic ) const;
+	GLint	operator[]( geom::Attrib sem ) const { return getAttribSemanticLocation( sem ); }
 	
 	//! Default mapping from uniform name to semantic. Can be modified via the reference. Not thread-safe.
 	static UniformSemanticMap&		getDefaultUniformNameToSemanticMap();

@@ -3,10 +3,132 @@
  */
 
 #include "cinder/gl/VboMesh.h"
+#include "cinder/gl/GlslProg.h"
+#include "cinder/gl/Context.h"
 
 namespace cinder { namespace gl {
 
 using namespace std;
+
+
+
+VboMeshRef VboMesh::create( const geom::Source &source )
+{
+	return VboMeshRef( new VboMesh( source ) );
+}
+
+VboMesh::VboMesh( const geom::Source &source )
+{
+	mNumVertices = source.getNumVertices();
+	
+	switch( source.getMode() ) {
+		case geom::Mode::TRIANGLES:
+			mMode = GL_TRIANGLES;
+		break;
+		case geom::Mode::TRIANGLE_STRIP:
+			mMode = GL_TRIANGLE_STRIP;
+		break;
+	}
+	
+	size_t vertexDataSizeBytes = 0;
+	geom::BufferLayout bufferLayout;
+	for( int attribIt = 0; attribIt < (int)geom::Attrib::NUM_ATTRIBS; ++attribIt ) {
+		if( source.hasAttrib( (geom::Attrib)attribIt ) ) {
+			size_t attribDim = source.getAttribDims( (geom::Attrib)attribIt );
+			bufferLayout.append( (geom::Attrib)attribIt, attribDim, 0, vertexDataSizeBytes );
+			vertexDataSizeBytes += attribDim * sizeof(float) * mNumVertices;
+		}
+	}
+	
+	uint8_t *buffer = new uint8_t[vertexDataSizeBytes];
+
+	for( auto &attrInfo : bufferLayout.getAttribs() ) {
+		if( source.hasAttrib( attrInfo.getAttrib() ) ) {
+			source.copyAttrib( attrInfo.getAttrib(), attrInfo.getSize(), attrInfo.getStride(), (float*)&buffer[attrInfo.getOffset()] );
+		}
+	}
+	
+	VboRef vertexDataVbo = gl::Vbo::create( GL_ARRAY_BUFFER, vertexDataSizeBytes, buffer );
+	delete [] buffer;
+	
+	mVertexArrayVbos.push_back( make_pair( bufferLayout, vertexDataVbo ) );
+	
+	mNumIndices = source.getNumIndices();
+	if( mNumIndices ) {		
+		if( mNumIndices < 65536 ) {
+			mIndexType = GL_UNSIGNED_SHORT;
+			uint16_t *indices = new uint16_t[mNumIndices];
+			source.copyIndices( indices );
+			mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, mNumIndices * sizeof(uint16_t), indices );
+			delete [] indices;
+		}
+		else {
+			mIndexType = GL_UNSIGNED_INT;
+			uint32_t *indices = new uint32_t[mNumIndices];
+			source.copyIndices( indices );
+			mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, mNumIndices * sizeof(uint32_t), indices );
+			delete [] indices;
+		}
+	}
+}
+
+VaoRef VboMesh::buildVao( const GlslProgRef &shader )
+{
+	VaoRef result = Vao::create();
+	VaoScope vaoScope( result );
+	
+	auto ctx = gl::context();
+	
+	// iterate all the vertex array VBOs
+	for( const auto &vertArrayVbo : mVertexArrayVbos ) {
+		// bind this VBO (to the current VAO)
+		vertArrayVbo.second->bind();
+		// now iterate the attributes associated with this VBO
+		for( const auto &attribInfo : vertArrayVbo.first.getAttribs() ) {
+			// get the location of the attrib semantic in the shader if it's present
+			if( shader->hasAttribSemantic( attribInfo.getAttrib() ) ) {
+				int loc = shader->getAttribSemanticLocation( attribInfo.getAttrib() );
+				ctx->enableVertexAttribArray( loc );
+				ctx->vertexAttribPointer( loc, attribInfo.getSize(), GL_FLOAT, GL_FALSE, attribInfo.getStride(), (const void*)attribInfo.getOffset() );
+			}
+		}
+	}
+	
+	if( mNumIndices > 0 )
+		mElements->bind();
+	
+	return result;
+}
+
+void VboMesh::drawImpl()
+{
+	if( mNumIndices )
+		glDrawElements( mMode, mNumIndices, mIndexType, (GLvoid*)( 0 ) );
+	else
+		glDrawArrays( mMode, 0, mNumVertices );
+}
+
+/*	{
+		// PREPARE VAO
+		mVao = Vao::create();
+		VaoScope vaoScope( mVao );
+
+	}*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #if 0
 
