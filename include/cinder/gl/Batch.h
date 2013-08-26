@@ -26,7 +26,7 @@
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Vao.h"
-#include "cinder/GeoIo.h"
+#include "cinder/GeomIo.h"
 
 namespace cinder { namespace gl {
 
@@ -35,9 +35,9 @@ typedef std::shared_ptr<class VertBatch>	VertBatchRef;
 
 class Batch {
   public:
-	static BatchRef		create( const geo::Source &source, const gl::GlslProgRef &glsl );
+	static BatchRef		create( const geom::Source &source, const gl::GlslProgRef &glsl );
 	
-	Batch( const geo::Source &source, const gl::GlslProgRef &glsl );
+	Batch( const geom::Source &source, const gl::GlslProgRef &glsl );
 
 	void			draw();
 	

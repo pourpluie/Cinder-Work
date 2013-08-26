@@ -9,6 +9,7 @@
 #include "cinder/TriMesh.h"
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
+#include "cinder/geomIo.h"
 
 namespace cinder { namespace gl {
 	
@@ -18,6 +19,25 @@ void draw( const VboMeshRef& vbo );
 void drawRange( const VboMeshRef& vbo, GLint start, GLsizei count );
 
 class VboMesh {
+  public:
+	static VboMeshRef	create( const geom::Source &source );
+
+	//! Constructs a VAO that matches \a this to GlslProg \a shader
+	VaoRef		buildVao( const GlslProgRef &shader );
+	//! Issues a glDraw* call, but without binding a VAO or sending shader vars. Consider gl::draw( VboMeshRef ) instead
+	void		drawImpl();
+
+  protected:
+	VboMesh( const geom::Source &source );
+
+	uint32_t			mNumVertices, mNumIndices;
+	GLenum				mMode;
+	GLenum				mIndexType;
+
+
+	std::vector<std::pair<geom::BufferLayout,VboRef>>	mVertexArrayVbos;
+	VboRef												mElements;
+	
 /*  public:	
 	class Layout {
 	  public:

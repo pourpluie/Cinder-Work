@@ -1,11 +1,8 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/app/RendererGl.h"
-#include "cinder/Surface.h"
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Batch.h"
-#include "cinder/Capture.h"
-#include "cinder/Camera.h"
-#include "cinder/Text.h"
+#include "cinder/gl/VboMesh.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -22,11 +19,13 @@ class RotatingCubeApp : public AppNative {
 	gl::BatchRef		mCubeBatch;
 	gl::TextureRef		mTexture;
 	gl::GlslProgRef		mGlsl;
+	
+	gl::VboMeshRef		mTeapotMesh;
 };
 
 void RotatingCubeApp::setup()
 {
-	disableFrameRate();
+//	disableFrameRate();
 	mCam.lookAt( Vec3f( 3, 2, 4 ), Vec3f::zero() );
 	mCubeRotation.setToIdentity();
 	
@@ -37,13 +36,17 @@ void RotatingCubeApp::setup()
 #else
 	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) );
 #endif
-//mGlsl = gl::getStockShader( gl::ShaderDef().texture() );
+mGlsl = gl::getStockShader( gl::ShaderDef().texture() );
 	//mCubeBatch = gl::Batch::create( geo::Rect(), mGlsl );
 //	mCubeBatch = gl::Batch::create( geo::Cube(), mGlsl );
-	mCubeBatch = gl::Batch::create( geo::Teapot().subdivision( 6 ).scale( 0.5f ), mGlsl );
+//	mCubeBatch = gl::Batch::create( geom::Teapot().subdivision( 6 ).scale( 0.5f ), mGlsl );
+
+	mTeapotMesh = gl::VboMesh::create( geom::Teapot().subdivision( 6 ).scale( 0.5f ).texCoords() );
 
 	gl::enableDepthWrite();
 	gl::enableDepthRead();
+	
+	mGlsl->bind();
 }
 
 void RotatingCubeApp::resize()
@@ -66,7 +69,8 @@ void RotatingCubeApp::draw()
 	gl::clear( Color::black() );
 	gl::pushMatrices();
 		gl::multModelView( mCubeRotation );
-		mCubeBatch->draw();
+//		mCubeBatch->draw();
+		gl::draw( mTeapotMesh );
 	gl::popMatrices();
 }
 

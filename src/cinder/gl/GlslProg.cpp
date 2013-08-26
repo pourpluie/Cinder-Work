@@ -138,10 +138,10 @@ GlslProg::AttribSemanticMap& GlslProg::getDefaultAttribNameToSemanticMap()
 {
 	static bool initialized = false;
 	if( ! initialized ) {
-		sDefaultAttribNameToSemanticMap["vPosition"] = ATTRIB_POSITION;
-		sDefaultAttribNameToSemanticMap["vNormal"] = ATTRIB_NORMAL;
-		sDefaultAttribNameToSemanticMap["vTexCoord0"] = ATTRIB_TEX_COORD_0;
-		sDefaultAttribNameToSemanticMap["vColor"] = ATTRIB_COLOR;
+		sDefaultAttribNameToSemanticMap["vPosition"] = geom::Attrib::POSITION;
+		sDefaultAttribNameToSemanticMap["vNormal"] = geom::Attrib::NORMAL;
+		sDefaultAttribNameToSemanticMap["vTexCoord0"] = geom::Attrib::TEX_COORD_0;
+		sDefaultAttribNameToSemanticMap["vColor"] = geom::Attrib::COLOR;
 		initialized = true;
 	}
 	
@@ -391,7 +391,7 @@ const GlslProg::AttribSemanticMap& GlslProg::getAttribSemantics() const
 			if( semantic != mAttribNameToSemanticMap.end() ) {
 				// found this semantic, add it mAttrSemantics
 				mAttribSemantics[semantic->first] = semantic->second;
-std::cout << semantic->first << "==" << semantic->second;
+std::cout << semantic->first << "==" << (int)semantic->second;
 			}
 			else {
 std::cout << "No semantic for: " << semantic->first;			
@@ -404,7 +404,7 @@ std::cout << "No semantic for: " << semantic->first;
 	return mAttribSemantics;
 }
 
-bool GlslProg::hasAttribSemantic( AttribSemantic semantic ) const
+bool GlslProg::hasAttribSemantic( geom::Attrib semantic ) const
 {
 	auto semantics = getAttribSemantics();
 	for( auto semIt = semantics.begin(); semIt != semantics.end(); ++semIt ) {
@@ -415,7 +415,7 @@ bool GlslProg::hasAttribSemantic( AttribSemantic semantic ) const
 	return false;
 }
 
-GLint GlslProg::getAttribSemanticLocation( AttribSemantic semantic ) const
+GLint GlslProg::getAttribSemanticLocation( geom::Attrib semantic ) const
 {
 	auto semantics = getAttribSemantics();
 	for( auto semIt = semantics.begin(); semIt != semantics.end(); ++semIt ) {

@@ -44,10 +44,6 @@ enum UniformSemantic {
 	UNIFORM_NORMAL_MATRIX
 };
 
-enum AttribSemantic {
-	ATTRIB_POSITION, ATTRIB_NORMAL, ATTRIB_TEX_COORD_0, ATTRIB_COLOR
-};
-
 class Vbo;
 typedef std::shared_ptr<Vbo>		VboRef;
 class VboMesh;

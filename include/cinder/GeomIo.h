@@ -28,10 +28,43 @@
 #include "cinder/Vector.h"
 #include "cinder/Matrix.h"
 
-namespace cinder { namespace geo {
+namespace cinder { namespace geom {
 
-enum class Attrib { POSITION, COLOR, TEX_COORD_0, NORMAL, TANGENT, BITANGET };
+// keep this incrementing by 1 only; some code relies on that for iterating
+enum class Attrib { POSITION, COLOR, TEX_COORD_0, NORMAL, TANGENT, BITANGET, NUM_ATTRIBS };
 enum class Mode { TRIANGLES, TRIANGLE_STRIP }; 
+
+class BufferLayout {
+  public:
+	struct AttribInfo {
+		AttribInfo( const Attrib &attrib, int32_t size, size_t stride, size_t offset )
+			: mAttrib( attrib ), mSize( size ), mStride( stride ), mOffset( offset )
+		{}
+	
+		Attrib	getAttrib() const { return mAttrib; }
+		int32_t	getSize() const { return mSize; }
+		size_t	getStride() const { return mStride; }
+		size_t	getOffset() const { return mOffset;	}
+		
+	  protected:
+		Attrib		mAttrib;
+		int32_t		mSize;
+		size_t		mStride;
+		size_t		mOffset;
+	}; 
+
+
+	BufferLayout() {}
+	
+	void append( const Attrib &attrib, int32_t size, size_t stride, size_t offset ) {
+		mAttribs.push_back( AttribInfo( attrib, size, stride, offset ) );
+	}
+	
+	const std::vector<AttribInfo>&	getAttribs() const { return mAttribs; }
+	
+  protected:
+	std::vector<AttribInfo>		mAttribs;
+};
 
 class Source {
   public:
@@ -188,4 +221,4 @@ class ExcIllegalDestDimensions : public Exception {
 class ExcNoIndices : public Exception {
 };
 
-} } // namespace cinder::geo
+} } // namespace cinder::geom

@@ -500,7 +500,14 @@ void polygonMode( GLenum face, GLenum mode )
 
 void draw( const VboMeshRef& mesh )
 {
-	drawRange( mesh );
+	auto ctx = gl::context();
+	auto curShader = ctx->getCurrentShader();
+	if( ! curShader )
+		return;
+
+	VaoScope vaoScope( mesh->buildVao( curShader ) );
+	ctx->setDefaultShaderVars();
+	mesh->drawImpl();
 }
 
 void drawRange( const VboMeshRef& mesh, GLint start, GLsizei count )
@@ -630,10 +637,10 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	if( ! curShader )
 		return;
 
-	bool hasPositions = curShader->hasAttribSemantic( ATTRIB_POSITION );
-	bool hasNormals = curShader->hasAttribSemantic( ATTRIB_NORMAL );
-	bool hasTextureCoords = curShader->hasAttribSemantic( ATTRIB_TEX_COORD_0 );
-	bool hasColors = curShader->hasAttribSemantic( ATTRIB_COLOR );
+	bool hasPositions = curShader->hasAttribSemantic( geom::Attrib::POSITION );
+	bool hasNormals = curShader->hasAttribSemantic( geom::Attrib::NORMAL );
+	bool hasTextureCoords = curShader->hasAttribSemantic( geom::Attrib::TEX_COORD_0 );
+	bool hasColors = curShader->hasAttribSemantic( geom::Attrib::COLOR );
 	
 	size_t totalArrayBufferSize = 0;
 	if( hasPositions )
@@ -653,7 +660,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	elementVbo->bind();
 	size_t curBufferOffset = 0;
 	if( hasPositions ) {
-		int loc = curShader->getAttribSemanticLocation( ATTRIB_POSITION );
+		int loc = curShader->getAttribSemanticLocation( geom::Attrib::POSITION );
 		gl::bindBuffer( arrayVbo );
 		enableVertexAttribArray( loc );
 		vertexAttribPointer( loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
@@ -662,7 +669,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	}
 
 	if( hasTextureCoords ) {
-		int loc = curShader->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
+		int loc = curShader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 		gl::bindBuffer( arrayVbo );
 		enableVertexAttribArray( loc );
 		vertexAttribPointer( loc, 2, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
@@ -671,7 +678,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	}
 
 	if( hasColors ) {
-		int loc = curShader->getAttribSemanticLocation( ATTRIB_COLOR );
+		int loc = curShader->getAttribSemanticLocation( geom::Attrib::COLOR );
 		gl::bindBuffer( arrayVbo );
 		enableVertexAttribArray( loc );
 		vertexAttribPointer( loc, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)curBufferOffset );
@@ -719,10 +726,10 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	arrayVbo->bind();
 	arrayVbo->bufferData( sizeof(data), data, GL_DYNAMIC_DRAW );
 
-	int posLoc = shader->getAttribSemanticLocation( ATTRIB_POSITION );
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	enableVertexAttribArray( posLoc );
 	vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
-	int texLoc = shader->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
+	int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 	enableVertexAttribArray( texLoc );	
 	vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 	
@@ -757,10 +764,10 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	arrayVbo->bufferData( sizeof(data), data, GL_DYNAMIC_DRAW );
 	
 	gl::GlslProgRef shader = ctx->getCurrentShader();
-	int posLoc = shader->getAttribSemanticLocation( ATTRIB_POSITION );
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	enableVertexAttribArray( posLoc );
 	vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
-	int texLoc = shader->getAttribSemanticLocation( ATTRIB_TEX_COORD_0 );
+	int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 	enableVertexAttribArray( texLoc );
 	vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 	

@@ -606,7 +606,7 @@ void Context::setDefaultShaderVars()
 		auto attribs = glslProg->getAttribSemantics();
 		for( auto attribIt = attribs.begin(); attribIt != attribs.end(); ++attribIt ) {
 			switch( attribIt->second ) {
-				case ATTRIB_COLOR: {
+				case geom::Attrib::COLOR: {
 					int loc = glslProg->getAttribLocation( attribIt->first );
 					ColorA c = ctx->getCurrentColor();
 					gl::vertexAttrib4f( loc, c.r, c.g, c.b, c.a );
