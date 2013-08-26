@@ -2,21 +2,22 @@
 
 #include "cinder/ObjLoader.h"
 #include "cinder/app/AppBasic.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/Arcball.h"
 #include "cinder/MayaCamUI.h"
 #include "cinder/Sphere.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Texture.h"
+#include "cinder/gl/Batch.h"
 #include "cinder/ImageIo.h"
+#include "cinder/gl/Shader.h"
 
 using namespace ci;
 using namespace ci::app;
 
 #include <list>
 using std::list;
-
-bool gDebug = false;
 
 // We'll create a new Cinder Application by deriving from the BasicApp class
 class ObjLoaderApp : public AppBasic {
@@ -28,33 +29,30 @@ class ObjLoaderApp : public AppBasic {
 	void mouseDrag( MouseEvent event );
 	void keyDown( KeyEvent event );
 
+	void	loadObjFile( const fs::path &filePath );
 	void	frameCurrentObject();
 	void	draw();
 	
 	Arcball			mArcball;
 	MayaCamUI		mMayaCam;
 	TriMesh			mMesh;
-	gl::VboMesh		mVBO;
-	gl::GlslProg	mShader;
-	gl::Texture		mTexture;
+	gl::BatchRef	mBatch;
+	gl::GlslProgRef	mShader;
+	gl::TextureRef	mTexture;
 };
 
 void ObjLoaderApp::setup()
-{
-	ObjLoader loader( (DataSourceRef)loadResource( RES_CUBE_OBJ ) );
-	loader.load( &mMesh );
-	mVBO = gl::VboMesh( mMesh );
-	
-	mTexture = gl::Texture( loadImage( loadResource( RES_IMAGE ) ) );
-	mShader = gl::GlslProg( loadResource( RES_SHADER_VERT ), loadResource( RES_SHADER_FRAG ) );
+{	
+	mTexture = gl::Texture::create( loadImage( loadResource( RES_IMAGE ) ) );
+//	mShader = gl::GlslProg( loadResource( RES_SHADER_VERT ), loadResource( RES_SHADER_FRAG ) );
 
 	CameraPersp initialCam;
 	initialCam.setPerspective( 45.0f, getWindowAspectRatio(), 0.1, 10000 );
 	mMayaCam.setCurrentCam( initialCam );
 
-	mTexture.bind();
-	mShader.bind();
-	mShader.uniform( "tex0", 0 );
+	mTexture->bind();
+//	mShader.bind();
+//	mShader.uniform( "tex0", 0 );
 }
 
 void ObjLoaderApp::resize()
@@ -80,6 +78,12 @@ void ObjLoaderApp::mouseDrag( MouseEvent event )
 		mArcball.mouseDrag( event.getPos() );
 }
 
+void ObjLoaderApp::loadObjFile( const fs::path &filePath )
+{
+	ObjLoader loader( (DataSourceRef)loadFile( filePath ) );
+	mBatch = gl::Batch::create( loader, gl::getStockShader( gl::ShaderDef().color() ) );
+}
+
 void ObjLoaderApp::frameCurrentObject()
 {
 	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh.getVertices() );
@@ -92,9 +96,7 @@ void ObjLoaderApp::keyDown( KeyEvent event )
 	if( event.getChar() == 'o' ) {
 		fs::path path = getOpenFilePath();
 		if( ! path.empty() ) {
-			ObjLoader loader( loadFile( path ) );
-			loader.load( &mMesh, true );
-			mVBO = gl::VboMesh( mMesh );
+			loadObjFile( path );
 			console() << "Total verts: " << mMesh.getVertices().size() << std::endl;
 		}
 	}
@@ -115,9 +117,6 @@ void ObjLoaderApp::keyDown( KeyEvent event )
 	else if( event.getChar() == 'f' ) {
 		frameCurrentObject();
 	}
-	else if( event.getChar() == 'd' ) {
-		gDebug = ! gDebug;
-	}
 }
 
 void ObjLoaderApp::draw()
@@ -126,7 +125,7 @@ void ObjLoaderApp::draw()
 	gl::enableDepthRead();
 	
 	gl::clear( Color( 0.0f, 0.1f, 0.2f ) );
-	glDisable( GL_CULL_FACE );
+	gl::disable( GL_CULL_FACE );
 
 	gl::setMatrices( mMayaCam.getCamera() );
 
@@ -138,10 +137,10 @@ void ObjLoaderApp::draw()
 	gl::draw( boundingSphere, 30 );
 	gl::enableDepthWrite();
 */
-	mShader.bind();
+//	mShader.bind();
 	gl::pushMatrices();
 		gl::rotate( mArcball.getQuat() );
-		gl::draw( mVBO );
+		mBatch->draw();
 	gl::popMatrices();
 }
 

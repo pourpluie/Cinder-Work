@@ -321,10 +321,11 @@ void setMatricesWindow( const ci::Vec2i& screenSize, bool originUpperLeft )
 	setMatricesWindow( screenSize.x, screenSize.y, originUpperLeft );
 }
 
-void rotate( const ci::Vec3f& v )
+void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis )
 {
 	auto ctx	= gl::context();
-	ctx->getModelViewStack().back().rotate( Vec3f( toRadians( v.x ), toRadians( v.y ), toRadians( v.z ) ) );
+//	ctx->getModelViewStack().back().rotate( Vec3f( toRadians( xAxis ), toRadians( yAxis ), toRadians( zAxis ) ) );
+	ctx->getModelViewStack().back().rotate( Vec3f( xAxis, yAxis, zAxis ), angleDegrees );
 }
 	
 void scale( const ci::Vec3f& v )

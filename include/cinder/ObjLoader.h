@@ -26,6 +26,7 @@
 
 #include "cinder/TriMesh.h"
 #include "cinder/Stream.h"
+#include "cinder/GeomIo.h"
 
 #include <boost/logic/tribool.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
@@ -44,8 +45,12 @@ namespace cinder {
  * gl::draw( myCube );
  * \endcode
 **/ 
-class ObjLoader {
- public:
+
+geom::SourceRef	loadGeom( const fs::path &path );
+
+
+class ObjLoader : public geom::Source {
+  public:
 	/**Constructs and does the parsing of the file
 	 * \param includeUVs  if false UV coordinates will be skipped, which can provide a faster load time
 	**/
@@ -60,17 +65,15 @@ class ObjLoader {
 	ObjLoader( DataSourceRef dataSource, DataSourceRef materialSource, bool includeUVs = true );
 	~ObjLoader();
 
-	/**Loads all the groups present in the file into a single TriMesh
-	 * \param destTriMesh the destination TriMesh, whose contents are cleared first
+	/**Loads all the groups present in the file
 	 * \param loadNormals  should normals be loaded or generated if not present. Default determines from the contents of the file
-	 * \param loadTexCoords  should 2D texture coordinates be loaded or set to zero if not present. Default determines from the contents of the file
-	 * \param optimizeVertices  should the loader minimze the vertices by identifying shared vertices between faces. */
-	void	load( TriMesh *destTriMesh, boost::tribool loadNormals = boost::logic::indeterminate, boost::tribool loadTexCoords = boost::logic::indeterminate, bool optimizeVertices = true );
+	 * \param loadTexCoords  should 2D texture coordinates be loaded or set to zero if not present. Default determines from the contents of the file*/
+	void	load( boost::tribool loadNormals = boost::logic::indeterminate, boost::tribool loadTexCoords = boost::logic::indeterminate );
 	/**Loads a particular group into a TriMesh
 	 * \param loadNormals  should normals be loaded or generated if not present. Default determines from the contents of the file
 	 * \param loadTexCoords  should 2D texture coordinates be loaded or set to zero if not present. Default determines from the contents of the file
 	 * \param optimizeVertices  should the loader minimize the vertices by identifying shared vertices between faces.*/
-	void	load( size_t groupIndex, TriMesh *destTriMesh, boost::tribool loadNormals = boost::logic::indeterminate, boost::tribool loadTexCoords = boost::logic::indeterminate, bool optimizeVertices = true );
+	void	load( size_t groupIndex, boost::tribool loadNormals = boost::logic::indeterminate, boost::tribool loadTexCoords = boost::logic::indeterminate );
 	
     struct Material {
         Material() {
@@ -117,8 +120,16 @@ class ObjLoader {
 	
 	//! Returns a vector<> of the Groups in the OBJ.
 	const std::vector<Group>&		getGroups() const { return mGroups; }
+
+	virtual size_t			getNumVertices() const override { return 4; }
+	virtual geom::Mode		getMode() const override { return geom::Mode::TRIANGLES; }
 	
- private:
+	virtual bool		hasAttrib( geom::Attrib attr ) const override;
+	virtual bool		canProvideAttrib( geom::Attrib attr ) const override;
+	virtual uint8_t		getAttribDims( geom::Attrib attr ) const override;
+	virtual void		copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, float *dest ) const override ;
+	
+  private:
 	typedef boost::tuple<int,int> VertexPair;
 	typedef boost::tuple<int,int,int> VertexTriple;
 
@@ -126,16 +137,17 @@ class ObjLoader {
 
  	void	parseFace( Group *group, const Material *material, const std::string &s, bool includeUVs );
     void    parseMaterial( std::shared_ptr<IStreamCinder> material );
-	void	loadInternalNoOptimize( const Group &group, TriMesh *destTriMesh, bool texCoords, bool normals );
-	void	loadInternalNormalsTextures( const Group &group, std::map<boost::tuple<int,int,int>,int> &uniqueVerts, TriMesh *destTriMesh );
-	void	loadInternalNormals( const Group &group, std::map<boost::tuple<int,int>,int> &uniqueVerts, TriMesh *destTriMesh );
-	void	loadInternalTextures( const Group &group, std::map<boost::tuple<int,int>,int> &uniqueVerts, TriMesh *destTriMesh );
-	void	loadInternal( const Group &group, std::map<int,int> &uniqueVerts, TriMesh *destTriMesh );	
+	void	loadGroupNormalsTextures( const Group &group, std::map<boost::tuple<int,int,int>,int> &uniqueVerts );
+	void	loadGroupNormals( const Group &group, std::map<boost::tuple<int,int>,int> &uniqueVerts );
+	void	loadGroupTextures( const Group &group, std::map<boost::tuple<int,int>,int> &uniqueVerts );
+	void	loadGroup( const Group &group, std::map<int,int> &uniqueVerts );	
  
 	std::shared_ptr<IStreamCinder>        mStream;
 	std::vector<Vec3f>			    mVertices, mNormals;
 	std::vector<Vec2f>			    mTexCoords;
 	std::vector<Group>			    mGroups;
+	std::vector<uint32_t>			mIndices;
+	std::vector<Colorf>				mColors;
 	std::map<std::string, Material> mMaterials;
 };
 

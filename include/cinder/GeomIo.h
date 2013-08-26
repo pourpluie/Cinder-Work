@@ -30,6 +30,8 @@
 
 namespace cinder { namespace geom {
 
+typedef std::shared_ptr<class Source>	SourceRef;
+
 // keep this incrementing by 1 only; some code relies on that for iterating
 enum class Attrib { POSITION, COLOR, TEX_COORD_0, NORMAL, TANGENT, BITANGET, NUM_ATTRIBS };
 enum class Mode { TRIANGLES, TRIANGLE_STRIP }; 
@@ -98,7 +100,7 @@ class Rect : public Source {
 	Rect&		scale( float s ) { mScale = Vec2f( s, s ); return *this; }
   
 	virtual size_t		getNumVertices() const override { return 4; }
-	virtual Mode		getMode() const { return Mode::TRIANGLE_STRIP; }
+	virtual Mode		getMode() const override { return Mode::TRIANGLE_STRIP; }
 	
 	virtual bool		hasAttrib( Attrib attr ) const override;
 	virtual bool		canProvideAttrib( Attrib attr ) const override;
