@@ -73,15 +73,13 @@ void setDefaultShaderVars();
 
 void clear( const ColorA &color = ColorA::black(), bool clearDepthBuffer = true );
 
-Area getViewport();
-void viewport( const Area &area );
+std::pair<Vec2i, Vec2i> getViewport();
 void viewport( int x, int y, int width, int height );
-	
-Area getScissor();
-void scissor( const Area &area );
-void viewport( int x, int y, int width, int height );
+void viewport( const Vec2i &position, const Vec2i &dimension );
 
-Area convertULToLLCoords( const Area &area );
+std::pair<Vec2i, Vec2i> getScissor();
+void scissor( int x, int y, int width, int height );
+void scissor( const Vec2i &position, const Vec2i &dimension );
 	
 void enable( GLenum state, bool enable = true );
 inline void disable( GLenum state ) { enable( state, false ); }

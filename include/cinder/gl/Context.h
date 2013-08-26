@@ -66,11 +66,11 @@ class Context {
 	//! Returns the currently bound VAO
 	VaoRef		vaoGet();
 	
-	const Area	getViewport() const { return mViewport; }
-	void		setViewport( const Area &view );
+	const std::pair<Vec2i, Vec2i>	getViewport() const { return mViewport; }
+	void							setViewport( const std::pair<Vec2i, Vec2i> &viewport );
 	
-	const Area  getScissor() const { return mScissor; }
-	void		setScissor( const Area &scissor );
+	const std::pair<Vec2i, Vec2i>	getScissor() const { return mScissor; }
+	void							setScissor( const std::pair<Vec2i, Vec2i> &scissor );
 
 	void		bindBuffer( GLenum target, GLuint id );
 	GLuint		getBufferBinding( GLenum target );
@@ -173,8 +173,8 @@ class Context {
   
 	std::shared_ptr<PlatformData>	mPlatformData;
 	
-	Area						mViewport;
-	Area						mScissor;
+	std::pair<Vec2i, Vec2i>		mViewport;
+	std::pair<Vec2i, Vec2i>		mScissor;
 
 	VaoRef						mImmVao; // Immediate-mode VAO
 	VboRef						mImmVbo; // Immediate-mode VBO
@@ -358,17 +358,37 @@ struct TextureBindScope : public boost::noncopyable
 	
 struct ScissorScope : public boost::noncopyable
 {
-public:
-	ScissorScope( const Area &view );
-	ScissorScope();
-	ScissorScope( int x, int y, int width, int height );
+	ScissorScope()
+		: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
+	{
+		mCtx->setScissor( mCtx->getViewport() );
+		mCtx->enable( GL_SCISSOR_TEST );
+	}
 	
-	~ScissorScope();
+	ScissorScope( const Vec2i &position, const Vec2i &dimension )
+		: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
+	{
+		mCtx->setScissor( std::pair<Vec2i, Vec2i>( position, dimension ) );
+		mCtx->enable( GL_SCISSOR_TEST );
+	}
+	
+	ScissorScope( int x, int y, int width, int height )
+		: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
+	{
+		mCtx->setScissor( std::pair<Vec2i, Vec2i>( Vec2i( x, y ), Vec2i( width, height ) ) );
+		mCtx->enable( GL_SCISSOR_TEST );
+	}
+	
+	~ScissorScope()
+	{
+		mCtx->enable( GL_SCISSOR_TEST, GL_FALSE );
+		mCtx->setScissor( mPrevScissor );
+	}
 	
 private:
-	Context		*mCtx;
-	GLboolean	mPrevState;
-	ci::Area	mPrevScissor;
+	Context					*mCtx;
+	GLboolean				mPrevState;
+	std::pair<Vec2i, Vec2i>	mPrevScissor;
 };
 
 class ExcContextAllocation : public Exception {

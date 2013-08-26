@@ -24,11 +24,11 @@ struct FilterControl {
 public:
     
     FilterControl( const Rectf &minRect, const Rectf &textureRect, const Rectf &anisoRect, const Rectf &anisoLevelRect,
-                  const Area &scissorArea, const gl::TextureRef minTexture, const gl::TextureRef textureTexture, const float maxAniso )
+                  const Vec2i &scissorPos, const Vec2i &scissorDimension, const gl::TextureRef minTexture, const gl::TextureRef textureTexture, const float maxAniso )
     :   mMinFilterPushed( false ), mMinFilterChoice( 0 ), mMinRect( minRect ),
         mAnisoFilterPushed( false ), mAnisoFilterMax( maxAniso ), mAnisoRect( anisoRect ),
         mTexturePushed( false ), mTextureChoice( 0 ), mTextureRect( textureRect ),
-        mScissor( scissorArea ), mAnisoLevelRect( anisoLevelRect ),
+        mScissorPos( scissorPos ), mScissorDimension( scissorDimension ), mAnisoLevelRect( anisoLevelRect ),
         mMinTexture( minTexture ), mTextureTexture( textureTexture )
     {
     }
@@ -37,7 +37,7 @@ public:
     
     void setMinTexture( const gl::TextureRef minTexture ) { mMinTexture = minTexture; }
     void setTextureTexture( const gl::TextureRef textureTexture ) { mTextureTexture = textureTexture; }
-
+    
     // Plane Textures
     gl::TextureRef  mUserCreatedMipmap;
     gl::TextureRef  mGlGeneratedMipmap;
@@ -59,7 +59,8 @@ public:
     Rectf           mTextureRect;
     gl::TextureRef  mTextureTexture;
     
-    Area            mScissor;
+    Vec2i           mScissorPos;
+    Vec2i           mScissorDimension;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,7 +112,7 @@ public:
 
 void TextureMipmappingApp::setup()
 {
-    gl::bindStockShader( gl::ShaderDef().texture() );
+    gl::bindStockShader( gl::ShaderDef().texture().color() );
     
     // This if def is here to make sure whether you're using gl::Es2 or desktop gl.
     // It illustrates the fact that unfortunately Es2 does not support non-power-of-two
@@ -138,22 +139,22 @@ void TextureMipmappingApp::setup()
     mMaxAnisoFilterAmount = gl::Texture::getMaxMaxAnisotropy() - 1.0f;
     
     mLeftControl = std::make_shared<FilterControl>( Rectf( widthFraction - 50, heightFraction * 1, widthFraction + 50, heightFraction * 1 + 30 ),
-                                                   Rectf( widthFraction - 50, heightFraction * 2, widthFraction + 50, heightFraction * 2 + 30 ),
-                                                   Rectf( widthFraction - 50, heightFraction * 3, widthFraction + 50, heightFraction * 3 + 30 ),
-                                                   Rectf( widthFraction - 50, heightFraction * 3, widthFraction + 50, heightFraction * 3 + 30 ),
-                                                   Area( 0, 0, getWindowWidth() / 2, getWindowHeight() ),
-                                                   gl::Texture::create( loadImage( loadResource( MIN_FILTER_LIN_LIN ) ) ),
-                                                   gl::Texture::create( loadImage( loadResource( GL_GEN ) ) ),
-                                                   mMaxAnisoFilterAmount );
-    
-    mRightControl = std::make_shared<FilterControl>( Rectf( widthFraction * 5 - 50, heightFraction * 1, widthFraction * 5 + 50, heightFraction * 1 + 30 ),
-                                                    Rectf( widthFraction * 5 - 50, heightFraction * 2, widthFraction * 5 + 50, heightFraction * 2 + 30 ),
-                                                    Rectf( widthFraction * 5 - 50, heightFraction * 3, widthFraction * 5 + 50, heightFraction * 3 + 30 ),
-                                                    Rectf( widthFraction * 5 - 50, heightFraction * 3, widthFraction * 5 + 50, heightFraction * 3 + 30 ),
-                                                    Area( getWindowWidth() / 2, 0, getWindowWidth(), getWindowHeight() ),
+                                                    Rectf( widthFraction - 50, heightFraction * 2, widthFraction + 50, heightFraction * 2 + 30 ),
+                                                    Rectf( widthFraction - 50, heightFraction * 3, widthFraction + 50, heightFraction * 3 + 30 ),
+                                                    Rectf( widthFraction - 50, heightFraction * 3, widthFraction + 50, heightFraction * 3 + 30 ),
+                                  /* scissor */     Vec2i( 0, 0 ) /* position */, Vec2i( getWindowWidth() / 2, getWindowHeight() ) /* dimension */,
                                                     gl::Texture::create( loadImage( loadResource( MIN_FILTER_LIN_LIN ) ) ),
                                                     gl::Texture::create( loadImage( loadResource( GL_GEN ) ) ),
                                                     mMaxAnisoFilterAmount );
+    
+    mRightControl = std::make_shared<FilterControl>( Rectf( widthFraction * 5 - 50, heightFraction * 1, widthFraction * 5 + 50, heightFraction * 1 + 30 ),
+                                                     Rectf( widthFraction * 5 - 50, heightFraction * 2, widthFraction * 5 + 50, heightFraction * 2 + 30 ),
+                                                     Rectf( widthFraction * 5 - 50, heightFraction * 3, widthFraction * 5 + 50, heightFraction * 3 + 30 ),
+                                                     Rectf( widthFraction * 5 - 50, heightFraction * 3, widthFraction * 5 + 50, heightFraction * 3 + 30 ),
+                                  /* scissor */      Vec2i( getWindowWidth() / 2, 0 ) /* position */, Vec2i( getWindowWidth() / 2, getWindowHeight() ) /* dimension */,
+                                                     gl::Texture::create( loadImage( loadResource( MIN_FILTER_LIN_LIN ) ) ),
+                                                     gl::Texture::create( loadImage( loadResource( GL_GEN ) ) ),
+                                                     mMaxAnisoFilterAmount );
     
     
     
@@ -161,11 +162,11 @@ void TextureMipmappingApp::setup()
     // Creating the 3 Texture formats
     gl::Texture::Format mFormat;
     mFormat.magFilter( GL_LINEAR )
-        .minFilter( GL_LINEAR_MIPMAP_LINEAR )
-        .maxAnisotropy( mMaxAnisoFilterAmount )
-        .wrapT( GL_REPEAT ).wrapS( GL_REPEAT )
-        .target( GL_TEXTURE_2D )
-        .mipMap();
+    .minFilter( GL_LINEAR_MIPMAP_LINEAR )
+    .maxAnisotropy( mMaxAnisoFilterAmount )
+    .wrapT( GL_REPEAT ).wrapS( GL_REPEAT )
+    .target( GL_TEXTURE_2D )
+    .mipMap();
     
     mAnisoTexture = gl::Texture::create( loadImage( loadResource( ANISOTROPIC ) ) );
     createAnisoLevelTex();
@@ -233,6 +234,9 @@ void TextureMipmappingApp::draw()
         renderFilterButtons( mLeftControl );
         renderFilterButtons( mRightControl );
     
+        // Simple seperator
+        gl::color(1, 1, 1);
+        gl::drawSolidRect( Rectf( getWindowWidth() / 2 - 2, 0, getWindowWidth() / 2 + 2, getWindowHeight() ) );
     gl::popModelView();
 }
 
@@ -241,7 +245,7 @@ void TextureMipmappingApp::renderPlaneTexture( FilterControlRef f )
     // This creates the scissor effect of showing both sides for contrast.
     // it takes an area with origin at lower left and width and height
     // like glViewport
-    gl::ScissorScope myScissor( f->mScissor );
+    gl::ScissorScope myScissor( f->mScissorPos, f->mScissorDimension  );
     
     switch( f->mTextureChoice ) {
         case 0:

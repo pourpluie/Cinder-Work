@@ -129,41 +129,36 @@ void clear( const ColorA& color, bool clearDepthBuffer )
 	}
 }
 
-Area getViewport()
+std::pair<Vec2i, Vec2i> getViewport()
 {
-	Area view = gl::context()->getViewport();
+	auto view = gl::context()->getViewport();
 	return view;
 }
 
-void viewport( const Area& area )
-{
-	gl::context()->setViewport( convertULToLLCoords( area ) );
-}
-	
 void viewport( int x, int y, int width, int height )
 {
-	gl::context()->setViewport( Area( x, y, width, height ) );
+	viewport( Vec2i( x, y ), Vec2i( width, height ) ) ;
 }
-    
-Area getScissor()
+
+void viewport( const Vec2i &position, const Vec2i &dimension )
 {
-    Area scissor = gl::context()->getScissor();
-    return scissor;
+	gl::context()->setViewport( std::pair<Vec2i, Vec2i>( position, dimension ) );
 }
-    
-void scissor( const Area& scissor )
+
+std::pair<Vec2i, Vec2i> getScissor()
 {
-    gl::context()->setScissor( convertULToLLCoords( scissor ) );
+	auto scissor = gl::context()->getScissor();
+	return scissor;
 }
-    
+
 void scissor( int x, int y, int width, int height )
 {
-    gl::context()->setScissor( Area( x, y, x + width, y + height ) );
+	scissor( Vec2i( x, y ), Vec2i( width, height ) );
 }
-    
-Area convertULToLLCoords( const Area &area )
+
+void scissor( const Vec2i &position, const Vec2i &dimension )
 {
-    return Area( area.x1, app::getWindowHeight() - area.y2, area.getWidth(), area.getHeight() );
+	gl::context()->setScissor( std::pair<Vec2i, Vec2i>( position, dimension ) );
 }
 
 void enable( GLenum state, bool enable )

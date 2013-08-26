@@ -60,10 +60,10 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	
 	GLint params[ 4 ];
 	glGetIntegerv( GL_VIEWPORT, params );
-	mViewport = Area( params[ 0 ], params[ 1 ], params[ 0 ] + params[ 2 ], params[ 1 ] + params[ 3 ] );
+	mViewport = std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) );
     
     glGetIntegerv( GL_SCISSOR_BOX, params );
-    mScissor = Area( params[ 0 ], params[ 1 ], params[ 0 ] + params[ 2 ], params[ 1 ] + params[ 3 ] );
+    mScissor = std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) );
     
 	
     mModelViewStack.push_back( Matrix44f() );
@@ -136,18 +136,18 @@ VaoRef Context::vaoGet()
 //////////////////////////////////////////////////////////////////
 // Viewport
 	
-void Context::setViewport( const Area &view )
+void Context::setViewport( const std::pair<Vec2i, Vec2i> &viewport )
 {
-	mViewport = view;
-	glViewport( mViewport.x1, mViewport.y1, mViewport.getWidth(), mViewport.getHeight() );
+	mViewport = viewport;
+	glViewport( mViewport.first.x, mViewport.first.y, mViewport.second.x, mViewport.second.y );
 }
     
 //////////////////////////////////////////////////////////////////
 // Scissor Test
-void Context::setScissor( const Area &scissor )
+void Context::setScissor( const std::pair<Vec2i, Vec2i> &scissor )
 {
-    mScissor = scissor;
-    glScissor( mScissor.x1, mScissor.y1, mScissor.getWidth(), mScissor.getHeight() );
+	mScissor = scissor;
+	glScissor( mScissor.first.x, mScissor.first.y, mScissor.second.x, mScissor.second.y );
 }
 
 //////////////////////////////////////////////////////////////////
@@ -746,32 +746,5 @@ FramebufferScope::~FramebufferScope()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-ScissorScope::ScissorScope( const Area &scissor )
-	: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
-{
-	mCtx->setScissor( scissor );
-    mCtx->enable( GL_SCISSOR_TEST );
-}
-	
-ScissorScope::ScissorScope()
-	: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
-{
-	mCtx->setScissor( mCtx->getViewport() );
-    mCtx->enable( GL_SCISSOR_TEST );
-}
-
-ScissorScope::ScissorScope( int x, int y, int width, int height )
-    :mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
-{
-    mCtx->setScissor( Area( x, y, width, height ) );
-    mCtx->enable( GL_SCISSOR_TEST );
-}
-	
-ScissorScope::~ScissorScope()
-{
-    mCtx->enable( GL_SCISSOR_TEST, GL_FALSE );
-	mCtx->setScissor( mPrevScissor );
-}
-	
 
 } } // namespace cinder::gl
