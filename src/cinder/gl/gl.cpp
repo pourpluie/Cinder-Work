@@ -325,7 +325,7 @@ void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis )
 {
 	auto ctx	= gl::context();
 //	ctx->getModelViewStack().back().rotate( Vec3f( toRadians( xAxis ), toRadians( yAxis ), toRadians( zAxis ) ) );
-	ctx->getModelViewStack().back().rotate( Vec3f( xAxis, yAxis, zAxis ), angleDegrees );
+	ctx->getModelViewStack().back().rotate( Vec3f( xAxis, yAxis, zAxis ), toRadians( angleDegrees ) );
 }
 	
 void scale( const ci::Vec3f& v )

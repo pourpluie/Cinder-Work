@@ -126,14 +126,14 @@ uint8_t	ObjLoader::getAttribDims( geom::Attrib attr ) const
 
 void ObjLoader::copyIndices( uint16_t *dest ) const
 {
-	memcpy( dest, &mIndices[0], sizeof(uint16_t) * mIndices.size() );
+	size_t ct = mIndices.size();
+	for( size_t i = 0; i < ct; ++i )
+		dest[i] = mIndices[i];	
 }
 
 void ObjLoader::copyIndices( uint32_t *dest ) const
 {
-	size_t ct = mIndices.size();
-	for( size_t i = 0; i < ct; ++i )
-		dest[i] = mIndices[i];
+	memcpy( dest, &mIndices[0], sizeof(uint32_t) * mIndices.size() );
 }
    
 void ObjLoader::parseMaterial( std::shared_ptr<IStreamCinder> material )
