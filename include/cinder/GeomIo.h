@@ -105,7 +105,7 @@ class Rect : public Source {
 	virtual bool		hasAttrib( Attrib attr ) const override;
 	virtual bool		canProvideAttrib( Attrib attr ) const override;
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override ;
+	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
 
 	Vec2f		mPos, mScale;
 	bool		mHasColor;
@@ -135,7 +135,7 @@ class Cube : public Source {
 	virtual bool		hasAttrib( Attrib attr ) const override;
 	virtual bool		canProvideAttrib( Attrib attr ) const override;
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override ;
+	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
 	
 	virtual size_t		getNumIndices() const override { return 36; }
 	virtual void		copyIndices( uint16_t *dest ) const override;
@@ -172,7 +172,7 @@ class Teapot : public Source {
 	virtual bool		hasAttrib( Attrib attr ) const override;
 	virtual bool		canProvideAttrib( Attrib attr ) const override;
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override ;
+	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
 
 	virtual size_t		getNumIndices() const override;
 	virtual void		copyIndices( uint16_t *dest ) const override;

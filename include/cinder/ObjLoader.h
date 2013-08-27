@@ -121,13 +121,17 @@ class ObjLoader : public geom::Source {
 	//! Returns a vector<> of the Groups in the OBJ.
 	const std::vector<Group>&		getGroups() const { return mGroups; }
 
-	virtual size_t			getNumVertices() const override { return 4; }
+	virtual size_t			getNumVertices() const override { return mVertices.size(); }
 	virtual geom::Mode		getMode() const override { return geom::Mode::TRIANGLES; }
 	
 	virtual bool		hasAttrib( geom::Attrib attr ) const override;
 	virtual bool		canProvideAttrib( geom::Attrib attr ) const override;
 	virtual uint8_t		getAttribDims( geom::Attrib attr ) const override;
-	virtual void		copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, float *dest ) const override ;
+	virtual void		copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
+
+	virtual size_t		getNumIndices() const override { return mIndices.size(); }
+	virtual void		copyIndices( uint16_t *dest ) const override;
+	virtual void		copyIndices( uint32_t *dest ) const override;
 	
   private:
 	typedef boost::tuple<int,int> VertexPair;

@@ -51,6 +51,8 @@ void ObjLoaderApp::setup()
 	mMayaCam.setCurrentCam( initialCam );
 
 	mTexture->bind();
+	
+	loadObjFile( getAssetPath( "warpdodec.obj" ) );
 //	mShader.bind();
 //	mShader.uniform( "tex0", 0 );
 }

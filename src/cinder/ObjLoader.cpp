@@ -43,12 +43,14 @@ ObjLoader::ObjLoader( shared_ptr<IStreamCinder> stream, bool includeUVs )
 	: mStream( stream )
 {
 	parse( includeUVs );
+	load();
 }
 
 ObjLoader::ObjLoader( DataSourceRef dataSource, bool includeUVs )
 	: mStream( dataSource->createStream() )
 {
 	parse( includeUVs );
+	load();
 }
 
 ObjLoader::ObjLoader( DataSourceRef dataSource, DataSourceRef materialSource, bool includeUVs )
@@ -56,12 +58,84 @@ ObjLoader::ObjLoader( DataSourceRef dataSource, DataSourceRef materialSource, bo
 {
     parseMaterial( materialSource->createStream() );
     parse( includeUVs );
+	load();	
 }
     
 ObjLoader::~ObjLoader()
 {
 }
-    
+
+bool ObjLoader::hasAttrib( geom::Attrib attr ) const
+{
+	switch( attr ) {
+		case geom::Attrib::POSITION: return ! mVertices.empty(); break;
+		case geom::Attrib::COLOR: return ! mColors.empty(); break;
+		case geom::Attrib::TEX_COORD_0: return ! mTexCoords.empty(); break;
+		case geom::Attrib::NORMAL: return ! mNormals.empty();
+		default:
+			return false;
+	}
+}
+
+bool ObjLoader::canProvideAttrib( geom::Attrib attr ) const
+{
+	switch( attr ) {
+		case geom::Attrib::POSITION: return ! mVertices.empty(); break;
+		case geom::Attrib::COLOR: return ! mColors.empty(); break;
+		case geom::Attrib::TEX_COORD_0: return ! mTexCoords.empty(); break;
+		case geom::Attrib::NORMAL: return (! mVertices.empty() ) || ( ! mNormals.empty() ); // we can derive normals if we have only positions
+		default:
+			return false;
+	}
+}
+
+void ObjLoader::copyAttrib( geom::Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
+{
+	switch( attr ) {
+		case geom::Attrib::POSITION:
+			copyData( 3, (const float*)&mVertices[0], mVertices.size(), dimensions, stride, dest );
+		break;
+		case geom::Attrib::COLOR:
+			copyData( 3, (const float*)&mColors[0], mColors.size(), dimensions, stride, dest );
+		break;
+		case geom::Attrib::TEX_COORD_0:
+			copyData( 2, (const float*)&mTexCoords[0], mTexCoords.size(), dimensions, stride, dest );
+		break;
+		case geom::Attrib::NORMAL:
+			copyData( 3, (const float*)&mNormals[0], mNormals.size(), dimensions, stride, dest );
+		break;
+		default:
+			throw geom::ExcMissingAttrib();
+	}
+}
+
+uint8_t	ObjLoader::getAttribDims( geom::Attrib attr ) const
+{
+	if( ! canProvideAttrib( attr ) )
+		return 0;
+
+	switch( attr ) {
+		case geom::Attrib::POSITION: return 3;
+		case geom::Attrib::COLOR: return 3;
+		case geom::Attrib::TEX_COORD_0: return 2;
+		case geom::Attrib::NORMAL: return 3;
+		default:
+			return 0;
+	}
+}
+
+void ObjLoader::copyIndices( uint16_t *dest ) const
+{
+	memcpy( dest, &mIndices[0], sizeof(uint16_t) * mIndices.size() );
+}
+
+void ObjLoader::copyIndices( uint32_t *dest ) const
+{
+	size_t ct = mIndices.size();
+	for( size_t i = 0; i < ct; ++i )
+		dest[i] = mIndices[i];
+}
+   
 void ObjLoader::parseMaterial( std::shared_ptr<IStreamCinder> material )
 {
     Material m;

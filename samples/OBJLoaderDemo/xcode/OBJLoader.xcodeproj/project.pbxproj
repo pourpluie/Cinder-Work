@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		002DFC830FA514B500E45AE0 /* warpdodec.obj in Resources */ = {isa = PBXBuildFile; fileRef = 002DFC820FA514B500E45AE0 /* warpdodec.obj */; };
 		002DFC8E0FA515AE00E45AE0 /* shader.frag in Resources */ = {isa = PBXBuildFile; fileRef = 002DFC8C0FA515AE00E45AE0 /* shader.frag */; };
 		002DFC8F0FA515AE00E45AE0 /* shader.vert in Resources */ = {isa = PBXBuildFile; fileRef = 002DFC8D0FA515AE00E45AE0 /* shader.vert */; };
 		002DFDB90FA7583600E45AE0 /* rg_grad.png in Resources */ = {isa = PBXBuildFile; fileRef = 002DFDB80FA7583600E45AE0 /* rg_grad.png */; };
@@ -24,7 +23,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		002DFC820FA514B500E45AE0 /* warpdodec.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = warpdodec.obj; path = ../resources/warpdodec.obj; sourceTree = SOURCE_ROOT; };
 		002DFC8C0FA515AE00E45AE0 /* shader.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = shader.frag; path = ../resources/shader.frag; sourceTree = SOURCE_ROOT; };
 		002DFC8D0FA515AE00E45AE0 /* shader.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = shader.vert; path = ../resources/shader.vert; sourceTree = SOURCE_ROOT; };
 		002DFDB80FA7583600E45AE0 /* rg_grad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = rg_grad.png; path = ../../data/rg_grad.png; sourceTree = SOURCE_ROOT; };
@@ -141,7 +139,6 @@
 				002DFDB80FA7583600E45AE0 /* rg_grad.png */,
 				002DFC8C0FA515AE00E45AE0 /* shader.frag */,
 				002DFC8D0FA515AE00E45AE0 /* shader.vert */,
-				002DFC820FA514B500E45AE0 /* warpdodec.obj */,
 				00887FDB0FA402AD00FD55C5 /* cube.obj */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 			);
@@ -211,7 +208,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				00887FDC0FA402AD00FD55C5 /* cube.obj in Resources */,
-				002DFC830FA514B500E45AE0 /* warpdodec.obj in Resources */,
 				002DFC8E0FA515AE00E45AE0 /* shader.frag in Resources */,
 				002DFC8F0FA515AE00E45AE0 /* shader.vert in Resources */,
 				002DFDB90FA7583600E45AE0 /* rg_grad.png in Resources */,
@@ -236,10 +232,10 @@
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
-				CLANG_CXX_LIBRARY = "libc++";
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -250,6 +246,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = "$(CINDER_PATH)/lib/libcinder_d.a";
 				PRODUCT_NAME = OBJLoader;
+				SYMROOT = ./build;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = YES;
 			};
@@ -258,10 +255,10 @@
 		C01FCF4C08A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_FAST_MATH = YES;
-				CLANG_CXX_LIBRARY = "libc++";
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 3;
@@ -272,6 +269,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = "$(CINDER_PATH)/lib/libcinder.a";
 				PRODUCT_NAME = OBJLoader;
+				SYMROOT = ./build;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
