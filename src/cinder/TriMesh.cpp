@@ -6,25 +6,82 @@ namespace cinder {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // TriMesh
+TriMesh::TriMesh( const TriMesh::Format &format )
+{
+	mVerticesDims = format.mVerticesDims;
+	mNormalsDims = format.mNormalsDims;
+	mColorsDims = format.mColorsDims;
+	mTexCoords0Dims = format.mTexCoords0Dims;
+}
+
+TriMesh::TriMesh( const geom::Source &source )
+{
+	mVerticesDims = mNormalsDims = mColorsDims = mTexCoords0Dims = 0;
+
+	size_t numVertices = source.getNumVertices();
+// TODO: Handle TRIANGLE_STRIP
+geom::Mode mode = source.getMode();
+	
+	// positions
+	if( source.hasAttrib( geom::Attrib::POSITION ) ) {
+		mVerticesDims = source.getAttribDims( geom::Attrib::POSITION );
+		mVertices.reserve( mVerticesDims * numVertices );
+		source.copyAttrib( geom::Attrib::POSITION, mVerticesDims, 0, (float*)mVertices.data() );
+	}
+
+	// normals
+	if( source.hasAttrib( geom::Attrib::NORMAL ) ) {
+		mNormalsDims = 3;
+		mNormals.reserve( numVertices );
+		source.copyAttrib( geom::Attrib::NORMAL, mNormalsDims, 0, (float*)mNormals.data() );
+	}
+
+	// colors
+	if( source.hasAttrib( geom::Attrib::COLOR ) ) {
+		mColorsDims = source.getAttribDims( geom::Attrib::COLOR );
+		mColors.reserve( mColorsDims * numVertices * mColorsDims );
+		source.copyAttrib( geom::Attrib::COLOR, mColorsDims, 0, (float*)mColors.data() );
+	}
+
+	// tex coords
+	if( source.hasAttrib( geom::Attrib::TEX_COORD_0 ) ) {
+		mTexCoords0Dims = source.getAttribDims( geom::Attrib::TEX_COORD_0 );
+		mTexCoords0.reserve( mTexCoords0Dims * numVertices );
+		source.copyAttrib( geom::Attrib::TEX_COORD_0, mTexCoords0Dims, 0, (float*)mTexCoords0.data() );
+	}
+
+	size_t numIndices = source.getNumIndices();
+	if( numIndices ) {
+		mIndices.reserve( numIndices );
+		source.copyIndices( mIndices.data() );
+	}
+}
+
 void TriMesh::clear()
 {
 	mVertices.clear();
 	mNormals.clear();
-	mColorsRGB.clear();
-	mColorsRGBA.clear();
-	mTexCoords.clear();
+	mColors.clear();
+	mTexCoords0.clear();
 	mIndices.clear();
+}
+
+void TriMesh::appendVertices( const Vec2f *verts, size_t num )
+{
+	assert( mVerticesDims == 2 );
+	mVertices.insert( mVertices.end(), (const float*)verts, (const float*)verts + num * 2 );
 }
 
 void TriMesh::appendVertices( const Vec3f *verts, size_t num )
 {
-	mVertices.insert( mVertices.end(), verts, verts + num );
+	assert( mVerticesDims == 3 );
+	mVertices.insert( mVertices.end(), (const float*)verts, (const float*)verts + num * 3 );
 }
 
 void TriMesh::appendVertices( const Vec4d *verts, size_t num )
 {
-	for( size_t v = 0; v < num; ++v )
-		mVertices.push_back( Vec3f( (float)verts[v].x, (float)verts[v].y, (float)verts[v].z ) );
+	assert( mVerticesDims == 4 );
+	mVertices.insert( mVertices.end(), (const float*)verts, (const float*)verts + num * 4 );
 }
 
 void TriMesh::appendIndices( const uint32_t *indices, size_t num )
@@ -34,56 +91,65 @@ void TriMesh::appendIndices( const uint32_t *indices, size_t num )
 
 void TriMesh::appendNormals( const Vec3f *normals, size_t num )
 {
-	mNormals.insert( mNormals.end(), normals, normals + num );
+	assert( mNormalsDims == 3 );
+	mNormals.insert( mNormals.end(), normals, normals + num * 3 );
 }
 
-void TriMesh::appendNormals( const Vec4d *normals, size_t num )
+void TriMesh::appendColors( const Color *rgbs, size_t num )
 {
-	for( size_t v = 0; v < num; ++v )
-		mNormals.push_back( Vec3f( (float)normals[v].x, (float)normals[v].y, (float)normals[v].z ) );
+	assert( mColorsDims == 3 );
+	mColors.insert( mColors.end(), (const float*)rgbs, (const float*)rgbs + num * 3 );
 }
 
-void TriMesh::appendColorsRgb( const Color *rgbs, size_t num )
+void TriMesh::appendColors( const ColorA *rgbas, size_t num )
 {
-	mColorsRGB.insert( mColorsRGB.end(), rgbs, rgbs + num );
+	assert( mColorsDims == 4 );
+	mColors.insert( mColors.end(), (const float*)rgbas, (const float*)rgbas + num * 4 );
 }
 
-void TriMesh::appendColorsRgba( const ColorA *rgbas, size_t num )
+void TriMesh::appendTexCoords( const Vec2f *texCoords, size_t num )
 {
-	mColorsRGBA.insert( mColorsRGBA.end(), rgbas, rgbas + num );
-}
-
-void TriMesh::appendTexCoords( const Vec2f *texcoords, size_t num )
-{
-	mTexCoords.insert( mTexCoords.end(), texcoords, texcoords + num );
+	assert( mTexCoords0Dims == 2 );
+	mColors.insert( mTexCoords0.end(), (const float*)texCoords, (const float*)texCoords + num * 2 );
 }
 
 void TriMesh::getTriangleVertices( size_t idx, Vec3f *a, Vec3f *b, Vec3f *c ) const
 {
-	*a = mVertices[ mIndices[idx * 3] ];
-	*b = mVertices[ mIndices[idx * 3 + 1] ];
-	*c = mVertices[ mIndices[idx * 3 + 2] ];
+	assert( mVerticesDims == 3 );
+	*a = Vec3f( mVertices[mIndices[idx * 3] * 3 + 0], mVertices[mIndices[idx * 3] * 3 + 1], mVertices[ mIndices[idx * 3] * 3 + 2 ] );
+	*b = Vec3f( mVertices[mIndices[idx * 3 + 1] * 3 + 0], mVertices[mIndices[idx * 3 + 1] * 3 + 1], mVertices[ mIndices[idx * 3 + 1] * 3 + 2 ] );
+	*c = Vec3f( mVertices[mIndices[idx * 3 + 2] * 3 + 0], mVertices[mIndices[idx * 3 + 2] * 3 + 1], mVertices[ mIndices[idx * 3 + 2] * 3 + 2 ] );
+}
+
+void TriMesh::getTriangleVertices( size_t idx, Vec2f *a, Vec2f *b, Vec2f *c ) const
+{
+	assert( mVerticesDims == 2 );
+	*a = Vec2f( mVertices[mIndices[idx * 3] * 2 + 0], mVertices[mIndices[idx * 3] * 2 + 1] );
+	*b = Vec2f( mVertices[mIndices[idx * 3 + 1] * 2 + 0], mVertices[mIndices[idx * 3 + 1] * 2 + 1] );
+	*c = Vec2f( mVertices[mIndices[idx * 3 + 2] * 2 + 0], mVertices[mIndices[idx * 3 + 2] * 2 + 1] );
 }
 
 AxisAlignedBox3f TriMesh::calcBoundingBox() const
 {
+	assert( mVerticesDims == 3 );
 	if( mVertices.empty() )
 		return AxisAlignedBox3f( Vec3f::zero(), Vec3f::zero() );
 
-	Vec3f min(mVertices[0]), max(mVertices[0]);
+	Vec3f min(*(const Vec3f*)(&mVertices[0])), max(*(const Vec3f*)(&mVertices[0]));
 	for( size_t i = 1; i < mVertices.size(); ++i ) {
-		if( mVertices[i].x < min.x )
-			min.x = mVertices[i].x;
-		else if( mVertices[i].x > max.x )
-			max.x = mVertices[i].x;
-		if( mVertices[i].y < min.y )
-			min.y = mVertices[i].y;
-		else if( mVertices[i].y > max.y )
-			max.y = mVertices[i].y;
-		if( mVertices[i].z < min.z )
-			min.z = mVertices[i].z;
-		else if( mVertices[i].z > max.z )
-			max.z = mVertices[i].z;
+		const Vec3f &v = *(const Vec3f*)(&mVertices[i*3]);
+		if( v.x < min.x )
+			min.x = v.x;
+		else if( v.x > max.x )
+			max.x = v.x;
+		if( v.y < min.y )
+			min.y = v.y;
+		else if( v.y > max.y )
+			max.y = v.y;
+		if( v.z < min.z )
+			min.z = v.z;
+		else if( v.z > max.z )
+			max.z = v.z;
 	}
 	
 	return AxisAlignedBox3f( min, max );
@@ -94,10 +160,10 @@ AxisAlignedBox3f TriMesh::calcBoundingBox( const Matrix44f &transform ) const
 	if( mVertices.empty() )
 		return AxisAlignedBox3f( Vec3f::zero(), Vec3f::zero() );
 
-	Vec3f min( transform.transformPointAffine( mVertices[0] ) );
+	Vec3f min( transform.transformPointAffine( *(const Vec3f*)(&mVertices[0]) ) );
 	Vec3f max( min );
 	for( size_t i = 0; i < mVertices.size(); ++i ) {
-		Vec3f v = transform.transformPointAffine( mVertices[i] );
+		Vec3f v = transform.transformPointAffine( *(const Vec3f*)(&mVertices[i*3]) );
 
 		if( v.x < min.x )
 			min.x = v.x;
@@ -132,9 +198,11 @@ void TriMesh::read( DataSourceRef dataSource )
 	in->readLittle( &numIndices );
 	
 	for( size_t idx = 0; idx < numVertices; ++idx ) {
-		Vec3f v;
-		in->readLittle( &v.x ); in->readLittle( &v.y ); in->readLittle( &v.z );
-		mVertices.push_back( v );
+		for( int v = 0; v < 3; ++v ) {
+			float f;
+			in->readLittle( &f );
+			mVertices.push_back( f );
+		}
 	}
 
 	for( size_t idx = 0; idx < numNormals; ++idx ) {
@@ -144,9 +212,11 @@ void TriMesh::read( DataSourceRef dataSource )
 	}
 
 	for( size_t idx = 0; idx < numTexCoords; ++idx ) {
-		Vec2f v;
-		in->readLittle( &v.x ); in->readLittle( &v.y );
-		mTexCoords.push_back( v );
+		for( int v = 0; v < 2; ++v ) {
+			float f;
+			in->readLittle( &f );
+			mTexCoords0.push_back( v );
+		}
 	}
 
 	for( size_t idx = 0; idx < numIndices; ++idx ) {
@@ -165,19 +235,19 @@ void TriMesh::write( DataTargetRef dataTarget ) const
 	
 	out->writeLittle( static_cast<uint32_t>( mVertices.size() ) );
 	out->writeLittle( static_cast<uint32_t>( mNormals.size() ) );
-	out->writeLittle( static_cast<uint32_t>( mTexCoords.size() ) );
+	out->writeLittle( static_cast<uint32_t>( mTexCoords0.size() ) );
 	out->writeLittle( static_cast<uint32_t>( mIndices.size() ) );
 	
-	for( vector<Vec3f>::const_iterator it = mVertices.begin(); it != mVertices.end(); ++it ) {
-		out->writeLittle( it->x ); out->writeLittle( it->y ); out->writeLittle( it->z );
+	for( auto it = mVertices.begin(); it != mVertices.end(); ++it ) {
+		out->writeLittle( *it );
 	}
 
 	for( vector<Vec3f>::const_iterator it = mNormals.begin(); it != mNormals.end(); ++it ) {
 		out->writeLittle( it->x ); out->writeLittle( it->y ); out->writeLittle( it->z );
 	}
 
-	for( vector<Vec2f>::const_iterator it = mTexCoords.begin(); it != mTexCoords.end(); ++it ) {
-		out->writeLittle( it->x ); out->writeLittle( it->y );
+	for( auto it = mTexCoords0.begin(); it != mTexCoords0.end(); ++it ) {
+		out->writeLittle( *it );
 	}
 
 	for( vector<uint32_t>::const_iterator it = mIndices.begin(); it != mIndices.end(); ++it ) {
@@ -187,6 +257,7 @@ void TriMesh::write( DataTargetRef dataTarget ) const
 
 void TriMesh::recalculateNormals()
 {
+	assert( mVerticesDims == 3 );
 	mNormals.assign( mVertices.size(), Vec3f::zero() );
 
 	size_t n = getNumTriangles();
@@ -195,9 +266,9 @@ void TriMesh::recalculateNormals()
 		uint32_t index1 = mIndices[i * 3 + 1];
 		uint32_t index2 = mIndices[i * 3 + 2];
 
-		Vec3f v0 = mVertices[ index0 ];
-		Vec3f v1 = mVertices[ index1 ];
-		Vec3f v2 = mVertices[ index2 ];
+		const Vec3f &v0 = *(const Vec3f*)(&mVertices[index0*3]);
+		const Vec3f &v1 = *(const Vec3f*)(&mVertices[index1*3]);
+		const Vec3f &v2 = *(const Vec3f*)(&mVertices[index2*3]);
 
 		Vec3f e0 = v1 - v0;
 		Vec3f e1 = v2 - v0;
@@ -211,7 +282,7 @@ void TriMesh::recalculateNormals()
 	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );
 }
 
-TriMesh TriMesh::create( vector<uint32_t> &indices, const vector<ColorAf> &colors,
+/*TriMesh TriMesh::create( vector<uint32_t> &indices, const vector<ColorAf> &colors,
 						const vector<Vec3f> &normals, const vector<Vec3f> &positions,
 						const vector<Vec2f> &texCoords )
 {
@@ -236,7 +307,9 @@ TriMesh TriMesh::create( vector<uint32_t> &indices, const vector<ColorAf> &color
 		}
 	}
 	return mesh;
-}
+}*/
+
+#if 0
 
 TriMesh TriMesh::createCircle( const Vec2i &resolution )
 {
@@ -870,6 +943,8 @@ TriMesh TriMesh::createTorus( const Vec2i &resolution, float ratio )
 	return mesh;
 }
 
+#endif
+/*
 TriMesh TriMesh::subdivide( vector<uint32_t> &indices, const vector<ColorAf>& colors, 
 						   const vector<Vec3f> &normals, const vector<Vec3f> &positions,
 						   const vector<Vec2f> &texCoords, uint32_t division, bool normalize )
@@ -968,49 +1043,6 @@ TriMesh TriMesh::subdivide( const ci::TriMesh &triMesh, uint32_t division, bool 
 	
 	return subdivide( mesh, division - 1, normalize );
 }
-	
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// TriMesh2d
-void TriMesh2d::clear()
-{
-	mVertices.clear();
-	mColorsRgb.clear();
-	mColorsRgba.clear();
-	mTexCoords.clear();
-	mIndices.clear();
-}
-
-void TriMesh2d::appendVertices( const Vec2f *verts, size_t num )
-{
-	mVertices.insert( mVertices.end(), verts, verts + num );
-}
-
-void TriMesh2d::appendIndices( const uint32_t *indices, size_t num )
-{
-	mIndices.insert( mIndices.end(), indices, indices + num );
-}
-
-void TriMesh2d::appendColorsRgb( const Color *rgbs, size_t num )
-{
-	mColorsRgb.insert( mColorsRgb.end(), rgbs, rgbs + num );
-}
-
-void TriMesh2d::appendColorsRgba( const ColorA *rgbas, size_t num )
-{
-	mColorsRgba.insert( mColorsRgba.end(), rgbas, rgbas + num );
-}
-
-void TriMesh2d::appendTexCoords( const Vec2f *texcoords, size_t num )
-{
-	mTexCoords.insert( mTexCoords.end(), texcoords, texcoords + num );
-}
-
-void TriMesh2d::getTriangleVertices( size_t idx, Vec2f *a, Vec2f *b, Vec2f *c ) const
-{
-	*a = mVertices[ mIndices[idx * 3] ];
-	*b = mVertices[ mIndices[idx * 3 + 1] ];
-	*c = mVertices[ mIndices[idx * 3 + 2] ];
-}
 
 Rectf TriMesh2d::calcBoundingBox() const
 {
@@ -1030,7 +1062,7 @@ Rectf TriMesh2d::calcBoundingBox() const
 	}
 	
 	return Rectf( min, max );
-}
+}*/
 	
 /////////////////////////////////////////////////////////////////////////////////////////////////
 

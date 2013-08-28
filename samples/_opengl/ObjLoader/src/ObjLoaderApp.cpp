@@ -34,7 +34,7 @@ class ObjLoaderApp : public AppNative {
 	
 	Arcball			mArcball;
 	MayaCamUI		mMayaCam;
-	TriMesh			mMesh;
+	TriMeshRef		mMesh;
 	gl::BatchRef	mBatch;
 	gl::GlslProgRef	mShader;
 	gl::TextureRef	mTexture;
@@ -88,7 +88,7 @@ void ObjLoaderApp::loadObjFile( const fs::path &filePath )
 
 void ObjLoaderApp::frameCurrentObject()
 {
-	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh.getVertices() );
+	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh->getVertices<Vec3f>(), mMesh->getNumVertices() );
 	
 	mMayaCam.setCurrentCam( mMayaCam.getCamera().getFrameSphere( boundingSphere, 100 ) );
 }
@@ -99,7 +99,7 @@ void ObjLoaderApp::keyDown( KeyEvent event )
 		fs::path path = getOpenFilePath();
 		if( ! path.empty() ) {
 			loadObjFile( path );
-			console() << "Total verts: " << mMesh.getVertices().size() << std::endl;
+			console() << "Total verts: " << mMesh->getNumVertices() << std::endl;
 		}
 	}
 	else if( event.getChar() == 'f' ) {
@@ -117,7 +117,7 @@ void ObjLoaderApp::draw()
 
 	gl::setMatrices( mMayaCam.getCamera() );
 
-/*	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh.getVertices() );
+/*	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh->getVertices() );
 	glColor3f( 1.0f, 1.0f, 1.0f );
 	gl::disableDepthWrite();
 	mTexture->disable();

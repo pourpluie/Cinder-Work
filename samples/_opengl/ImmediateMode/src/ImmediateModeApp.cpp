@@ -51,6 +51,6 @@ void ImmediateModeApp::draw()
 #if 0
 auto options = RendererGl::Options().coreProfile( false );
 #else
-auto options = RendererGl::Options();
+auto options = RendererGl::Options().depthBufferDepth( 32 );
 #endif
 CINDER_APP_NATIVE( ImmediateModeApp, RendererGl( options ) )

@@ -605,6 +605,7 @@ void ObjLoader::loadGroup( const Group &group, map<int,int> &uniqueVerts )
 	}	
 }
 
+/*
 void ObjLoader::write( DataTargetRef dataTarget, const TriMesh &mesh, bool writeNormals, bool includeUVs )
 {
 	OStreamRef stream = dataTarget->getStream();
@@ -661,6 +662,6 @@ void ObjLoader::write( DataTargetRef dataTarget, const TriMesh &mesh, bool write
 		os << std::endl;
 		stream->writeData( os.str().c_str(), os.str().length() );
 	}
-}
+}*/
 
 } // namespace cinder
