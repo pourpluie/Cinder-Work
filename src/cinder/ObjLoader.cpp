@@ -96,13 +96,13 @@ void ObjLoader::copyAttrib( geom::Attrib attr, uint8_t dimensions, size_t stride
 			copyData( 3, (const float*)&mVertices[0], mVertices.size(), dimensions, stride, dest );
 		break;
 		case geom::Attrib::COLOR:
-			copyData( 3, (const float*)&mColors[0], mColors.size(), dimensions, stride, dest );
+			copyData( 3, (const float*)&mColors[0], std::min( mColors.size(), mVertices.size() ), dimensions, stride, dest );
 		break;
 		case geom::Attrib::TEX_COORD_0:
-			copyData( 2, (const float*)&mTexCoords[0], mTexCoords.size(), dimensions, stride, dest );
+			copyData( 2, (const float*)&mTexCoords[0], std::min( mTexCoords.size(), mVertices.size() ), dimensions, stride, dest );
 		break;
 		case geom::Attrib::NORMAL:
-			copyData( 3, (const float*)&mNormals[0], mNormals.size(), dimensions, stride, dest );
+			copyData( 3, (const float*)&mNormals[0], std::min( mNormals.size(), mVertices.size() ), dimensions, stride, dest );
 		break;
 		default:
 			throw geom::ExcMissingAttrib();

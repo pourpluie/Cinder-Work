@@ -35,7 +35,7 @@ class ObjLoaderApp : public AppBasic {
 	
 	Arcball			mArcball;
 	MayaCamUI		mMayaCam;
-	TriMesh			mMesh;
+	TriMeshRef		mMesh;
 	gl::BatchRef	mBatch;
 	gl::GlslProgRef	mShader;
 	gl::TextureRef	mTexture;
@@ -83,12 +83,13 @@ void ObjLoaderApp::mouseDrag( MouseEvent event )
 void ObjLoaderApp::loadObjFile( const fs::path &filePath )
 {
 	ObjLoader loader( (DataSourceRef)loadFile( filePath ) );
+	mMesh = TriMesh::create( loader );
 	mBatch = gl::Batch::create( loader, gl::getStockShader( gl::ShaderDef().color() ) );
 }
 
 void ObjLoaderApp::frameCurrentObject()
 {
-	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh.getVertices() );
+	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh->getVertices<Vec3f>(), mMesh->getNumVertices() );
 	
 	mMayaCam.setCurrentCam( mMayaCam.getCamera().getFrameSphere( boundingSphere, 100 ) );
 }
@@ -99,21 +100,21 @@ void ObjLoaderApp::keyDown( KeyEvent event )
 		fs::path path = getOpenFilePath();
 		if( ! path.empty() ) {
 			loadObjFile( path );
-			console() << "Total verts: " << mMesh.getVertices().size() << std::endl;
+			console() << "Total verts: " << mMesh->getNumVertices() << std::endl;
 		}
 	}
 	else if( event.getChar() == 's' ) {
 		fs::path path = getSaveFilePath( "output.trimesh" );
 		if( ! path.empty() ) {
 			console() << "Saving to " << path;
-			mMesh.write( writeFile( path ) );
+//			mMesh.write( writeFile( path ) );
 		}
 	}
 	else if( event.getChar() == 'j' ) {
 		fs::path path = getSaveFilePath( "output.obj" );
 		if( ! path.empty() ) {
 			console() << "Saving to " << path;
-			ObjLoader::write( writeFile( path ), mMesh );
+//			ObjLoader::write( writeFile( path ), mMesh );
 		}	
 	}	
 	else if( event.getChar() == 'f' ) {

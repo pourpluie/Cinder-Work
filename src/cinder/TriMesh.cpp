@@ -25,34 +25,34 @@ geom::Mode mode = source.getMode();
 	// positions
 	if( source.hasAttrib( geom::Attrib::POSITION ) ) {
 		mVerticesDims = source.getAttribDims( geom::Attrib::POSITION );
-		mVertices.reserve( mVerticesDims * numVertices );
+		mVertices.resize( mVerticesDims * numVertices );
 		source.copyAttrib( geom::Attrib::POSITION, mVerticesDims, 0, (float*)mVertices.data() );
 	}
 
 	// normals
 	if( source.hasAttrib( geom::Attrib::NORMAL ) ) {
 		mNormalsDims = 3;
-		mNormals.reserve( numVertices );
+		mNormals.resize( numVertices );
 		source.copyAttrib( geom::Attrib::NORMAL, mNormalsDims, 0, (float*)mNormals.data() );
 	}
 
 	// colors
 	if( source.hasAttrib( geom::Attrib::COLOR ) ) {
 		mColorsDims = source.getAttribDims( geom::Attrib::COLOR );
-		mColors.reserve( mColorsDims * numVertices * mColorsDims );
-		source.copyAttrib( geom::Attrib::COLOR, mColorsDims, 0, (float*)mColors.data() );
+		mColors.resize( mColorsDims * numVertices );
+//		source.copyAttrib( geom::Attrib::COLOR, mColorsDims, 0, (float*)mColors.data() );
 	}
 
 	// tex coords
 	if( source.hasAttrib( geom::Attrib::TEX_COORD_0 ) ) {
 		mTexCoords0Dims = source.getAttribDims( geom::Attrib::TEX_COORD_0 );
-		mTexCoords0.reserve( mTexCoords0Dims * numVertices );
+		mTexCoords0.resize( mTexCoords0Dims * numVertices );
 		source.copyAttrib( geom::Attrib::TEX_COORD_0, mTexCoords0Dims, 0, (float*)mTexCoords0.data() );
 	}
 
 	size_t numIndices = source.getNumIndices();
 	if( numIndices ) {
-		mIndices.reserve( numIndices );
+		mIndices.resize( numIndices );
 		source.copyIndices( mIndices.data() );
 	}
 }
