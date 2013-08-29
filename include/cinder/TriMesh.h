@@ -36,7 +36,7 @@ namespace cinder {
 
 typedef std::shared_ptr<class TriMesh>		TriMeshRef;
 	
-class TriMesh {
+class TriMesh : public geom::Source {
  public:
 	class Format {
 	  public:
@@ -100,11 +100,11 @@ class TriMesh {
 	void		appendIndices( const uint32_t *indices, size_t num );
 
 	//! Returns the total number of indices contained by a TriMesh.
-	size_t		getNumIndices() const { return mIndices.size(); }
+	size_t		getNumIndices() const override { return mIndices.size(); }
 	//! Returns the total number of triangles contained by a TriMesh.
 	size_t		getNumTriangles() const { return mIndices.size() / 3; }
 	//! Returns the total number of indices contained by a TriMesh.
-	size_t		getNumVertices() const { if( mVerticesDims ) return mVertices.size() / mVerticesDims; else return 0; }
+	virtual size_t	getNumVertices() const override { if( mVerticesDims ) return mVertices.size() / mVerticesDims; else return 0; }
 
 	//! Puts the 3 vertices of triangle number \a idx into \a a, \a b and \a c. Assumes vertices are 3D
 	void		getTriangleVertices( size_t idx, Vec3f *a, Vec3f *b, Vec3f *c ) const;
@@ -112,9 +112,9 @@ class TriMesh {
 	void		getTriangleVertices( size_t idx, Vec2f *a, Vec2f *b, Vec2f *c ) const;
 
 
-	//! Returns all the vertices for a mesh in a std::vector as Vec3f objects
-	template<typename T>
-	const T*						getVertices() const { return (const T*)mVertices.data(); }
+	//! Returns all the vertices for a mesh in a std::vector as Vec<DIM>f. For example, to get 3D vertices, call getVertices<3>().
+	template<uint8_t DIM>
+	const typename VECDIM<DIM,float>::TYPE*	getVertices() const { assert(mVerticesDims==DIM); return (typename VECDIM<DIM,float>::TYPE*)mVertices.data(); }
 	//! Returns all the normals for a mesh in a std::vector as Vec3f objects. There will be one of these for each triangle face in the mesh
 	std::vector<Vec3f>&				getNormals() { return mNormals; }
 	//! Returns all the normals for a mesh in a std::vector as Vec3f objects. There will be one of these for each triangle face in the mesh
@@ -146,10 +146,10 @@ class TriMesh {
 	//! This allows to you write a mesh out to a data file. At present .obj and .dat files are supported.
 	void		write( DataTargetRef out ) const;
 
-	//! Adds or replaces normals by calculating them from the vertices and faces.
+	//! Adds or replaces normals by calculating them from the vertices and faces. Requires 3D vertices.
 	void		recalculateNormals();
 	
-  public:
+
 	//! Create TriMesh from vectors of vertex data.
 /*	static TriMesh		create( std::vector<uint32_t> &indices, const std::vector<ColorAf> &colors,
 							   const std::vector<Vec3f> &normals, const std::vector<Vec3f> &positions,
@@ -164,6 +164,18 @@ class TriMesh {
 
 	//! Subdivide a TriMesh \a division times. Division less than 2 returns the original mesh.
 	static TriMesh		subdivide( const TriMesh &triMesh, uint32_t division = 2, bool normalize = false );	
+
+	// geom::Source virtuals
+	virtual geom::Mode	getMode() const override { return geom::Mode::TRIANGLES; }
+	
+	virtual bool		hasAttrib( geom::Attrib attr ) const override;
+	virtual bool		canProvideAttrib( geom::Attrib attr ) const override;
+	virtual uint8_t		getAttribDims( geom::Attrib attr ) const override;	
+	virtual void		copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
+	
+	virtual void		copyIndices( uint16_t *dest ) const override;
+	virtual void		copyIndices( uint32_t *dest ) const override;
+	
 
   private:
 	uint8_t		mVerticesDims, mNormalsDims, mColorsDims;

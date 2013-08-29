@@ -79,8 +79,8 @@ class Source {
 	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const = 0;
 	
 	virtual size_t		getNumIndices() const { return 0; }
-	virtual void		copyIndices( uint16_t *dest ) const;
-	virtual void		copyIndices( uint32_t *dest ) const;
+	virtual void		copyIndices( uint16_t *dest ) const; // defaults to throw
+	virtual void		copyIndices( uint32_t *dest ) const; // defaults to throw
 	
   protected:
 	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );

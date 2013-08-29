@@ -309,6 +309,67 @@ void TriMesh::recalculateNormals()
 	return mesh;
 }*/
 
+bool TriMesh::hasAttrib( geom::Attrib attr ) const
+{
+	switch( attr ) {
+		case geom::Attrib::POSITION: return ! mVertices.empty();
+		case geom::Attrib::COLOR: return ! mColors.empty();
+		case geom::Attrib::TEX_COORD_0: return ! mTexCoords0.empty();
+		case geom::Attrib::NORMAL: return ! mNormals.empty();
+		default:
+			return false;
+	}
+}
+
+bool TriMesh::canProvideAttrib( geom::Attrib attr ) const
+{
+	return hasAttrib( attr );
+}
+
+uint8_t TriMesh::getAttribDims( geom::Attrib attr ) const
+{
+	switch( attr ) {
+		case geom::Attrib::POSITION: return mVerticesDims;
+		case geom::Attrib::COLOR: return mColorsDims;
+		case geom::Attrib::TEX_COORD_0: return mTexCoords0Dims;
+		case geom::Attrib::NORMAL: return mNormalsDims;
+		default:
+			return false;
+	}	
+}
+
+void TriMesh::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, float *dest ) const
+{
+	switch( attr ) {
+		case geom::Attrib::POSITION:
+			copyData( mVerticesDims, mVertices.data(), getNumVertices(), dims, stride, dest );
+		break;
+		case geom::Attrib::COLOR:
+			copyData( mColorsDims, mColors.data(), std::min( getNumVertices(), mColors.size() / mColorsDims ), dims, stride, dest );
+		break;
+		case geom::Attrib::TEX_COORD_0:
+			copyData( mTexCoords0Dims, mTexCoords0.data(), std::min( getNumVertices(), mTexCoords0.size() / mTexCoords0Dims ), dims, stride, dest );
+		break;
+		case geom::Attrib::NORMAL:
+			copyData( 3, (float*)mNormals.data(), std::min( getNumVertices(), mNormals.size() / 3 ), dims, stride, dest );
+		break;
+		default:
+			throw geom::ExcMissingAttrib();
+	}
+}
+
+void TriMesh::copyIndices( uint16_t *dest ) const
+{
+	size_t numIndices = mIndices.size();
+	for( int i = 0; i < numIndices; ++i )
+		dest[i] = mIndices[i];
+}
+
+void TriMesh::copyIndices( uint32_t *dest ) const
+{
+	memcpy( dest, mIndices.data(), mIndices.size() * sizeof(uint32_t) );
+}
+
 #if 0
 
 TriMesh TriMesh::createCircle( const Vec2i &resolution )

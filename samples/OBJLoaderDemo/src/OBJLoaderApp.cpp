@@ -84,12 +84,12 @@ void ObjLoaderApp::loadObjFile( const fs::path &filePath )
 {
 	ObjLoader loader( (DataSourceRef)loadFile( filePath ) );
 	mMesh = TriMesh::create( loader );
-	mBatch = gl::Batch::create( loader, gl::getStockShader( gl::ShaderDef().color() ) );
+	mBatch = gl::Batch::create( mMesh, gl::getStockShader( gl::ShaderDef().color() ) );
 }
 
 void ObjLoaderApp::frameCurrentObject()
 {
-	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh->getVertices<Vec3f>(), mMesh->getNumVertices() );
+	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh->getVertices<3>(), mMesh->getNumVertices() );
 	
 	mMayaCam.setCurrentCam( mMayaCam.getCamera().getFrameSphere( boundingSphere, 100 ) );
 }
