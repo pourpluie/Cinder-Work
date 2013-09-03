@@ -66,10 +66,14 @@ class Context {
 	//! Returns the currently bound VAO
 	VaoRef		vaoGet();
 	
+	//! Returns a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively of the viewport
 	const std::pair<Vec2i, Vec2i>	getViewport() const { return mViewport; }
+	//! Sets the viewport based on a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively
 	void							setViewport( const std::pair<Vec2i, Vec2i> &viewport );
-	
+
+	//! Returns a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively of the scissor box
 	const std::pair<Vec2i, Vec2i>	getScissor() const { return mScissor; }
+	//! Sets the scissor box based on a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively	
 	void							setScissor( const std::pair<Vec2i, Vec2i> &scissor );
 
 	void		bindBuffer( GLenum target, GLuint id );
@@ -358,24 +362,17 @@ struct TextureBindScope : public boost::noncopyable
 	
 struct ScissorScope : public boost::noncopyable
 {
-	ScissorScope()
+	ScissorScope( const Vec2i &lowerLeftPostion, const Vec2i &dimension )
 		: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
 	{
-		mCtx->setScissor( mCtx->getViewport() );
+		mCtx->setScissor( std::pair<Vec2i, Vec2i>( lowerLeftPostion, dimension ) );
 		mCtx->enable( GL_SCISSOR_TEST );
 	}
 	
-	ScissorScope( const Vec2i &position, const Vec2i &dimension )
+	ScissorScope( int lowerLeftX, int lowerLeftY, int width, int height )
 		: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
 	{
-		mCtx->setScissor( std::pair<Vec2i, Vec2i>( position, dimension ) );
-		mCtx->enable( GL_SCISSOR_TEST );
-	}
-	
-	ScissorScope( int x, int y, int width, int height )
-		: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
-	{
-		mCtx->setScissor( std::pair<Vec2i, Vec2i>( Vec2i( x, y ), Vec2i( width, height ) ) );
+		mCtx->setScissor( std::pair<Vec2i, Vec2i>( Vec2i( lowerLeftX, lowerLeftY ), Vec2i( width, height ) ) );
 		mCtx->enable( GL_SCISSOR_TEST );
 	}
 	
@@ -385,7 +382,7 @@ struct ScissorScope : public boost::noncopyable
 		mCtx->setScissor( mPrevScissor );
 	}
 	
-private:
+  private:
 	Context					*mCtx;
 	GLboolean				mPrevState;
 	std::pair<Vec2i, Vec2i>	mPrevScissor;
