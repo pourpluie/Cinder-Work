@@ -171,6 +171,89 @@ void Source::copyIndices( uint32_t *dest ) const
 	throw ExcNoIndices();
 }
 
+/*void Source::forceCopyIndices( uint16_t *dest ) const
+{
+	size_t numIndices = getNumIndices();
+	if( numIndices > 0 ) {
+		copyIndices( dest );
+	}
+	else {
+		if( getNumVertices() > 65535 )
+			throw ExcInadquateIndexStorage();
+
+		uint16_t count = 0;
+		std::generate( dest, dest + getNumVertices(), [&] { return count++; } );
+	}
+}
+
+
+void Source::forceCopyIndices( uint32_t *dest ) const
+{
+	size_t numIndices = getNumIndices();
+	if( numIndices > 0 ) {
+		copyIndices( dest );
+	}
+	else {
+		uint32_t count = 0;
+		std::generate( dest, dest + getNumVertices(), [&] { return count++; } );
+	}
+}
+
+size_t Source::forceGetNumIndicesTriangles() const
+{
+	size_t indices = getNumIndices();
+	if( getMode() == TRIANGLES ) {
+		if( indices > 0 )
+			return indices;
+		else
+			return getNumVertices();
+	}
+	else if( getMode() == TRIANGLE_STRIP {
+		if( indices > 0 )
+			return (size_t)std::min<int32_t>( ( indices - 2 ) * 3, 0 );
+		else
+			return (size_t)std::min<int32_t>( ( getNumVertices() - 2 ) * 3, 0 );
+	}
+	else
+		return 0;
+}
+
+void Source::forceCopyIndicesTriangles( uint16_t *dest ) const
+{
+	// if we're already triangles then just call forceCopyIndices
+	if( getMode() == TRIANGLES ) {
+		forceCopyIndices( dest );
+	}
+	else { // not triangles; might be indexed, might not be
+		// first just make sure there's room in 16-bit indices
+		size_t numIndicesForced = forceGetNumIndicesTriangles();
+		if( numIndicesForced > 65535 )
+			throw ExcInadquateIndexStorage();
+		
+		size_t numIndices = getNumIndices();
+		if( numIndices > 0 ) { // we're indexed, just not triangles
+			switch( getMode() ) {
+				case TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
+					unique_ptr<uint16_t> tempIndices( new uint16_t[numIndices] );
+					copyIndices( tempIndices.get() );
+					size_t outIdx = 0;
+					for( size_t i = 0; i < numIndices; ++i ) {
+						dest[outIdx] = tempIndices[i
+					}
+				}
+				break;
+			}
+		}
+		size_t numVertices = getNumVertices();
+		size_t numIndices = 
+		if( getNumVertices() > 65535 )
+			throw ExcInadquateIndexStorage();
+
+		uint16_t count = 0;
+		std::generate( dest, dest + getNumVertices(), [&] { return count++; } );
+	}
+}*/
+
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Rect

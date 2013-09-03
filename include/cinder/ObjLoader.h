@@ -112,9 +112,6 @@ class ObjLoader : public geom::Source {
 		bool					mHasNormals;
 	};
 
-	//! Writes a new OBJ file to \a dataTarget. \warning - this method will be moved in the future
-//	static void		write( DataTargetRef dataTarget, const TriMesh &mesh, bool writeNormals = true, bool writeUVs = true );
-	
     //! Returns the total number of groups.
 	size_t		getNumGroups() const { return mGroups.size(); }
 	
@@ -154,5 +151,10 @@ class ObjLoader : public geom::Source {
 	std::vector<Colorf>				mColors;
 	std::map<std::string, Material> mMaterials;
 };
+
+//! Writes a new OBJ file to \a dataTarget.
+void	objWrite( DataTargetRef dataTarget, const geom::Source &source, bool writeNormals = true, bool writeUVs = true );
+	
+
 
 } // namespace cinder

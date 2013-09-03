@@ -605,36 +605,86 @@ void ObjLoader::loadGroup( const Group &group, map<int,int> &uniqueVerts )
 	}	
 }
 
-/*
-void ObjLoader::write( DataTargetRef dataTarget, const TriMesh &mesh, bool writeNormals, bool includeUVs )
+void objWrite( DataTargetRef dataTarget, const geom::Source &source, bool writeNormals, bool includeUVs )
 {
 	OStreamRef stream = dataTarget->getStream();
-	const size_t numVerts = mesh.getNumVertices();
-	for( size_t p = 0; p < numVerts; ++p ) {
-		ostringstream os;
-		os << "v " << mesh.getVertices()[p].x << " " << mesh.getVertices()[p].y << " " << mesh.getVertices()[p].z << std::endl;
-		stream->writeData( os.str().c_str(), os.str().length() );
+	const size_t numVerts = source.getNumVertices();
+	switch( source.getAttribDims( geom::Attrib::POSITION ) ) {
+		case 2:
+		case 3: {
+			unique_ptr<Vec3f> verts( new Vec3f[numVerts] );
+			source.copyAttrib( geom::Attrib::POSITION, 3, 0, (float*)verts.get() );
+			for( size_t p = 0; p < numVerts; ++p ) {
+				ostringstream os;
+				os << "v " << verts.get()[p].x << " " << verts.get()[p].y << " " << verts.get()[p].z << std::endl;
+				stream->writeData( os.str().c_str(), os.str().length() );
+			}
+		}
+		break;
+		case 4: {
+			unique_ptr<Vec4f> verts( new Vec4f[numVerts] );
+			source.copyAttrib( geom::Attrib::POSITION, 3, 0, (float*)verts.get() );
+			for( size_t p = 0; p < numVerts; ++p ) {
+				ostringstream os;
+				os << "v " << verts.get()[p].x << " " << verts.get()[p].y << " " << verts.get()[p].z << " " << verts.get()[p].w << std::endl;
+				stream->writeData( os.str().c_str(), os.str().length() );
+			}
+		}
+		break;
 	}
 
-	const bool processTexCoords = mesh.hasTexCoords() && includeUVs;
+	const bool processTexCoords = source.hasAttrib( geom::Attrib::TEX_COORD_0 ) && includeUVs;
 	if( processTexCoords ) {
-		for( size_t p = 0; p < numVerts; ++p ) {
-			ostringstream os;
-			os << "vt " << mesh.getTexCoords()[p].x << " " << mesh.getTexCoords()[p].y << std::endl;
-			stream->writeData( os.str().c_str(), os.str().length() );
+		switch( source.getAttribDims( geom::Attrib::TEX_COORD_0 ) ) {
+			case 2: {
+				unique_ptr<Vec2f> texCoords( new Vec2f[numVerts] );
+				source.copyAttrib( geom::Attrib::TEX_COORD_0, 2, 0, (float*)texCoords.get() );
+				for( size_t p = 0; p < numVerts; ++p ) {
+					ostringstream os;
+					os << "vt " << texCoords.get()[p].x << " " << texCoords.get()[p].y << std::endl;
+					stream->writeData( os.str().c_str(), os.str().length() );
+				}
+			}
+			break;
+			case 3: {
+				unique_ptr<Vec3f> texCoords( new Vec3f[numVerts] );
+				source.copyAttrib( geom::Attrib::TEX_COORD_0, 3, 0, (float*)texCoords.get() );
+				for( size_t p = 0; p < numVerts; ++p ) {
+					ostringstream os;
+					os << "vt " << texCoords.get()[p].x << " " << texCoords.get()[p].y << " " << texCoords.get()[p].z << std::endl;
+					stream->writeData( os.str().c_str(), os.str().length() );
+				}
+			}
+			break;
 		}
 	}
 	
-	const bool processNormals = mesh.hasNormals() && writeNormals;
+	const bool processNormals = source.hasAttrib( geom::Attrib::NORMAL ) && writeNormals;
 	if( processNormals ) {
+		unique_ptr<Vec3f> normals( new Vec3f[numVerts] );
+		source.copyAttrib( geom::Attrib::NORMAL, 3, 0, (float*)normals.get() );
 		for( size_t p = 0; p < numVerts; ++p ) {
 			ostringstream os;
-			os << "vn " << mesh.getNormals()[p].x << " " << mesh.getNormals()[p].y << " " << mesh.getNormals()[p].z << std::endl;
+			os << "vt " << normals.get()[p].x << " " << normals.get()[p].y << " " << normals.get()[p].z << std::endl;
 			stream->writeData( os.str().c_str(), os.str().length() );
 		}
 	}
 	
-	const size_t numTriangles = mesh.getNumTriangles();
+	unique_ptr<uint32_t> indices;
+	if( source.getNumIndices() == 0 ) {
+		if( source.getMode() == geom::Mode::TRIANGLES ) { // for non-indexed TRIANGLES, we just fill the indices with a sequential list of indices [0..numVertices]
+			indices = unique_ptr<uint32_t>( new uint32_t[source.getNumVertices()] );
+			int count = 0;
+			std::generate( indices.get(), indices.get() + source.getNumVertices(), [&] { return count++; } );
+		}
+		else if( source.getMode() == geom::Mode::TRIANGLE_STRIP ) { // for non-indexed TRI_STRIP, 
+		
+		}
+	}
+	else {
+	
+	}
+/*	const size_t numTriangles = mesh.getNumTriangles();
 	const std::vector<uint32_t>& indices( mesh.getIndices() );
 	for( size_t t = 0; t < numTriangles; ++t ) {
 		ostringstream os;
@@ -661,7 +711,7 @@ void ObjLoader::write( DataTargetRef dataTarget, const TriMesh &mesh, bool write
 		}
 		os << std::endl;
 		stream->writeData( os.str().c_str(), os.str().length() );
-	}
-}*/
+	}*/
+}
 
 } // namespace cinder

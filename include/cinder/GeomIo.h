@@ -86,6 +86,11 @@ class Source {
 	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
 	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec2f &mult, const Vec2f &add );
 	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add );
+	
+	//! Builds a sequential list of vertices to simulate an indexed geometry when Source is non-indexed. Assumes \a dest contains storage for getNumVertices() entries
+	void	copyIndicesNonIndexed( uint16_t *dest ) const;
+	//! Builds a sequential list of vertices to simulate an indexed geometry when Source is non-indexed. Assumes \a dest contains storage for getNumVertices() entries
+	void	copyIndicesNonIndexed( uint32_t *dest ) const;
 };
 
 class Rect : public Source {
@@ -221,6 +226,10 @@ class ExcIllegalDestDimensions : public Exception {
 };
 
 class ExcNoIndices : public Exception {
+};
+
+// Attempt to store >65535 indices into a uint16_t
+class ExcInadquateIndexStorage : public Exception {
 };
 
 } } // namespace cinder::geom
