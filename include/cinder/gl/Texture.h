@@ -51,6 +51,8 @@ class Texture
 	/** Sets the filtering behavior when a texture is displayed at a higher resolution than its native resolution.
 	 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 	void			setMagFilter( GLenum magFilter );
+	/** Sets the anisotropic filtering amount **/
+	void			setMaxAnisotropy( GLfloat maxAnisotropy );
 	
 	/** Designed to accommodate texture where not all pixels are "clean", meaning the maximum texture coordinate value may not be 1.0 (or the texture's width in \c GL_TEXTURE_RECTANGLE_ARB) **/
 	void			setCleanTexCoords( float maxU, float maxV );
@@ -69,6 +71,8 @@ class Texture
 	
 	//! calculate the size of mipMap for the corresponding level
 	static Vec2i	calcMipLevelSize( int level, GLint width, GLint height );
+	/** Gets the maximum anisotropic filtering maximum allowed by the extension **/
+	static GLfloat	getMaxMaxAnisotropy();
 	//! calculates and sets the total levels of mipmap
 	GLint			getNumMipLevels() const;
 	//! the width of the texture in pixels
@@ -142,6 +146,16 @@ class Texture
 		//! Default constructor, sets the target to \c GL_TEXTURE_2D, wrap to \c GL_CLAMP, disables mipmapping, the internal format to "automatic"
 		Format();
 		
+		//! Chaining functions for Format class.
+		Format& target( GLenum target ) { mTarget = target; return *this; }
+		Format& mipMap( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; return *this; }
+		Format& maxAnisotropy( float maxAnisotropy ) { mMaxAnisotropy = maxAnisotropy; return *this; }
+		Format& internalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; return *this; }
+		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
+		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
+		Format& minFilter( GLenum minFilter ) { mMinFilter = minFilter; return *this; }
+		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
+		
 		//! Specifies the texture's target. The default is \c GL_TEXTURE_2D
 		void	setTarget( GLenum target ) { mTarget = target; }
 		//! Sets the texture's target to be \c GL_TEXTURE_RECTANGLE. Not available in OpenGL ES.
@@ -171,6 +185,8 @@ class Texture
 		/** Sets the filtering behavior when a texture is displayed at a higher resolution than its native resolution. Default is \c GL_LINEAR
 		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 		void	setMagFilter( GLenum magFilter ) { mMagFilter = magFilter; }
+		//! Sets the anisotropic filter amount
+		void    setMaxAnisotropic( GLfloat maxAnisotropy ) { mMaxAnisotropy = maxAnisotropy; }
 		
 		//! Returns the texture's target
 		GLenum	getTarget() const { return mTarget; }
@@ -190,12 +206,15 @@ class Texture
 		GLenum	getMinFilter() const { return mMinFilter; }
 		//! Returns the texture magnifying function, which is used whenever the pixel being textured maps to an area less than or equal to one texture element.
 		GLenum	getMagFilter() const { return mMagFilter; }
+		//! Returns the texture anisotropic filtering amount
+		GLfloat getMaxAnisotropy() const { return mMaxAnisotropy; }
 		
 	protected:
 		GLenum			mTarget;
 		GLenum			mWrapS, mWrapT;
 		GLenum			mMinFilter, mMagFilter;
 		bool			mMipmapping;
+		GLfloat         mMaxAnisotropy;
 		GLint			mInternalFormat;
 		
 		friend class Texture;
