@@ -23,7 +23,7 @@ using namespace std;
 struct FilterControl {
   public:
 	FilterControl( const Rectf &minRect, const Rectf &textureRect, const Rectf &anisoRect, const Rectf &anisoLevelRect,
-				  const Vec2i &scissorPos, const Vec2i &scissorDimension, const gl::TextureRef minTexture, const gl::TextureRef textureTexture, const float maxAniso )
+				  const Vec2i &scissorPos, const Vec2i &scissorDimension, const gl::TextureRef minTexture, const gl::TextureRef textureTexture, float maxAniso )
 	:	mMinFilterPushed( false ), mMinFilterChoice( 0 ), mMinRect( minRect ),
 		mAnisoFilterPushed( false ), mAnisoFilterMax( maxAniso ), mAnisoRect( anisoRect ),
 		mTexturePushed( false ), mTextureChoice( 0 ), mTextureRect( textureRect ),
@@ -153,7 +153,7 @@ void TextureMipmappingApp::setup()
 								  /* scissor */		 Vec2i( getWindowWidth() / 2, 0 ) /* position */, Vec2i( getWindowWidth() / 2, getWindowHeight() ) /* dimension */,
 													 gl::Texture::create( loadImage( loadResource( MIN_FILTER_NEA_NEA ) ) ),
 													 gl::Texture::create( loadImage( loadResource( GL_GEN ) ) ),
-													 0 );
+													 mMaxAnisoFilterAmount );
 	
 	
 	
@@ -168,7 +168,6 @@ void TextureMipmappingApp::setup()
 		.mipMap();
 	
 	gl::Texture::Format rightFormat = leftFormat;
-	rightFormat.setMaxAnisotropy( 0 );
 	rightFormat.setMinFilter( GL_NEAREST_MIPMAP_NEAREST );
 	
 	mAnisoTexture = gl::Texture::create( loadImage( loadResource( ANISOTROPIC ) ) );
