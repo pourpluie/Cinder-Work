@@ -171,7 +171,8 @@ void Source::copyIndices( uint32_t *dest ) const
 	throw ExcNoIndices();
 }
 
-/*void Source::forceCopyIndices( uint16_t *dest ) const
+// Always copy indices; generate them when they don't exist
+void Source::forceCopyIndices( uint16_t *dest ) const
 {
 	size_t numIndices = getNumIndices();
 	if( numIndices > 0 ) {
@@ -179,14 +180,14 @@ void Source::copyIndices( uint32_t *dest ) const
 	}
 	else {
 		if( getNumVertices() > 65535 )
-			throw ExcInadquateIndexStorage();
+			throw ExcInadequateIndexStorage();
 
 		uint16_t count = 0;
 		std::generate( dest, dest + getNumVertices(), [&] { return count++; } );
 	}
 }
 
-
+// Always copy indices; generate them when they don't exist
 void Source::forceCopyIndices( uint32_t *dest ) const
 {
 	size_t numIndices = getNumIndices();
@@ -199,20 +200,20 @@ void Source::forceCopyIndices( uint32_t *dest ) const
 	}
 }
 
-size_t Source::forceGetNumIndicesTriangles() const
+size_t Source::getNumIndicesTriangles() const
 {
 	size_t indices = getNumIndices();
-	if( getMode() == TRIANGLES ) {
+	if( getMode() == Mode::TRIANGLES ) {
 		if( indices > 0 )
 			return indices;
 		else
 			return getNumVertices();
 	}
-	else if( getMode() == TRIANGLE_STRIP {
+	else if( getMode() == Mode::TRIANGLE_STRIP ) {
 		if( indices > 0 )
-			return (size_t)std::min<int32_t>( ( indices - 2 ) * 3, 0 );
+			return (size_t)std::max<int32_t>( ( indices - 2 ) * 3, 0 );
 		else
-			return (size_t)std::min<int32_t>( ( getNumVertices() - 2 ) * 3, 0 );
+			return (size_t)std::max<int32_t>( ( getNumVertices() - 2 ) * 3, 0 );
 	}
 	else
 		return 0;
@@ -220,39 +221,84 @@ size_t Source::forceGetNumIndicesTriangles() const
 
 void Source::forceCopyIndicesTriangles( uint16_t *dest ) const
 {
+	forceCopyIndicesTrianglesImpl<uint16_t>( dest );
+}
+
+void Source::forceCopyIndicesTriangles( uint32_t *dest ) const
+{
+	forceCopyIndicesTrianglesImpl<uint32_t>( dest );
+}
+
+template<typename T>
+void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
+{
 	// if we're already triangles then just call forceCopyIndices
-	if( getMode() == TRIANGLES ) {
+	if( getMode() == Mode::TRIANGLES ) {
 		forceCopyIndices( dest );
 	}
 	else { // not triangles; might be indexed, might not be
-		// first just make sure there's room in 16-bit indices
-		size_t numIndicesForced = forceGetNumIndicesTriangles();
-		if( numIndicesForced > 65535 )
-			throw ExcInadquateIndexStorage();
+		// first just make sure there's room in T-sized indices
+		size_t numIndicesForced = getNumIndicesTriangles();
+		if( numIndicesForced > std::numeric_limits<T>::max() )
+			throw ExcInadequateIndexStorage();
 		
 		size_t numIndices = getNumIndices();
 		if( numIndices > 0 ) { // we're indexed, just not triangles
 			switch( getMode() ) {
-				case TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
-					unique_ptr<uint16_t> tempIndices( new uint16_t[numIndices] );
+				case Mode::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
+					if( numIndices < 3 )
+						return;
+					// first get the triStrip indices, then we'll output them as triangles
+					unique_ptr<T> tempIndices( new T[numIndices] );
 					copyIndices( tempIndices.get() );
-					size_t outIdx = 0;
-					for( size_t i = 0; i < numIndices; ++i ) {
-						dest[outIdx] = tempIndices[i
+					size_t outIdx = 0; // (012, 213), (234, 435), etc : (odd,even), (odd,even), etc
+					for( size_t i = 0; i < numIndices - 2; ++i ) {
+						if( i & 1 ) { // odd
+							dest[outIdx++] = tempIndices.get()[i+1];
+							dest[outIdx++] = tempIndices.get()[0];
+							dest[outIdx++] = tempIndices.get()[i+2];
+						}
+						else { // even
+							dest[outIdx++] = tempIndices.get()[i];
+							dest[outIdx++] = tempIndices.get()[i+1];
+							dest[outIdx++] = tempIndices.get()[i+2];
+						}
 					}
 				}
 				break;
+				default:
+					throw ExcIllegalPrimitiveType();
 			}
 		}
-		size_t numVertices = getNumVertices();
-		size_t numIndices = 
-		if( getNumVertices() > 65535 )
-			throw ExcInadquateIndexStorage();
-
-		uint16_t count = 0;
-		std::generate( dest, dest + getNumVertices(), [&] { return count++; } );
+		else { // non-indexed, non-triangles; we'll just generate them
+			size_t numVertices = getNumVertices();
+			size_t numIndices = (size_t)std::max<int32_t>( ( numVertices - 2 ) * 3, 0 );
+			if( numIndices > std::numeric_limits<T>::max() )
+				throw ExcInadequateIndexStorage();
+			
+			switch( getMode() ) {
+				case Mode::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
+					size_t outIdx = 0; // (012, 213), (234, 435), etc : (odd,even), (odd,even), etc
+					for( size_t i = 0; i < numVertices - 2; ++i ) {
+						if( i & 1 ) { // odd
+							dest[outIdx++] = i + 1;
+							dest[outIdx++] = i;
+							dest[outIdx++] = i + 2;
+						}
+						else { // even
+							dest[outIdx++] = i;
+							dest[outIdx++] = i + 1;
+							dest[outIdx++] = i + 2;
+						}
+					}
+				}
+				break;
+				default:
+					throw ExcIllegalPrimitiveType();
+			}
+		}
 	}
-}*/
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -565,7 +611,7 @@ void Teapot::copyIndices( uint32_t *dest ) const
 {
 	calculate();
 			
-	memcpy( dest, mIndices.get(), mNumIndices );		
+	memcpy( dest, mIndices.get(), mNumIndices * sizeof(uint32_t) );		
 }
 
 uint8_t	Teapot::getAttribDims( Attrib attr ) const
@@ -685,7 +731,7 @@ void Teapot::buildPatch( Vec3f patch[][4], float *B, float *dB, float *v, float 
 			v[index] = pt.x; v[index+1] = pt.z; v[index+2] = pt.y;
 			n[index] = norm.x; n[index+1] = norm.z; n[index+2] = norm.y;
 			tc[tcIndex] = i * tcFactor; tc[tcIndex+1] = j * tcFactor;
-
+std::cout << tc[tcIndex] << " " << tc[tcIndex+1] << std::endl;
 			index += 3;
 			tcIndex += 2;
 		}

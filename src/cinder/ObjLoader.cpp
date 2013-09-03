@@ -1,6 +1,7 @@
 /*
- Copyright (c) 2010, The Barbarian Group
- All rights reserved.
+ Copyright (c) 2013, The Cinder Project, All rights reserved.
+
+ This code is intended for use with the Cinder C++ library: http://libcinder.org
 
  Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
 
@@ -665,53 +666,41 @@ void objWrite( DataTargetRef dataTarget, const geom::Source &source, bool writeN
 		source.copyAttrib( geom::Attrib::NORMAL, 3, 0, (float*)normals.get() );
 		for( size_t p = 0; p < numVerts; ++p ) {
 			ostringstream os;
-			os << "vt " << normals.get()[p].x << " " << normals.get()[p].y << " " << normals.get()[p].z << std::endl;
+			os << "vn " << normals.get()[p].x << " " << normals.get()[p].y << " " << normals.get()[p].z << std::endl;
 			stream->writeData( os.str().c_str(), os.str().length() );
 		}
 	}
 	
-	unique_ptr<uint32_t> indices;
-	if( source.getNumIndices() == 0 ) {
-		if( source.getMode() == geom::Mode::TRIANGLES ) { // for non-indexed TRIANGLES, we just fill the indices with a sequential list of indices [0..numVertices]
-			indices = unique_ptr<uint32_t>( new uint32_t[source.getNumVertices()] );
-			int count = 0;
-			std::generate( indices.get(), indices.get() + source.getNumVertices(), [&] { return count++; } );
-		}
-		else if( source.getMode() == geom::Mode::TRIANGLE_STRIP ) { // for non-indexed TRI_STRIP, 
-		
-		}
-	}
-	else {
-	
-	}
-/*	const size_t numTriangles = mesh.getNumTriangles();
-	const std::vector<uint32_t>& indices( mesh.getIndices() );
-	for( size_t t = 0; t < numTriangles; ++t ) {
+	size_t numIndices = source.getNumIndicesTriangles();
+	unique_ptr<uint32_t> indices( new uint32_t[numIndices] );
+	source.forceCopyIndicesTriangles( indices.get() );
+
+	for( size_t i = 0; i < numIndices; i += 3 ) {
 		ostringstream os;
 		os << "f ";
 		if( processNormals && processTexCoords ) {
-			os << indices[t*3+0]+1 << "/" << indices[t*3+0]+1 << "/" << indices[t*3+0]+1 << " ";
-			os << indices[t*3+1]+1 << "/" << indices[t*3+1]+1 << "/" << indices[t*3+1]+1 << " ";
-			os << indices[t*3+2]+1 << "/" << indices[t*3+2]+1 << "/" << indices[t*3+2]+1 << " ";
+			os << indices.get()[i]+1 << "/" << indices.get()[i+0]+1 << "/" << indices.get()[i+0]+1 << " ";
+			os << indices.get()[i+1]+1 << "/" << indices.get()[i+1]+1 << "/" << indices.get()[i+1]+1 << " ";
+			os << indices.get()[i+2]+1 << "/" << indices.get()[i+2]+1 << "/" << indices.get()[i+2]+1 << " ";
 		}
 		else if ( processNormals ) {
-			os << indices[t*3+0]+1 << "//" << indices[t*3+0]+1 << " ";
-			os << indices[t*3+1]+1 << "//" << indices[t*3+1]+1 << " ";
-			os << indices[t*3+2]+1 << "//" << indices[t*3+2]+1 << " ";
+			os << indices.get()[i+0]+1 << "//" << indices.get()[i+0]+1 << " ";
+			os << indices.get()[i+1]+1 << "//" << indices.get()[i+1]+1 << " ";
+			os << indices.get()[i+2]+1 << "//" << indices.get()[i+2]+1 << " ";
 		}
 		else if( processTexCoords ) {
-			os << indices[t*3+0]+1 << "/" << indices[t*3+0]+1 << " ";
-			os << indices[t*3+1]+1 << "/" << indices[t*3+1]+1 << " ";
-			os << indices[t*3+2]+1 << "/" << indices[t*3+2]+1 << " ";
+			os << indices.get()[i+0]+1 << "/" << indices.get()[i+0]+1 << " ";
+			os << indices.get()[i+1]+1 << "/" << indices.get()[i+1]+1 << " ";
+			os << indices.get()[i+2]+1 << "/" << indices.get()[i+2]+1 << " ";
 		}
 		else { // just verts
-			os << indices[t*3+0]+1 << " ";
-			os << indices[t*3+1]+1 << " ";
-			os << indices[t*3+2]+1 << " ";			
+			os << indices.get()[i+0]+1 << " ";
+			os << indices.get()[i+1]+1 << " ";
+			os << indices.get()[i+2]+1 << " ";			
 		}
 		os << std::endl;
 		stream->writeData( os.str().c_str(), os.str().length() );
-	}*/
+	}
 }
 
 } // namespace cinder

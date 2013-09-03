@@ -41,7 +41,7 @@ mGlsl = gl::getStockShader( gl::ShaderDef().texture() );
 //	mCubeBatch = gl::Batch::create( geo::Cube(), mGlsl );
 //	mCubeBatch = gl::Batch::create( geom::Teapot().subdivision( 6 ).scale( 0.5f ), mGlsl );
 
-	mTeapotMesh = gl::VboMesh::create( geom::Teapot().subdivision( 6 ).scale( 0.5f ).texCoords() );
+	mTeapotMesh = gl::VboMesh::create( geom::Teapot().texCoords().normals().subdivision( 5 ) );
 
 	gl::enableDepthWrite();
 	gl::enableDepthRead();

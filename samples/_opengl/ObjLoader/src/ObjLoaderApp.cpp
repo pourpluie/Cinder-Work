@@ -88,7 +88,7 @@ void ObjLoaderApp::loadObjFile( const fs::path &filePath )
 
 void ObjLoaderApp::frameCurrentObject()
 {
-	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh->getVertices<Vec3f>(), mMesh->getNumVertices() );
+	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh->getVertices<3>(), mMesh->getNumVertices() );
 	
 	mMayaCam.setCurrentCam( mMayaCam.getCamera().getFrameSphere( boundingSphere, 100 ) );
 }
@@ -104,6 +104,9 @@ void ObjLoaderApp::keyDown( KeyEvent event )
 	}
 	else if( event.getChar() == 'f' ) {
 		frameCurrentObject();
+	}
+	else if( event.getChar() == 'w' ) {
+		objWrite( writeFile( "bingo.obj" ), geom::Rect().texCoords() );
 	}
 }
 

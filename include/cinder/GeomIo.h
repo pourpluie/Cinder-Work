@@ -81,6 +81,16 @@ class Source {
 	virtual size_t		getNumIndices() const { return 0; }
 	virtual void		copyIndices( uint16_t *dest ) const; // defaults to throw
 	virtual void		copyIndices( uint32_t *dest ) const; // defaults to throw
+	//! Always copy indices; generate them when they don't exist. Copies getNumVertices() indices when indices don't exist.
+	void				forceCopyIndices( uint16_t *dest ) const;
+	//! Always copy indices; generate them when they don't exist. Copies getNumVertices() indices when indices don't exist.
+	void				forceCopyIndices( uint32_t *dest ) const;
+	//! Returns the number of indices that will be copied by forceCopyIndicesTriangles( uint16_t *dest );
+	size_t				getNumIndicesTriangles() const;
+	//! Always copy indices appropriate for a \c Primitive::TRIANGLES; generate them when they don't exist. Copies getNumIndicesTriangles().
+	void				forceCopyIndicesTriangles( uint16_t *dest ) const;
+	//! Always copy indices appropriate for a \c Primitive::TRIANGLES; generate them when they don't exist. Copies getNumIndicesTriangles().
+	void				forceCopyIndicesTriangles( uint32_t *dest ) const;
 	
   protected:
 	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
@@ -91,6 +101,9 @@ class Source {
 	void	copyIndicesNonIndexed( uint16_t *dest ) const;
 	//! Builds a sequential list of vertices to simulate an indexed geometry when Source is non-indexed. Assumes \a dest contains storage for getNumVertices() entries
 	void	copyIndicesNonIndexed( uint32_t *dest ) const;
+	template<typename T>
+	void forceCopyIndicesTrianglesImpl( T *dest ) const;
+	
 };
 
 class Rect : public Source {
@@ -225,11 +238,14 @@ class ExcIllegalSourceDimensions : public Exception {
 class ExcIllegalDestDimensions : public Exception {
 };
 
+class ExcIllegalPrimitiveType : public Exception {
+};
+
 class ExcNoIndices : public Exception {
 };
 
 // Attempt to store >65535 indices into a uint16_t
-class ExcInadquateIndexStorage : public Exception {
+class ExcInadequateIndexStorage : public Exception {
 };
 
 } } // namespace cinder::geom
