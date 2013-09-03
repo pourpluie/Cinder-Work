@@ -106,7 +106,8 @@ void ObjLoaderApp::keyDown( KeyEvent event )
 		frameCurrentObject();
 	}
 	else if( event.getChar() == 'w' ) {
-		objWrite( writeFile( "bingo.obj" ), geom::Rect().texCoords() );
+		TriMesh tm( geom::Rect().texCoords() );
+		objWrite( writeFile( "bingo.obj" ), tm );
 	}
 }
 

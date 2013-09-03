@@ -19,8 +19,6 @@ TriMesh::TriMesh( const geom::Source &source )
 	mVerticesDims = mNormalsDims = mColorsDims = mTexCoords0Dims = 0;
 
 	size_t numVertices = source.getNumVertices();
-// TODO: Handle TRIANGLE_STRIP
-geom::Primitive mode = source.getPrimitive();
 	
 	// positions
 	if( source.hasAttrib( geom::Attrib::POSITION ) ) {
@@ -40,7 +38,7 @@ geom::Primitive mode = source.getPrimitive();
 	if( source.hasAttrib( geom::Attrib::COLOR ) ) {
 		mColorsDims = source.getAttribDims( geom::Attrib::COLOR );
 		mColors.resize( mColorsDims * numVertices );
-//		source.copyAttrib( geom::Attrib::COLOR, mColorsDims, 0, (float*)mColors.data() );
+		source.copyAttrib( geom::Attrib::COLOR, mColorsDims, 0, (float*)mColors.data() );
 	}
 
 	// tex coords
@@ -51,7 +49,11 @@ geom::Primitive mode = source.getPrimitive();
 	}
 
 	size_t numIndices = source.getNumIndices();
-	if( numIndices ) {
+	if( source.getPrimitive() == geom::Primitive::TRIANGLE_STRIP ) {
+		mIndices.resize( source.getNumIndicesTriangles() );
+		source.forceCopyIndicesTriangles( mIndices.data() );
+	}
+	else if( numIndices ) {
 		mIndices.resize( numIndices );
 		source.copyIndices( mIndices.data() );
 	}
