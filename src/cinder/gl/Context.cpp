@@ -57,8 +57,16 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 #endif
 
 	mImmediateMode = gl::VertBatch::create();
-
-	mModelViewStack.push_back( Matrix44f() );
+	
+	GLint params[ 4 ];
+	glGetIntegerv( GL_VIEWPORT, params );
+	mViewport = std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) );
+    
+    glGetIntegerv( GL_SCISSOR_BOX, params );
+    mScissor = std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) );
+    
+	
+    mModelViewStack.push_back( Matrix44f() );
 	mModelViewStack.back().setToIdentity();
 	mProjectionStack.push_back( Matrix44f() );
 	mProjectionStack.back().setToIdentity();
@@ -123,6 +131,23 @@ void Context::vaoBind( const VaoRef &vao )
 VaoRef Context::vaoGet()
 {
 	return mCachedVao;
+}
+
+//////////////////////////////////////////////////////////////////
+// Viewport
+	
+void Context::setViewport( const std::pair<Vec2i, Vec2i> &viewport )
+{
+	mViewport = viewport;
+	glViewport( mViewport.first.x, mViewport.first.y, mViewport.second.x, mViewport.second.y );
+}
+    
+//////////////////////////////////////////////////////////////////
+// Scissor Test
+void Context::setScissor( const std::pair<Vec2i, Vec2i> &scissor )
+{
+	mScissor = scissor;
+	glScissor( mScissor.first.x, mScissor.first.y, mScissor.second.x, mScissor.second.y );
 }
 
 //////////////////////////////////////////////////////////////////
@@ -720,5 +745,6 @@ FramebufferScope::~FramebufferScope()
 #endif
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
 
 } } // namespace cinder::gl

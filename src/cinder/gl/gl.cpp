@@ -129,17 +129,36 @@ void clear( const ColorA& color, bool clearDepthBuffer )
 	}
 }
 
-Area getViewport()
+std::pair<Vec2i, Vec2i> getViewport()
 {
-	GLint params[ 4 ];
-	glGetIntegerv( GL_VIEWPORT, params );
-	Area result;
-	return Area( params[ 0 ], params[ 1 ], params[ 0 ] + params[ 2 ], params[ 1 ] + params[ 3 ] );
+	auto view = gl::context()->getViewport();
+	return view;
 }
 
-void setViewport( const Area& area )
+void viewport( int x, int y, int width, int height )
 {
-	glViewport( area.x1, area.y1, ( area.x2 - area.x1 ), ( area.y2 - area.y1 ) );
+	viewport( Vec2i( x, y ), Vec2i( width, height ) ) ;
+}
+
+void viewport( const Vec2i &position, const Vec2i &dimension )
+{
+	gl::context()->setViewport( std::pair<Vec2i, Vec2i>( position, dimension ) );
+}
+
+std::pair<Vec2i, Vec2i> getScissor()
+{
+	auto scissor = gl::context()->getScissor();
+	return scissor;
+}
+
+void scissor( int x, int y, int width, int height )
+{
+	scissor( Vec2i( x, y ), Vec2i( width, height ) );
+}
+
+void scissor( const Vec2i &position, const Vec2i &dimension )
+{
+	gl::context()->setScissor( std::pair<Vec2i, Vec2i>( position, dimension ) );
 }
 
 void enable( GLenum state, bool enable )

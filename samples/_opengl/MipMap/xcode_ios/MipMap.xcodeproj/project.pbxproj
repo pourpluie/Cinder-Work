@@ -16,9 +16,9 @@
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
 		81CD39EAFFD547C08046E0E6 /* CinderApp_ios.png in Resources */ = {isa = PBXBuildFile; fileRef = 9AC9E8DAF77B4FBABC6CB62B /* CinderApp_ios.png */; };
 		B3246BDD17BED9AD006C3463 /* non_pot_checkerboard.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BDC17BED9AD006C3463 /* non_pot_checkerboard.png */; };
-		B3246BF917BFE45E006C3463 /* glgenmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BF617BFE45E006C3463 /* glgenmipmap.png */; };
-		B3246BFA17BFE45E006C3463 /* usergenmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BF717BFE45E006C3463 /* usergenmipmap.png */; };
-		B3246BFB17BFE45E006C3463 /* userresizedmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BF817BFE45E006C3463 /* userresizedmipmap.png */; };
+		B3246BF317BFE365006C3463 /* glgenmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BF017BFE365006C3463 /* glgenmipmap.png */; };
+		B3246BF417BFE365006C3463 /* usergenmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BF117BFE365006C3463 /* usergenmipmap.png */; };
+		B3246BF517BFE365006C3463 /* userresizedmipmap.png in Resources */ = {isa = PBXBuildFile; fileRef = B3246BF217BFE365006C3463 /* userresizedmipmap.png */; };
 		B3781A5B17BEB1F80069128C /* anisotropicbutton.png in Resources */ = {isa = PBXBuildFile; fileRef = B3781A5517BEB1F80069128C /* anisotropicbutton.png */; };
 		B3781A5C17BEB1F80069128C /* checkerboard.png in Resources */ = {isa = PBXBuildFile; fileRef = B3781A5617BEB1F80069128C /* checkerboard.png */; };
 		B3781A5D17BEB1F80069128C /* GL_LIN_MIP_LIN.png in Resources */ = {isa = PBXBuildFile; fileRef = B3781A5717BEB1F80069128C /* GL_LIN_MIP_LIN.png */; };
@@ -51,9 +51,9 @@
 		9B488412D92140AC810ACA44 /* MipMap_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = MipMap_Prefix.pch; sourceTree = "<group>"; };
 		ACFA2AC5A898475299D84E55 /* MipMapApp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = MipMapApp.cpp; path = ../src/MipMapApp.cpp; sourceTree = "<group>"; };
 		B3246BDC17BED9AD006C3463 /* non_pot_checkerboard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = non_pot_checkerboard.png; path = ../resources/non_pot_checkerboard.png; sourceTree = "<group>"; };
-		B3246BF617BFE45E006C3463 /* glgenmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = glgenmipmap.png; path = ../resources/glgenmipmap.png; sourceTree = "<group>"; };
-		B3246BF717BFE45E006C3463 /* usergenmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = usergenmipmap.png; path = ../resources/usergenmipmap.png; sourceTree = "<group>"; };
-		B3246BF817BFE45E006C3463 /* userresizedmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = userresizedmipmap.png; path = ../resources/userresizedmipmap.png; sourceTree = "<group>"; };
+		B3246BF017BFE365006C3463 /* glgenmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = glgenmipmap.png; path = ../resources/glgenmipmap.png; sourceTree = "<group>"; };
+		B3246BF117BFE365006C3463 /* usergenmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = usergenmipmap.png; path = ../resources/usergenmipmap.png; sourceTree = "<group>"; };
+		B3246BF217BFE365006C3463 /* userresizedmipmap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = userresizedmipmap.png; path = ../resources/userresizedmipmap.png; sourceTree = "<group>"; };
 		B3781A5517BEB1F80069128C /* anisotropicbutton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = anisotropicbutton.png; path = ../resources/anisotropicbutton.png; sourceTree = "<group>"; };
 		B3781A5617BEB1F80069128C /* checkerboard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = checkerboard.png; path = ../resources/checkerboard.png; sourceTree = "<group>"; };
 		B3781A5717BEB1F80069128C /* GL_LIN_MIP_LIN.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = GL_LIN_MIP_LIN.png; path = ../resources/GL_LIN_MIP_LIN.png; sourceTree = "<group>"; };
@@ -141,9 +141,9 @@
 		00692BD914FF149000D0FFFF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				B3246BF617BFE45E006C3463 /* glgenmipmap.png */,
-				B3246BF717BFE45E006C3463 /* usergenmipmap.png */,
-				B3246BF817BFE45E006C3463 /* userresizedmipmap.png */,
+				B3246BF017BFE365006C3463 /* glgenmipmap.png */,
+				B3246BF117BFE365006C3463 /* usergenmipmap.png */,
+				B3246BF217BFE365006C3463 /* userresizedmipmap.png */,
 				B3246BDC17BED9AD006C3463 /* non_pot_checkerboard.png */,
 				B3781A5517BEB1F80069128C /* anisotropicbutton.png */,
 				B3781A5617BEB1F80069128C /* checkerboard.png */,
@@ -232,9 +232,9 @@
 				B3781A5F17BEB1F80069128C /* GL_NEA_MIP_LIN.png in Resources */,
 				B3781A6017BEB1F80069128C /* GL_NEA_MIP_NEA.png in Resources */,
 				B3246BDD17BED9AD006C3463 /* non_pot_checkerboard.png in Resources */,
-				B3246BF917BFE45E006C3463 /* glgenmipmap.png in Resources */,
-				B3246BFA17BFE45E006C3463 /* usergenmipmap.png in Resources */,
-				B3246BFB17BFE45E006C3463 /* userresizedmipmap.png in Resources */,
+				B3246BF317BFE365006C3463 /* glgenmipmap.png in Resources */,
+				B3246BF417BFE365006C3463 /* usergenmipmap.png in Resources */,
+				B3246BF517BFE365006C3463 /* userresizedmipmap.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

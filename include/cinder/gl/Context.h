@@ -65,6 +65,12 @@ class Context {
 	void		vaoBind( const VaoRef &vao );
 	//! Returns the currently bound VAO
 	VaoRef		vaoGet();
+	
+	const std::pair<Vec2i, Vec2i>	getViewport() const { return mViewport; }
+	void							setViewport( const std::pair<Vec2i, Vec2i> &viewport );
+	
+	const std::pair<Vec2i, Vec2i>	getScissor() const { return mScissor; }
+	void							setScissor( const std::pair<Vec2i, Vec2i> &scissor );
 
 	void		bindBuffer( GLenum target, GLuint id );
 	GLuint		getBufferBinding( GLenum target );
@@ -166,6 +172,9 @@ class Context {
 	Context( const std::shared_ptr<PlatformData> &platformData );
   
 	std::shared_ptr<PlatformData>	mPlatformData;
+	
+	std::pair<Vec2i, Vec2i>		mViewport;
+	std::pair<Vec2i, Vec2i>		mScissor;
 
 	VaoRef						mImmVao; // Immediate-mode VAO
 	VboRef						mImmVbo; // Immediate-mode VBO
@@ -345,6 +354,41 @@ struct TextureBindScope : public boost::noncopyable
 	Context		*mCtx;
 	GLenum		mTarget;
 	GLuint		mPrevValue;
+};
+	
+struct ScissorScope : public boost::noncopyable
+{
+	ScissorScope()
+		: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
+	{
+		mCtx->setScissor( mCtx->getViewport() );
+		mCtx->enable( GL_SCISSOR_TEST );
+	}
+	
+	ScissorScope( const Vec2i &position, const Vec2i &dimension )
+		: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
+	{
+		mCtx->setScissor( std::pair<Vec2i, Vec2i>( position, dimension ) );
+		mCtx->enable( GL_SCISSOR_TEST );
+	}
+	
+	ScissorScope( int x, int y, int width, int height )
+		: mCtx( gl::context() ), mPrevScissor( mCtx->getScissor() )
+	{
+		mCtx->setScissor( std::pair<Vec2i, Vec2i>( Vec2i( x, y ), Vec2i( width, height ) ) );
+		mCtx->enable( GL_SCISSOR_TEST );
+	}
+	
+	~ScissorScope()
+	{
+		mCtx->enable( GL_SCISSOR_TEST, GL_FALSE );
+		mCtx->setScissor( mPrevScissor );
+	}
+	
+private:
+	Context					*mCtx;
+	GLboolean				mPrevState;
+	std::pair<Vec2i, Vec2i>	mPrevScissor;
 };
 
 class ExcContextAllocation : public Exception {
