@@ -55,12 +55,12 @@ void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 {
 	mNumVertices = source.getNumVertices();
 	
-	switch( source.getMode() ) {
-		case geom::Mode::TRIANGLES:
-			mMode = GL_TRIANGLES;
+	switch( source.getPrimitive() ) {
+		case geom::Primitive::TRIANGLES:
+			mPrimitive = GL_TRIANGLES;
 		break;
-		case geom::Mode::TRIANGLE_STRIP:
-			mMode = GL_TRIANGLE_STRIP;
+		case geom::Primitive::TRIANGLE_STRIP:
+			mPrimitive = GL_TRIANGLE_STRIP;
 		break;
 	}
 	
@@ -175,9 +175,9 @@ void Batch::draw()
 	gl::VaoScope vaoScope( mVao );
 	ctx->setDefaultShaderVars();
 	if( mNumIndices )
-		ctx->drawElements( mMode, mNumIndices, mIndexType, 0 );
+		ctx->drawElements( mPrimitive, mNumIndices, mIndexType, 0 );
 	else
-		ctx->drawArrays( mMode, 0, mNumVertices );
+		ctx->drawArrays( mPrimitive, 0, mNumVertices );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////

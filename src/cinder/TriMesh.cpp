@@ -20,7 +20,7 @@ TriMesh::TriMesh( const geom::Source &source )
 
 	size_t numVertices = source.getNumVertices();
 // TODO: Handle TRIANGLE_STRIP
-geom::Mode mode = source.getMode();
+geom::Primitive mode = source.getPrimitive();
 	
 	// positions
 	if( source.hasAttrib( geom::Attrib::POSITION ) ) {

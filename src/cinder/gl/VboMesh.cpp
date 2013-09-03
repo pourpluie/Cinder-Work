@@ -21,11 +21,11 @@ VboMesh::VboMesh( const geom::Source &source )
 {
 	mNumVertices = source.getNumVertices();
 	
-	switch( source.getMode() ) {
-		case geom::Mode::TRIANGLES:
+	switch( source.getPrimitive() ) {
+		case geom::Primitive::TRIANGLES:
 			mMode = GL_TRIANGLES;
 		break;
-		case geom::Mode::TRIANGLE_STRIP:
+		case geom::Primitive::TRIANGLE_STRIP:
 			mMode = GL_TRIANGLE_STRIP;
 		break;
 	}

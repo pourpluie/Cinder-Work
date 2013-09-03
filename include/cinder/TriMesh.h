@@ -166,7 +166,7 @@ class TriMesh : public geom::Source {
 	static TriMesh		subdivide( const TriMesh &triMesh, uint32_t division = 2, bool normalize = false );	
 
 	// geom::Source virtuals
-	virtual geom::Mode	getMode() const override { return geom::Mode::TRIANGLES; }
+	virtual geom::Primitive		getPrimitive() const override { return geom::Primitive::TRIANGLES; }
 	
 	virtual bool		hasAttrib( geom::Attrib attr ) const override;
 	virtual bool		canProvideAttrib( geom::Attrib attr ) const override;

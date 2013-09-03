@@ -203,13 +203,13 @@ void Source::forceCopyIndices( uint32_t *dest ) const
 size_t Source::getNumIndicesTriangles() const
 {
 	size_t indices = getNumIndices();
-	if( getMode() == Mode::TRIANGLES ) {
+	if( getPrimitive() == Primitive::TRIANGLES ) {
 		if( indices > 0 )
 			return indices;
 		else
 			return getNumVertices();
 	}
-	else if( getMode() == Mode::TRIANGLE_STRIP ) {
+	else if( getPrimitive() == Primitive::TRIANGLE_STRIP ) {
 		if( indices > 0 )
 			return (size_t)std::max<int32_t>( ( indices - 2 ) * 3, 0 );
 		else
@@ -233,7 +233,7 @@ template<typename T>
 void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
 {
 	// if we're already triangles then just call forceCopyIndices
-	if( getMode() == Mode::TRIANGLES ) {
+	if( getPrimitive() == Primitive::TRIANGLES ) {
 		forceCopyIndices( dest );
 	}
 	else { // not triangles; might be indexed, might not be
@@ -244,8 +244,8 @@ void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
 		
 		size_t numIndices = getNumIndices();
 		if( numIndices > 0 ) { // we're indexed, just not triangles
-			switch( getMode() ) {
-				case Mode::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
+			switch( getPrimitive() ) {
+				case Primitive::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
 					if( numIndices < 3 )
 						return;
 					// first get the triStrip indices, then we'll output them as triangles
@@ -276,8 +276,8 @@ void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
 			if( numIndices > std::numeric_limits<T>::max() )
 				throw ExcInadequateIndexStorage();
 			
-			switch( getMode() ) {
-				case Mode::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
+			switch( getPrimitive() ) {
+				case Primitive::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
 					size_t outIdx = 0; // (012, 213), (234, 435), etc : (odd,even), (odd,even), etc
 					for( size_t i = 0; i < numVertices - 2; ++i ) {
 						if( i & 1 ) { // odd

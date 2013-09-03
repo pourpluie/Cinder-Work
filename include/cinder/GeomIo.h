@@ -34,7 +34,7 @@ typedef std::shared_ptr<class Source>	SourceRef;
 
 // keep this incrementing by 1 only; some code relies on that for iterating
 enum class Attrib { POSITION, COLOR, TEX_COORD_0, NORMAL, TANGENT, BITANGET, NUM_ATTRIBS };
-enum class Mode { TRIANGLES, TRIANGLE_STRIP }; 
+enum class Primitive { TRIANGLES, TRIANGLE_STRIP }; 
 
 class BufferLayout {
   public:
@@ -71,7 +71,7 @@ class BufferLayout {
 class Source {
   public:
 	virtual size_t		getNumVertices() const = 0;
-	virtual Mode		getMode() const = 0;
+	virtual Primitive	getPrimitive() const = 0;
 	
 	virtual bool		hasAttrib( Attrib attr ) const = 0;
 	virtual bool		canProvideAttrib( Attrib attr ) const = 0;
@@ -118,7 +118,7 @@ class Rect : public Source {
 	Rect&		scale( float s ) { mScale = Vec2f( s, s ); return *this; }
   
 	virtual size_t		getNumVertices() const override { return 4; }
-	virtual Mode		getMode() const override { return Mode::TRIANGLE_STRIP; }
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLE_STRIP; }
 	
 	virtual bool		hasAttrib( Attrib attr ) const override;
 	virtual bool		canProvideAttrib( Attrib attr ) const override;
@@ -148,7 +148,7 @@ class Cube : public Source {
 	Cube&		scale( float s ) { mScale = Vec3f( s, s, s ); return *this; }
   
 	virtual size_t		getNumVertices() const override { return 24; }
-	virtual Mode		getMode() const { return Mode::TRIANGLES; }
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
 	
 	virtual bool		hasAttrib( Attrib attr ) const override;
 	virtual bool		canProvideAttrib( Attrib attr ) const override;
@@ -185,7 +185,7 @@ class Teapot : public Source {
 	Teapot&		subdivision( int sub ) { mSubdivision = sub; return *this; }
   
 	virtual size_t		getNumVertices() const override;
-	virtual Mode		getMode() const { return Mode::TRIANGLES; }
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
 	
 	virtual bool		hasAttrib( Attrib attr ) const override;
 	virtual bool		canProvideAttrib( Attrib attr ) const override;

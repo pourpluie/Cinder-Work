@@ -47,9 +47,6 @@ namespace cinder {
  * \endcode
 **/ 
 
-geom::SourceRef	loadGeom( const fs::path &path );
-
-
 class ObjLoader : public geom::Source {
   public:
 	/**Constructs and does the parsing of the file
@@ -120,7 +117,7 @@ class ObjLoader : public geom::Source {
 	const std::vector<Group>&		getGroups() const { return mGroups; }
 
 	virtual size_t			getNumVertices() const override { return mVertices.size(); }
-	virtual geom::Mode		getMode() const override { return geom::Mode::TRIANGLES; }
+	virtual geom::Primitive	getPrimitive() const override { return geom::Primitive::TRIANGLES; }
 	
 	virtual bool		hasAttrib( geom::Attrib attr ) const override;
 	virtual bool		canProvideAttrib( geom::Attrib attr ) const override;
