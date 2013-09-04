@@ -197,11 +197,25 @@ std::string GlslProg::getShaderLog( GLuint handle ) const
 	return log;
 }
 
+// int
+void GlslProg::uniform( int location, int data ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform1i( location, data );
+}
+
 void GlslProg::uniform( const std::string &name, int data ) const
 {
 	ShaderScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	glUniform1i( loc, data );
+}
+
+// Vec2i
+void GlslProg::uniform( int location, const Vec2i &data ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform2i( location, data.x, data.y );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2i &data ) const
@@ -211,11 +225,25 @@ void GlslProg::uniform( const std::string &name, const Vec2i &data ) const
 	glUniform2i( loc, data.x, data.y );
 }
 
+// int *, count
+void GlslProg::uniform( int location, const int *data, int count ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform1iv( location, count, data );
+}
+
 void GlslProg::uniform( const std::string &name, const int *data, int count ) const
 {
 	ShaderScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	glUniform1iv( loc, count, data );
+}
+
+// Vec2i *, count
+void GlslProg::uniform( int location, const Vec2i *data, int count ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform2iv( location, count, &data[0].x );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2i *data, int count ) const
@@ -225,11 +253,25 @@ void GlslProg::uniform( const std::string &name, const Vec2i *data, int count ) 
 	glUniform2iv( loc, count, &data[0].x );
 }
 
+// float
+void GlslProg::uniform( int location, float data ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform1f( location, data );
+}
+
 void GlslProg::uniform( const std::string &name, float data ) const
 {
 	ShaderScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	glUniform1f( loc, data );
+}
+
+// Vec2f
+void GlslProg::uniform( int location, const Vec2f &data ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform2f( location, data.x, data.y );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2f &data ) const
@@ -239,11 +281,25 @@ void GlslProg::uniform( const std::string &name, const Vec2f &data ) const
 	glUniform2f( loc, data.x, data.y );
 }
 
+// Vec3f
+void GlslProg::uniform( int location, const Vec3f &data ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform3f( location, data.x, data.y, data.z );
+}
+
 void GlslProg::uniform( const std::string &name, const Vec3f &data ) const
 {
 	ShaderScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	glUniform3f( loc, data.x, data.y, data.z );
+}
+
+// Vec4f
+void GlslProg::uniform( int location, const Vec4f &data ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform4f( location, data.x, data.y, data.z, data.w );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec4f &data ) const
@@ -253,11 +309,25 @@ void GlslProg::uniform( const std::string &name, const Vec4f &data ) const
 	glUniform4f( loc, data.x, data.y, data.z, data.w );
 }
 
+// Color
+void GlslProg::uniform( int location, const Color &data ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform3f( location, data.r, data.g, data.b );
+}
+
 void GlslProg::uniform( const std::string &name, const Color &data ) const
 {
 	ShaderScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	glUniform3f( loc, data.r, data.g, data.b );
+}
+
+// ColorA
+void GlslProg::uniform( int location, const ColorA &data ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform4f( location, data.r, data.g, data.b, data.a );
 }
 
 void GlslProg::uniform( const std::string &name, const ColorA &data ) const
@@ -267,11 +337,25 @@ void GlslProg::uniform( const std::string &name, const ColorA &data ) const
 	glUniform4f( loc, data.r, data.g, data.b, data.a );
 }
 
+// float*, count
+void GlslProg::uniform( int location, const float *data, int count ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform1fv( location, count, data );
+}
+
 void GlslProg::uniform( const std::string &name, const float *data, int count ) const
 {
 	ShaderScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	glUniform1fv( loc, count, data );
+}
+
+// Vec2f*, count
+void GlslProg::uniform( int location, const Vec2f *data, int count ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform2fv( location, count, &data[0].x );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2f *data, int count ) const
@@ -281,11 +365,25 @@ void GlslProg::uniform( const std::string &name, const Vec2f *data, int count ) 
 	glUniform2fv( loc, count, &data[0].x );
 }
 
+// Vec3f*, count
+void GlslProg::uniform( int location, const Vec3f *data, int count ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform3fv( location, count, &data[0].x );
+}
+
 void GlslProg::uniform( const std::string &name, const Vec3f *data, int count ) const
 {
 	ShaderScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	glUniform3fv( loc, count, &data[0].x );
+}
+
+// Vec4f*, count
+void GlslProg::uniform( int location, const Vec4f *data, int count ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniform4fv( location, count, &data[0].x );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec4f *data, int count ) const
@@ -295,11 +393,25 @@ void GlslProg::uniform( const std::string &name, const Vec4f *data, int count ) 
 	glUniform4fv( loc, count, &data[0].x );
 }
 
+// Matrix33f
+void GlslProg::uniform( int location, const Matrix33f &data, bool transpose ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniformMatrix3fv( location, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+}
+
 void GlslProg::uniform( const std::string &name, const Matrix33f &data, bool transpose ) const
 {
 	ShaderScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	glUniformMatrix3fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+}
+
+// Matrix44f
+void GlslProg::uniform( int location, const Matrix44f &data, bool transpose ) const
+{
+	ShaderScope shaderBind( shared_from_this() );
+	glUniformMatrix4fv( location, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
 }
 
 void GlslProg::uniform( const std::string &name, const Matrix44f &data, bool transpose ) const
