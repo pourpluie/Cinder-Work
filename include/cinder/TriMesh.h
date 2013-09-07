@@ -115,6 +115,9 @@ class TriMesh : public geom::Source {
 	//! Returns all the vertices for a mesh in a std::vector as Vec<DIM>f. For example, to get 3D vertices, call getVertices<3>().
 	template<uint8_t DIM>
 	const typename VECDIM<DIM,float>::TYPE*	getVertices() const { assert(mVerticesDims==DIM); return (typename VECDIM<DIM,float>::TYPE*)mVertices.data(); }
+	//! Returns all the vertices for a mesh in a std::vector as Vec<DIM>f. For example, to get 3D vertices, call getVertices<3>().
+	template<uint8_t DIM>
+	typename VECDIM<DIM,float>::TYPE*		getVertices() { assert(mVerticesDims==DIM); return (typename VECDIM<DIM,float>::TYPE*)mVertices.data(); }
 	//! Returns all the normals for a mesh in a std::vector as Vec3f objects. There will be one of these for each triangle face in the mesh
 	std::vector<Vec3f>&				getNormals() { return mNormals; }
 	//! Returns all the normals for a mesh in a std::vector as Vec3f objects. There will be one of these for each triangle face in the mesh
