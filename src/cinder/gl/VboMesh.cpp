@@ -23,10 +23,10 @@ VboMesh::VboMesh( const geom::Source &source )
 	
 	switch( source.getPrimitive() ) {
 		case geom::Primitive::TRIANGLES:
-			mMode = GL_TRIANGLES;
+			mGlPrimitive = GL_TRIANGLES;
 		break;
 		case geom::Primitive::TRIANGLE_STRIP:
-			mMode = GL_TRIANGLE_STRIP;
+			mGlPrimitive = GL_TRIANGLE_STRIP;
 		break;
 	}
 	
@@ -103,9 +103,19 @@ VaoRef VboMesh::buildVao( const GlslProgRef &shader )
 void VboMesh::drawImpl()
 {
 	if( mNumIndices )
-		glDrawElements( mMode, mNumIndices, mIndexType, (GLvoid*)( 0 ) );
+		glDrawElements( mGlPrimitive, mNumIndices, mIndexType, (GLvoid*)( 0 ) );
 	else
-		glDrawArrays( mMode, 0, mNumVertices );
+		glDrawArrays( mGlPrimitive, 0, mNumVertices );
+}
+
+std::vector<VboRef>	VboMesh::getVertexArrayVbos()
+{
+	std::vector<VboRef> result;
+	for( auto &it : mVertexArrayVbos ) {
+		result.push_back( it.second );
+	}
+	
+	return result;
 }
 
 /*	{
@@ -248,18 +258,18 @@ VboMeshRef VboMesh::create( const TriMesh& mesh, const VboMesh::Layout& layout )
 	return VboMeshRef( new VboMesh( mesh, layout ) );
 }
 
-VboMesh::VboMesh( size_t numVertices, const VboMesh::Layout& layout, GLenum mode )
-: mLayout( layout ), mMode( mode ), mNumIndices( 0 ), mNumVertices( numVertices )
+VboMesh::VboMesh( size_t numVertices, const VboMesh::Layout& layout, GLenum glPrimitive )
+: mLayout( layout ), mGlPrimitive( glPrimitive ), mNumIndices( 0 ), mNumVertices( numVertices )
 {
 }
 
-VboMesh::VboMesh( size_t numIndices, size_t numVertices, const VboMesh::Layout& layout, GLenum mode )
-: mLayout( layout ), mMode( mode ), mNumIndices( numIndices ), mNumVertices( numVertices )
+VboMesh::VboMesh( size_t numIndices, size_t numVertices, const VboMesh::Layout& layout, GLenum glPrimitive )
+: mLayout( layout ), mGlPrimitive( glPrimitive ), mNumIndices( numIndices ), mNumVertices( numVertices )
 {
 }
 
 VboMesh::VboMesh( const TriMesh& mesh, const VboMesh::Layout& layout )
-: mLayout( layout ), mMode( GL_TRIANGLES ), mNumIndices( mesh.getNumIndices() ),
+: mLayout( layout ), mGlPrimitive( GL_TRIANGLES ), mNumIndices( mesh.getNumIndices() ),
 mNumVertices( mesh.getNumVertices() )
 {
 	if ( mesh.hasColorsRGBA() && mLayout.getColorUsage() == Layout::Usage::NONE ) {

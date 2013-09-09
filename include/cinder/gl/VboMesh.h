@@ -27,11 +27,28 @@ class VboMesh {
 	//! Issues a glDraw* call, but without binding a VAO or sending shader vars. Consider gl::draw( VboMeshRef ) instead
 	void		drawImpl();
 
+	//! Returns the number of vertices in the mesh
+	uint32_t	getNumVertices() const { return mNumVertices; }
+	//! Returns the number of indices for indexed geometry, otherwise 0
+	uint32_t	getNumIndices() const { return mNumIndices; }
+	//! Returns the primitive type, such as GL_TRIANGLES, GL_TRIANGLE_STRIP, etc
+	GLenum		getGlPrimitive() const { return mGlPrimitive; }
+	//! Returns the data type of the indices contained in element vbo; either GL_UNSIGNED_SHORT or GL_UNSIGNED_INT
+	GLenum		getIndexDataType() const { return mIndexType; }
+
+	//! Returns the VBO containing the elements of the mesh, or a NULL for non-indexed geometry
+	VboRef		getElementVbo() { return mElements; }
+
+	//! Builds and returns a vector of VboRefs for the vertex data of the mesh
+	std::vector<VboRef>									getVertexArrayVbos();
+	//! Returns the vector of pairs of (BufferLayout,VboRef) for the vertex data of the mesh
+	std::vector<std::pair<geom::BufferLayout,VboRef>>&	getVertexArrayLayoutVbos() { return mVertexArrayVbos; }
+
   protected:
 	VboMesh( const geom::Source &source );
 
 	uint32_t			mNumVertices, mNumIndices;
-	GLenum				mMode;
+	GLenum				mGlPrimitive;
 	GLenum				mIndexType;
 
 

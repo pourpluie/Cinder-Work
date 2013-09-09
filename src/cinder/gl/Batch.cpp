@@ -24,11 +24,17 @@
 #include "cinder/gl/Batch.h"
 #include "cinder/gl/Context.h"
 #include "cinder/gl/GlslProg.h"
+#include "cinder/gl/VboMesh.h"
 
 namespace cinder { namespace gl {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Batch
+BatchRef Batch::create( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl )
+{
+	return BatchRef( new Batch( vboMesh, glsl ) );
+}
+
 BatchRef Batch::create( const geom::Source &source, const gl::GlslProgRef &glsl )
 {
 	return BatchRef( new Batch( source, glsl ) );
@@ -37,6 +43,18 @@ BatchRef Batch::create( const geom::Source &source, const gl::GlslProgRef &glsl 
 BatchRef Batch::create( const geom::SourceRef &sourceRef, const gl::GlslProgRef &glsl )
 {
 	return BatchRef( new Batch( sourceRef, glsl ) );
+}
+
+Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl )
+	: mGlsl( glsl )
+{
+	mVertexArrays = vboMesh->getVertexArrayVbos();
+	mElements = vboMesh->getElementVbo();
+	mVao = vboMesh->buildVao( glsl );
+	mPrimitive = vboMesh->getGlPrimitive();
+	mNumVertices = vboMesh->getNumVertices();
+	mNumIndices = vboMesh->getNumIndices();
+	mIndexType = vboMesh->getIndexDataType();
 }
 
 Batch::Batch( const geom::Source &source, const gl::GlslProgRef &glsl )
@@ -108,7 +126,7 @@ void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 	if( hasNormals )
 		source.copyAttrib( geom::Attrib::NORMAL, source.getAttribDims( geom::Attrib::NORMAL ), 0, (float*)&buffer[offsetNormals] );
 	
-	mVertexArray = Vbo::create( GL_ARRAY_BUFFER, dataSizeBytes, buffer );
+	mVertexArrays.push_back( Vbo::create( GL_ARRAY_BUFFER, dataSizeBytes, buffer ) );
 
 	delete [] buffer;
 	
@@ -137,7 +155,7 @@ void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 
 		auto ctx = gl::context();
 		
-		mVertexArray->bind();
+		mVertexArrays.front()->bind();
 		if( hasPosition ) {
 			int loc = glsl->getAttribSemanticLocation( geom::Attrib::POSITION );
 			ctx->enableVertexAttribArray( loc );
