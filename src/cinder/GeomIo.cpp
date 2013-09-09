@@ -22,6 +22,7 @@
 */
 
 #include "cinder/GeomIo.h"
+#include <algorithm>
 
 using namespace std;
 

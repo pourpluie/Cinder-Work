@@ -3,6 +3,7 @@
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Batch.h"
 #include "cinder/gl/VboMesh.h"
+#include "cinder/ImageIo.h"
 
 using namespace ci;
 using namespace ci::app;

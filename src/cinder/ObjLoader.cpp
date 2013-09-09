@@ -38,6 +38,7 @@ namespace cinder {
 
 geom::SourceRef	loadGeom( const fs::path &path )
 {
+return geom::SourceRef();
 }
 
 ObjLoader::ObjLoader( shared_ptr<IStreamCinder> stream, bool includeUVs )
