@@ -576,6 +576,22 @@ void bindBuffer( const BufferObjRef &buffer )
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+// toGL conversion functions
+GLenum toGl( geom::Primitive prim )
+{
+	switch( prim ) {
+		case geom::Primitive::TRIANGLES:
+			return GL_TRIANGLES;
+		break;
+		case geom::Primitive::TRIANGLE_STRIP:
+			return GL_TRIANGLE_STRIP;
+		break;
+		default:
+			return 0; // no clear right choice here
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Draw*
 void drawArrays( GLenum mode, GLint first, GLsizei count )
 {

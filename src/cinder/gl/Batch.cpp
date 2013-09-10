@@ -48,7 +48,7 @@ BatchRef Batch::create( const geom::SourceRef &sourceRef, const gl::GlslProgRef 
 Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl )
 	: mGlsl( glsl )
 {
-	mVertexArrays = vboMesh->getVertexArrayVbos();
+	mVertexArrayVbos = vboMesh->getVertexArrayVbos();
 	mElements = vboMesh->getElementVbo();
 	mVao = vboMesh->buildVao( glsl );
 	mPrimitive = vboMesh->getGlPrimitive();
@@ -72,64 +72,31 @@ Batch::Batch( const geom::SourceRef &sourceRef, const gl::GlslProgRef &glsl )
 void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 {
 	mNumVertices = source.getNumVertices();
-	
-	switch( source.getPrimitive() ) {
-		case geom::Primitive::TRIANGLES:
-			mPrimitive = GL_TRIANGLES;
-		break;
-		case geom::Primitive::TRIANGLE_STRIP:
-			mPrimitive = GL_TRIANGLE_STRIP;
-		break;
+
+	mPrimitive = toGl( source.getPrimitive() );
+
+	size_t vertexDataSizeBytes = 0;
+	geom::BufferLayout bufferLayout;
+	for( int attribIt = 0; attribIt < (int)geom::Attrib::NUM_ATTRIBS; ++attribIt ) {
+		if( source.hasAttrib( (geom::Attrib)attribIt ) ) {
+			size_t attribDim = source.getAttribDims( (geom::Attrib)attribIt );
+			bufferLayout.append( (geom::Attrib)attribIt, attribDim, 0, vertexDataSizeBytes );
+			vertexDataSizeBytes += attribDim * sizeof(float) * mNumVertices;
+		}
 	}
 	
-	size_t dataSizeBytes = 0;
-	size_t offsetPosition, offsetColor, offsetTexCoord0, offsetNormals;
-	bool hasPosition = glsl->hasAttribSemantic( geom::Attrib::POSITION ) && source.canProvideAttrib( geom::Attrib::POSITION );
-	bool hasColor = glsl->hasAttribSemantic( geom::Attrib::COLOR ) && source.canProvideAttrib( geom::Attrib::COLOR );
-	bool hasTexCoord0 = glsl->hasAttribSemantic( geom::Attrib::TEX_COORD_0 ) && source.canProvideAttrib( geom::Attrib::TEX_COORD_0 );
-	bool hasNormals = glsl->hasAttribSemantic( geom::Attrib::NORMAL ) && source.canProvideAttrib( geom::Attrib::NORMAL );
-	
-	if( hasPosition ) {
-		offsetPosition = dataSizeBytes;
-		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geom::Attrib::POSITION );
-	}
+	std::unique_ptr<uint8_t> buffer( new uint8_t[vertexDataSizeBytes] );
 
-	if( hasColor ) {
-		offsetColor = dataSizeBytes;
-		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geom::Attrib::COLOR );
-	}
-
-	if( hasTexCoord0 ) {
-		offsetTexCoord0 = dataSizeBytes;
-		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geom::Attrib::TEX_COORD_0 );
+	for( auto &attrInfo : bufferLayout.getAttribs() ) {
+		if( source.hasAttrib( attrInfo.getAttrib() ) ) {
+			source.copyAttrib( attrInfo.getAttrib(), attrInfo.getSize(), attrInfo.getStride(), (float*)&buffer.get()[attrInfo.getOffset()] );
+		}
 	}
 	
-	if( hasNormals ) {
-		offsetNormals = dataSizeBytes;
-		dataSizeBytes += mNumVertices * sizeof(float) * source.getAttribDims( geom::Attrib::NORMAL );
-	}
-	
-	// allocate VBO dataSize
-	// if we have mapBuffer, do that, else allocate temporary
-	
-	uint8_t *buffer = new uint8_t[dataSizeBytes];
-	
-	if( hasPosition )
-		source.copyAttrib( geom::Attrib::POSITION, source.getAttribDims( geom::Attrib::POSITION ), 0, (float*)&buffer[offsetPosition] );
+	mVertexArrayVbos.push_back( Vbo::create( GL_ARRAY_BUFFER, vertexDataSizeBytes, buffer.get() ) );
+	std::vector<std::pair<geom::BufferLayout,VboRef>> vertLayoutVbos;
+	vertLayoutVbos.push_back( make_pair( bufferLayout, mVertexArrayVbos.back() ) );
 
-	if( hasColor )
-		source.copyAttrib( geom::Attrib::COLOR, source.getAttribDims( geom::Attrib::COLOR ), 0, (float*)&buffer[offsetColor] );
-
-	if( hasTexCoord0 )
-		source.copyAttrib( geom::Attrib::TEX_COORD_0, source.getAttribDims( geom::Attrib::TEX_COORD_0 ), 0, (float*)&buffer[offsetTexCoord0] );
-
-	if( hasNormals )
-		source.copyAttrib( geom::Attrib::NORMAL, source.getAttribDims( geom::Attrib::NORMAL ), 0, (float*)&buffer[offsetNormals] );
-	
-	mVertexArrays.push_back( Vbo::create( GL_ARRAY_BUFFER, dataSizeBytes, buffer ) );
-
-	delete [] buffer;
-	
 	mNumIndices = source.getNumIndices();
 	if( mNumIndices ) {		
 		if( mNumIndices < 65536 ) {
@@ -147,42 +114,34 @@ void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 			delete [] indices;
 		}
 	}
+	
+	initVao( vertLayoutVbos );
+}
 
-	{
-		// PREPARE VAO
-		mVao = Vao::create();
-		VaoScope vaoScope( mVao );
-
-		auto ctx = gl::context();
-		
-		mVertexArrays.front()->bind();
-		if( hasPosition ) {
-			int loc = glsl->getAttribSemanticLocation( geom::Attrib::POSITION );
-			ctx->enableVertexAttribArray( loc );
-			ctx->vertexAttribPointer( loc, source.getAttribDims( geom::Attrib::POSITION ), GL_FLOAT, GL_FALSE, 0, (void*)offsetPosition );
+void Batch::initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertLayoutVbos )
+{
+	mVao = Vao::create();
+	VaoScope vaoScope( mVao );
+	
+	auto ctx = gl::context();
+	
+	// iterate all the vertex array VBOs
+	for( const auto &vertArrayVbo : vertLayoutVbos ) {
+		// bind this VBO (to the current VAO)
+		vertArrayVbo.second->bind();
+		// now iterate the attributes associated with this VBO
+		for( const auto &attribInfo : vertArrayVbo.first.getAttribs() ) {
+			// get the location of the attrib semantic in the shader if it's present
+			if( mGlsl->hasAttribSemantic( attribInfo.getAttrib() ) ) {
+				int loc = mGlsl->getAttribSemanticLocation( attribInfo.getAttrib() );
+				ctx->enableVertexAttribArray( loc );
+				ctx->vertexAttribPointer( loc, attribInfo.getSize(), GL_FLOAT, GL_FALSE, attribInfo.getStride(), (const void*)attribInfo.getOffset() );
+			}
 		}
-
-		if( hasColor ) {
-			int loc = glsl->getAttribSemanticLocation( geom::Attrib::COLOR );
-			ctx->enableVertexAttribArray( loc );
-			ctx->vertexAttribPointer( loc, source.getAttribDims( geom::Attrib::COLOR ), GL_FLOAT, GL_FALSE, 0, (void*)offsetColor );
-		}
-
-		if( hasTexCoord0 ) {
-			int loc = glsl->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
-			ctx->enableVertexAttribArray( loc );
-			ctx->vertexAttribPointer( loc, source.getAttribDims( geom::Attrib::TEX_COORD_0 ), GL_FLOAT, GL_FALSE, 0, (void*)offsetTexCoord0 );
-		}
-
-		if( hasNormals ) {
-			int loc = glsl->getAttribSemanticLocation( geom::Attrib::NORMAL );
-			ctx->enableVertexAttribArray( loc );
-			ctx->vertexAttribPointer( loc, source.getAttribDims( geom::Attrib::NORMAL ), GL_FLOAT, GL_FALSE, 0, (void*)offsetNormals );
-		}
-		
-		if( mNumIndices > 0 )
-			mElements->bind();
 	}
+	
+	if( mNumIndices > 0 )
+		mElements->bind();
 }
 
 void Batch::draw()

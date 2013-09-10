@@ -20,15 +20,7 @@ VboMeshRef VboMesh::create( const geom::Source &source )
 VboMesh::VboMesh( const geom::Source &source )
 {
 	mNumVertices = source.getNumVertices();
-	
-	switch( source.getPrimitive() ) {
-		case geom::Primitive::TRIANGLES:
-			mGlPrimitive = GL_TRIANGLES;
-		break;
-		case geom::Primitive::TRIANGLE_STRIP:
-			mGlPrimitive = GL_TRIANGLE_STRIP;
-		break;
-	}
+	mGlPrimitive = toGl( source.getPrimitive() );
 	
 	size_t vertexDataSizeBytes = 0;
 	geom::BufferLayout bufferLayout;

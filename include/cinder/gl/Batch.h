@@ -45,11 +45,13 @@ class Batch {
 	Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl );
 	Batch( const geom::Source &source, const gl::GlslProgRef &glsl );
 	Batch( const geom::SourceRef &source, const gl::GlslProgRef &glsl );
-	void		init( const geom::Source &source, const gl::GlslProgRef &glsl );
+
+	void	init( const geom::Source &source, const gl::GlslProgRef &glsl );
+	void	initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertLayoutVbos );
 		
 	GlslProgRef		mGlsl;
 	
-	std::vector<VboRef>		mVertexArrays;
+	std::vector<VboRef>		mVertexArrayVbos;
 	VboRef					mElements;
 	VaoRef					mVao;
 	
