@@ -85,6 +85,7 @@ void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 		}
 	}
 	
+	// TODO: this should use mapBuffer when available
 	std::unique_ptr<uint8_t> buffer( new uint8_t[vertexDataSizeBytes] );
 
 	for( auto &attrInfo : bufferLayout.getAttribs() ) {

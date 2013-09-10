@@ -32,16 +32,16 @@ VboMesh::VboMesh( const geom::Source &source )
 		}
 	}
 	
-	uint8_t *buffer = new uint8_t[vertexDataSizeBytes];
+	// TODO: this should use mapBuffer when available
+	unique_ptr<uint8_t> buffer( new uint8_t[vertexDataSizeBytes] );
 
 	for( auto &attrInfo : bufferLayout.getAttribs() ) {
 		if( source.hasAttrib( attrInfo.getAttrib() ) ) {
-			source.copyAttrib( attrInfo.getAttrib(), attrInfo.getSize(), attrInfo.getStride(), (float*)&buffer[attrInfo.getOffset()] );
+			source.copyAttrib( attrInfo.getAttrib(), attrInfo.getSize(), attrInfo.getStride(), (float*)&buffer.get()[attrInfo.getOffset()] );
 		}
 	}
 	
-	VboRef vertexDataVbo = gl::Vbo::create( GL_ARRAY_BUFFER, vertexDataSizeBytes, buffer );
-	delete [] buffer;
+	VboRef vertexDataVbo = gl::Vbo::create( GL_ARRAY_BUFFER, vertexDataSizeBytes, buffer.get() );
 	
 	mVertexArrayVbos.push_back( make_pair( bufferLayout, vertexDataVbo ) );
 	
