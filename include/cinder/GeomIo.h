@@ -27,6 +27,7 @@
 #include "cinder/Exception.h"
 #include "cinder/Vector.h"
 #include "cinder/Matrix.h"
+#include "cinder/BSpline.h"
 
 namespace cinder { namespace geom {
 
@@ -225,6 +226,44 @@ class Teapot : public Source {
 	static const uint8_t	sPatchIndices[][16];
 	static const float		sCurveData[][3];
 };
+
+#if 0
+class SplineExtrusion : public Source {
+  public:
+	SplineExtrusion( const std::function<Vec3f(float)> &pathCurve, int pathSegments, float radius, int radiusSegments );
+
+	SplineExtrusion&		texCoords() { mHasTexCoord0 = true; return *this; }
+	SplineExtrusion&		normals() { mHasNormals = true; return *this; }
+	
+	virtual size_t		getNumVertices() const override;
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
+	
+	virtual bool		hasAttrib( Attrib attr ) const override;
+	virtual bool		canProvideAttrib( Attrib attr ) const override;
+	virtual uint8_t		getAttribDims( Attrib attr ) const override;
+	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
+
+	virtual size_t		getNumIndices() const override;
+	virtual void		copyIndices( uint16_t *dest ) const override;
+	virtual void		copyIndices( uint32_t *dest ) const override;	
+
+  protected:
+	Vec2f		mPos, mScale;
+  	bool		mHasTexCoord0;
+	bool		mHasNormals;
+
+	void		calculateCurve( const std::function<Vec3f(float)> &pathCurve, int pathSegments, float radius, int radiusSegments );
+	void		calculate();
+
+	mutable bool						mCalculationsCached;
+	mutable	int32_t						mNumVertices;
+	mutable int32_t						mNumIndices;
+	mutable std::unique_ptr<float>		mVertices;
+	mutable std::unique_ptr<float>		mTexCoords;
+	mutable std::unique_ptr<float>		mNormals;	
+	mutable std::unique_ptr<uint32_t>	mIndices;
+};
+#endif
 
 class Exc : public Exception {
 };
