@@ -49,6 +49,6 @@
 
 - (BOOL)needsDrawRect;
 
-+ (NSOpenGLPixelFormat*)defaultPixelFormat:(int)antialiasLevel legacy:(BOOL)legacy;
++ (NSOpenGLPixelFormat*)defaultPixelFormat: (cinder::app::RendererGl::Options)rendererOptions;
 
 @end

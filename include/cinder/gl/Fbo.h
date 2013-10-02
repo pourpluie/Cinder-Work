@@ -28,6 +28,7 @@
 #include "cinder/Exception.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
+#include <map>
 
 namespace cinder { namespace gl {
 
@@ -96,7 +97,7 @@ class Fbo {
 	//! Creates an FBO \a width pixels wide and \a height pixels high, using Fbo::Format \a format
 	static FboRef create( int width, int height, Format format = Format() );
 	//! Creates an FBO \a width pixels wide and \a height pixels high, with an optional alpha channel, color buffer and depth buffer
-	static FboRef create( int width, int height, bool alpha, bool color = true, bool depth = true );
+	static FboRef create( int width, int height, bool alpha, bool color = true, bool depth = true, bool stencil = false );
 	~Fbo();
 
 	//! Returns the width of the FBO in pixels
@@ -112,7 +113,7 @@ class Fbo {
 	//! Returns the Fbo::Format of this FBO
 	const Format&	getFormat() const { return mFormat; }
 	//! Returns the texture target for this FBO. Typically \c GL_TEXTURE_2D or \c GL_TEXTURE_RECTANGLE_ARB
-	GLenum			getTarget() const { return mFormat.mTarget; }
+	GLenum			getTarget() const { return mFormat.mColorTextureFormat.getTarget(); }
 
 	//! Returns a reference to the color texture of the FBO. \a attachment specifies which attachment in the case of multiple color buffers
 	TextureRef		getTexture( int attachment = 0 );
@@ -155,8 +156,18 @@ class Fbo {
 		//! Default constructor, sets the target to \c GL_TEXTURE_2D with an 8-bit color+alpha, a 24-bit depth texture, and no multisampling or mipmapping
 		Format();
 
-		//! Set the texture target associated with the FBO. Defaults to \c GL_TEXTURE_2D, \c GL_TEXTURE_RECTANGLE_ARB is a common option as well
-		void	setTarget( GLenum target ) { mTarget = target; }
+		//! Named Parameter Idiom.
+		Format& colorInternalFormat( GLenum colorInternalFormat ) { mColorInternalFormat = colorInternalFormat; return *this; }
+		Format& depthInternalFormat( GLenum depthInternalFormat ) { mDepthInternalFormat = depthInternalFormat; return *this; }
+		Format& samples( int sample ) { mSamples = sample; return *this; }
+		Format& coverageSamples( int coverageSamples ) { mCoverageSamples = coverageSamples; return *this; }
+		Format& color( bool colorBuffer = true, int numColorBuffers = 1 );
+		Format& colorTexFormat( Texture::Format format ) { mColorTextureFormat = format; return *this; }
+		Format& depth( bool depthBuffer = true ) { mDepthBuffer = depthBuffer; return *this; }
+		Format& depthTexture( bool depthBufferAsTexture = true ) { 	mDepthBufferAsTexture = depthBufferAsTexture; return *this; }
+		Format& depthTexFormat( Texture::Format format ) { mDepthTextureFormat = format; mDepthInternalFormat = format.getInternalFormat(); return *this; }
+		Format& stencil( bool stencilBuffer = true ) { mStencilBuffer = stencilBuffer; return *this; }
+		
 		//! Sets the GL internal format for the color buffer. Defaults to \c GL_RGBA8 (and \c GL_RGBA on OpenGL ES). Common options also include \c GL_RGB8 and \c GL_RGBA32F
 		void	setColorInternalFormat( GLenum colorInternalFormat ) { mColorInternalFormat = colorInternalFormat; }
 		//! Sets the GL internal format for the depth buffer. Defaults to \c GL_DEPTH_COMPONENT24. Common options also include \c GL_DEPTH_COMPONENT16 and \c GL_DEPTH_COMPONENT32
@@ -167,33 +178,25 @@ class Fbo {
 		void	setCoverageSamples( int coverageSamples ) { mCoverageSamples = coverageSamples; }
 		//! Enables or disables the creation of a color buffer for the FBO.. Creates multiple color attachments when \a numColorsBuffers >1, except on OpenGL ES which supports only 1.
 		void	enableColorBuffer( bool colorBuffer = true, int numColorBuffers = 1 );
+		//! Sets the Color Texture::format for use in the creation of the color buffer texture.
+		void	setColorTexFormat( Texture::Format format ) { mColorTextureFormat = format; }
 		//! Enables or disables the creation of a depth buffer for the FBO. If \a asTexture the depth buffer is created as a gl::Texture, obtainable via getDepthTexture(). Not supported on OpenGL ES.
-		void	enableDepthBuffer( bool depthBuffer = true, bool asTexture = true );
-//		void	enableStencilBuffer( bool stencilBuffer = true ) { mStencilBuffer = stencilBuffer; }
-		//! Enables or disables mip-mapping for the FBO's textures
-		void	enableMipmapping( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; }
+		void	enableDepthBuffer( bool depthBuffer = true ) { mDepthBuffer = depthBuffer; }
+		//! Enables or disables the creation of a depth buffer as a Texture. \a It is obtainable via getDepthTexture(). Not supported on OpenGL ES.
+		void	enableDepthTexture( bool depthBufferAsTexture = true ) { mDepthBufferAsTexture = depthBufferAsTexture; }
+		//! Sets the Depth Texture::format for use in the creation of the depth buffer texture.
+		void	setDepthTexFormat( Texture::Format format ) { mDepthTextureFormat = format; mDepthInternalFormat = format.getInternalFormat(); }
+		//! Enables or disables the creation of a stencil buffer for the FBO.. 
+		void	enableStencilBuffer( bool stencilBuffer = true ) { mStencilBuffer = stencilBuffer; }
 
-		//! Sets the wrapping behavior for the FBO's textures. Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. Default is \c GL_CLAMP_TO_EDGE.
-		void	setWrap( GLenum wrapS, GLenum wrapT ) { setWrapS( wrapS ); setWrapT( wrapT ); }
-		/** \brief Sets the horizontal wrapping behavior for the FBO's textures. Default is \c GL_CLAMP_TO_EDGE.
-			Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
-		void	setWrapS( GLenum wrapS ) { mWrapS = wrapS; }
-		/** \brief Sets the vertical wrapping behavior for the FBO's textures. Default is \c GL_CLAMP_TO_EDGE.
-			Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
-		void	setWrapT( GLenum wrapT ) { mWrapT = wrapT; }
-		/** \brief Sets the minification filtering behavior for the FBO's textures. Default is \c GL_LINEAR:
-		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
-		void	setMinFilter( GLenum minFilter ) { mMinFilter = minFilter; }
-		/** Sets the magnification filtering behavior for the FBO's textures. Default is \c GL_LINEAR:
-		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
-		void	setMagFilter( GLenum magFilter ) { mMagFilter = magFilter; }
-
-		//! Returns the texture target associated with the FBO.
-		GLenum	getTarget() const { return mTarget; }
 		//! Returns the GL internal format for the color buffer. Defaults to \c GL_RGBA8.
 		GLenum	getColorInternalFormat() const { return mColorInternalFormat; }
 		//! Returns the GL internal format for the depth buffer. Defaults to \c GL_DEPTH_COMPONENT24.
 		GLenum	getDepthInternalFormat() const { return mDepthInternalFormat; }
+		//! Returns the Texture::Format for the Color Texture.
+		const Texture::Format& getColorTextureFormat() const { return mColorTextureFormat; }
+		//! Returns the Texture::Format for the Depth Texture.
+		const Texture::Format& getDepthTextureFormat() const { return mDepthTextureFormat; }
 		//! Returns the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling.
 		int		getSamples() const { return mSamples; }
 		//! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none. MSW only.
@@ -206,27 +209,24 @@ class Fbo {
 		bool	hasDepthBuffer() const { return mDepthBuffer; }
 		//! Returns whether the FBO contains a depth buffer implemened as a texture. Always \c false on OpenGL ES.
 		bool	hasDepthBufferTexture() const { return mDepthBufferAsTexture; }
-//		bool	hasStencilBuffer() const { return mStencilBuffer; }
-		//! Returns whether the contents of the FBO textures are mip-mapped.
-		bool	hasMipMapping() const { return mMipmapping; }
+		//! Returns whether the FBO contains a stencil buffer.
+		bool	hasStencilBuffer() const { return mStencilBuffer; }
 		
 	  protected:
-		GLenum		mTarget;
-		GLenum		mColorInternalFormat, mDepthInternalFormat;
-		int			mSamples;
-		int			mCoverageSamples;
-		bool		mMipmapping;
-		bool		mDepthBuffer, mDepthBufferAsTexture, mStencilBuffer;
-		int			mNumColorBuffers;
-		GLenum		mWrapS, mWrapT;
-		GLenum		mMinFilter, mMagFilter;
+		GLenum			mColorInternalFormat, mDepthInternalFormat;
+		int				mSamples;
+		int				mCoverageSamples;
+		bool			mDepthBuffer, mDepthBufferAsTexture, mStencilBuffer;
+		int				mNumColorBuffers;
+		Texture::Format	mColorTextureFormat;
+		Texture::Format	mDepthTextureFormat;
 		
 		friend class Fbo;
 	};
 
  protected:
 	Fbo( int width, int height, Format format );
-	Fbo( int width, int height, bool alpha, bool color, bool depth ); 
+	Fbo( int width, int height, bool alpha, bool color, bool depth, bool stencil );
  
 	void		init();
 	bool		initMultisample( bool csaa );
@@ -238,12 +238,9 @@ class Fbo {
 	Format				mFormat;
 	GLuint				mId;
 	GLuint				mResolveFramebufferId;
-	std::vector<RenderbufferRef>	mMultisampleColorRenderbuffers;
-	RenderbufferRef					mMultisampleDepthRenderbuffer;
-	std::vector<TextureRef>		mColorTextures;
-	TextureRef					mDepthTexture;
-	RenderbufferRef				mDepthRenderbuffer;
-	mutable bool		mNeedsResolve, mNeedsMipmapUpdate;
+	std::map<GLenum, RenderbufferRef>	mRenderbuffers;
+	std::map<GLenum, TextureRef>		mTextures;
+	mutable bool				mNeedsResolve, mNeedsMipmapUpdate;
 	
 	static GLint		sMaxSamples, sMaxAttachments;
 };

@@ -155,21 +155,32 @@ class Texture
 		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
 		Format& minFilter( GLenum minFilter ) { mMinFilter = minFilter; return *this; }
 		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
+		Format& pixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; return *this; }
+		Format& pixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; return *this; }
+		Format& depthTexture( bool depthTexture = true ) { mDepthTexture = depthTexture; return *this; }
+		Format& renderTexture( bool renderTexture = true ) { mRenderTexture = renderTexture; return *this; }
 		
 		//! Specifies the texture's target. The default is \c GL_TEXTURE_2D
 		void	setTarget( GLenum target ) { mTarget = target; }
 		//! Sets the texture's target to be \c GL_TEXTURE_RECTANGLE. Not available in OpenGL ES.
-#ifndef CINDER_GLES
+#if ! defined( CINDER_GLES )
 		void	setTargetRect() { mTarget = GL_TEXTURE_RECTANGLE; }
 #endif
 		
 		//! Enables or disables mipmapping. Default is disabled.
 		void	enableMipmapping( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; }
+		void	enableRenderTexture( bool renderTexture = true ) { mRenderTexture = renderTexture; }
+		void	enableDepthTexture( bool depthTexture = true ) { mDepthTexture = depthTexture; }
+		
 		
 		//! Sets the Texture's internal format. A value of -1 implies selecting the best format for the context.
 		void	setInternalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; }
 		//! Sets the Texture's internal format to be automatically selected based on the context.
 		void	setAutoInternalFormat() { mInternalFormat = -1; }
+		
+		void	setPixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; }
+			
+		void	setPixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; }
 		
 		//! Sets the wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP
 		void	setWrap( GLenum wrapS, GLenum wrapT ) { setWrapS( wrapS ); setWrapT( wrapT ); }
@@ -198,6 +209,11 @@ class Texture
 		//! Returns whether the Texture's internal format will be automatically selected based on the context.
 		bool	isAutoInternalFormat() const { return mInternalFormat == -1; }
 		
+		//! Returns the Texture's pixel format. A value of -1 implies automatic selection of the pixel format based on the context.
+		GLenum	getPixelDataFormat() const { return mPixelDataFormat; }
+		//! Returns the Texture's data type. A value of -1 implies automatic selection of the data type based on the context.
+		GLint	getPixelDataType() const { return mInternalFormat; }
+		
 		//! Returns the horizontal wrapping behavior for the texture coordinates.
 		GLenum	getWrapS() const { return mWrapS; }
 		//! Returns the vertical wrapping behavior for the texture coordinates.
@@ -208,6 +224,10 @@ class Texture
 		GLenum	getMagFilter() const { return mMagFilter; }
 		//! Returns the texture anisotropic filtering amount
 		GLfloat getMaxAnisotropy() const { return mMaxAnisotropy; }
+		//! Returns whether the texture is a renderTexture.
+		bool	isRenderTexture() const { return mRenderTexture; }
+		//! Returns whether the texture is a depthTexture.
+		bool	isDepthTexture() const { return mDepthTexture; }
 		
 	protected:
 		GLenum			mTarget;
@@ -216,6 +236,10 @@ class Texture
 		bool			mMipmapping;
 		GLfloat         mMaxAnisotropy;
 		GLint			mInternalFormat;
+		GLenum			mPixelDataFormat;
+		GLenum			mPixelDataType;
+		bool			mRenderTexture;
+		bool			mDepthTexture;
 		
 		friend class Texture;
 	};
@@ -243,6 +267,7 @@ class Texture
 	void	init( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format );
 	void	init( const float *data, GLint dataFormat, const Format &format );
 	void	init( ImageSourceRef imageSource, const Format &format );
+	void	init( const Format &format );
 	
 	mutable GLint	mWidth, mHeight, mCleanWidth, mCleanHeight;
 	float			mMaxU, mMaxV;
