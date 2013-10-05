@@ -54,6 +54,10 @@ Texture::Format::Format()
 	mMipmapping = false;
 	mInternalFormat = -1;
 	mMaxAnisotropy = -1.0f;
+    mDepthTexture = false;
+    mRenderTexture = false;
+    mPixelDataFormat = -1;
+    mPixelDataType = -1;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +110,7 @@ Texture::~Texture()
 }
 
 	
-	
+
 Texture::Texture( int width, int height, Format format )
 	: mWidth( width ), mHeight( height ),
 	mCleanWidth( width ), mCleanHeight( height ),
@@ -117,7 +121,13 @@ Texture::Texture( int width, int height, Format format )
 	}
 	mInternalFormat = format.mInternalFormat;
 	mTarget = format.mTarget;
-	init( (unsigned char*)0, 0, GL_RGBA, GL_UNSIGNED_BYTE, format );
+
+    if ( format.mRenderTexture || format.mDepthTexture ) {
+        init( format );
+    }
+    else {
+        init( (unsigned char*)0, 0, GL_RGBA, GL_UNSIGNED_BYTE, format );
+    }
 }
 
 Texture::Texture( const unsigned char *data, int dataFormat, int width, int height, Format format )
@@ -250,7 +260,35 @@ Texture::Texture( GLenum target, GLuint textureId, int width, int height, bool d
 		mMaxV = (float)mHeight;
 	}
 }
-
+    
+void Texture::init( const Format &format )
+{
+    glGenTextures( 1, &mTextureId );
+    
+    glBindTexture( mTarget, mTextureId );
+    
+    if ( mTarget == GL_TEXTURE_2D ) {
+        mMaxU = mMaxV = 1.0f;
+    }
+    else {
+        mMaxU = (float)mWidth;
+        mMaxV = (float)mHeight;
+    }
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+    glTexImage2D( mTarget, 0, format.mInternalFormat, mWidth, mHeight, 0, format.mPixelDataFormat, format.mPixelDataType, NULL );
+    
+    if( format.mMipmapping )
+		glGenerateMipmap( mTarget );
+	
+	if( format.mMaxAnisotropy > 1.0f )
+		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mMaxAnisotropy );
+	
+	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
+	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
+	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
+	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
+}
+	
 void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format )
 {
 	glGenTextures( 1, &mTextureId );

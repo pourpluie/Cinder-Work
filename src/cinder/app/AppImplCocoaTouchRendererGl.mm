@@ -45,6 +45,7 @@
 	mBackingHeight = 0;
 	mMsaaSamples = cinder::app::RendererGl::sAntiAliasingSamples[aRenderer->getOptions().getAntiAliasing()];
 	mUsingMsaa = mMsaaSamples > 0;
+	mUsingStencil = aRenderer->getOptions().getStencil();
 	
 	[self allocateGraphics:sharedRenderer];
 	
@@ -89,16 +90,34 @@
 		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGBA8_OES, 0, 0 );
 		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mMsaaRenderBuffer );
 		
-		glGenRenderbuffers( 1, &mDepthRenderBuffer );
-		glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
-		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH_COMPONENT16, 0, 0  );
-		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderBuffer );
+		if ( !mUsingStencil ) {
+			glGenRenderbuffers( 1, &mDepthRenderBuffer );
+			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+			glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH_COMPONENT16, 0, 0  );
+			glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderBuffer );
+		}
+		else {
+			glGenRenderbuffers( 1, &mDepthRenderBuffer );
+			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+			glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH24_STENCIL8_OES, 0, 0  );
+			glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderBuffer );
+			glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderBuffer );
+		}
 	}
 	else {
-		glGenRenderbuffers( 1, &mDepthRenderBuffer );
-		glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
-		glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, 0, 0 );
-		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderBuffer );
+		if( !mUsingStencil ) {
+			glGenRenderbuffers( 1, &mDepthRenderBuffer );
+			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+			glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, 0, 0 );
+			glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderBuffer );
+		}
+		else {
+			glGenRenderbuffers( 1, &mDepthRenderBuffer );
+			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+			glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, 0, 0 );
+			glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderBuffer );
+			glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mDepthRenderBuffer );
+		}
 	}
 }
 
@@ -119,14 +138,28 @@
 	
 	if( mUsingMsaa ) {
 		mCinderContext->bindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
-		glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
-		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH_COMPONENT16, mBackingWidth, mBackingHeight );
-		glBindRenderbuffer( GL_RENDERBUFFER, mMsaaRenderBuffer );
-		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGBA8_OES, mBackingWidth, mBackingHeight );
+		if( !mUsingStencil ) {
+			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+			glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH_COMPONENT16, mBackingWidth, mBackingHeight );
+			glBindRenderbuffer( GL_RENDERBUFFER, mMsaaRenderBuffer );
+			glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGBA8_OES, mBackingWidth, mBackingHeight );
+		}
+		else {
+			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+			glRenderbufferStorageMultisampleAPPLE(GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH24_STENCIL8_OES, mBackingWidth, mBackingWidth );
+			glBindRenderbuffer( GL_RENDERBUFFER, mMsaaRenderBuffer );
+			glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGBA8_OES, mBackingWidth, mBackingHeight );
+		}
 	}
 	else {
-		glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
-		glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, mBackingWidth, mBackingHeight );
+		if ( !mUsingStencil ) {
+			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+			glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, mBackingWidth, mBackingHeight );
+		}
+		else {
+			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
+			glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, mBackingWidth, mBackingHeight );
+		}
 	}
 	
 	if( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE ) {

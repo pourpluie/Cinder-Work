@@ -73,6 +73,19 @@ void bindStockShader( const class ShaderDef &shader );
 void setDefaultShaderVars();
 
 void clear( const ColorA &color = ColorA::black(), bool clearDepthBuffer = true );
+	
+void clear( GLbitfield mask );
+void clearColor( const ColorA &color );
+void clearDepth( const double depth );
+void clearDepth( const float depth );
+void clearStencil( const int s );
+	
+void colorMask( GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha );
+void depthMask( GLboolean flag );
+void stencilMask( GLboolean mask );
+	
+void stencilFunc( GLenum func, GLint ref, GLuint mask );
+void stencilOp( GLenum fail, GLenum zfail, GLenum zpass );
 
 std::pair<Vec2i, Vec2i> getViewport();
 void viewport( int x, int y, int width, int height );
@@ -96,6 +109,11 @@ void disableDepthRead();
 void disableDepthWrite();
 void enableDepthRead( bool enable = true );
 void enableDepthWrite( bool enable = true );
+
+void enableStencilRead( bool enable = true );
+void disableStencilRead();
+void enableStencilWrite( bool enable = true );
+void disableStencilWrite();
 
 void setMatrices( const ci::Camera &cam );
 void setModelView( const ci::Matrix44f &m );

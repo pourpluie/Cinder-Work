@@ -62,7 +62,7 @@
 	renderer = aRenderer;
 
 	cinder::app::RendererGl::Options options = renderer->getOptions();
-	NSOpenGLPixelFormat* fmt = [AppImplCocoaRendererGl defaultPixelFormat:options.getAntiAliasing() legacy:(options.getCoreProfile()==false)];
+	NSOpenGLPixelFormat* fmt = [AppImplCocoaRendererGl defaultPixelFormat:options];
 	GLint aaSamples;
 	[fmt getValues:&aaSamples forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
 
@@ -175,34 +175,38 @@ if( ! view )
 	return YES;
 }
 
-+ (NSOpenGLPixelFormat*)defaultPixelFormat:(int)antialiasLevel legacy:(BOOL)legacy
++ (NSOpenGLPixelFormat*)defaultPixelFormat:(cinder::app::RendererGl::Options)rendererOptions
 {
 	NSOpenGLPixelFormat *result = nil;
-	if( antialiasLevel == cinder::app::RendererGl::AA_NONE ) {
-		NSOpenGLPixelFormatAttribute attributes[] = {
-			NSOpenGLPFADoubleBuffer,
-			NSOpenGLPFAOpenGLProfile, (legacy)?NSOpenGLProfileVersionLegacy:NSOpenGLProfileVersion3_2Core,
-			NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute)24,
-/*kCGLPFAStencilSize, (CGLPixelFormatAttribute) 8,*/
-			(NSOpenGLPixelFormatAttribute)0
-		};
-
-		result = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
+    std::vector<NSOpenGLPixelFormatAttribute> attributes;
+    
+    attributes.push_back( NSOpenGLPFADoubleBuffer );
+	
+	attributes.push_back( NSOpenGLPFAOpenGLProfile );
+	if( rendererOptions.getCoreProfile() == false )
+		attributes.push_back( NSOpenGLProfileVersionLegacy );
+	else
+		attributes.push_back( NSOpenGLProfileVersion3_2Core );
+	
+    attributes.push_back( NSOpenGLPFADepthSize );
+	attributes.push_back( (NSOpenGLPixelFormatAttribute) rendererOptions.getDepthBufferDepth() );
+	
+    if( rendererOptions.getStencil() ) {
+		attributes.push_back( kCGLPFAStencilSize );
+		attributes.push_back( (CGLPixelFormatAttribute) 8 );
 	}
-	else {
-		NSOpenGLPixelFormatAttribute attributes[] = {
-			NSOpenGLPFADoubleBuffer,
-			NSOpenGLPFAOpenGLProfile, (legacy)?NSOpenGLProfileVersionLegacy:NSOpenGLProfileVersion3_2Core,			
-			NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute)24,
-/*	kCGLPFAStencilSize, (CGLPixelFormatAttribute) 8,*/
-	        NSOpenGLPFASampleBuffers, (NSOpenGLPixelFormatAttribute)1, 
-			NSOpenGLPFASamples, (NSOpenGLPixelFormatAttribute)cinder::app::RendererGl::sAntiAliasingSamples[antialiasLevel],
-			NSOpenGLPFAMultisample,
-			(NSOpenGLPixelFormatAttribute)0
-		};
+	
+	if( rendererOptions.getAntiAliasing() != cinder::app::RendererGl::AA_NONE ) {
+		attributes.push_back( NSOpenGLPFASampleBuffers );
+		attributes.push_back( (NSOpenGLPixelFormatAttribute) 1 );
+		attributes.push_back( NSOpenGLPFASamples );
+		attributes.push_back( (NSOpenGLPixelFormatAttribute) cinder::app::RendererGl::sAntiAliasingSamples[ rendererOptions.getAntiAliasing() ] );
+		attributes.push_back( NSOpenGLPFAMultisample );
+	}
+	
+	attributes.push_back( (NSOpenGLPixelFormatAttribute) 0 );
 		
-		result = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
-	}
+	result = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes.data()];
 
 	assert( result );
 	return [result autorelease];

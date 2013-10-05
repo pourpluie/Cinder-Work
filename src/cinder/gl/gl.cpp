@@ -120,13 +120,67 @@ void setDefaultShaderVars()
 
 void clear( const ColorA& color, bool clearDepthBuffer )
 {
-	glClearColor( color.r, color.g, color.b, color.a );
+	clearColor( color );
 	if ( clearDepthBuffer ) {
-		gl::context()->depthMask( GL_TRUE );
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		depthMask( GL_TRUE );
+		clear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	} else {
-		glClear( GL_COLOR_BUFFER_BIT );
+		clear( GL_COLOR_BUFFER_BIT );
 	}
+}
+    
+void clear( GLbitfield mask )
+{
+    glClear( mask );
+}
+    
+void clearColor( const ColorA &color )
+{
+    glClearColor( color.r, color.g, color.b, color.a );
+}
+	
+void clearDepth( const double depth )
+{
+#if ! defined( CINDER_GLES )
+    glClearDepth( depth );
+#else
+	glClearDepthf( depth );
+#endif
+}
+    
+void clearDepth( const float depth )
+{
+    glClearDepthf( depth );
+}
+    
+void clearStencil( const int s )
+{
+    glClearStencil( s );
+}
+    
+void colorMask( GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha )
+{
+    glColorMask( red, green, blue, alpha );
+}
+    
+void depthMask( GLboolean flag )
+{
+    gl::context()->depthMask( flag );
+}
+	
+void stencilMask( GLboolean mask )
+{
+	glStencilMask( mask );
+}
+    
+void stencilFunc( GLenum func, GLint ref, GLuint mask )
+{
+    glStencilFunc( func, ref, mask );
+}
+    
+void stencilOp( GLenum fail, GLenum zfail, GLenum zpass )
+{
+    glStencilOp( fail, zfail, zpass );
 }
 
 std::pair<Vec2i, Vec2i> getViewport()
@@ -163,7 +217,7 @@ void scissor( const Vec2i &position, const Vec2i &dimension )
 
 void enable( GLenum state, bool enable )
 {
-	context()->enable( state, enable );
+	gl::context()->enable( state, enable );
 }
 
 void enableAlphaBlending( bool premultiplied )
@@ -208,6 +262,16 @@ void enableDepthWrite( bool enable )
 void disableDepthWrite()
 {
 	gl::context()->depthMask( GL_FALSE );
+}
+    
+void enableStencilTest( bool enable )
+{
+    gl::enable( GL_STENCIL_TEST, enable );
+}
+    
+void disableStencilTest()
+{
+    gl::disable( GL_STENCIL_TEST );
 }
 
 void setMatrices( const ci::Camera& cam )

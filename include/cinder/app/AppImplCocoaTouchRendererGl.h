@@ -43,6 +43,7 @@
 	GLuint 			mViewFramebuffer, mViewRenderBuffer, mDepthRenderBuffer;
 	GLuint			mMsaaFramebuffer, mMsaaRenderBuffer;
 	BOOL			mUsingMsaa;
+    BOOL            mUsingStencil;
 	int				mMsaaSamples;
 }
 

@@ -76,7 +76,8 @@ class RendererGl : public Renderer {
 	#endif
 			mVersion = std::pair<int,int>( 3, 2 );	
 #endif
-		
+			mStencil = false;
+			mDepthBufferBits = 24;
 		}
 
 		Options&	coreProfile( bool enable = true ) { mCoreProfile = enable; return *this; }
@@ -93,10 +94,20 @@ class RendererGl : public Renderer {
 		int			getAntiAliasing() const { return mAntiAliasing; }
 		void		setAntiAliasing( int amount ) { mAntiAliasing = amount; }
 		
+		Options&	depthBufferDepth( int depthBufferBits ) { mDepthBufferBits = depthBufferBits; return *this; }
+		int			getDepthBufferDepth() const { return mDepthBufferBits; }
+		void		setDepthBufferDepth( int depthBufferBits ) { mDepthBufferBits = depthBufferBits; }
+		
+		Options&	stencil( bool createStencil = true ) { mStencil = createStencil; return *this; }
+		bool		getStencil() const { return mStencil; }
+		void		setStencil( bool createStencil = true ) { mStencil = createStencil; }
+		
 	  protected:
 		bool					mCoreProfile;
 		std::pair<int,int>		mVersion;
 		int						mAntiAliasing;
+		bool					mStencil;
+		int						mDepthBufferBits;
 	};
 
 
