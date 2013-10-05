@@ -35,21 +35,25 @@ typedef std::shared_ptr<class VertBatch>	VertBatchRef;
 
 class Batch {
   public:
+	static BatchRef		create( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl );
 	static BatchRef		create( const geom::Source &source, const gl::GlslProgRef &glsl );
 	static BatchRef		create( const geom::SourceRef &sourceRef, const gl::GlslProgRef &glsl );
 	
 	void			draw();
 
   protected:
+	Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl );
 	Batch( const geom::Source &source, const gl::GlslProgRef &glsl );
 	Batch( const geom::SourceRef &source, const gl::GlslProgRef &glsl );
-	void		init( const geom::Source &source, const gl::GlslProgRef &glsl );
+
+	void	init( const geom::Source &source, const gl::GlslProgRef &glsl );
+	void	initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertLayoutVbos );
 		
 	GlslProgRef		mGlsl;
 	
-	VboRef		mVertexArray;
-	VboRef		mElements;
-	VaoRef		mVao;
+	std::vector<VboRef>		mVertexArrayVbos;
+	VboRef					mElements;
+	VaoRef					mVao;
 	
 	GLenum		mPrimitive;
 	size_t		mNumVertices;

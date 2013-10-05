@@ -78,21 +78,37 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	GLuint			getHandle() const { return mHandle; }
 	
 	void	uniform( const std::string &name, int data ) const;
+	void	uniform( int location, int data ) const;	
 	void	uniform( const std::string &name, const Vec2i &data ) const;
+	void	uniform( int location, const Vec2i &data ) const;	
 	void	uniform( const std::string &name, const int *data, int count ) const;
+	void	uniform( int location, const int *data, int count ) const;	
 	void	uniform( const std::string &name, const Vec2i *data, int count ) const;
+	void	uniform( int location, const Vec2i *data, int count ) const;	
 	void	uniform( const std::string &name, float data ) const;
+	void	uniform( int location, float data ) const;	
 	void	uniform( const std::string &name, const Vec2f &data ) const;
+	void	uniform( int location, const Vec2f &data ) const;	
 	void	uniform( const std::string &name, const Vec3f &data ) const;
+	void	uniform( int location, const Vec3f &data ) const;
 	void	uniform( const std::string &name, const Vec4f &data ) const;
+	void	uniform( int location, const Vec4f &data ) const;
 	void	uniform( const std::string &name, const Color &data ) const;
+	void	uniform( int location, const Color &data ) const;
 	void	uniform( const std::string &name, const ColorA &data ) const;
+	void	uniform( int location, const ColorA &data ) const;
 	void	uniform( const std::string &name, const Matrix33f &data, bool transpose = false ) const;
+	void	uniform( int location, const Matrix33f &data, bool transpose = false ) const;
 	void	uniform( const std::string &name, const Matrix44f &data, bool transpose = false ) const;
+	void	uniform( int location, const Matrix44f &data, bool transpose = false ) const;
 	void	uniform( const std::string &name, const float *data, int count ) const;
+	void	uniform( int location, const float *data, int count ) const;
 	void	uniform( const std::string &name, const Vec2f *data, int count ) const;
+	void	uniform( int location, const Vec2f *data, int count ) const;
 	void	uniform( const std::string &name, const Vec3f *data, int count ) const;
+	void	uniform( int location, const Vec3f *data, int count ) const;
 	void	uniform( const std::string &name, const Vec4f *data, int count ) const;
+	void	uniform( int location, const Vec4f *data, int count ) const;
 
 	//! Returns a std::map from the uniform name to its OpenGL type (GL_BOOL, GL_FLOAT_VEC3, etc)
 	const std::map<std::string,GLenum>&		getActiveUniformTypes() const;

@@ -166,12 +166,12 @@ void RendererAngle::defaultResize()
 	int width = clientRect.right - clientRect.left;
 	int height = clientRect.bottom - clientRect.top;
 
-	gl::setViewport( Area( 0, 0, width, height ) );
+	gl::viewport( 0, 0, width, height );
 
 	cinder::CameraPersp cam( width, height, 60.0f );
 	gl::setMatrices( cam );
 	gl::scale( 1.0f, -1.0f, 1.0f );           // invert Y axis so increasing Y goes down.
-	gl::translate( Vec3f( 0.0f, -height, 0.0f ) );       // shift origin up to upper-left corner.
+	gl::translate( Vec3f( 0.0f, (float)-height, 0.0f ) );       // shift origin up to upper-left corner.
 
 	checkGlStatus();
 }

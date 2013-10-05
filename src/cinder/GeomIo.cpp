@@ -22,6 +22,7 @@
 */
 
 #include "cinder/GeomIo.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -731,7 +732,6 @@ void Teapot::buildPatch( Vec3f patch[][4], float *B, float *dB, float *v, float 
 			v[index] = pt.x; v[index+1] = pt.z; v[index+2] = pt.y;
 			n[index] = norm.x; n[index+1] = norm.z; n[index+2] = norm.y;
 			tc[tcIndex] = i * tcFactor; tc[tcIndex+1] = j * tcFactor;
-std::cout << tc[tcIndex] << " " << tc[tcIndex+1] << std::endl;
 			index += 3;
 			tcIndex += 2;
 		}
@@ -823,5 +823,136 @@ Vec3f Teapot::evaluateNormal( int gridU, int gridV, const float *B, const float 
 
 	return du.cross( dv ).normalized();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////
+// SplineExtrusion
+#if 0
+SplineExtrusion::SplineExtrusion( const std::function<Vec3f(float)> &pathCurve, int pathSegments, float radius, int radiusSegments )
+	: mCalculationsCached( false ), mScale( 1 , 1, 1 ), mPos( Vec3f::zero() )
+{
+	calculateCurve( pathCurve, pathSegments, radius, radiusSegments );
+}
+
+void SplineExtrusion::calculateCurve( const std::function<Vec3f(float)> &pathCurve, int pathSegments, float radius, int radiusSegments ) const
+{
+	mNumVertices = pathSegments * radiusSegments;
+	int numTriangles = ( pathSegments - 1 ) * radiusSegments * 2;
+	mNumIndices = numTriangles * 3;
+
+	mVertices = unique_ptr<float>( new float[mNumVertices * 3] );
+	mTexCoords = unique_ptr<float>( new float[mNumVertices * 2] );	
+	mNormals = unique_ptr<float>( new float[mNumVertices * 3] );
+	mIndices = unique_ptr<uint32_t>( new uint32_t[mNumIndices] );
+	
+	for( int pathSeg = 0; pathSeg < pathSegments; ++pathSeg ) {
+		
+	}
+}
+
+void SplineExtrusion::calculate() const
+{
+	if( mCalculationsCached )
+		return;
+	
+	mNumVertices = 32 * (mSubdivision + 1) * (mSubdivision + 1);
+	int numFaces = mSubdivision * mSubdivision * 32;
+	mNumIndices = numFaces * 6;
+	mVertices = unique_ptr<float>( new float[mNumVertices * 3] );
+	mTexCoords = unique_ptr<float>( new float[mNumVertices * 2] );	
+	mNormals = unique_ptr<float>( new float[mNumVertices * 3] );
+	mIndices = unique_ptr<uint32_t>( new uint32_t[mNumIndices] );
+
+	generatePatches( mVertices.get(), mNormals.get(), mTexCoords.get(), mIndices.get(), mSubdivision );
+	
+	mCalculationsCached = true;
+}
+
+
+size_t SplineExtrusion::getNumVertices() const
+{
+	calculate();
+	
+	return mNumVertices;
+}
+
+bool SplineExtrusion::hasAttrib( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION: return true;
+		case Attrib::TEX_COORD_0: return mHasTexCoord0;
+		case Attrib::NORMAL: return mHasNormals;
+		default:
+			return false;
+	}
+}
+
+bool SplineExtrusion::canProvideAttrib( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION:
+		case Attrib::TEX_COORD_0:
+		case Attrib::NORMAL:
+			return true;
+		default:
+			return false;
+	}
+}
+
+uint8_t	SplineExtrusion::getAttribDims( Attrib attr ) const
+{
+	if( ! canProvideAttrib( attr ) )
+		return 0;
+
+	switch( attr ) {
+		case Attrib::POSITION: return 3;
+		case Attrib::TEX_COORD_0: return 2;
+		case Attrib::NORMAL: return 3;
+		default:
+			return 0;
+	}
+}
+
+void SplineExtrusion::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
+{
+	calculate();
+
+	switch( attr ) {
+		case Attrib::POSITION:
+			copyDataMultAdd( mVertices.get(), mNumVertices, dimensions, stride, dest, mScale, mPos );
+		break;
+		case Attrib::TEX_COORD_0:
+			copyData( 2, mTexCoords.get(), mNumVertices, dimensions, stride, dest );
+		break;
+		case Attrib::NORMAL:
+			copyData( 3, mNormals.get(), mNumVertices, dimensions, stride, dest );
+		break;
+		default:
+			throw ExcMissingAttrib();
+	}
+}
+
+size_t SplineExtrusion::getNumIndices() const
+{
+	calculate();
+	
+	return mNumIndices;
+}
+
+void SplineExtrusion::copyIndices( uint16_t *dest ) const
+{
+	calculate();
+	
+	for( int i = 0; i < mNumIndices; ++i )
+		dest[i] = mIndices.get()[i];
+}
+
+void SplineExtrusion::copyIndices( uint32_t *dest ) const
+{
+	calculate();
+			
+	memcpy( dest, mIndices.get(), mNumIndices * sizeof(uint32_t) );		
+}
+
+#endif
 
 } } // namespace cinder::geo

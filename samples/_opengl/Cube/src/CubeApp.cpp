@@ -3,6 +3,7 @@
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Batch.h"
 #include "cinder/gl/VboMesh.h"
+#include "cinder/ImageIo.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -42,6 +43,7 @@ mGlsl = gl::getStockShader( gl::ShaderDef().texture() );
 //	mCubeBatch = gl::Batch::create( geom::Teapot().subdivision( 6 ).scale( 0.5f ), mGlsl );
 
 	mTeapotMesh = gl::VboMesh::create( geom::Teapot().texCoords().normals().subdivision( 5 ) );
+	mCubeBatch = gl::Batch::create( mTeapotMesh, mGlsl );
 
 	gl::enableDepthWrite();
 	gl::enableDepthRead();
@@ -69,8 +71,8 @@ void RotatingCubeApp::draw()
 	gl::clear( Color::black() );
 	gl::pushMatrices();
 		gl::multModelView( mCubeRotation );
-//		mCubeBatch->draw();
-		gl::draw( mTeapotMesh );
+		mCubeBatch->draw();
+//		gl::draw( mTeapotMesh );
 	gl::popMatrices();
 }
 
