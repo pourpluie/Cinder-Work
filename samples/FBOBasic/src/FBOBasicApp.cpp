@@ -29,12 +29,9 @@ class FBOBasicApp : public AppNative {
 
 void FBOBasicApp::setup()
 {
-auto v = gl::getVersion();
-console() << v.first << " " << v.second << std::endl;
-console() << "VS: " << gl::getVersionString() << std::endl;
 	gl::Fbo::Format format;
-	//format.setSamples( 4 ); // uncomment this to enable 4x antialiasing
-	mFbo = gl::Fbo::create( FBO_WIDTH, FBO_HEIGHT, format );
+	format.setSamples( 8 ); // uncomment this to enable 4x antialiasing
+	mFbo = gl::Fbo::create( FBO_WIDTH, FBO_HEIGHT, format.depthTexture() );
 
 	gl::enableDepthRead();
 	gl::enableDepthWrite();	
@@ -53,7 +50,7 @@ void FBOBasicApp::renderSceneToFbo()
 	gl::clear( Color( 0.25, 0.5f, 1.0f ) );
 
 	// setup the viewport to match the dimensions of the FBO
-	gl::setViewport( mFbo->getBounds() );
+	gl::viewport( 0, 0, mFbo->getWidth(), mFbo->getHeight() );
 
 	// setup our camera to render the torus scene
 	CameraPersp cam( mFbo->getWidth(), mFbo->getHeight(), 60.0f );
@@ -87,7 +84,7 @@ void FBOBasicApp::draw()
 	gl::clear( Color( 0.35f, 0.35f, 0.35f ) );
 
 	// set the viewport to match our window
-	gl::setViewport( toPixels( getWindowBounds() ) );
+	gl::viewport( Vec2f::zero(), toPixels( getWindowSize() ) );
 
 	// setup our camera to render the cube
 	CameraPersp cam( getWindowWidth(), getWindowHeight(), 60.0f );
@@ -106,7 +103,7 @@ void FBOBasicApp::draw()
 
 	// show the FBO texture in the upper left corner
 	gl::setMatricesWindow( toPixels( getWindowSize() ) );
-	gl::draw( mFbo->getTexture(0), Rectf( 0, 0, 256, 256 ) );
+	gl::draw( mFbo->getTexture(), Rectf( 0, 0, 256, 256 ) );
 	
 #if ! defined( CINDER_GLES ) // OpenGL ES can't do depth textures, otherwise draw the FBO's
 	if( mFbo->getDepthTexture() ) // NULL if we have multisampling

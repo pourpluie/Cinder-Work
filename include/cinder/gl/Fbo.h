@@ -105,17 +105,17 @@ class Fbo {
 	//! Returns the Fbo::Format of this FBO
 	const Format&	getFormat() const { return mFormat; }
 
-	//! Returns a Ref to the color texture of the FBO. \a attachment specifies which attachment in the case of multiple color buffers
-	TextureRef		getTexture( int attachment = 0 );
+	//! Returns the texture target associated with the FBO
+	GLenum			getTarget() const { return mFormat.getTarget(); }
+	//! Returns a Ref to the color texture of the FBO. \a attachment specifies which attachment (such as \c GL_COLOR_ATTACHMENT0) in the case of multiple color buffers
+	TextureRef		getTexture( GLenum attachment = GL_COLOR_ATTACHMENT0 );
 	//! Returns a reference to the depth texture of the FBO. Returns an empty Ref if there is no Texture as a depth attachment.
 	TextureRef		getDepthTexture();	
 	
 	//! Binds the color texture associated with an Fbo to its target. Optionally binds to a multitexturing unit when \a textureUnit is non-zero. Optionally binds to a multitexturing unit when \a textureUnit is non-zero. \a attachment specifies which color buffer in the case of multiple attachments.
-	void 			bindTexture( int textureUnit = 0, int attachment = 0 );
+	void 			bindTexture( int textureUnit = 0, GLenum attachment = GL_COLOR_ATTACHMENT0 );
 	//! Unbinds the texture associated with an Fbo's target
 	void			unbindTexture();
-	//! Binds the depth texture associated with an Fbo to its target.
-	void 			bindDepthTexture( int textureUnit = 0 );
 	//! Binds the Fbo as the currently active framebuffer, meaning it will receive the results of all subsequent rendering until it is unbound
 	void 			bindFramebuffer();
 	//! Unbinds the Fbo as the currently active framebuffer, restoring the primary context as the target for all subsequent rendering
@@ -147,21 +147,24 @@ class Fbo {
 		Format();
 
 		//! Enables a color texture at \c GL_COLOR_ATTACHMENT0 with a Texture::Format of \a textureFormat, which defaults to 8-bit RGBA with no mipmapping. Disables a color buffer.
-		Format&	colorTexture( const Texture::Format &textureFormat = getDefaultColorTextureFormat() ) { mColorTexture = true; mColorTextureFormat = textureFormat; }
+		Format&	colorTexture( const Texture::Format &textureFormat = getDefaultColorTextureFormat( true ) ) { mColorTexture = true; mColorTextureFormat = textureFormat; return *this; }
 		//! Enables a color buffer at \c GL_COLOR_ATTACHMENT0 with an internal format of \a internalFormat, which defaults to 8-bit RGBA. Disables a color texture.
-		Format&	colorBuffer( GLenum internalFormat = getDefaultColorInternalFormat() ) { mColorTexture = false; mColorBuffer = true; mColorBufferInternalFormat = internalFormat; }
+		Format&	colorBuffer( GLenum internalFormat = getDefaultColorInternalFormat( true ) ) { mColorTexture = false; mColorBuffer = true; mColorBufferInternalFormat = internalFormat; return *this; }
 		
 		//! Enables a depth texture with a Texture::Format of \a textureFormat, which defaults to 24-bit. Disables a depth buffer.
-		Format&	depthTexture( const Texture::Format &textureFormat = getDefaultDepthTextureFormat ) { mDepthTexture = true; mDepthTextureFormat = textureFormat; }
+		Format&	depthTexture( const Texture::Format &textureFormat = getDefaultDepthTextureFormat() ) { mDepthTexture = true; mDepthBuffer = false; mDepthTextureFormat = textureFormat; return *this; }
 		//! Enables a depth buffer with an internal format of \a internalFormat, which defaults to \c GL_DEPTH_COMPONENT24. Disables a depth texture.
-		Format&	depthBuffer( GLenum internalFormat = getDefaultDepthInternalFormat() ) { mDepthTexture = false; mDepthBuffer = true; mDepthBufferInternalFormat = internalFormat; }
+		Format&	depthBuffer( GLenum internalFormat = getDefaultDepthInternalFormat() ) { mDepthTexture = false; mDepthBuffer = true; mDepthBufferInternalFormat = internalFormat; return *this; }
 		
 		//! Sets the number of MSAA samples. Defaults to none.
-		Format& samples( int samples ) { mSamples = sample; return *this; }
+		Format& samples( int samples ) { mSamples = samples; return *this; }
 		//! Sets the number of CSAA samples. Defaults to none.
 		Format& coverageSamples( int coverageSamples ) { mCoverageSamples = coverageSamples; return *this; }
 		//! Enables a stencil buffer. Defaults to false.
 		Format& stencilBuffer( bool stencilBuffer = true ) { mStencilBuffer = stencilBuffer; return *this; }
+
+		//! Sets the texture target for the FBO. Default is \c GL_TEXTURE_2D. Ignored on OpenGL ES
+		Format&	target( GLenum textureTarget ) { mTextureTarget = textureTarget; return *this; }
 
 		//! Adds a Renderbuffer attachment \a buffer at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT1). Replaces any existing attachment at the same attachment point.
 		Format&	attach( GLenum attachmentPoint, RenderbufferRef buffer, RenderbufferRef multisampleBuffer = RenderbufferRef() );
@@ -169,9 +172,9 @@ class Fbo {
 		Format&	attach( GLenum attachmentPoint, TextureRef texture, RenderbufferRef multisampleBuffer = RenderbufferRef() );
 		
 		//! Sets the internal format for the color buffer. Defaults to \c GL_RGBA8. Common options also include \c GL_RGB8, \c GL_RGBA16F and \c GL_RGBA32F
-		void	setColorBufferInternalFormat( Glint colorInternalFormat ) { mColorBufferInternalFormat = colorInternalFormat; }
+		void	setColorBufferInternalFormat( GLint colorInternalFormat ) { mColorBufferInternalFormat = colorInternalFormat; }
 		//! Sets the internal format for the depth buffer. Defaults to \c GL_DEPTH_COMPONENT24. Common options also include \c GL_DEPTH_COMPONENT16 and \c GL_DEPTH_COMPONENT32
-		void	setDepthBufferInternalFormat( Glint depthInternalFormat ) { mDepthBufferInternalFormat = depthInternalFormat; }
+		void	setDepthBufferInternalFormat( GLint depthInternalFormat ) { mDepthBufferInternalFormat = depthInternalFormat; }
 		//! Sets the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling. Note that not all implementations support multisampling.
 		void	setSamples( int samples ) { mSamples = samples; }
 		//! Sets the number of coverage samples used in CSAA-style antialiasing. Defaults to none. Note that not all implementations support CSAA, and is currenlty Windows-only Nvidia. Ignored on OpenGL ES.
@@ -185,20 +188,24 @@ class Fbo {
 		//! Enables or disables the creation of a depth buffer as a Texture. \a It is obtainable via getDepthTexture(). Not supported on OpenGL ES. Disables depthBuffer if true.
 		void	enableDepthTexture( bool depthBufferAsTexture = true ) { mDepthTexture = depthBufferAsTexture; if( depthBufferAsTexture ) mDepthBuffer = false; }
 		//! Sets the Texture::Format for use in the creation of the depth texture.
-		void	setDepthTextureFormat( Texture::Format format ) { mDepthTextureFormat = format; mDepthInternalFormat = format.getInternalFormat(); }
+		void	setDepthTextureFormat( const Texture::Format &format ) { mDepthTextureFormat = format; mDepthBufferInternalFormat = format.getInternalFormat(); }
+		//! Sets the texture target for the FBO. Default is \c GL_TEXTURE_2D. Ignored on OpenGL ES
+		void	setTarget( GLenum textureTarget ) { mTextureTarget = textureTarget; }
 		//! Enables or disables the creation of a stencil buffer.
 		void	enableStencilBuffer( bool stencilBuffer = true ) { mStencilBuffer = stencilBuffer; }
 		//! Removes a buffer or texture attached at \a attachmentPoint
 		void	removeAttachment( GLenum attachmentPoint );
 
 		//! Returns the GL internal format for the default color buffer at GL_COLOR_ATTACHMENT0. Defaults to \c GL_RGBA8.
-		Glint	getColorBufferInternalFormat() const { return mColorInternalFormat; }
+		GLint	getColorBufferInternalFormat() const { return mColorBufferInternalFormat; }
 		//! Returns the GL internal format for the depth buffer. Defaults to \c GL_DEPTH_COMPONENT24.
-		Glint	getDepthBufferInternalFormat() const { return mDepthInternalFormat; }
+		GLint	getDepthBufferInternalFormat() const { return mDepthBufferInternalFormat; }
 		//! Returns the Texture::Format for the default color texture at GL_COLOR_ATTACHMENT0.
 		const Texture::Format&	getColorTextureFormat() const { return mColorTextureFormat; }
 		//! Returns the Texture::Format for the depth texture.
 		const Texture::Format&	getDepthTextureFormat() const { return mDepthTextureFormat; }
+		//! Returns the default texture target for the FBO. Default is \c GL_TEXTURE_2D
+		GLenum	getTarget() const { return mTextureTarget; }		
 		//! Returns the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling.
 		int		getSamples() const { return mSamples; }
 		//! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none. MSW only.
@@ -219,15 +226,16 @@ class Fbo {
 		//! Returns the default depth Texture::Format for this platform
 		static Texture::Format	getDefaultDepthTextureFormat();
 		//! Returns the default internalFormat for a color Renderbuffer for this platform
-		static Glint			getDefaultColorInternalFormat( bool alpha = true );
+		static GLint			getDefaultColorInternalFormat( bool alpha = true );
 		//! Returns the default internalFormat for a depth Renderbuffer for this platform
-		static Glint			getDefaultDepthInternalFormat();
+		static GLint			getDefaultDepthInternalFormat();
 		// Returns the +stencil complement of a given internalFormat; ie GL_DEPTH_COMPONENT24 -> GL_DEPTH24_STENCIL8, as well as appropriate pixelDataType for glTexImage2D
-		void					getDepthStencilFormats( GLint depthInternalFormat, GLint *resultInternalFormat, Glenum *resultPixelDataType );
+		static void				getDepthStencilFormats( GLint depthInternalFormat, GLint *resultInternalFormat, GLenum *resultPixelDataType );
 		
 	  protected:
 		GLint			mColorBufferInternalFormat, mDepthBufferInternalFormat;
 		int				mSamples, mCoverageSamples;
+		GLenum			mTextureTarget;
 		bool			mColorBuffer, mColorTexture;
 		bool			mDepthBuffer, mDepthTexture;
 		bool			mStencilBuffer;
@@ -245,11 +253,11 @@ class Fbo {
 	Fbo( int width, int height, bool alpha, bool depth, bool stencil );
  
 	void		init();
-	bool		initMultisample( bool csaa );
+	void		initMultisample( bool csaa );
 	void		initMultisamplingSettings( bool *useMsaa, bool *useCsaa );
 	void		initFormatAttachments();
 	void		resolveTextures() const;
-	void		updateMipmaps( int attachment ) const;
+	void		updateMipmaps( GLenum attachment ) const;
 	bool		checkStatus( class FboExceptionInvalidSpecification *resultExc );
 	void		setAllDrawBuffers();
 
@@ -258,9 +266,9 @@ class Fbo {
 	GLuint				mId;
 	GLuint				mMultisampleFramebufferId;
 	
-	std::map<GLenum,RenderbufferRef>	mAttachmentsBuffers; // map from attachment ID to Renderbuffer
-	std::map<GLenum,RenderbufferRef>	mAttachmentsMultisampleBuffers; // map from attachment ID to Renderbuffer	
-	std::map<GLenum,TextureRef>			mAttachmentsTextures; // map from attachment ID to Texture
+	std::map<GLenum,RenderbufferRef>	mAttachmentsBuffer; // map from attachment ID to Renderbuffer
+	std::map<GLenum,RenderbufferRef>	mAttachmentsMultisampleBuffer; // map from attachment ID to Renderbuffer	
+	std::map<GLenum,TextureRef>			mAttachmentsTexture; // map from attachment ID to Texture
 	
 	mutable bool		mNeedsResolve, mNeedsMipmapUpdate;
 	
