@@ -45,36 +45,15 @@ GLint Fbo::sMaxAttachments = -1;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Renderbuffer
-RenderbufferRef Renderbuffer::create( int width, int height, GLenum internalFormat )
-{
-	return RenderbufferRef( new Renderbuffer( width, height, internalFormat ) );
-}
-
 RenderbufferRef Renderbuffer::create( int width, int height, GLenum internalFormat, int msaaSamples, int coverageSamples )
 {
 	return RenderbufferRef( new Renderbuffer( width, height, internalFormat, msaaSamples, coverageSamples ) );
 }
 
-Renderbuffer::Renderbuffer( int width, int height, GLenum internalFormat )
-{
-	init( width, height, internalFormat, 0, 0 );
-}
-
 Renderbuffer::Renderbuffer( int width, int height, GLenum internalFormat, int msaaSamples, int coverageSamples )
 {
-	init( width, height, internalFormat, msaaSamples, coverageSamples );
-}
-
-Renderbuffer::~Renderbuffer()
-{
-	if( mId )
-		glDeleteRenderbuffers( 1, &mId );
-}
-
-void Renderbuffer::init( int aWidth, int aHeight, GLenum internalFormat, int msaaSamples, int coverageSamples )
-{
-	mWidth = aWidth;
-	mHeight = aHeight;
+	mWidth = width;
+	mHeight = height;
 	mInternalFormat = internalFormat;
 	mSamples = msaaSamples;
 	mCoverageSamples = coverageSamples;
@@ -94,16 +73,16 @@ void Renderbuffer::init( int aWidth, int aHeight, GLenum internalFormat, int msa
 
 	glBindRenderbuffer( GL_RENDERBUFFER, mId );
 
-#if defined( CINDER_MSW ) && (! defined( CINDER_GLES ))
+#if defined( CINDER_MSW ) && ( ! defined( CINDER_GLES ) )
 	if( mCoverageSamples ) // create a CSAA buffer
 		glRenderbufferStorageMultisampleCoverageNV( GL_RENDERBUFFER, mCoverageSamples, mSamples, mInternalFormat, mWidth, mHeight );
 	else
 #elif defined( CINDER_GLES )
-	if(mSamples) {
+	if( mSamples ) {
 		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
 	}
 	else
-#elif defined(SUPPORTS_MULTISAMPLE)
+#elif defined( SUPPORTS_MULTISAMPLE )
 	if( mSamples ) // create a regular MSAA buffer
 		glRenderbufferStorageMultisample( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
 	else
@@ -111,80 +90,144 @@ void Renderbuffer::init( int aWidth, int aHeight, GLenum internalFormat, int msa
 		glRenderbufferStorage( GL_RENDERBUFFER, mInternalFormat, mWidth, mHeight );
 }
 
+Renderbuffer::~Renderbuffer()
+{
+	if( mId )
+		glDeleteRenderbuffers( 1, &mId );
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fbo::Format
 Fbo::Format::Format()
 {
-#if defined( CINDER_GLES )
-	mColorInternalFormat = GL_RGBA;
-	mDepthInternalFormat = GL_DEPTH_COMPONENT24_OES;
-	mDepthBufferAsTexture = false;
-	mDepthTextureFormat = Texture::Format().depthTexture().internalFormat( GL_DEPTH_COMPONENT ).pixelDataFormat( GL_DEPTH_COMPONENT ).pixelDataType( GL_UNSIGNED_SHORT );
-    	mColorTextureFormat = Texture::Format().renderTexture().internalFormat( GL_RGBA ).pixelDataFormat( GL_RGBA ).pixelDataType( GL_UNSIGNED_BYTE );
-#else
-	mColorInternalFormat = GL_RGBA8;
-	mDepthInternalFormat = GL_DEPTH_COMPONENT24;
-	mDepthBufferAsTexture = false;
-	mDepthTextureFormat = Texture::Format().depthTexture().internalFormat( GL_DEPTH_COMPONENT24 ).pixelDataFormat( GL_DEPTH_COMPONENT ).pixelDataType( GL_FLOAT );
-    mColorTextureFormat = Texture::Format().renderTexture().internalFormat( GL_RGBA ).pixelDataFormat( GL_RGBA ).pixelDataType( GL_UNSIGNED_BYTE );
-#endif
+	mColorTextureFormat = getDefaultColorTextureFormat( true );
+	mColorBufferInternalFormat = getDefaultColorInternalFormat( true );
+	mColorTexture = true;
+	mColorBuffer = false;
+	
+	mDepthTextureFormat = getDefaultDepthTextureFormat();
+	mDepthBufferInternalFormat = getDefaultDepthInternalFormat();
+	mDepthBuffer = true;
+	mDepthTexture = false;
+	
 	mSamples = 0;
 	mCoverageSamples = 0;
-	mNumColorBuffers = 1;
-	mDepthBuffer = true;
 	mStencilBuffer = false;
 }
 
-void Fbo::Format::enableColorBuffer( bool colorBuffer, int numColorBuffers )
+GLint Fbo::Format::getDefaultColorInternalFormat( bool alpha )
 {
 #if defined( CINDER_GLES )
-	mNumColorBuffers = ( colorBuffer && numColorBuffers ) ? 1 : 0;
+	return GL_RGBA;
 #else
-	mNumColorBuffers = ( colorBuffer ) ? numColorBuffers : 0;
+	return GL_RGBA8;
 #endif
 }
-    
-Fbo::Format& Fbo::Format::color( bool colorBuffer, int numColorBuffers )
+
+GLint Fbo::Format::getDefaultDepthInternalFormat()
 {
 #if defined( CINDER_GLES )
-    mNumColorBuffers = ( colorBuffer && numColorBuffers ) ? 1 : 0;
+	return GL_DEPTH_COMPONENT24_OES;
 #else
-    mNumColorBuffers = ( colorBuffer ) ? numColorBuffers : 0;
+	return GL_DEPTH_COMPONENT24;
 #endif
-    return *this;
+}
+
+Texture::Format	Fbo::Format::getDefaultColorTextureFormat( bool alpha )
+{
+	if( alpha )
+		Texture::Format().renderTexture().internalFormat( GL_RGBA ).pixelDataFormat( GL_RGBA ).pixelDataType( GL_UNSIGNED_BYTE );
+	else
+		Texture::Format().renderTexture().internalFormat( GL_RGB ).pixelDataFormat( GL_RGB ).pixelDataType( GL_UNSIGNED_BYTE );
+}
+
+Texture::Format	Fbo::Format::getDefaultDepthTextureFormat()
+{
+#if defined( CINDER_GLES )
+	return Texture::Format().depthTexture().internalFormat( GL_DEPTH_COMPONENT ).pixelDataFormat( GL_DEPTH_COMPONENT ).pixelDataType( GL_UNSIGNED_SHORT );
+#else
+	return Texture::Format().depthTexture().internalFormat( GL_DEPTH_COMPONENT24 ).pixelDataFormat( GL_DEPTH_COMPONENT ).pixelDataType( GL_FLOAT );
+#endif
+}
+
+// Returns the +stencil complement of a given internalFormat; ie GL_DEPTH_COMPONENT24 -> GL_DEPTH_COMPONENT24
+void Fbo::Format::getDepthStencilFormats( GLint depthInternalFormat, GLint *resultInternalFormat, Glenum *resultPixelDataType )
+{
+	switch( depthInternalFormat ) {
+#if defined( CINDER_GLES )
+		case GL_DEPTH24_STENCIL8_OES:
+			*resultInternalFormat = GL_DEPTH24_STENCIL8_OES; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
+		break;
+		case GL_DEPTH_STENCIL:
+			*resultInternalFormat = GL_DEPTH_STENCIL; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
+		break;
+		case GL_DEPTH_COMPONENT:
+			*resultInternalFormat = GL_DEPTH_STENCIL; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
+		break;
+#else
+		case GL_DEPTH24_STENCIL8:
+			*resultInternalFormat = GL_DEPTH24_STENCIL8; *resultPixelDataType = GL_UNSIGNED_INT_24_8;
+		case GL_DEPTH32F_STENCIL8:
+			*resultInternalFormat = GL_DEPTH32F_STENCIL8; *resultPixelDataType = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+		break;
+		case GL_DEPTH_COMPONENT24:
+			*resultInternalFormat = GL_DEPTH24_STENCIL8; *resultPixelDataType = GL_UNSIGNED_INT_24_8;
+		break;
+		case GL_DEPTH_COMPONENT32F:
+			*resultInternalFormat = GL_DEPTH32F_STENCIL8; *resultPixelDataType = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+		break;
+	}
+#endif
+}
+
+Fbo::Format& Fbo::Format::attach( GLenum attachmentPoint, RenderbufferRef buffer, RenderbufferRef multisampleBuffer )
+{
+	mAttachmentsBuffer[attachmentPoint] = buffer;
+	mAttachmentsMultisampleBuffer[attachmentPoint] = multisampleBuffer;
+	mAttachmentsTexture.erase( attachmentPoint );
+	return *this;
+}
+
+Fbo::Format& Fbo::Format::attach( GLenum attachmentPoint, TextureRef texture )
+{
+	mAttachmentsTexture[attachmentPoint] = texture;
+	mAttachmentsMultisampleBuffer[attachmentPoint] = multisampleBuffer;
+	mAttachmentsBuffer.erase( attachmentPoint );
+	return *this;
+}
+
+void Fbo::Format::removeAttachment( GLenum attachmentPoint )
+{
+	mAttachmentsBuffer.erase( attachmentPoint );
+	mAttachmentsMultisampleBuffer.erase( attachmentPoint );	
+	mAttachmentsTexture.erase( attachmentPoint );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fbo
-FboRef Fbo::create( int width, int height, Format format )
+FboRef Fbo::create( int width, int height, const Format &format )
 {
 	return FboRef( new Fbo( width, height, format ) );
 }
 
-FboRef Fbo::create( int width, int height, bool alpha, bool color, bool depth, bool stencil )
+FboRef Fbo::create( int width, int height, bool alpha, bool depth, bool stencil )
 {
-	return FboRef( new Fbo( width, height, alpha, color, depth, stencil ) );
+	return FboRef( new Fbo( width, height, alpha, depth, stencil ) );
 }
 
-Fbo::Fbo( int width, int height, Format format )
-	: mWidth( width ), mHeight( height ), mId( 0 ), mResolveFramebufferId( 0 )
+Fbo::Fbo( int width, int height, const Format &format )
+	: mWidth( width ), mHeight( height ), mFormat( format ), mId( 0 ), mResolveFramebufferId( 0 )
 {
-	mFormat = format;
 	init();
 }
 
-Fbo::Fbo( int width, int height, bool alpha, bool color, bool depth, bool stencil )
+Fbo::Fbo( int width, int height, bool alpha, bool depth, bool stencil )
 	: mWidth( width ), mHeight( height ), mId( 0 ), mResolveFramebufferId( 0 )
 {
-	Format format;
-#if defined( CINDER_GLES )
-	mFormat.mColorInternalFormat = ( alpha ) ? GL_RGBA8_OES : GL_RGB8_OES;
-#else
-	mFormat.mColorInternalFormat = ( alpha ) ? GL_RGBA8 : GL_RGB8;
-#endif
-    	mFormat.mStencilBuffer = stencil;
+	mFormat.mColorTextureFormat = Format::getDefaultColorTextureFormat( alpha );
 	mFormat.mDepthBuffer = depth;
-	mFormat.mNumColorBuffers = color ? 1 : 0;
+	mFormat.mStencilBuffer = stencil;
+	
 	init();
 }
 
@@ -196,152 +239,126 @@ Fbo::~Fbo()
 		glDeleteFramebuffers( 1, &mResolveFramebufferId );
 }
 
-void Fbo::init()
+void Fbo::initMultisamplingSettings( bool *useMsaa, bool *useCsaa )
 {
 #if defined( CINDER_MSW ) && ( ! defined( CINDER_GLES ) )
 	static bool csaaSupported = ( glext_NV_framebuffer_multisample_coverage != 0 );
 #else
 	static bool csaaSupported = false;
 #endif
-	bool useCSAA = csaaSupported && ( mFormat.mCoverageSamples > mFormat.mSamples );
-	bool useMSAA = ( mFormat.mCoverageSamples > 0 ) || ( mFormat.mSamples > 0 );
-	if( useCSAA )
-		useMSAA = false;
+	*useCsaa = csaaSupported && ( mFormat.mCoverageSamples > mFormat.mSamples );
+	*useMsaa = ( mFormat.mCoverageSamples > 0 ) || ( mFormat.mSamples > 0 );
+	if( *useCsaa )
+		*useMsaa = false;
+}
 
+// Iterate the Format's requested attachments and create any we don't already have attachments for
+// After calling this function, mFormat's mAttachmentsTexture and mAttachmentsBuffer should be 1:1 with what will be instantiated
+void Fbo::initFormatAttachments()
+{
+	// Create the default color attachment if there's not already something on GL_COLOR_ATTACHMENT0
+	bool preexistingColorAttachment = mFormat.mAttachmentsTexture.count( GL_COLOR_ATTACHMENT0 ) || mFormat.mAttachmentsBuffer.count( GL_COLOR_ATTACHMENT0 );
+	if( mFormat.mColorBuffer && ( ! preexistingColorAttachment ) ) {
+		mFormat.mAttachmentsBuffer[GL_COLOR_ATTACHMENT0] = Renderbuffer::create( mWidth, mHeight, mFormat.mColorBufferInternalFormat );
+	}
+	else if( mFormat.mColorTexture && ( ! preexistingColorAttachment ) ) {
+		mFormat.mAttachmentsTexture[GL_COLOR_ATTACHMENT0] = Texture::create( mWidth, mHeight, mFormat.mColorTextureFormat );
+	}
+	
+	// Create the default depth(+stencil) attachment if there's not already something on GL_DEPTH_ATTACHMENT || GL_DEPTH_STENCIL_ATTACHMENT
+	bool preexistingDepthAttachment = mFormat.mAttachmentsTexture.count( GL_DEPTH_ATTACHMENT ) || mFormat.mAttachmentsBuffer.count( GL_DEPTH_ATTACHMENT )
+										|| mFormat.mAttachmentsTexture.count( GL_DEPTH_STENCIL_ATTACHMENT ) || mFormat.mAttachmentsBuffer.count( GL_DEPTH_STENCIL_ATTACHMENT ) ;
+	if( mFormat.mDepthBuffer && ( ! preexistingDepthAttachment ) ) {
+		if( mFormat.mStencilBuffer ) {
+			GLint internalFormat, pixelDataType;
+			Format::getDepthStencilFormats( mFormat.mDepthBufferInternalFormat, &internalFormat, &pixelDataType );
+			RenderBufferRef depthStencilBuffer = Renderbuffer::create( mWidth, mHeight, internalFormat );
+#if defined( CINDER_GLES )
+			mFormat.mAttachmentsBuffer[GL_DEPTH_ATTACHMENT] = depthStencilBuffer;
+			mFormat.mAttachmentsBuffer[GL_STENCIL_ATTACHMENT] = depthStencilBuffer;
+#else
+			mFormat.mAttachmentsBuffer[GL_DEPTH_STENCIL_ATTACHMENT] = Renderbuffer::create( mWidth, mHeight, internalFormat );
+#endif
+		}
+		else {
+			mFormat.mAttachmentsBuffer[GL_DEPTH_ATTACHMENT] = Renderbuffer::create( mWidth, mHeight, mFormat.mDepthBufferInternalFormat );
+		}
+	}
+	else if( mFormat.mDepthTexture && ( ! preexistingDepthAttachment ) ) {
+		if( mFormat.mStencilBuffer ) {
+			// first determine formats for depth texture with stencil added
+			GLint stencilInternalFormat, stencilPixelDataType;
+			Format::getDepthStencilFormats( mFormat.mDepthBufferTextureFormat.getInternalFormat(), &stencilInternalFormat, &stencilPixelDataType );
+			Texture::Format textureFormat = mDepthBufferTextureFormat;
+			textureFormat.setInternalFormat( stencilInternalFormat );
+			textureFormat.setPixelDataType( stencilPixelDataType );
+#if defined( CINDER_GLES )
+			textureFormat.setPixelDataFormat( GL_DEPTH_STENCIL_OES );
+#else
+			textureFormat.setPixelDataFormat( GL_DEPTH_STENCIL );
+#endif			
+
+			TextureRef depthStencilTexture = Texture::create( mWidth, mHeight, textureFormat );
+#if defined( CINDER_GLES )			
+			mFormat.mAttachmentsTexture[GL_DEPTH_ATTACHMENT] = depthStencilTexture;
+			mFormat.mAttachmentsTexture[GL_STENCIL_ATTACHMENT] = depthStencilTexture;
+#else
+			mFormat.mAttachmentsTexture[GL_DEPTH_STENCIL_ATTACHMENT] = depthStencilTexture;
+#endif
+		}
+		else {
+			mFormat.mAttachmentsTexture[GL_DEPTH_ATTACHMENT] = Texture::create( mWidth, mHeight, mFormat.mDepthTextureFormat );
+		}		
+	}
+}
+
+// call glDrawBuffers against all color attachments
+void Fbo::setAllDrawBuffers()
+{
+	vector<GLenum> drawBuffers
+	for( auto &bufferAttachment : mAttachmentsBuffer )
+		if( bufferAttachment.first >= GL_COLOR_ATTACHMENT0 && bufferAttachment.first <= GL_COLOR_ATTACHMENT15 )
+			drawBuffers.push_back( bufferAttachment.first );
+
+	for( auto &textureAttachment : mAttachmentsTexture )
+		if( textureAttachment.first >= GL_COLOR_ATTACHMENT0 && textureAttachment.first <= GL_COLOR_ATTACHMENT15 )
+			drawBuffers.push_back( textureAttachment.first );
+
+	if( ! drawBuffers.empty() )
+		glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
+	else
+		glDrawBuffer( GL_NONE );
+}
+
+void Fbo::init()
+{
 	// allocate the framebuffer itself
 	glGenFramebuffers( 1, &mId );
 	FramebufferScope fbScp( GL_FRAMEBUFFER, mId );
-	
-#if ! defined( CINDER_GLES )
-    // allocate the color buffers
-	for( int c = 0; c < mFormat.mNumColorBuffers; ++c ) {
-        	mTextures[GL_COLOR_ATTACHMENT0 + c] = Texture::create( mWidth, mHeight, mFormat.mColorTextureFormat );
-	}
-	
-	if( mFormat.mNumColorBuffers == 0 ) { // no color
-		glDrawBuffer( GL_NONE );
-		glReadBuffer( GL_NONE );
-	}
-	
-	if( ( ( ! useCSAA ) && ( ! useMSAA ) ) || ( ! initMultisample( useCSAA ) ) ) {
-		// if we don't need any variety of multisampling or it failed to initialize
-		// attach all the textures to the framebuffer
-		vector<GLenum> drawBuffers;
-		for( GLenum c = GL_COLOR_ATTACHMENT0; c < GL_COLOR_ATTACHMENT15 + 1; ++c ) {
-            auto colorAttachment = mTextures.find( c );
-            if( colorAttachment != mTextures.end() ) {
-                glFramebufferTexture2D( GL_FRAMEBUFFER, colorAttachment->first, colorAttachment->second->getTarget(), colorAttachment->second->getId(), 0 );
-                drawBuffers.push_back( colorAttachment->first );
-            }
-		}
-		
-		if( ! drawBuffers.empty() )
-			glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
-		
-		// allocate and attach packed depth/stencil buffers
-        if( mFormat.mDepthBufferAsTexture ) {
-			gl::TextureRef depthTexture;
-            if( mFormat.mDepthBuffer && mFormat.mStencilBuffer ) {
-                if( mFormat.mDepthInternalFormat == GL_DEPTH_COMPONENT32F ) {
-                    mFormat.mDepthTextureFormat.internalFormat( GL_DEPTH32F_STENCIL8 ).pixelDataFormat( GL_DEPTH_STENCIL ).pixelDataType( GL_FLOAT_32_UNSIGNED_INT_24_8_REV );
-					depthTexture = Texture::create( mWidth, mHeight, mFormat.mDepthTextureFormat );
-					mTextures[GL_DEPTH_STENCIL_ATTACHMENT] = depthTexture;
-                    glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, depthTexture->getTarget(), depthTexture->getId(), 0 );
-                }
-                else {
-                    mFormat.mDepthTextureFormat.internalFormat( GL_DEPTH24_STENCIL8 ).pixelDataFormat( GL_DEPTH_STENCIL ).pixelDataType( GL_UNSIGNED_INT_24_8 );
-					depthTexture = Texture::create( mWidth, mHeight, mFormat.mDepthTextureFormat );
-					mTextures[GL_DEPTH_STENCIL_ATTACHMENT] = depthTexture;
-                    glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, depthTexture->getTarget(), depthTexture->getId(), 0 );
-                }
-            }
-            else {
-                if( mFormat.mDepthBuffer ) {
-                    mFormat.mDepthTextureFormat.internalFormat( mFormat.mDepthInternalFormat );
-					depthTexture = Texture::create( mWidth, mHeight, mFormat.mDepthTextureFormat );
-					mTextures[GL_DEPTH_ATTACHMENT] = depthTexture;
-                    glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture->getTarget(), depthTexture->getId(), 0 );
-                }
-            }
-        }
-        else {
-			gl::RenderbufferRef depthBuffer;
-            if( mFormat.mDepthBuffer && mFormat.mStencilBuffer ) {
-                if( mFormat.mDepthInternalFormat == GL_DEPTH_COMPONENT32F ) {
-                    depthBuffer = Renderbuffer::create( mWidth, mHeight, GL_DEPTH32F_STENCIL8 );
-					mRenderbuffers[GL_DEPTH_STENCIL_ATTACHMENT] = depthBuffer;
-                    glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer->getId() );
-                }
-                else {
-                    depthBuffer = Renderbuffer::create( mWidth, mHeight, GL_DEPTH24_STENCIL8 );
-					mRenderbuffers[GL_DEPTH_STENCIL_ATTACHMENT] = depthBuffer;
-                    glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer->getId() );
-                }
-            }
-            else {
-                if( mFormat.mDepthBuffer ) {
-					depthBuffer = Renderbuffer::create( mWidth, mHeight, mFormat.mDepthInternalFormat );
-					mRenderbuffers[GL_DEPTH_ATTACHMENT] = depthBuffer;
-                    glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer->getId() );
-                }
-                else if( mFormat.mStencilBuffer ) {
-                    throw FboExceptionInvalidSpecification( "Can't have stencil buffer without depth buffer." );
-                }
-            }
-        }
-    }
-#else
-    // allocate the color buffers
-	if( mFormat.hasColorBuffer() ) {
-		mTextures[GL_COLOR_ATTACHMENT0] = Texture::create( mWidth, mHeight, mFormat.mColorTextureFormat );
-	}
-    
-	if( ( ( ! useCSAA ) && ( ! useMSAA ) ) || ( ! initMultisample( useCSAA ) ) ) {
-		// if we don't need any variety of multisampling or it failed to initialize
-		// attach all the textures to the framebuffer
 
-        auto colorAttachment = mTextures.find( GL_COLOR_ATTACHMENT0 );
-        if( colorAttachment != mTextures.end() ) {
-            glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorAttachment->second->getTarget(), colorAttachment->second->getId(), 0 );
-        }
-		
-		if( mFormat.mDepthBufferAsTexture ) {
-			gl::TextureRef depthTexture;
-			if( mFormat.mDepthBuffer && mFormat.mStencilBuffer ) {
-                mFormat.mDepthTextureFormat.depthTexture().internalFormat( GL_DEPTH_STENCIL_OES ).pixelDataFormat( GL_DEPTH_STENCIL_OES ).pixelDataType( GL_UNSIGNED_INT_24_8_OES );
-				depthTexture = Texture::create( mWidth, mHeight, mFormat.mDepthTextureFormat );
-                mTextures[GL_DEPTH_STENCIL_OES] = depthTexture;
-                glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture->getTarget(), depthTexture->getId(), 0 );
-                glFramebufferTexture2D( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, depthTexture->getTarget(), depthTexture->getId(), 0 );
-			} else {
-				if( mFormat.mDepthBuffer ) {
-					depthTexture = Texture::create( mWidth, mHeight, mFormat.mDepthTextureFormat );
-					mTextures[GL_DEPTH_ATTACHMENT] = depthTexture;
-                    glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture->getTarget(), depthTexture->getId(), 0 );
-				}
-			}
-		} else {
-			gl::RenderbufferRef depthBuffer, stencilBuffer;
-			if( mFormat.mDepthBuffer && mFormat.mStencilBuffer ) {
-				depthBuffer = Renderbuffer::create( mWidth, mHeight, GL_DEPTH24_STENCIL8_OES );
-				stencilBuffer = depthBuffer;
-				mRenderbuffers[GL_DEPTH_ATTACHMENT] = depthBuffer;
-				mRenderbuffers[GL_STENCIL_ATTACHMENT] = stencilBuffer;
-				glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer->getId() );
-				glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, stencilBuffer->getId() );
-			}
-			else {
-				if( mFormat.mDepthBuffer ) {
-					auto depthBuffer = Renderbuffer::create( mWidth, mHeight, mFormat.getDepthInternalFormat() );
-					mRenderbuffers[GL_DEPTH_ATTACHMENT] = depthBuffer;
-					glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer->getId() );
-				}
-			}
-		}
-        
+	// After calling this function, mFormat's mAttachmentsTexture and mAttachmentsBuffer should be 1:1 with what will be instantiated
+	initFormatAttachments();
+
+	// determine multisampling settings
+	bool useMSAA, useCSAA;
+	initMultisamplingSettings( &useMsaa, &useCsaa );
+
+	if( useCsaa || useMsaa )
+		initMultisample( useCsaa );
+	
+	// attach Renderbuffers
+	for( auto &bufferAttachment : mFormat.mAttachmentsBuffer ) {
+		glFramebufferRenderbuffer( GL_FRAMEBUFFER, bufferAttachment.first, GL_RENDERBUFFER, bufferAttachment.second->getId() );
+		mAttachmentsBuffer[bufferAttachment.first] = bufferAttachment.second;
 	}
 	
-#endif
+	// attach Textures
+	for( auto &textureAttachment : mFormat.mAttachmentsTexture ) {
+		glFramebufferTexture2D( GL_FRAMEBUFFER, textureAttachment.first, textureAttachment.second->getTarget(), textureAttachment.second->getId(), 0 );
+		mAttachmentsTexture[textureAttachment.first] = textureAttachment.second;
+	}
+	
+	setAllDrawBuffers();
 			
 	FboExceptionInvalidSpecification exc;
 	if( ! checkStatus( &exc ) ) { // failed creation; throw
@@ -357,7 +374,7 @@ bool Fbo::initMultisample( bool csaa )
 	auto ctx = context();
 
 	glGenFramebuffers( 1, &mResolveFramebufferId );
-	ctx->bindFramebuffer( GL_FRAMEBUFFER, mResolveFramebufferId );
+	FramebufferScope fbScp( GL_FRAMEBUFFER, mResolveFramebufferId );
 
 #if ! defined( CINDER_GLES )
     // bind all of the color buffers to the resolve FB's attachment points
@@ -373,7 +390,7 @@ bool Fbo::initMultisample( bool csaa )
 		glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
 	
     
-    if( mFormat.mDepthBufferAsTexture ) {
+    if( mFormat.mDepthTexture ) {
 		gl::TextureRef depthTexture;
         if( mFormat.mDepthBuffer && mFormat.mStencilBuffer ) {
             if( mFormat.mDepthInternalFormat == GL_DEPTH_COMPONENT32F ) {
@@ -551,7 +568,7 @@ void Fbo::resolveTextures() const
 
 #if defined( SUPPORTS_MULTISAMPLE ) && defined( CINDER_GLES )
 	// iOS-specific multisample resolution code
-	if ( mResolveFramebufferId ) {
+	if( mResolveFramebufferId ) {
 		FramebufferScope fbScp;
 		auto ctx = context();
 		
@@ -562,7 +579,7 @@ void Fbo::resolveTextures() const
 	}
 #elif defined( SUPPORTS_MULTISAMPLE )
 	// if this FBO is multisampled, resolve it, so it can be displayed
-	if ( mResolveFramebufferId ) {
+	if( mResolveFramebufferId ) {
 		FramebufferScope fbScp;
 		auto ctx = context();
 
