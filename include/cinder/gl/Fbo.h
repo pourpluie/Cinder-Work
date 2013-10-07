@@ -121,11 +121,13 @@ class Fbo {
 	//! Unbinds the Fbo as the currently active framebuffer, restoring the primary context as the target for all subsequent rendering
 	static void 	unbindFramebuffer();
 
-	//! Returns the ID of the framebuffer itself. For antialiased FBOs this is the ID of the output multisampled FBO
-	GLuint		getId() const { return mId; }
+	//! Returns the ID of the framebuffer. For antialiased FBOs this is the ID of the output multisampled FBO
+	GLuint		getId() const { if( mMultisampleFramebufferId ) return mMultisampleFramebufferId; else return mId; }
 
-	//! For antialiased FBOs this returns the ID of the mirror FBO designed for multisampled writing
+	//! For antialiased FBOs this returns the ID of the mirror FBO designed for multisampled writing. Returns 0 otherwise.
 	GLuint		getMultisampleId() const { return mMultisampleFramebufferId; }
+	//! Returns the resolve FBO, which is the same value as getId() without multisampling
+	GLuint		getResolveId() const { return mId; }
 
 #if ! defined( CINDER_GLES )
 	//! Copies to FBO \a dst from \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.

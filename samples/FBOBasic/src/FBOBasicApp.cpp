@@ -30,7 +30,7 @@ class FBOBasicApp : public AppNative {
 void FBOBasicApp::setup()
 {
 	gl::Fbo::Format format;
-	format.setSamples( 8 ); // uncomment this to enable 4x antialiasing
+	format.setSamples( 4 ); // uncomment this to enable 4x antialiasing, though it will break the depth texture on iOS
 	mFbo = gl::Fbo::create( FBO_WIDTH, FBO_HEIGHT, format.depthTexture() );
 
 	gl::enableDepthRead();
@@ -103,12 +103,10 @@ void FBOBasicApp::draw()
 
 	// show the FBO texture in the upper left corner
 	gl::setMatricesWindow( toPixels( getWindowSize() ) );
-	gl::draw( mFbo->getTexture(), Rectf( 0, 0, 256, 256 ) );
+	gl::draw( mFbo->getTexture(), Rectf( 0, 0, 128, 128 ) );
 	
-#if ! defined( CINDER_GLES ) // OpenGL ES can't do depth textures, otherwise draw the FBO's
 	if( mFbo->getDepthTexture() ) // NULL if we have multisampling
-		gl::draw( mFbo->getDepthTexture(), Rectf( 256, 0, 256 + 256, 256 ) );
-#endif
+		gl::draw( mFbo->getDepthTexture(), Rectf( 128, 0, 128 + 128, 128 ) );
 }
 
 auto renderOptions = RendererGl::Options().coreProfile( false ).version( 4, 1 );

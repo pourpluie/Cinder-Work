@@ -37,6 +37,12 @@ using namespace std;
 	#endif
 #endif
 
+#if ! defined( CINDER_GLES )
+	#define MAX_COLOR_ATTACHMENT	GL_COLOR_ATTACHMENT15
+#else
+	#define MAX_COLOR_ATTACHMENT	GL_COLOR_ATTACHMENT0
+#endif
+
 namespace cinder {
 namespace gl {
 
@@ -78,6 +84,14 @@ Renderbuffer::Renderbuffer( int width, int height, GLenum internalFormat, int ms
 		glRenderbufferStorageMultisampleCoverageNV( GL_RENDERBUFFER, mCoverageSamples, mSamples, mInternalFormat, mWidth, mHeight );
 	else
 #elif defined( CINDER_GLES )
+	// this is gross, but GL_RGBA & GL_RGB are not suitable internal formats for Renderbuffers. We know what you meant though.
+	if( mInternalFormat == GL_RGBA )
+		mInternalFormat = GL_RGBA8_OES;
+	else if( mInternalFormat == GL_RGB )
+		mInternalFormat = GL_RGB8_OES;
+	else if( mInternalFormat == GL_DEPTH_COMPONENT )
+		mInternalFormat = GL_DEPTH_COMPONENT24_OES;
+		
 	if( mSamples ) {
 		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
 	}
@@ -159,11 +173,8 @@ void Fbo::Format::getDepthStencilFormats( GLint depthInternalFormat, GLint *resu
 		case GL_DEPTH24_STENCIL8_OES:
 			*resultInternalFormat = GL_DEPTH24_STENCIL8_OES; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
 		break;
-		case GL_DEPTH_STENCIL:
-			*resultInternalFormat = GL_DEPTH_STENCIL; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
-		break;
 		case GL_DEPTH_COMPONENT:
-			*resultInternalFormat = GL_DEPTH_STENCIL; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
+			*resultInternalFormat = GL_DEPTH24_STENCIL8_OES; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
 		break;
 #else
 		case GL_DEPTH24_STENCIL8:
@@ -177,8 +188,8 @@ void Fbo::Format::getDepthStencilFormats( GLint depthInternalFormat, GLint *resu
 		case GL_DEPTH_COMPONENT32F:
 			*resultInternalFormat = GL_DEPTH32F_STENCIL8; *resultPixelDataType = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
 		break;
+#endif		
 	}
-#endif
 }
 
 Fbo::Format& Fbo::Format::attach( GLenum attachmentPoint, RenderbufferRef buffer, RenderbufferRef multisampleBuffer )
@@ -270,8 +281,12 @@ void Fbo::initFormatAttachments()
 	}
 	
 	// Create the default depth(+stencil) attachment if there's not already something on GL_DEPTH_ATTACHMENT || GL_DEPTH_STENCIL_ATTACHMENT
+#if defined( CINDER_GLES )
+	bool preexistingDepthAttachment = mFormat.mAttachmentsTexture.count( GL_DEPTH_ATTACHMENT ) || mFormat.mAttachmentsBuffer.count( GL_DEPTH_ATTACHMENT );
+#else
 	bool preexistingDepthAttachment = mFormat.mAttachmentsTexture.count( GL_DEPTH_ATTACHMENT ) || mFormat.mAttachmentsBuffer.count( GL_DEPTH_ATTACHMENT )
-										|| mFormat.mAttachmentsTexture.count( GL_DEPTH_STENCIL_ATTACHMENT ) || mFormat.mAttachmentsBuffer.count( GL_DEPTH_STENCIL_ATTACHMENT ) ;
+										|| mFormat.mAttachmentsTexture.count( GL_DEPTH_STENCIL_ATTACHMENT ) || mFormat.mAttachmentsBuffer.count( GL_DEPTH_STENCIL_ATTACHMENT );
+#endif
 	if( mFormat.mDepthBuffer && ( ! preexistingDepthAttachment ) ) {
 		if( mFormat.mStencilBuffer ) {
 			GLint internalFormat;
@@ -321,19 +336,21 @@ void Fbo::initFormatAttachments()
 // call glDrawBuffers against all color attachments
 void Fbo::setAllDrawBuffers()
 {
+#if ! defined( CINDER_GLES )
 	vector<GLenum> drawBuffers;
 	for( auto &bufferAttachment : mAttachmentsBuffer )
-		if( bufferAttachment.first >= GL_COLOR_ATTACHMENT0 && bufferAttachment.first <= GL_COLOR_ATTACHMENT15 )
+		if( bufferAttachment.first >= GL_COLOR_ATTACHMENT0 && bufferAttachment.first <= MAX_COLOR_ATTACHMENT )
 			drawBuffers.push_back( bufferAttachment.first );
 
 	for( auto &textureAttachment : mAttachmentsTexture )
-		if( textureAttachment.first >= GL_COLOR_ATTACHMENT0 && textureAttachment.first <= GL_COLOR_ATTACHMENT15 )
+		if( textureAttachment.first >= GL_COLOR_ATTACHMENT0 && textureAttachment.first <= MAX_COLOR_ATTACHMENT )
 			drawBuffers.push_back( textureAttachment.first );
 
 	if( ! drawBuffers.empty() )
 		glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
 	else
 		glDrawBuffer( GL_NONE );
+#endif
 }
 
 void Fbo::init()
@@ -484,7 +501,7 @@ void Fbo::resolveTextures() const
 		ctx->bindFramebuffer( GL_READ_FRAMEBUFFER, mMultisampleFramebufferId );
 		
         vector<GLenum> drawBuffers;
-		for( GLenum c = GL_COLOR_ATTACHMENT0; c <= GL_COLOR_ATTACHMENT15; ++c ) {
+		for( GLenum c = GL_COLOR_ATTACHMENT0; c <= MAX_COLOR_ATTACHMENT; ++c ) {
             auto colorAttachmentIt = mAttachmentsTexture.find( c );
             if( colorAttachmentIt != mAttachmentsTexture.end() ) {
                 glDrawBuffer( colorAttachmentIt->first );
@@ -527,6 +544,8 @@ void Fbo::bindFramebuffer()
 	}
 	else
 		ctx->bindFramebuffer( GL_FRAMEBUFFER, mId );
+
+// TODO: this should test against any texture attachments
 	if( mFormat.mColorTextureFormat.hasMipmapping() ) {
 		mNeedsMipmapUpdate = true;
 	}
