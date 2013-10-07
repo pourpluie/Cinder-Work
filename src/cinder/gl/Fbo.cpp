@@ -313,6 +313,7 @@ void Fbo::initFormatAttachments()
 			Texture::Format textureFormat = mFormat.mDepthTextureFormat;
 			textureFormat.setInternalFormat( stencilInternalFormat );
 			textureFormat.setPixelDataType( stencilPixelDataType );
+			textureFormat.depthTexture();
 #if defined( CINDER_GLES )
 			textureFormat.setPixelDataFormat( GL_DEPTH_STENCIL_OES );
 #else

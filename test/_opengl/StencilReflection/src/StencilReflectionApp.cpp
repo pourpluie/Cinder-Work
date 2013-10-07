@@ -37,10 +37,12 @@ void StencilReflectionApp::setup()
     
     gl::Fbo::Format mFormat ;
 #if defined( CINDER_GLES )
-    mFormat.color().depthTexture().samples( 4 ).stencil();
+    mFormat.colorTexture().depthTexture().samples( 4 ).stencilBuffer();
 	mGlsl = gl::GlslProg::create( loadAsset( "shader_es2.vert" ), loadAsset( "shader_es2.frag" ) );
 #else
-    mFormat.color().depth().depthTexture().stencil().depthInternalFormat( GL_DEPTH_COMPONENT32F ).samples(16);
+
+    mFormat.colorTexture().stencilBuffer().
+		depthTexture( gl::Texture::Format().internalFormat( GL_DEPTH_COMPONENT32F ) ).samples(16);
 	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) ); 
 #endif
     mFbo = gl::Fbo::create( toPixels( getWindowWidth() ), toPixels( getWindowHeight() ), mFormat );
