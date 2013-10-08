@@ -22,6 +22,13 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+// Relevant OpenGL Extensions
+// * OES_packed_depth_stencil http://www.khronos.org/registry/gles/extensions/OES/OES_packed_depth_stencil.txt
+//	 * DEPTH_STENCIL_OES - <format> param of Tex(Sub)Image2D, the <internalformat> param of TexImage2D
+//	 * UNSIGNED_INT_24_8_OES - <type> param of Tex(Sub)Image2D
+//	 * DEPTH24_STENCIL8_OES - <internalformat> param of RenderbufferStorage
+// * EXT_packed_depth_stencil http://www.opengl.org/registry/specs/EXT/packed_depth_stencil.txt
+
 #include "cinder/gl/gl.h" // must be first
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Context.h"
@@ -171,10 +178,13 @@ void Fbo::Format::getDepthStencilFormats( GLint depthInternalFormat, GLint *resu
 	switch( depthInternalFormat ) {
 #if defined( CINDER_GLES )
 		case GL_DEPTH24_STENCIL8_OES:
-			*resultInternalFormat = GL_DEPTH24_STENCIL8_OES; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
+			*resultInternalFormat = GL_DEPTH_STENCIL_OES; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
+		break;
+		case GL_DEPTH_STENCIL_OES:
+			*resultInternalFormat = GL_DEPTH_STENCIL_OES; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
 		break;
 		case GL_DEPTH_COMPONENT:
-			*resultInternalFormat = GL_DEPTH24_STENCIL8_OES; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
+			*resultInternalFormat = GL_DEPTH_STENCIL_OES; *resultPixelDataType = GL_UNSIGNED_INT_24_8_OES;
 		break;
 #else
 		case GL_DEPTH24_STENCIL8:
