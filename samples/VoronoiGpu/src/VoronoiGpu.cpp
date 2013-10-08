@@ -15,10 +15,13 @@ using namespace std;
 using namespace ci;
 
 const char *vertexShaderGlsl = 
+	"attribute vec2 vTexCoord0;\n"
+	"attribute vec4 vPosition;\n"
+	"uniform mat4 uModelViewProjection;\n"
 	"void main()\n"
 	"{\n"
-		"gl_Position = ftransform();\n"
-		"gl_TexCoord[0] = gl_MultiTexCoord0;\n"
+		"gl_Position = uModelViewProjection * vPosition;\n"
+		"gl_TexCoord[0].xy = vTexCoord0;\n"
 	"}\n";
 
 const char *voronoiShaderGlsl =
@@ -59,102 +62,106 @@ const char *distanceShaderGlsl =
 	"	gl_FragColor.rgb = vec3( distance( texture2DRect( tex0, gl_TexCoord[0].st ).rg, gl_TexCoord[0].st ) );\n"
 	"}\n";
 
-gl::Texture encodePoints( const vector<Vec2i> &points, int width, int height )
+gl::TextureRef encodePoints( const vector<Vec2i> &points, int width, int height )
 {
 	Surface32f result( width, height, false );
 	ip::fill( &result, Colorf( -65535.0f, -65535.0f, 0 ) ); // seed the result with a huge distance that will easily be "beaten" by any given site
 	for( vector<Vec2i>::const_iterator ptIt = points.begin(); ptIt != points.end(); ++ptIt )
 		result.setPixel( *ptIt, Color( (float)app::toPixels( ptIt->x ), (float)app::toPixels( ptIt->y ), 0 ) );
 	
-	return gl::Texture( result );
+	return gl::Texture::create( result );
 }
 
 ci::Surface32f calcDiscreteVoronoiGpu( const std::vector<ci::Vec2i> &points, int width, int height )
 {
-	static gl::GlslProg voronoiShader( vertexShaderGlsl, voronoiShaderGlsl );
+	static gl::GlslProgRef voronoiShader = gl::GlslProg::create( vertexShaderGlsl, voronoiShaderGlsl );
 	
 	// allocate the FBOs
 	gl::Fbo::Format format;
-	format.setTarget( GL_TEXTURE_RECTANGLE_ARB );
-	format.setColorInternalFormat( GL_RGB32F_ARB );
-	format.enableDepthBuffer( false );
-	format.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
-	format.setMinFilter( GL_NEAREST );
-	format.setMagFilter( GL_NEAREST );
-	gl::Fbo fbo[2];
-	fbo[0] = gl::Fbo( width, height, format );
-	fbo[1] = gl::Fbo( width, height, format );
+	gl::Texture::Format colorTexFmt;
+	colorTexFmt.setTarget( GL_TEXTURE_RECTANGLE_ARB );
+	colorTexFmt.setInternalFormat( GL_RGB32F_ARB );
+	colorTexFmt.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
+	colorTexFmt.setMinFilter( GL_NEAREST );
+	colorTexFmt.setMagFilter( GL_NEAREST );
+	format.colorTexture( colorTexFmt );
+	format.disableDepth();
+	gl::FboRef fbo[2];
+	fbo[0] = gl::Fbo::create( width, height, format );
+	fbo[1] = gl::Fbo::create( width, height, format );
 	
 	// draw the encoded points into FBO 1
-	fbo[0].bindFramebuffer();
-	gl::setMatricesWindow( fbo[0].getSize(), false );
-	gl::draw( encodePoints( points, width, height ) );
+	fbo[0]->bindFramebuffer();
+	gl::setMatricesWindow( fbo[0]->getSize(), false );
+	gl::draw( encodePoints( points, width, height ), Vec2f::zero() );
 	
 	// ping-pong between the two FBOs
-	voronoiShader.bind();
-	voronoiShader.uniform( "tex0", 0 );
+	voronoiShader->bind();
+	voronoiShader->uniform( "tex0", 0 );
 	int curFbo = 0;
 	int numPasses = log2ceil( std::max( width, height ) );
 	for( int pass = 1; pass <= numPasses; ++pass ) {
-		voronoiShader.uniform( "sampleScale", Vec2f( 1, 1 ) * (float)( 1 << ( numPasses - pass ) ) );
+		voronoiShader->uniform( "sampleScale", Vec2f( 1, 1 ) * (float)( 1 << ( numPasses - pass ) ) );
 		curFbo = pass % 2;
-		fbo[curFbo].bindFramebuffer();
-		fbo[(curFbo+1)%2].bindTexture();
-		gl::drawSolidRect( fbo[0].getBounds(), true );
+		fbo[curFbo]->bindFramebuffer();
+		fbo[(curFbo+1)%2]->bindTexture();
+		gl::drawSolidRect( fbo[0]->getBounds(), Rectf(fbo[0]->getBounds())  );
 	}
 	
-	fbo[curFbo].unbindFramebuffer();
-	voronoiShader.unbind();
+	fbo[curFbo]->unbindFramebuffer();
+	voronoiShader->unbind();
 
 	// now curFbo contains the last pass of the voronoi diagram
-	return Surface32f( fbo[curFbo].getTexture() );
+	return Surface32f( *fbo[curFbo]->getTexture() );
 }
 
 ci::Channel32f calcDistanceMapGpu( const vector<Vec2i> &points, int width, int height )
 {
-	static gl::GlslProg voronoiShader( vertexShaderGlsl, voronoiShaderGlsl );
-	static gl::GlslProg distanceShader( vertexShaderGlsl, distanceShaderGlsl );
+	static gl::GlslProgRef voronoiShader = gl::GlslProg::create( vertexShaderGlsl, voronoiShaderGlsl );
+	static gl::GlslProgRef distanceShader = gl::GlslProg::create( vertexShaderGlsl, distanceShaderGlsl );
 	
 	// allocate the FBOs
 	gl::Fbo::Format format;
-	format.setTarget( GL_TEXTURE_RECTANGLE_ARB );
-	format.setColorInternalFormat( GL_RGB32F_ARB );
-	format.enableDepthBuffer( false );
-	format.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
-	format.setMinFilter( GL_NEAREST );
-	format.setMagFilter( GL_NEAREST );
-	gl::Fbo fbo[2];
-	fbo[0] = gl::Fbo( width, height, format );
-	fbo[1] = gl::Fbo( width, height, format );
+	gl::Texture::Format colorTexFmt;
+	colorTexFmt.setTarget( GL_TEXTURE_RECTANGLE_ARB );
+	colorTexFmt.setInternalFormat( GL_RGB32F_ARB );
+	colorTexFmt.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
+	colorTexFmt.setMinFilter( GL_NEAREST );
+	colorTexFmt.setMagFilter( GL_NEAREST );
+	format.colorTexture( colorTexFmt );
+	format.disableDepth();
+	gl::FboRef fbo[2];
+	fbo[0] = gl::Fbo::create( width, height, format );
+	fbo[1] = gl::Fbo::create( width, height, format );
 	
 	// draw the encoded points into FBO 1
-	fbo[0].bindFramebuffer();
-	gl::setMatricesWindow( fbo[0].getSize(), false );
-	gl::draw( encodePoints( points, width, height ) );
+	fbo[0]->bindFramebuffer();
+	gl::setMatricesWindow( fbo[0]->getSize(), false );
+	gl::draw( encodePoints( points, width, height ), Vec2f::zero() );
 	
 	// ping-pong between the two FBOs
-	voronoiShader.bind();
-	voronoiShader.uniform( "tex0", 0 );
+	voronoiShader->bind();
+	voronoiShader->uniform( "tex0", 0 );
 	int curFbo = 0;
 	int numPasses = log2ceil( std::max( width, height ) );
 	for( int pass = 1; pass <= numPasses; ++pass ) {
-		voronoiShader.uniform( "sampleScale", Vec2f( 1, 1 ) * (float)( 1 << ( numPasses - pass ) ) );
+		voronoiShader->uniform( "sampleScale", Vec2f( 1, 1 ) * (float)( 1 << ( numPasses - pass ) ) );
 		curFbo = pass % 2;
-		fbo[curFbo].bindFramebuffer();
-		fbo[(curFbo+1)%2].bindTexture();
-		gl::drawSolidRect( fbo[0].getBounds(), true );
+		fbo[curFbo]->bindFramebuffer();
+		fbo[(curFbo+1)%2]->bindTexture();
+		gl::drawSolidRect( fbo[0]->getBounds(), Rectf(fbo[0]->getBounds()) );
 	}
 
 	// now curFbo contains the last pass of the voronoi diagram; bind that as the texture
 	// and render a quad using the distance shader
-	distanceShader.bind();
-	distanceShader.uniform( "tex0", 0 );
+	distanceShader->bind();
+	distanceShader->uniform( "tex0", 0 );
 	
-	fbo[(curFbo+1)%2].bindFramebuffer();
-	fbo[curFbo].bindTexture();
-	gl::drawSolidRect( fbo[0].getBounds(), true );
-	fbo[(curFbo+1)%2].unbindFramebuffer();
-	distanceShader.unbind();
+	fbo[(curFbo+1)%2]->bindFramebuffer();
+	fbo[curFbo]->bindTexture();
+	gl::drawSolidRect( fbo[0]->getBounds(), Rectf(fbo[0]->getBounds()) );
+	fbo[(curFbo+1)%2]->unbindFramebuffer();
+	distanceShader->unbind();
 	
-	return Channel32f( fbo[(curFbo+1)%2].getTexture() );
+	return Channel32f( *fbo[(curFbo+1)%2]->getTexture() );
 }

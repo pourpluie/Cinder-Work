@@ -1,6 +1,7 @@
 #include "cinder/app/AppBasic.h"
 #include "cinder/ip/Hdr.h"
 #include "cinder/gl/Texture.h"
+#include "cinder/app/RendererGl.h"
 #include "VoronoiGpu.h"
 
 #include <vector>
@@ -21,7 +22,7 @@ class VoronoiGpuApp : public AppBasic {
 	void draw();
 
 	vector<Vec2i>	mPoints;
-	gl::Texture		mTexture;
+	gl::TextureRef	mTexture;
 	bool			mShowDistance;
 };
 
@@ -43,13 +44,13 @@ void VoronoiGpuApp::calculateVoronoiTexture()
 		Channel32f rawDistanceMap = calcDistanceMapGpu( mPoints, toPixels( getWindowWidth() ), toPixels( getWindowHeight() ) );
 		// we need to convert the raw distances into a normalized range of 0-1 so we can show them sensibly
 		ip::hdrNormalize( &rawDistanceMap );
-		mTexture = gl::Texture( rawDistanceMap );
+		mTexture = gl::Texture::create( rawDistanceMap );
 	}
 	else {
 		Surface32f rawDistanceMap = calcDiscreteVoronoiGpu( mPoints, toPixels( getWindowWidth() ), toPixels( getWindowHeight() ) );
 		// we need to convert the site locations into a normalized range of 0-1 so we can show them sensibly
 		ip::hdrNormalize( &rawDistanceMap );
-		mTexture = gl::Texture( rawDistanceMap );
+		mTexture = gl::Texture::create( rawDistanceMap );
 	}
 }
 
@@ -78,17 +79,17 @@ void VoronoiGpuApp::draw()
 	
 	gl::color( Color( 1, 1, 1 ) );
 	if( mTexture ) {
-		gl::draw( mTexture, toPoints( mTexture.getBounds() ) );
-		mTexture.disable();
+		gl::draw( mTexture, toPoints( mTexture->getBounds() ) );
+		mTexture->disable();
 	}
 	
 	// draw the voronoi sites in yellow
 	gl::color( Color( 1.0f, 1.0f, 0.0f ) );	
 	for( vector<Vec2i>::const_iterator ptIt = mPoints.begin(); ptIt != mPoints.end(); ++ptIt )
-		gl::drawSolidCircle( Vec2f( *ptIt ), 2.0f );
+;//		gl::drawSolidCircle( Vec2f( *ptIt ), 2.0f );
 	
 	gl::enableAlphaBlending();
-	gl::drawStringRight( "Click to add a point", Vec2f( getWindowWidth() - toPixels( 10 ), getWindowHeight() - toPixels( 20 ) ), Color( 1, 0.3, 0 ), Font( "Arial", toPixels( 12 ) ) );
+;//	gl::drawStringRight( "Click to add a point", Vec2f( getWindowWidth() - toPixels( 10 ), getWindowHeight() - toPixels( 20 ) ), Color( 1, 0.3, 0 ), Font( "Arial", toPixels( 12 ) ) );
 	gl::disableAlphaBlending();
 }
 

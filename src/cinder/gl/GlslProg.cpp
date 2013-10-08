@@ -506,7 +506,7 @@ const GlslProg::AttribSemanticMap& GlslProg::getAttribSemantics() const
 std::cout << semantic->first << "==" << (int)semantic->second;
 			}
 			else {
-std::cout << "No semantic for: " << semantic->first;			
+std::cout << "No semantic for: " << semantic->first << std::endl;			
 			}
 		}
 	

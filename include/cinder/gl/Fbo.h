@@ -152,11 +152,15 @@ class Fbo {
 		Format&	colorTexture( const Texture::Format &textureFormat = getDefaultColorTextureFormat( true ) ) { mColorTexture = true; mColorTextureFormat = textureFormat; return *this; }
 		//! Enables a color buffer at \c GL_COLOR_ATTACHMENT0 with an internal format of \a internalFormat, which defaults to 8-bit RGBA. Disables a color texture.
 		Format&	colorBuffer( GLenum internalFormat = getDefaultColorInternalFormat( true ) ) { mColorTexture = false; mColorBuffer = true; mColorBufferInternalFormat = internalFormat; return *this; }
+		//! Disables both a color Texture and a color Buffer
+		Format&	disableColor() { mColorTexture = mColorBuffer = false; return *this; }
 		
 		//! Enables a depth texture with a Texture::Format of \a textureFormat, which defaults to 24-bit. Disables a depth buffer.
 		Format&	depthTexture( const Texture::Format &textureFormat = getDefaultDepthTextureFormat() ) { mDepthTexture = true; mDepthBuffer = false; mDepthTextureFormat = textureFormat; return *this; }
 		//! Enables a depth buffer with an internal format of \a internalFormat, which defaults to \c GL_DEPTH_COMPONENT24. Disables a depth texture.
 		Format&	depthBuffer( GLenum internalFormat = getDefaultDepthInternalFormat() ) { mDepthTexture = false; mDepthBuffer = true; mDepthBufferInternalFormat = internalFormat; return *this; }
+		//! Disables both a depth Texture and a depth Buffer
+		Format&	disableDepth() { mDepthTexture = mDepthBuffer = false; return *this; }
 		
 		//! Sets the number of MSAA samples. Defaults to none.
 		Format& samples( int samples ) { mSamples = samples; return *this; }

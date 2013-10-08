@@ -196,6 +196,7 @@ void drawTorus( float outerRadius, float innerRadius, int longitudeSegments, int
 
 void drawSolidRect( const Rectf &r );
 void drawSolidRect( const Rectf &r, const Rectf &texcoords );
+void drawSolidCircle( const Vec2f &center, float radius );
 
 // Vertex Attributes
 //! Analogous to glVertexAttribPointer

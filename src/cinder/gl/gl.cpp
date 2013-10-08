@@ -841,11 +841,15 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	
 	gl::GlslProgRef shader = ctx->getCurrentShader();
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
-	enableVertexAttribArray( posLoc );
-	vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+	if( posLoc >= 0 ) {
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+	}
 	int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
-	enableVertexAttribArray( texLoc );
-	vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
+	if( texLoc >= 0 ) {
+		enableVertexAttribArray( texLoc );
+		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
+	}
 	
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
