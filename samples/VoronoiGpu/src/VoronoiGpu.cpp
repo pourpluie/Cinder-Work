@@ -137,6 +137,7 @@ ci::Channel32f calcDistanceMapGpu( const vector<Vec2i> &points, int width, int h
 	// draw the encoded points into FBO 1
 	fbo[0]->bindFramebuffer();
 	gl::setMatricesWindow( fbo[0]->getSize(), false );
+	gl::viewport( Vec2f::zero(), fbo[0]->getSize() );
 	gl::draw( encodePoints( points, width, height ), Vec2f::zero() );
 	
 	// ping-pong between the two FBOs
