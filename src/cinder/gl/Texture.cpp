@@ -266,7 +266,7 @@ void Texture::init( const Format &format )
 {
     glGenTextures( 1, &mTextureId );
     
-    glBindTexture( mTarget, mTextureId );
+    TextureBindScope tbs( mTarget, mTextureId );
     
     if ( mTarget == GL_TEXTURE_2D ) {
         mMaxU = mMaxV = 1.0f;
@@ -294,7 +294,7 @@ void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataF
 {
 	glGenTextures( 1, &mTextureId );
 	
-	glBindTexture( mTarget, mTextureId );
+	TextureBindScope tbs( mTarget, mTextureId );
 	
 	if( mTarget == GL_TEXTURE_2D ) {
 		mMaxU = mMaxV = 1.0f;
@@ -324,7 +324,7 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
 {
 	glGenTextures( 1, &mTextureId );
 	
-	glBindTexture( mTarget, mTextureId );
+	TextureBindScope tbs( mTarget, mTextureId );
 	
 	if( mTarget == GL_TEXTURE_2D ) {
 		mMaxU = mMaxV = 1.0f;
@@ -401,7 +401,7 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 	}
 	
 	glGenTextures( 1, &mTextureId );
-	glBindTexture( mTarget, mTextureId );
+	TextureBindScope tbs( mTarget, mTextureId );
 	
 	if( mTarget == GL_TEXTURE_2D ) {
 		mMaxU = mMaxV = 1.0f;
@@ -452,7 +452,7 @@ void Texture::update( const Surface &surface, int mipLevel )
 			throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
 		}
 	
-		glBindTexture( mTarget, mTextureId );
+		TextureBindScope tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		glTexImage2D( mTarget, mipLevel, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, type, surface.getData() );
 	}
@@ -461,7 +461,7 @@ void Texture::update( const Surface &surface, int mipLevel )
 		
 		Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
 		
-		glBindTexture( mTarget, mTextureId );
+		TextureBindScope tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		glTexImage2D( mTarget, mipLevel, getInternalFormat(), mipMapSize.x, mipMapSize.y, 0, dataFormat, type, surface.getData() );
 	}
@@ -477,7 +477,7 @@ void Texture::update( const Surface32f &surface, int mipLevel )
 			throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
 		}
 		
-		glBindTexture( mTarget, mTextureId );
+		TextureBindScope tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		// @TODO: type does not seem to be pulling out the right value..
 		glTexImage2D( mTarget, mipLevel, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, GL_FLOAT, surface.getData() );
@@ -487,7 +487,7 @@ void Texture::update( const Surface32f &surface, int mipLevel )
 		
 		Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
 		
-		glBindTexture( mTarget, mTextureId );
+		TextureBindScope tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		// @TODO: type does not seem to be pulling out the right value..
 		glTexImage2D( mTarget, mipLevel, getInternalFormat(), mipMapSize.x, mipMapSize.y, 0, dataFormat, GL_FLOAT, surface.getData() );
@@ -502,7 +502,7 @@ void Texture::update( const Surface &surface, const Area &area, int mipLevel )
 	if( mipLevel == 0 ) {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
 		
-		glBindTexture( mTarget, mTextureId );
+		TextureBindScope tbs( mTarget, mTextureId );
 		glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), area.getWidth(), area.getHeight(), dataFormat, type, surface.getData( area.getUL() ) );
 	}
 	else {
@@ -510,7 +510,7 @@ void Texture::update( const Surface &surface, const Area &area, int mipLevel )
 		
 		Vec2i mipMapSize = calcMipLevelSize( mipLevel, area.getWidth(), area.getHeight() );
 		
-		glBindTexture( mTarget, mTextureId );
+		TextureBindScope tbs( mTarget, mTextureId );
 		glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), mipMapSize.x, mipMapSize.y, dataFormat, type, surface.getData( area.getUL() ) );
 	}
 }
@@ -523,21 +523,21 @@ void Texture::update( const Channel32f &channel, int mipLevel )
 			throw TextureDataExc( "Invalid Texture::update() channel dimensions" );
 		}
 		
-		glBindTexture( mTarget, mTextureId );
+		TextureBindScope tbs( mTarget, mTextureId );
 		glTexSubImage2D( mTarget, mipLevel, 0, 0, getWidth(), getHeight(), GL_LUMINANCE, GL_FLOAT, channel.getData() );
 	}
 	else {
 		
 		Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
 		
-		glBindTexture( mTarget, mTextureId );
+		TextureBindScope tbs( mTarget, mTextureId );
 		glTexSubImage2D( mTarget, mipLevel, 0, 0, mipMapSize.x, mipMapSize.y, GL_LUMINANCE, GL_FLOAT, channel.getData() );
 	}
 }
 
 void Texture::update( const Channel8u &channel, const Area &area, int mipLevel )
 {
-	glBindTexture( mTarget, mTextureId );
+	TextureBindScope tbs( mTarget, mTextureId );
 	if( mipLevel == 0 ) {
 		// if the data is not already contiguous, we'll need to create a block of memory that is
 		if( ( channel.getIncrement() != 1 ) || ( channel.getRowBytes() != channel.getWidth() * sizeof(uint8_t) ) ) {
@@ -786,25 +786,25 @@ float Texture::getMaxV() const
 void Texture::bind( GLuint textureUnit ) const
 {
 	ActiveTextureScope activeTextureScope( textureUnit );
-	glBindTexture( mTarget, mTextureId );
+	gl::context()->bindTexture( mTarget, mTextureId );
 }
 
 void Texture::unbind( GLuint textureUnit ) const
 {
 	ActiveTextureScope activeTextureScope( textureUnit );
-	glBindTexture( mTarget, 0 );
+	gl::context()->bindTexture( mTarget, 0 );
 }
 
 void Texture::enableAndBind() const
 {
 	auto ctx = gl::context();
 	ctx->enable( mTarget );
-	glBindTexture( mTarget, mTextureId );
+	gl::context()->bindTexture( mTarget, mTextureId );
 }
 
 void Texture::disable() const
 {
-	glDisable( mTarget );
+	gl::context()->enable( mTarget, false );
 }
 
 // Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_TEXTURE_2D -> GL_TEXTURE_BINDING_2D
