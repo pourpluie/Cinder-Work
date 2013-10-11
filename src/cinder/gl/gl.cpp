@@ -373,14 +373,15 @@ Matrix33f calcNormalMatrix()
 
 void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees, float nearPlane, float farPlane, bool originUpperLeft )
 {
-	// TODO add perspective
-	// TODO enable origin
-	auto ctx	= gl::context();
-	ctx->getModelViewStack().back().setToIdentity();
-	ctx->getProjectionStack().back().setRows( Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
-										Vec4f( 0.0f, 2.0f / -(float)screenHeight, 0.0f, 1.0f ),
-										Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
-										Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
+	auto ctx = gl::context();
+	
+	CameraPersp cam( screenWidth, screenHeight, fovDegrees, nearPlane, farPlane );
+	ctx->getProjectionStack().back() = cam.getProjectionMatrix();
+	ctx->getModelViewStack().back() = cam.getModelViewMatrix();
+	if( originUpperLeft ) {
+		ctx->getModelViewStack().back().scale( Vec3f( 1.0f, -1.0f, 1.0f ) );					// invert Y axis so increasing Y goes down.
+		ctx->getModelViewStack().back().translate( Vec3f( 0.0f, (float)-screenHeight, 0.0f ) ); // shift origin up to upper-left corner.
+	}
 }
 
 void setMatricesWindowPersp( const ci::Vec2i& screenSize, float fovDegrees, float nearPlane, float farPlane, bool originUpperLeft )
@@ -390,13 +391,18 @@ void setMatricesWindowPersp( const ci::Vec2i& screenSize, float fovDegrees, floa
 
 void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft )
 {
-	// TODO enable origin
 	auto ctx	= gl::context();
 	ctx->getModelViewStack().back().setToIdentity();
-	ctx->getProjectionStack().back().setRows( Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
-										Vec4f( 0.0f, 2.0f / -(float)screenHeight, 0.0f, 1.0f ),
-										Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
-										Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
+	if( originUpperLeft )
+		ctx->getProjectionStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
+													Vec4f( 0.0f, 2.0f / -(float)screenHeight, 0.0f, 1.0f ),
+													Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
+													Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
+	else
+		ctx->getProjectionStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
+													Vec4f( 0.0f, 2.0f / (float)screenHeight, 0.0f, -1.0f ),
+													Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
+													Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );		
 }
 
 void setMatricesWindow( const ci::Vec2i& screenSize, bool originUpperLeft )
