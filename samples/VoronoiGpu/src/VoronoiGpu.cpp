@@ -10,6 +10,7 @@
 #include "cinder/ip/Fill.h"
 #include "cinder/Rand.h"
 #include "cinder/app/App.h"
+#include "cinder/Utilities.h"
 
 using namespace std;
 using namespace ci;
@@ -151,6 +152,8 @@ ci::Channel32f calcDistanceMapGpu( const vector<Vec2i> &points, int width, int h
 		fbo[curFbo]->bindFramebuffer();
 		fbo[(curFbo+1)%2]->bindTexture();
 		gl::drawSolidRect( fbo[0]->getBounds(), Rectf(fbo[0]->getBounds()) );
+auto bonk = fbo[(curFbo+1)%2]->getTexture();
+writeImage( getHomeDirectory() / ( string("pass") + toString(pass) + ".exr" ), *bonk );
 	}
 
 	// now curFbo contains the last pass of the voronoi diagram; bind that as the texture
@@ -159,9 +162,11 @@ ci::Channel32f calcDistanceMapGpu( const vector<Vec2i> &points, int width, int h
 	distanceShader->uniform( "tex0", 0 );
 	
 	fbo[(curFbo+1)%2]->bindFramebuffer();
-	fbo[curFbo]->bindTexture();
+	auto tex = fbo[curFbo]->getTexture();
+	tex->enableAndBind();
 	gl::drawSolidRect( fbo[0]->getBounds(), Rectf(fbo[0]->getBounds()) );
 	fbo[(curFbo+1)%2]->unbindFramebuffer();
+	tex->disable();
 	distanceShader->unbind();
 	
 	return Channel32f( *fbo[(curFbo+1)%2]->getTexture() );
