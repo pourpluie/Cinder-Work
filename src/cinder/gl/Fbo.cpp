@@ -131,7 +131,6 @@ Fbo::Format::Format()
 	mDepthBuffer = true;
 	mDepthTexture = false;
 	
-	mTextureTarget = GL_TEXTURE_2D;
 	mSamples = 0;
 	mCoverageSamples = 0;
 	mStencilBuffer = false;
@@ -287,7 +286,7 @@ void Fbo::initFormatAttachments()
 		mFormat.mAttachmentsBuffer[GL_COLOR_ATTACHMENT0] = Renderbuffer::create( mWidth, mHeight, mFormat.mColorBufferInternalFormat );
 	}
 	else if( mFormat.mColorTexture && ( ! preexistingColorAttachment ) ) {
-		mFormat.mAttachmentsTexture[GL_COLOR_ATTACHMENT0] = Texture::create( mWidth, mHeight, mFormat.mColorTextureFormat.target( mFormat.getTarget() ) );
+		mFormat.mAttachmentsTexture[GL_COLOR_ATTACHMENT0] = Texture::create( mWidth, mHeight, mFormat.mColorTextureFormat );
 	}
 	
 	// Create the default depth(+stencil) attachment if there's not already something on GL_DEPTH_ATTACHMENT || GL_DEPTH_STENCIL_ATTACHMENT
@@ -330,7 +329,7 @@ void Fbo::initFormatAttachments()
 			textureFormat.setPixelDataFormat( GL_DEPTH_STENCIL );
 #endif			
 
-			TextureRef depthStencilTexture = Texture::create( mWidth, mHeight, textureFormat.target( mFormat.getTarget() ) );
+			TextureRef depthStencilTexture = Texture::create( mWidth, mHeight, textureFormat );
 #if defined( CINDER_GLES )			
 			mFormat.mAttachmentsTexture[GL_DEPTH_ATTACHMENT] = depthStencilTexture;
 			mFormat.mAttachmentsTexture[GL_STENCIL_ATTACHMENT] = depthStencilTexture;
@@ -339,7 +338,7 @@ void Fbo::initFormatAttachments()
 #endif
 		}
 		else {
-			mFormat.mAttachmentsTexture[GL_DEPTH_ATTACHMENT] = Texture::create( mWidth, mHeight, mFormat.mDepthTextureFormat.target( mFormat.getTarget() ) );
+			mFormat.mAttachmentsTexture[GL_DEPTH_ATTACHMENT] = Texture::create( mWidth, mHeight, mFormat.mDepthTextureFormat );
 		}		
 	}
 }
@@ -481,9 +480,11 @@ void Fbo::bindTexture( int textureUnit, GLenum attachment )
 		tex->bind( textureUnit );
 }
 
-void Fbo::unbindTexture()
+void Fbo::unbindTexture( int textureUnit, GLenum attachment )
 {
-	glBindTexture( mFormat.getTarget(), 0 );
+	TextureRef tex = getTexture( attachment );
+	if( tex )
+		tex->unbind( textureUnit );
 }
 
 void Fbo::resolveTextures() const
@@ -539,7 +540,7 @@ void Fbo::updateMipmaps( GLenum attachment ) const
 		auto textureIt = mAttachmentsTexture.find( attachment );
 		if( textureIt != mAttachmentsTexture.end() ) {
 			TextureBindScope textureBind( textureIt->second );
-			glGenerateMipmap( mFormat.getTarget() );
+			glGenerateMipmap( textureIt->second->getTarget() );
 		}
 	}
 

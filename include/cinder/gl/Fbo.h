@@ -105,8 +105,6 @@ class Fbo {
 	//! Returns the Fbo::Format of this FBO
 	const Format&	getFormat() const { return mFormat; }
 
-	//! Returns the texture target associated with the FBO
-	GLenum			getTarget() const { return mFormat.getTarget(); }
 	//! Returns a Ref to the color texture of the FBO. \a attachment specifies which attachment (such as \c GL_COLOR_ATTACHMENT0) in the case of multiple color buffers
 	TextureRef		getTexture( GLenum attachment = GL_COLOR_ATTACHMENT0 );
 	//! Returns a reference to the depth texture of the FBO. Returns an empty Ref if there is no Texture as a depth attachment.
@@ -114,8 +112,8 @@ class Fbo {
 	
 	//! Binds the color texture associated with an Fbo to its target. Optionally binds to a multitexturing unit when \a textureUnit is non-zero. Optionally binds to a multitexturing unit when \a textureUnit is non-zero. \a attachment specifies which color buffer in the case of multiple attachments.
 	void 			bindTexture( int textureUnit = 0, GLenum attachment = GL_COLOR_ATTACHMENT0 );
-	//! Unbinds the texture associated with an Fbo's target
-	void			unbindTexture();
+	//! Unbinds the texture associated with an Fbo attachment
+	void			unbindTexture( int textureUnit = 0, GLenum attachment = GL_COLOR_ATTACHMENT0 );
 	//! Binds the Fbo as the currently active framebuffer, meaning it will receive the results of all subsequent rendering until it is unbound
 	void 			bindFramebuffer();
 	//! Unbinds the Fbo as the currently active framebuffer, restoring the primary context as the target for all subsequent rendering
@@ -169,9 +167,6 @@ class Fbo {
 		//! Enables a stencil buffer. Defaults to false.
 		Format& stencilBuffer( bool stencilBuffer = true ) { mStencilBuffer = stencilBuffer; return *this; }
 
-		//! Sets the texture target for the FBO. Default is \c GL_TEXTURE_2D. Ignored on OpenGL ES
-		Format&	target( GLenum textureTarget ) { mTextureTarget = textureTarget; return *this; }
-
 		//! Adds a Renderbuffer attachment \a buffer at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT1). Replaces any existing attachment at the same attachment point.
 		Format&	attach( GLenum attachmentPoint, RenderbufferRef buffer, RenderbufferRef multisampleBuffer = RenderbufferRef() );
 		//! Adds a Renderbuffer attachment \a buffer at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT1). Replaces any existing attachment at the same attachment point.
@@ -195,8 +190,6 @@ class Fbo {
 		void	enableDepthTexture( bool depthBufferAsTexture = true ) { mDepthTexture = depthBufferAsTexture; if( depthBufferAsTexture ) mDepthBuffer = false; }
 		//! Sets the Texture::Format for use in the creation of the depth texture.
 		void	setDepthTextureFormat( const Texture::Format &format ) { mDepthTextureFormat = format; mDepthBufferInternalFormat = format.getInternalFormat(); }
-		//! Sets the texture target for the FBO. Default is \c GL_TEXTURE_2D. Ignored on OpenGL ES
-		void	setTarget( GLenum textureTarget ) { mTextureTarget = textureTarget; }
 		//! Enables or disables the creation of a stencil buffer.
 		void	enableStencilBuffer( bool stencilBuffer = true ) { mStencilBuffer = stencilBuffer; }
 		//! Removes a buffer or texture attached at \a attachmentPoint
@@ -210,8 +203,6 @@ class Fbo {
 		const Texture::Format&	getColorTextureFormat() const { return mColorTextureFormat; }
 		//! Returns the Texture::Format for the depth texture.
 		const Texture::Format&	getDepthTextureFormat() const { return mDepthTextureFormat; }
-		//! Returns the default texture target for the FBO. Default is \c GL_TEXTURE_2D
-		GLenum	getTarget() const { return mTextureTarget; }		
 		//! Returns the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling.
 		int		getSamples() const { return mSamples; }
 		//! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none. MSW only.
@@ -241,7 +232,6 @@ class Fbo {
 	  protected:
 		GLint			mColorBufferInternalFormat, mDepthBufferInternalFormat;
 		int				mSamples, mCoverageSamples;
-		GLenum			mTextureTarget;
 		bool			mColorBuffer, mColorTexture;
 		bool			mDepthBuffer, mDepthTexture;
 		bool			mStencilBuffer;
