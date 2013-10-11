@@ -87,6 +87,8 @@ class Context {
 	GlslProgRef	getCurrentShader();
 
 	void		bindTexture( GLenum target, GLuint texture );
+	//! No-op if texture wasn't bound to target, otherwise reflects the binding as 0 (in accordance with what GL has done)
+	void		textureDeleted( GLenum target, GLuint textureId );
 	GLuint		getTextureBinding( GLenum target );
 
 	void		activeTexture( GLenum textureUnit );

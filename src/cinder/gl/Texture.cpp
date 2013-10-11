@@ -105,6 +105,7 @@ TextureRef Texture::create( GLenum target, GLuint textureID, int width, int heig
 Texture::~Texture()
 {
 	if ( ( mTextureId > 0 ) && ( ! mDoNotDispose ) ) {
+		gl::context()->textureDeleted( mTarget, mTextureId );
 		glDeleteTextures( 1, &mTextureId );
 	}
 }
@@ -648,14 +649,6 @@ bool Texture::dataFormatHasColor( GLint dataFormat )
 	return true;
 }
 
-Texture	Texture::weakClone() const
-{
-	gl::Texture result = Texture( mTarget, mTextureId, mWidth, mHeight, true );
-	result.mInternalFormat = mInternalFormat;
-	result.mFlipped = mFlipped;
-	return result;
-}
-
 void Texture::setWrapS( GLenum wrapS )
 {
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, wrapS );
@@ -708,10 +701,10 @@ bool Texture::hasAlpha() const
 		case GL_RGBA:
 		case GL_LUMINANCE_ALPHA:
 			return true;
-			break;
+		break;
 		default:
 			return false;
-			break;
+		break;
 	}
 }
 
@@ -814,6 +807,50 @@ void Texture::disable() const
 	glDisable( mTarget );
 }
 
+// Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_TEXTURE_2D -> GL_TEXTURE_BINDING_2D
+GLenum Texture::getBindingConstantForTarget( GLenum target )
+{
+	switch( target ) {
+		case GL_TEXTURE_2D:
+			return GL_TEXTURE_BINDING_2D;
+		break;
+		case GL_TEXTURE_CUBE_MAP:
+			return GL_TEXTURE_BINDING_CUBE_MAP;
+		break;
+#if ! defined( CINDER_GLES )
+		case GL_TEXTURE_RECTANGLE: // equivalent to GL_TEXTURE_RECTANGLE_ARB
+			return GL_TEXTURE_BINDING_RECTANGLE;
+		break;
+		case GL_TEXTURE_1D:
+			return GL_TEXTURE_BINDING_1D;
+		break;
+		case GL_TEXTURE_3D:
+			return GL_TEXTURE_BINDING_3D;
+		break;
+		case GL_TEXTURE_2D_ARRAY:
+			return GL_TEXTURE_BINDING_2D_ARRAY;
+		break;
+		case GL_TEXTURE_1D_ARRAY:
+			return GL_TEXTURE_BINDING_1D_ARRAY;
+		break;
+		case GL_TEXTURE_CUBE_MAP_ARRAY:
+			return GL_TEXTURE_BINDING_CUBE_MAP_ARRAY;
+		break;			
+		case GL_TEXTURE_BUFFER:
+			return GL_TEXTURE_BINDING_BUFFER;
+		break;			
+		case GL_TEXTURE_2D_MULTISAMPLE:
+			return GL_TEXTURE_BINDING_2D_MULTISAMPLE;
+		break;
+		case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
+			return GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY;
+		break;
+#endif
+		default:
+			return 0;
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // TextureCache
 
@@ -904,8 +941,8 @@ class ImageSourceTexture : public ImageSource {
 			case GL_RGBA8: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); format = GL_RGBA; break; 
 			case GL_RGB8: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); format = GL_RGB; break;
 			case GL_BGR: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGB; break;
-			case 0x8040/*GL_LUMINANCE8*/: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::UINT8 ); format = GL_LUMINANCE; break;
-			case 0x8045/*GL_LUMINANCE8_ALPHA8*/: setChannelOrder( ImageIo::YA ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::UINT8 ); format = GL_LUMINANCE_ALPHA; break; 
+			case 0x8040/*GL_LUMINANCE8 in Legacy*/: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::UINT8 ); format = GL_LUMINANCE; break;
+			case 0x8045/*GL_LUMINANCE8_ALPHA8 in Legacy*/: setChannelOrder( ImageIo::YA ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::UINT8 ); format = GL_LUMINANCE_ALPHA; break; 
 			case GL_DEPTH_COMPONENT16: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::UINT16 ); format = GL_DEPTH_COMPONENT; break;
 			case GL_DEPTH_COMPONENT24: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_DEPTH_COMPONENT; break;
 			case GL_DEPTH_COMPONENT32: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_DEPTH_COMPONENT; break;

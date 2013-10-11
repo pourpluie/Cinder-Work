@@ -229,56 +229,33 @@ void Context::bindTexture( GLenum target, GLuint texture )
 	}
 }
 
+void Context::textureDeleted( GLenum target, GLuint textureId )
+{
+	auto cachedIt = mCachedTextureBinding.find( target );
+	if( cachedIt != mCachedTextureBinding.end() && cachedIt->second == textureId ) {
+		// GL will have set the binding to 0 for target, so let's do the same
+		mCachedTextureBinding[target] = 0;
+	}
+}
+
 GLenum Context::getTextureBinding( GLenum target )
 {
 	auto cachedIt = mCachedTextureBinding.find( target );
 	if( (cachedIt == mCachedTextureBinding.end()) || ( cachedIt->second == -1 ) ) {
 		GLint queriedInt = -1;
-		switch( target ) {
-			case GL_TEXTURE_2D:
-				glGetIntegerv( GL_TEXTURE_BINDING_2D, &queriedInt );
-			break;
-			case GL_TEXTURE_CUBE_MAP:
-				glGetIntegerv( GL_TEXTURE_BINDING_CUBE_MAP, &queriedInt );
-			break;
-#if ! defined( CINDER_GLES )
-			case GL_TEXTURE_RECTANGLE:
-				glGetIntegerv( GL_TEXTURE_BINDING_RECTANGLE, &queriedInt );
-			break;
-			case GL_TEXTURE_1D:
-				glGetIntegerv( GL_TEXTURE_BINDING_1D, &queriedInt );
-			break;
-			case GL_TEXTURE_3D:
-				glGetIntegerv( GL_TEXTURE_BINDING_3D, &queriedInt );
-			break;
-			case GL_TEXTURE_2D_ARRAY:
-				glGetIntegerv( GL_TEXTURE_BINDING_2D_ARRAY, &queriedInt );
-			break;
-			case GL_TEXTURE_1D_ARRAY:
-				glGetIntegerv( GL_TEXTURE_BINDING_1D_ARRAY, &queriedInt );
-			break;
-			case GL_TEXTURE_CUBE_MAP_ARRAY:
-				glGetIntegerv( GL_TEXTURE_BINDING_CUBE_MAP_ARRAY, &queriedInt );
-			break;			
-			case GL_TEXTURE_BUFFER:
-				glGetIntegerv( GL_TEXTURE_BINDING_BUFFER, &queriedInt );
-			break;			
-			case GL_TEXTURE_2D_MULTISAMPLE:
-				glGetIntegerv( GL_TEXTURE_BINDING_2D_MULTISAMPLE, &queriedInt );
-			break;
-			case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
-				glGetIntegerv( GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY, &queriedInt );
-			break;
-#endif
-			default:
-				; // warning?
+		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
+		if( target > 0 ) {
+			glGetIntegerv( targetBinding, &queriedInt );
+		}
+		else {
+			return 0; // warning?
 		}
 		
 		mCachedTextureBinding[target] = queriedInt;
-		return (GLuint)queriedInt;
+		return (GLenum)queriedInt;
 	}
 	else
-		return (GLuint)cachedIt->second;
+		return (GLenum)cachedIt->second;
 
 }
 
@@ -424,26 +401,36 @@ GLint Context::stateGet<GLint>( GLenum pname )
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
+// This routine confirms that the ci::gl::Context's understanding of the world matches OpenGL's
 void Context::sanityCheck()
 {
 return;
 	GLint queriedInt;
 
-	// GL_ARRAY_BUFFER
+	// assert cached GL_ARRAY_BUFFER is correct
 	glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &queriedInt );
 	assert( mCachedBuffer[GL_ARRAY_BUFFER] == queriedInt );
 
-	// GL_ELEMENT_ARRAY_BUFFER
+	// assert cached GL_ELEMENT_ARRAY_BUFFER is correct
 	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
 	assert( mCachedBuffer[GL_ELEMENT_ARRAY_BUFFER] == queriedInt );
 
-	// (VAO) GL_VERTEX_ARRAY_BINDING
+	// assert cached (VAO) GL_VERTEX_ARRAY_BINDING is correct
 #if defined( CINDER_GLES )
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING_OES, &queriedInt );
 #else
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &queriedInt );
 #endif
 //	assert( mCachedVao == queriedInt );
+
+	// assert the various texture bindings are correct
+	for( auto& cachedTextureBinding : mCachedTextureBinding ) {
+		GLenum target = cachedTextureBinding.first;
+		GLenum textureBindingConstant = Texture::getBindingConstantForTarget( target );
+		glGetIntegerv( textureBindingConstant, &queriedInt );
+		GLenum cachedTextureId = (GLenum)queriedInt;
+		assert( queriedInt == cachedTextureId );
+	}
 }
 
 void Context::printState( std::ostream &os ) const

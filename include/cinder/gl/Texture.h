@@ -134,9 +134,6 @@ class Texture
 	//! Returns whether a give OpenGL dataFormat contains color channels
 	static bool		dataFormatHasColor( GLint dataFormat );
 	
-	//! Creates a clone of this texture which does not have ownership, but points to the same resource
-	Texture			weakClone() const;
-	
 #if ! defined( CINDER_GLES )
 	//! Returns an ImageSource pointing to this Texture
 	operator	ImageSourceRef() const;
@@ -243,6 +240,10 @@ class Texture
 		
 		friend class Texture;
 	};
+
+	//! Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_TEXTURE_2D -> GL_TEXTURE_BINDING_2D. Returns 0 on failure.
+	static GLenum getBindingConstantForTarget( GLenum target );
+
 
 	// These constructors are not protected to allow for shared_ptr's with custom deleters
 	/** Consider Texture::create() instead. Constructs a texture of size(\a width, \a height), storing the data in internal format \a aInternalFormat. **/
