@@ -348,11 +348,11 @@ void Fbo::setAllDrawBuffers()
 {
 #if ! defined( CINDER_GLES )
 	vector<GLenum> drawBuffers;
-	for( auto &bufferAttachment : mAttachmentsBuffer )
+	for( const auto &bufferAttachment : mAttachmentsBuffer )
 		if( bufferAttachment.first >= GL_COLOR_ATTACHMENT0 && bufferAttachment.first <= MAX_COLOR_ATTACHMENT )
 			drawBuffers.push_back( bufferAttachment.first );
 
-	for( auto &textureAttachment : mAttachmentsTexture )
+	for( const auto &textureAttachment : mAttachmentsTexture )
 		if( textureAttachment.first >= GL_COLOR_ATTACHMENT0 && textureAttachment.first <= MAX_COLOR_ATTACHMENT )
 			drawBuffers.push_back( textureAttachment.first );
 
