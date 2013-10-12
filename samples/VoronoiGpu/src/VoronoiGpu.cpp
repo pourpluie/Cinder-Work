@@ -10,7 +10,6 @@
 #include "cinder/ip/Fill.h"
 #include "cinder/Rand.h"
 #include "cinder/app/App.h"
-#include "cinder/Utilities.h"
 
 using namespace std;
 using namespace ci;
@@ -58,6 +57,7 @@ const char *voronoiShaderGlsl =
 	"}\n";
 	
 const char *distanceShaderGlsl =
+	"#extension GL_ARB_texture_rectangle: enable\n"
 	"uniform sampler2DRect tex0;\n"
 	"void main() {\n"
 	"	gl_FragColor.rgb = vec3( distance( texture2DRect( tex0, gl_TexCoord[0].st ).rg, gl_TexCoord[0].st ) );\n"
@@ -125,7 +125,7 @@ ci::Channel32f calcDistanceMapGpu( const vector<Vec2i> &points, int width, int h
 	gl::Fbo::Format format;
 	gl::Texture::Format colorTexFmt;
 	colorTexFmt.setTarget( GL_TEXTURE_RECTANGLE_ARB );
-	colorTexFmt.setInternalFormat( GL_RGB32F_ARB );
+	colorTexFmt.setInternalFormat( GL_RGB32F );
 	colorTexFmt.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
 	colorTexFmt.setMinFilter( GL_NEAREST );
 	colorTexFmt.setMagFilter( GL_NEAREST );
@@ -140,7 +140,7 @@ ci::Channel32f calcDistanceMapGpu( const vector<Vec2i> &points, int width, int h
 	gl::setMatricesWindow( fbo[0]->getSize(), false );
 	gl::viewport( Vec2f::zero(), fbo[0]->getSize() );
 	gl::draw( encodePoints( points, width, height ), Vec2f::zero() );
-	
+
 	// ping-pong between the two FBOs
 	voronoiShader->bind();
 	voronoiShader->uniform( "tex0", 0 );
@@ -152,8 +152,6 @@ ci::Channel32f calcDistanceMapGpu( const vector<Vec2i> &points, int width, int h
 		fbo[curFbo]->bindFramebuffer();
 		fbo[(curFbo+1)%2]->bindTexture();
 		gl::drawSolidRect( fbo[0]->getBounds(), Rectf(fbo[0]->getBounds()) );
-auto bonk = fbo[(curFbo+1)%2]->getTexture();
-writeImage( getHomeDirectory() / ( string("pass") + toString(pass) + ".exr" ), *bonk );
 	}
 
 	// now curFbo contains the last pass of the voronoi diagram; bind that as the texture

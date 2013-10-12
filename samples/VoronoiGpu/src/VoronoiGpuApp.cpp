@@ -36,6 +36,8 @@ void VoronoiGpuApp::setup()
 	mPoints.push_back( Vec2i( 200, 120 ) );
 	mPoints.push_back( Vec2i( 130, 140 ) );	
 	mPoints.push_back( Vec2i( 200, 200 ) );
+
+	calculateVoronoiTexture();
 }
 
 void VoronoiGpuApp::calculateVoronoiTexture()
