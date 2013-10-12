@@ -72,6 +72,19 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	mProjectionStack.back().setToIdentity();
 }
 
+Context::~Context()
+{
+	if( getCurrent() == this ) {
+		env()->makeContextCurrent( NULL );
+
+	#if defined( CINDER_COCOA )
+		pthread_setspecific( sThreadSpecificCurrentContextKey, NULL );
+	#else
+		sThreadSpecificCurrentContext = (Context*)( nullptr );
+	#endif
+	}
+}
+
 ContextRef Context::create( const Context *sharedContext )
 {
 	return env()->createSharedContext( sharedContext );

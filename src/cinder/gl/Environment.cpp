@@ -170,12 +170,23 @@ void Environment::makeContextCurrent( const Context *context )
 	auto platformData = dynamic_pointer_cast<PlatformDataIos>( context->getPlatformData() );
 	[EAGLContext setCurrentContext:platformData->mEaglContext];
 #elif defined( CINDER_GL_ANGLE )
-	auto platformData = dynamic_pointer_cast<PlatformDataAngle>( context->getPlatformData() );
-	assert( ::eglMakeCurrent( platformData->mDisplay, platformData->mSurface, platformData->mSurface, platformData->mContext ) );
+	if( context ) {
+		auto platformData = dynamic_pointer_cast<PlatformDataAngle>( context->getPlatformData() );
+		assert( ::eglMakeCurrent( platformData->mDisplay, platformData->mSurface, platformData->mSurface, platformData->mContext ) );
+	}
+	else {
+		// currently not implemented
+		// eglMakeCurrent( , EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT );
+	}
 #elif defined( CINDER_MSW )
-	auto platformData = dynamic_pointer_cast<PlatformDataMsw>( context->getPlatformData() );
-	if( ! ::wglMakeCurrent( platformData->mDc, platformData->mGlrc ) ) {
-		// DWORD error = GetLastError();
+	if( context ) {
+		auto platformData = dynamic_pointer_cast<PlatformDataMsw>( context->getPlatformData() );
+		if( ! ::wglMakeCurrent( platformData->mDc, platformData->mGlrc ) ) {
+			// DWORD error = GetLastError();
+		}
+	}
+	else {
+		::wglMakeCurrent( NULL, NULL );
 	}
 #endif
 }

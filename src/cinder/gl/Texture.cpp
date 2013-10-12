@@ -105,8 +105,11 @@ TextureRef Texture::create( GLenum target, GLuint textureID, int width, int heig
 Texture::~Texture()
 {
 	if ( ( mTextureId > 0 ) && ( ! mDoNotDispose ) ) {
-		gl::context()->textureDeleted( mTarget, mTextureId );
-		glDeleteTextures( 1, &mTextureId );
+		auto ctx = gl::context();
+		if( ctx ) {
+			gl::context()->textureDeleted( mTarget, mTextureId );
+			glDeleteTextures( 1, &mTextureId );
+		}
 	}
 }
 

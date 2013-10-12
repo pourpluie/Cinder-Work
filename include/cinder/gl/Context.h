@@ -44,6 +44,8 @@ class Context {
 	//! Creates based on an existing platform-specific GL context. \a platformContext is CGLContextObj on Mac OS X, EAGLContext on iOS, HGLRC on MSW. \a platformContext is an HDC on MSW and ignored elsewhere. Does not assume ownership of the platform's context.
 	static ContextRef	createFromExisting( const std::shared_ptr<PlatformData> &platformData );	
 
+	~Context();
+
 	//! Returns the platform-specific OpenGL Context. CGLContextObj on Mac OS X, EAGLContext on iOS
 	const std::shared_ptr<PlatformData>		getPlatformData() const { return mPlatformData; }
 

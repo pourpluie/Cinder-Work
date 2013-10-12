@@ -55,6 +55,7 @@ class Environment {
 	virtual void			initializeFunctionPointers() = 0;
 	
 	ContextRef				createSharedContext( const Context *sharedContext );
+	//! NULL for \a context deactivates the current context
 	void					makeContextCurrent( const Context *context );
 	
 	virtual bool			supportsHardwareVao() = 0;
