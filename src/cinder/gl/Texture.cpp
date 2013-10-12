@@ -171,7 +171,11 @@ Texture::Texture( const Surface32f &surface, Format format )
 	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
 {
 	if( format.mInternalFormat < 0 ) {
+#if defined( CINDER_GLES )
+		format.mInternalFormat = surface.hasAlpha() ? GL_RGBA : GL_RGB;
+#else		
 		format.mInternalFormat = surface.hasAlpha() ? GL_RGBA32F : GL_RGB32F;
+#endif
 	}
 	mInternalFormat	= format.mInternalFormat;
 	mTarget			= format.mTarget;
