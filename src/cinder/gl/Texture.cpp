@@ -168,7 +168,7 @@ Texture::Texture( const Surface32f &surface, Format format )
 	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
 {
 	if( format.mInternalFormat < 0 ) {
-		format.mInternalFormat = surface.hasAlpha() ? GL_RGBA : GL_RGB;
+		format.mInternalFormat = surface.hasAlpha() ? GL_RGBA32F : GL_RGB32F;
 	}
 	mInternalFormat	= format.mInternalFormat;
 	mTarget			= format.mTarget;
@@ -276,6 +276,11 @@ void Texture::init( const Format &format )
         mMaxV = (float)mHeight;
     }
     glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+	
+	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
+	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
+	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
+	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
     glTexImage2D( mTarget, 0, format.mInternalFormat, mWidth, mHeight, 0, format.mPixelDataFormat, format.mPixelDataType, NULL );
     
     if( format.mMipmapping )
@@ -283,11 +288,6 @@ void Texture::init( const Format &format )
 	
 	if( format.mMaxAnisotropy > 1.0f )
 		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mMaxAnisotropy );
-	
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
-	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
-	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
 }
 	
 void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format )
