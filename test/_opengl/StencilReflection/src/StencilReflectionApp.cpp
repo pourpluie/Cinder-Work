@@ -186,6 +186,6 @@ void StencilReflectionApp::draw()
     }
 }
 
-auto options = RendererGl::Options().stencil();
+auto options = RendererGl::Options().stencil().depthBufferDepth( 32 );
 
 CINDER_APP_NATIVE( StencilReflectionApp, RendererGl( options ) )

@@ -94,12 +94,18 @@ class RendererGl : public Renderer {
 		int			getAntiAliasing() const { return mAntiAliasing; }
 		void		setAntiAliasing( int amount ) { mAntiAliasing = amount; }
 		
+		//! Sets the number of bits dedicated to the depth buffer. Default is \c 24.
 		Options&	depthBufferDepth( int depthBufferBits ) { mDepthBufferBits = depthBufferBits; return *this; }
+		//! Returns the number of bits dedicated to the depth buffer. Default is 24.
 		int			getDepthBufferDepth() const { return mDepthBufferBits; }
+		//! Sets the number of bits dedicated to the depth buffer. Default is \c 24.
 		void		setDepthBufferDepth( int depthBufferBits ) { mDepthBufferBits = depthBufferBits; }
 		
+		//! Enables or disables a stencil buffer. Default is \c false
 		Options&	stencil( bool createStencil = true ) { mStencil = createStencil; return *this; }
+		//! Returns whether a stenci buffer is enabled. Default is \c false
 		bool		getStencil() const { return mStencil; }
+		//! Enables or disables a stencil buffer. Default is \c false
 		void		setStencil( bool createStencil = true ) { mStencil = createStencil; }
 		
 	  protected:

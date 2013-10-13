@@ -248,6 +248,9 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 	mWnd = wnd;
 	mDC = dc;
 
+	BYTE stencilBits = mRenderer->getOptions().getStencil() ? 8 : 0;
+	BYTE depthBits = mRenderer->getOptions().getDepthBufferDepth();
+
 	static PIXELFORMATDESCRIPTOR pfd =				// pfd Tells Windows How We Want Things To Be
 	{
 		sizeof(PIXELFORMATDESCRIPTOR),				// Size Of This Pixel Format Descriptor
@@ -262,8 +265,8 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 		0,											// Shift Bit Ignored
 		0,											// No Accumulation Buffer
 		0, 0, 0, 0,									// Accumulation Bits Ignored
-		16,											// 32Bit Z-Buffer (Depth Buffer)  
-		0,											// No Stencil Buffer
+		depthBits,									// 32Bit Z-Buffer (Depth Buffer)  
+		stencilBits,								// Stencil Buffer
 		0,											// No Auxiliary Buffer
 		PFD_MAIN_PLANE,								// Main Drawing Layer
 		0,											// Reserved
