@@ -86,10 +86,16 @@ Renderbuffer::Renderbuffer( int width, int height, GLenum internalFormat, int ms
 
 	glBindRenderbuffer( GL_RENDERBUFFER, mId );
 
-#if defined( CINDER_MSW ) && ( ! defined( CINDER_GLES ) )
+#if defined( SUPPORTS_MULTISAMPLE )
+  #if defined( CINDER_MSW )  && ( ! defined( CINDER_GLES ) )
 	if( mCoverageSamples ) // create a CSAA buffer
 		glRenderbufferStorageMultisampleCoverageNV( GL_RENDERBUFFER, mCoverageSamples, mSamples, mInternalFormat, mWidth, mHeight );
 	else
+  #endif
+		if( mSamples )
+			glRenderbufferStorageMultisample( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
+		else
+			glRenderbufferStorage( GL_RENDERBUFFER, mInternalFormat, mWidth, mHeight );
 #elif defined( CINDER_GLES )
 	// this is gross, but GL_RGBA & GL_RGB are not suitable internal formats for Renderbuffers. We know what you meant though.
 	if( mInternalFormat == GL_RGBA )
@@ -99,16 +105,11 @@ Renderbuffer::Renderbuffer( int width, int height, GLenum internalFormat, int ms
 	else if( mInternalFormat == GL_DEPTH_COMPONENT )
 		mInternalFormat = GL_DEPTH_COMPONENT24_OES;
 		
-	if( mSamples ) {
+	if( mSamples )
 		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
-	}
 	else
-#elif defined( SUPPORTS_MULTISAMPLE )
-	if( mSamples ) // create a regular MSAA buffer
-		glRenderbufferStorageMultisample( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
-	else
-#endif
 		glRenderbufferStorage( GL_RENDERBUFFER, mInternalFormat, mWidth, mHeight );
+#endif	
 }
 
 Renderbuffer::~Renderbuffer()
@@ -340,6 +341,11 @@ void Fbo::initFormatAttachments()
 		else {
 			mFormat.mAttachmentsTexture[GL_DEPTH_ATTACHMENT] = Texture::create( mWidth, mHeight, mFormat.mDepthTextureFormat );
 		}		
+	}
+	else if( mFormat.mStencilBuffer ) { // stencil only
+		GLint internalFormat = GL_STENCIL_INDEX8;
+		RenderbufferRef stencilBuffer = Renderbuffer::create( mWidth, mHeight, internalFormat );
+		mFormat.mAttachmentsBuffer[GL_STENCIL_ATTACHMENT] = stencilBuffer;
 	}
 }
 

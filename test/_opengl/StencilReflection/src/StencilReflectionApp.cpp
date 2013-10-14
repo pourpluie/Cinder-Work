@@ -41,8 +41,8 @@ void StencilReflectionApp::setup()
 	mGlsl = gl::GlslProg::create( loadAsset( "shader_es2.vert" ), loadAsset( "shader_es2.frag" ) );
 #else
 
-    mFormat.colorTexture().stencilBuffer().
-		depthTexture( gl::Texture::Format().internalFormat( GL_DEPTH_COMPONENT32F ) ).samples(16);
+//    mFormat.colorTexture().stencilBuffer().depthTexture( gl::Texture::Format().internalFormat( GL_DEPTH_COMPONENT32F ) ).samples(16);
+    mFormat.colorTexture().stencilBuffer().disableDepth().samples( 16 );
 	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) ); 
 #endif
     mFbo = gl::Fbo::create( toPixels( getWindowWidth() ), toPixels( getWindowHeight() ), mFormat );
