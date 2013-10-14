@@ -37,7 +37,7 @@ void RotatingCubeApp::setup()
 #else
 	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) );
 #endif
-mGlsl = gl::getStockShader( gl::ShaderDef().texture() );
+//mGlsl = gl::getStockShader( gl::ShaderDef().texture() );
 	//mCubeBatch = gl::Batch::create( geo::Rect(), mGlsl );
 //	mCubeBatch = gl::Batch::create( geo::Cube(), mGlsl );
 //	mCubeBatch = gl::Batch::create( geom::Teapot().subdivision( 6 ).scale( 0.5f ), mGlsl );
@@ -69,6 +69,8 @@ void RotatingCubeApp::update()
 void RotatingCubeApp::draw()
 {
 	gl::clear( Color::black() );
+
+	mTexture->bind();
 	gl::pushMatrices();
 		gl::multModelView( mCubeRotation );
 		mCubeBatch->draw();
