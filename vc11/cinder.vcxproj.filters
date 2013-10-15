@@ -1094,6 +1094,9 @@
     <ClInclude Include="..\include\cinder\app\RendererAngle.h">
       <Filter>Header Files\app</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cinder\GeomIo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\jsoncpp\json_internalarray.inl">

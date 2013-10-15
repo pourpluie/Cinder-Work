@@ -279,6 +279,7 @@
     <ClInclude Include="..\include\cinder\dx\PlatformHelpers.h" />
     <ClInclude Include="..\include\cinder\Filesystem.h" />
     <ClInclude Include="..\include\cinder\Frustum.h" />
+    <ClInclude Include="..\include\cinder\GeomIo.h" />
     <ClInclude Include="..\include\cinder\gl\BufferObj.h" />
     <ClInclude Include="..\include\cinder\gl\Context.h" />
     <ClInclude Include="..\include\cinder\gl\Environment.h" />

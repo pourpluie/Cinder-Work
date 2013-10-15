@@ -656,6 +656,8 @@ GLenum toGl( geom::Primitive prim )
 		case geom::Primitive::TRIANGLE_STRIP:
 			return GL_TRIANGLE_STRIP;
 		break;
+		case geom::Primitive::TRIANGLE_FAN:
+			return GL_TRIANGLE_FAN;
 		default:
 			return 0; // no clear right choice here
 	}

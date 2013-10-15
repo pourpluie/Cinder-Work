@@ -205,13 +205,19 @@ size_t Source::getNumIndicesTriangles() const
 {
 	size_t indices = getNumIndices();
 	if( getPrimitive() == Primitive::TRIANGLES ) {
-		if( indices > 0 )
+		if( indices > 0 ) // is indexed
 			return indices;
 		else
 			return getNumVertices();
 	}
 	else if( getPrimitive() == Primitive::TRIANGLE_STRIP ) {
-		if( indices > 0 )
+		if( indices > 0 ) // is indexed
+			return (size_t)std::max<int32_t>( ( indices - 2 ) * 3, 0 );
+		else
+			return (size_t)std::max<int32_t>( ( getNumVertices() - 2 ) * 3, 0 );
+	}
+	else if( getPrimitive() == Primitive::TRIANGLE_FAN ) {
+		if( indices > 0 ) // is indexed
 			return (size_t)std::max<int32_t>( ( indices - 2 ) * 3, 0 );
 		else
 			return (size_t)std::max<int32_t>( ( getNumVertices() - 2 ) * 3, 0 );
@@ -244,7 +250,7 @@ void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
 			throw ExcInadequateIndexStorage();
 		
 		size_t numIndices = getNumIndices();
-		if( numIndices > 0 ) { // we're indexed, just not triangles
+		if( numIndices > 0 ) { // we're indexed, just not TRIANGLES; might be triStrip or triFan
 			switch( getPrimitive() ) {
 				case Primitive::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
 					if( numIndices < 3 )
@@ -267,18 +273,32 @@ void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
 					}
 				}
 				break;
+				case Primitive::TRIANGLE_FAN: { // ABC, ACD, ADE, etc
+					if( numIndices < 3 )
+						return;
+					// first the triangle fan indices, then we'll output them as triangles
+					unique_ptr<T> tempIndices( new T[numIndices] );
+					copyIndices( tempIndices.get() );
+					size_t outIdx = 0;
+					for( size_t i = 0; i < numIndices - 2; ++i ) {
+						dest[outIdx++] = tempIndices.get()[0];
+						dest[outIdx++] = tempIndices.get()[i+1];
+						dest[outIdx++] = tempIndices.get()[i+2];
+					}
+				}
 				default:
 					throw ExcIllegalPrimitiveType();
 			}
 		}
 		else { // non-indexed, non-triangles; we'll just generate them
 			size_t numVertices = getNumVertices();
-			size_t numIndices = (size_t)std::max<int32_t>( ( numVertices - 2 ) * 3, 0 );
-			if( numIndices > std::numeric_limits<T>::max() )
-				throw ExcInadequateIndexStorage();
 			
 			switch( getPrimitive() ) {
 				case Primitive::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
+					size_t numIndices = (size_t)std::max<int32_t>( ( numVertices - 2 ) * 3, 0 );
+					if( numIndices > std::numeric_limits<T>::max() )
+						throw ExcInadequateIndexStorage();
+
 					size_t outIdx = 0; // (012, 213), (234, 435), etc : (odd,even), (odd,even), etc
 					for( size_t i = 0; i < numVertices - 2; ++i ) {
 						if( i & 1 ) { // odd
@@ -291,6 +311,18 @@ void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
 							dest[outIdx++] = i + 1;
 							dest[outIdx++] = i + 2;
 						}
+					}
+				}
+				case Primitive::TRIANGLE_FAN: {  // ABC, ACD, ADE, etc
+					size_t numIndices = (size_t)std::max<int32_t>( ( numVertices - 2 ) * 3, 0 );
+					if( numIndices > std::numeric_limits<T>::max() )
+						throw ExcInadequateIndexStorage();
+
+					size_t outIdx = 0;
+					for( size_t i = 0; i < numIndices - 2; ++i ) {
+						dest[outIdx++] = 0;
+						dest[outIdx++] = i + 1;
+						dest[outIdx++] = i + 2;
 					}
 				}
 				break;
@@ -822,6 +854,68 @@ Vec3f Teapot::evaluateNormal( int gridU, int gridV, const float *B, const float 
 	}
 
 	return du.cross( dv ).normalized();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Circle
+Circle::Circle()
+	: mPos( Vec2f::zero() ), mScale( Vec2f::one() )
+{
+	mHasTexCoord0 = mHasNormals = false;
+}
+
+bool Circle::hasAttrib( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION: return true;
+		case Attrib::TEX_COORD_0: return mHasTexCoord0;
+		case Attrib::NORMAL: return mHasNormals;
+		default:
+			return false;
+	}
+}
+
+bool Circle::canProvideAttrib( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION:
+		case Attrib::TEX_COORD_0:
+		case Attrib::NORMAL:
+			return true;
+		default:
+			return false;
+	}
+}
+
+void Circle::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION:
+			copyDataMultAdd( sVertices, 4, dimensions, stride, dest, mScale, mPos );
+		break;
+		case Attrib::TEX_COORD_0:
+			copyData( 2, sTexCoords, 4, dimensions, stride, dest );
+		break;
+		case Attrib::NORMAL:
+			copyData( 3, sNormals, 4, dimensions, stride, dest );
+		break;
+		default:
+			throw ExcMissingAttrib();
+	}
+}
+
+uint8_t	Circle::getAttribDims( Attrib attr ) const
+{
+	if( ! canProvideAttrib( attr ) )
+		return 0;
+
+	switch( attr ) {
+		case Attrib::POSITION: return 2;
+		case Attrib::TEX_COORD_0: return 2;
+		case Attrib::NORMAL: return 3;
+		default:
+			return 0;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

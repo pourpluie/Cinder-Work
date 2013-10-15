@@ -49,7 +49,7 @@ TriMesh::TriMesh( const geom::Source &source )
 	}
 
 	size_t numIndices = source.getNumIndices();
-	if( source.getPrimitive() == geom::Primitive::TRIANGLE_STRIP ) {
+	if( source.getPrimitive() != geom::Primitive::TRIANGLES ) {
 		mIndices.resize( source.getNumIndicesTriangles() );
 		source.forceCopyIndicesTriangles( mIndices.data() );
 	}
