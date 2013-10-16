@@ -233,10 +233,9 @@ class Circle : public Source {
 
 	Circle&		texCoords() { mHasTexCoord0 = true; return *this; }
 	Circle&		normals() { mHasNormals = true; return *this; }
-	Circle&		position( const Vec3f &pos ) { mPos = pos; return *this; }
-	Circle&		scale( const Vec3f &scale ) { mScale = scale; return *this; }
-	Circle&		scale( float s ) { mScale = Vec3f( s, s, s ); return *this; }
-	Circle&		subdivision( int sub ) { mSubdivision = sub; return *this; }
+	Circle&		center( const Vec2f &center ) { mCenter = center; return *this; }
+	Circle&		radius( float radius ) { mRadius = radius; return *this; }	
+	Circle&		segments( int segments ) { mNumSegments = segments; return *this; }
   
 	virtual size_t		getNumVertices() const override;
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLE_FAN; }
@@ -246,22 +245,24 @@ class Circle : public Source {
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
 	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
 
-	virtual size_t		getNumIndices() const override;
-	virtual void		copyIndices( uint16_t *dest ) const override;
-	virtual void		copyIndices( uint32_t *dest ) const override;
+	virtual size_t		getNumIndices() const override { return 0; }
 
   private:
-	Vec2f		mPos, mScale;
+	void		calculate() const;
+
 	bool		mHasTexCoord0;
 	bool		mHasNormals;
+	Vec2f		mCenter;
+	float		mRadius;
+	int			mNumSegments;
 
 	mutable bool						mCalculationsCached;
 	mutable	int32_t						mNumVertices;
 	mutable int32_t						mNumIndices;
-	mutable std::unique_ptr<float>		mVertices;
-	mutable std::unique_ptr<float>		mTexCoords;
-	mutable std::unique_ptr<float>		mNormals;	
-	mutable std::unique_ptr<uint32_t>	mIndices;
+	mutable std::unique_ptr<Vec2f>		mVertices;
+	mutable std::unique_ptr<Vec2f>		mTexCoords;
+	mutable std::unique_ptr<Vec3f>		mNormals;	
+	mutable std::unique_ptr<uint32_t>	mIndices;	
 };
 
 #if 0

@@ -859,9 +859,56 @@ Vec3f Teapot::evaluateNormal( int gridU, int gridV, const float *B, const float 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Circle
 Circle::Circle()
-	: mPos( Vec2f::zero() ), mScale( Vec2f::one() )
+	: mNumSegments( -1 ), mCenter( 0, 0 ), mRadius( 1.0f )
 {
 	mHasTexCoord0 = mHasNormals = false;
+	mCalculationsCached = false;
+}
+
+void Circle::calculate() const
+{
+	if( mCalculationsCached )
+		return;
+	
+	int numSegments = mNumSegments;
+	if( numSegments <= 0 )
+		numSegments = (int)math<double>::floor( mRadius * M_PI * 2 );
+	
+	if( numSegments < 2 ) numSegments = 2;
+	
+	mNumVertices = numSegments + 2;
+	mVertices = unique_ptr<Vec2f>( new Vec2f[mNumVertices] );
+	if( mHasTexCoord0 )
+		mTexCoords = unique_ptr<Vec2f>( new Vec2f[mNumVertices] );
+	if( mHasNormals )		
+		mNormals = unique_ptr<Vec3f>( new Vec3f[mNumVertices] );	
+
+	// center
+	mVertices.get()[0] = mCenter;
+	if( mHasTexCoord0 )
+		mTexCoords.get()[0] = Vec2f( 0.5f, 0.5f );
+	if( mHasNormals )
+		mNormals.get()[0] = Vec3f( 0, 0, 1 );
+	
+	// iterate the segments
+	for( int s = 0; s <= numSegments; s++ ) {
+		float t = s / (float)numSegments * 2.0f * 3.14159f;
+		Vec2f unit( math<float>::cos( t ), math<float>::sin( t ) );
+		mVertices.get()[s] = mCenter + unit * mRadius;
+		if( mHasTexCoord0 )
+			mTexCoords.get()[s] = unit * 0.5f + Vec2f( 0.5f, 0.5f );
+		if( mHasNormals )
+			mNormals.get()[s] = Vec3f( 0, 0, 1 );
+	}
+	
+	mCalculationsCached = true;
+}
+
+size_t Circle::getNumVertices() const
+{
+	calculate();
+	
+	return mNumVertices;
 }
 
 bool Circle::hasAttrib( Attrib attr ) const
@@ -891,13 +938,13 @@ void Circle::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, float *
 {
 	switch( attr ) {
 		case Attrib::POSITION:
-			copyDataMultAdd( sVertices, 4, dimensions, stride, dest, mScale, mPos );
+			copyData( 2, mVertices.get()->ptr(), mNumVertices, dimensions, stride, dest );
 		break;
 		case Attrib::TEX_COORD_0:
-			copyData( 2, sTexCoords, 4, dimensions, stride, dest );
+			copyData( 2, mTexCoords.get()->ptr(), mNumVertices, dimensions, stride, dest );
 		break;
 		case Attrib::NORMAL:
-			copyData( 3, sNormals, 4, dimensions, stride, dest );
+			copyData( 3, mNormals.get()->ptr(), mNumVertices, dimensions, stride, dest );
 		break;
 		default:
 			throw ExcMissingAttrib();
