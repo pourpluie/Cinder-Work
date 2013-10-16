@@ -185,7 +185,7 @@ GLenum toGl( geom::Primitive prim );
 
 void draw( const VboMeshRef &mesh );
 void draw( const TextureRef &texture, const Rectf &rect );
-void draw( const TextureRef &texture, const Vec2f &v );
+void draw( const TextureRef &texture, const Vec2f &v = Vec2f::zero() );
 void drawRange( const VboMeshRef& mesh, GLint start = 0, GLsizei count = 0 );
 
 //! Renders a solid cube centered at \a center of size \a size. Normals and created texture coordinates are generated.
@@ -194,11 +194,9 @@ void drawCube( const Vec3f &center, const Vec3f &size );
 void drawColorCube( const Vec3f &center, const Vec3f &size );
 void drawTorus( float outerRadius, float innerRadius, int longitudeSegments, int latitudeSegments );
 
-void drawSolidCircle( const Vec2f &center, float radius, int numSegments = -1 );
-
 void drawSolidRect( const Rectf &r );
 void drawSolidRect( const Rectf &r, const Rectf &texcoords );
-void drawSolidCircle( const Vec2f &center, float radius );
+void drawSolidCircle( const Vec2f &center, float radius, int numSegments = -1 );
 
 // Vertex Attributes
 //! Analogous to glVertexAttribPointer

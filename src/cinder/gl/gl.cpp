@@ -863,6 +863,81 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
 
+void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
+{
+	Context *ctx = context();
+	gl::GlslProgRef shader = ctx->getCurrentShader();
+	if( ! shader )
+		return;
+
+	VaoRef vao = Vao::create();
+	VaoScope vaoScope( vao );
+
+	if( numSegments <= 0 ) {
+		numSegments = (int)math<double>::floor( radius * M_PI * 2 );
+	}
+	if( numSegments < 3 ) numSegments = 3;
+	size_t numVertices = numSegments + 2;
+
+	size_t worstCaseSize = numVertices * sizeof(float) * ( 2 + 2 + 3 );
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( worstCaseSize );
+	arrayVbo->bind();
+
+	size_t dataSizeBytes = 0;
+	
+	size_t vertsOffset, texCoordsOffset, normalsOffset;
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( posLoc >= 0 ) {
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)dataSizeBytes );
+		vertsOffset = dataSizeBytes;
+		dataSizeBytes += numVertices * 2 * sizeof(float);
+	}
+	int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
+	if( texLoc >= 0 ) {
+		enableVertexAttribArray( texLoc );
+		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)dataSizeBytes );
+		texCoordsOffset = dataSizeBytes;
+		dataSizeBytes += numVertices * 2 * sizeof(float);
+	}
+	int normalLoc = shader->getAttribSemanticLocation( geom::Attrib::NORMAL );
+	if( normalLoc >= 0 ) {
+		enableVertexAttribArray( normalLoc );
+		vertexAttribPointer( texLoc, 3, GL_FLOAT, GL_FALSE, 0, (void*)(dataSizeBytes) );
+		normalsOffset = dataSizeBytes;
+		dataSizeBytes += numVertices * 3 * sizeof(float);
+	}
+
+	unique_ptr<uint8_t> data( new uint8_t[dataSizeBytes] );
+	Vec2f *verts = ( posLoc >= 0 ) ? reinterpret_cast<Vec2f*>( data.get() + vertsOffset ) : nullptr;
+	Vec2f *texCoords = ( texLoc >= 0 ) ? reinterpret_cast<Vec2f*>( data.get() + texCoordsOffset ) : nullptr;
+	Vec3f *normals = ( normalLoc >= 0 ) ? reinterpret_cast<Vec3f*>( data.get() + normalsOffset ) : nullptr;
+	
+	if( verts )
+		verts[0] = center;
+	if( texCoords )
+		texCoords[0] = Vec2f( 0.5f, 0.5f );
+	if( normals )
+		normals[0] = Vec3f::zAxis();
+	const float tDelta = 1.0f / numSegments * 2 * (float)M_PI;
+	float t = 0;
+	for( int s = 0; s <= numSegments; s++ ) {
+		const Vec2f unit( math<float>::cos( t ), math<float>::sin( t ) );
+		if( verts )
+			verts[s+1] = center + unit * radius;
+		if( texCoords )
+			texCoords[s+1] = unit * 0.5f + Vec2f( 0.5f, 0.5f );
+		if( normals )
+			normals[s+1] = Vec3f::zAxis();
+		t += tDelta;
+	}
+
+	arrayVbo->bufferData( dataSizeBytes, data.get(), GL_DYNAMIC_DRAW );
+	
+	ctx->setDefaultShaderVars();
+	ctx->drawArrays( GL_TRIANGLE_FAN, 0, numSegments + 2 );	
+}
+
 void draw( const TextureRef &texture, const Vec2f &v )
 {
 	draw( texture, Rectf( texture->getBounds() ) + v );

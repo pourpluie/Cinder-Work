@@ -2,6 +2,7 @@
 #include "cinder/ip/Hdr.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/app/RendererGl.h"
+#include "cinder/gl/Shader.h"
 #include "VoronoiGpu.h"
 
 #include <vector>
@@ -84,11 +85,13 @@ void VoronoiGpuApp::draw()
 		gl::draw( mTexture, toPoints( mTexture->getBounds() ) );
 		mTexture->disable();
 	}
+
+	gl::bindStockShader( gl::ShaderDef().color() );
 	
 	// draw the voronoi sites in yellow
 	gl::color( Color( 1.0f, 1.0f, 0.0f ) );	
 	for( vector<Vec2i>::const_iterator ptIt = mPoints.begin(); ptIt != mPoints.end(); ++ptIt )
-;//		gl::drawSolidCircle( Vec2f( *ptIt ), 2.0f );
+		gl::drawSolidCircle( Vec2f( *ptIt ), 2.0f );
 	
 	gl::enableAlphaBlending();
 ;//	gl::drawStringRight( "Click to add a point", Vec2f( getWindowWidth() - toPixels( 10 ), getWindowHeight() - toPixels( 20 ) ), Color( 1, 0.3, 0 ), Font( "Arial", toPixels( 12 ) ) );

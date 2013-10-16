@@ -874,7 +874,7 @@ void Circle::calculate() const
 	if( numSegments <= 0 )
 		numSegments = (int)math<double>::floor( mRadius * M_PI * 2 );
 	
-	if( numSegments < 2 ) numSegments = 2;
+	if( numSegments < 3 ) numSegments = 3;
 	
 	mNumVertices = numSegments + 2;
 	mVertices = unique_ptr<Vec2f>( new Vec2f[mNumVertices] );
@@ -891,14 +891,16 @@ void Circle::calculate() const
 		mNormals.get()[0] = Vec3f( 0, 0, 1 );
 	
 	// iterate the segments
+	const float tDelta = 1 / (float)numSegments * 2.0f * 3.14159f;
+	float t = 0;
 	for( int s = 0; s <= numSegments; s++ ) {
-		float t = s / (float)numSegments * 2.0f * 3.14159f;
 		Vec2f unit( math<float>::cos( t ), math<float>::sin( t ) );
-		mVertices.get()[s] = mCenter + unit * mRadius;
+		mVertices.get()[s+1] = mCenter + unit * mRadius;
 		if( mHasTexCoord0 )
-			mTexCoords.get()[s] = unit * 0.5f + Vec2f( 0.5f, 0.5f );
+			mTexCoords.get()[s+1] = unit * 0.5f + Vec2f( 0.5f, 0.5f );
 		if( mHasNormals )
-			mNormals.get()[s] = Vec3f( 0, 0, 1 );
+			mNormals.get()[s+1] = Vec3f( 0, 0, 1 );
+		t += tDelta;
 	}
 	
 	mCalculationsCached = true;
