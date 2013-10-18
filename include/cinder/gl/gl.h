@@ -139,7 +139,7 @@ void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft 
 void setMatricesWindow( const ci::Vec2i &screenSize, bool originUpperLeft = true );
 
 void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis );
-inline void rotate( const cinder::Quatf &quat ) { cinder::Vec3f axis; float angle; quat.getAxisAngle( &axis, &angle ); rotate( cinder::toDegrees( angle ), axis.x, axis.y, axis.z ); }
+void rotate( const cinder::Quatf &quat );
 inline void rotate( float zDegrees ) { rotate( zDegrees, 0, 0, 1 ); }
 
 void scale( const ci::Vec3f &v );

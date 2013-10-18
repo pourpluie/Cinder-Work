@@ -416,6 +416,15 @@ void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis )
 //	ctx->getModelViewStack().back().rotate( Vec3f( toRadians( xAxis ), toRadians( yAxis ), toRadians( zAxis ) ) );
 	ctx->getModelViewStack().back().rotate( Vec3f( xAxis, yAxis, zAxis ), toRadians( angleDegrees ) );
 }
+
+void rotate( const cinder::Quatf &quat )
+{
+	cinder::Vec3f axis;
+	float angle;
+	quat.getAxisAngle( &axis, &angle );
+	if( math<float>::abs( angle ) > EPSILON_VALUE )
+		rotate( cinder::toDegrees( angle ), axis.x, axis.y, axis.z );
+}
 	
 void scale( const ci::Vec3f& v )
 {
