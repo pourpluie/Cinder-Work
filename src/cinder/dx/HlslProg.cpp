@@ -64,26 +64,81 @@ HlslProg::Obj::~Obj()
 
 //////////////////////////////////////////////////////////////////////////
 // HlslProg
-HlslProg::HlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader, DataSourceRef geometryShader )
+HlslProg::HlslProg( 
+	DataSourceRef vertexShader, 
+	DataSourceRef fragmentShader, 
+	DataSourceRef geometryShader 
+)
 : mObj( shared_ptr<Obj>( new Obj ) )
 {
-	if(vertexShader)
-		getDxRenderer()->md3dDevice->CreateVertexShader(vertexShader->getBuffer().getData(), vertexShader->getBuffer().getDataSize(), NULL, &mObj->mVS);
-	if(fragmentShader)
-		getDxRenderer()->md3dDevice->CreatePixelShader(fragmentShader->getBuffer().getData(), fragmentShader->getBuffer().getDataSize(), NULL, &mObj->mPS);
-	if(geometryShader)
-		getDxRenderer()->md3dDevice->CreateGeometryShader(geometryShader->getBuffer().getData(), geometryShader->getBuffer().getDataSize(), NULL, &mObj->mGS);
+	auto& d3ddevice = getDxRenderer()->md3dDevice;
+
+	if( vertexShader ) {
+		d3ddevice->CreateVertexShader(vertexShader->getBuffer().getData(), vertexShader->getBuffer().getDataSize(), NULL, &mObj->mVS);
+	}
+	if( fragmentShader ) {
+		d3ddevice->CreatePixelShader(fragmentShader->getBuffer().getData(), fragmentShader->getBuffer().getDataSize(), NULL, &mObj->mPS);
+	}
+	if( geometryShader ) {
+		d3ddevice->CreateGeometryShader(geometryShader->getBuffer().getData(), geometryShader->getBuffer().getDataSize(), NULL, &mObj->mGS);
+	}
 }
 
-HlslProg::HlslProg( const BYTE *vertexShader, UINT vertexShaderSize, const BYTE *fragmentShader, UINT fragmentShaderSize, const BYTE *geometryShader, UINT geometryShaderSize )
+HlslProg::HlslProg( 
+	const BYTE *vertexShader, UINT vertexShaderSize, 
+	const BYTE *fragmentShader, UINT fragmentShaderSize, 
+	const BYTE *geometryShader, UINT geometryShaderSize 
+)
 : mObj( shared_ptr<Obj>( new Obj ) )
 {
-	if(vertexShader)
-		getDxRenderer()->md3dDevice->CreateVertexShader(vertexShader, vertexShaderSize, NULL, &mObj->mVS);
-	if(fragmentShader)
-		getDxRenderer()->md3dDevice->CreatePixelShader(fragmentShader, fragmentShaderSize, NULL, &mObj->mPS);
-	if(geometryShader)
-		getDxRenderer()->md3dDevice->CreateGeometryShader(geometryShader, geometryShaderSize, NULL, &mObj->mGS);
+	auto& d3ddevice = getDxRenderer()->md3dDevice;
+
+	if( vertexShader ) {
+		d3ddevice->CreateVertexShader( vertexShader, vertexShaderSize, NULL, &mObj->mVS );
+	}
+	if( fragmentShader ) {
+		d3ddevice->CreatePixelShader( fragmentShader, fragmentShaderSize, NULL, &mObj->mPS );
+	}
+	if( geometryShader ) {
+		d3ddevice->CreateGeometryShader( geometryShader, geometryShaderSize, NULL, &mObj->mGS );
+	}
+}
+
+HlslProg::HlslProg( 
+	const std::string& vertexShaderName, DataSourceRef vertexShaderSrc, 
+	const std::string& fragmentShaderName, DataSourceRef fragmentShaderSrc, 
+	const std::string& geometryShaderName, DataSourceRef geometryShaderSrc
+)
+: mObj( shared_ptr<Obj>( new Obj ) )
+{
+	initFromSource( 
+		vertexShaderName, (const char*)(vertexShaderSrc->getBuffer().getData()),
+		fragmentShaderName, (const char*)(fragmentShaderSrc->getBuffer().getData()),
+		geometryShaderName, (const char*)(geometryShaderSrc->getBuffer().getData())
+	);
+}
+
+HlslProg::HlslProg( 
+	const std::string& vertexShaderName, const char *vertexShaderSrc, 
+	const std::string& fragmentShaderName, const char *fragmentShaderSrc,
+	const std::string& geometryShaderName, const char *geometryShaderSrc
+)
+: mObj( shared_ptr<Obj>( new Obj ) )
+{
+	initFromSource( 
+		vertexShaderName, vertexShaderSrc,
+		fragmentShaderName, fragmentShaderSrc,
+		geometryShaderName, geometryShaderSrc
+	);
+}
+
+void HlslProg::initFromSource( 
+	const std::string& vertexShaderName, const char *vertexShaderSrc, 
+	const std::string& fragmentShaderName, const char *fragmentShaderSrc, 
+	const std::string& geometryShaderName, const char *geometryShaderSrc 
+)
+{
+
 }
 
 //void HlslProg::loadShader( Buffer shaderSourceBuffer, GLint shaderType )

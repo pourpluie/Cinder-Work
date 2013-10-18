@@ -88,17 +88,24 @@ class ImageSource : public ImageIo {
 	ImageSource() : ImageIo(), mIsPremultiplied( false ), mPixelAspectRatio( 1 ), mCustomPixelInc( 0 ) {}
 	virtual ~ImageSource() {}  
 
+	//! Optional parameters passed when creating an Image. \see loadImage()
 	class Options {
 	  public:
-		Options() : mIndex( 0 ) {}
+		Options() : mIndex( 0 ), mThrowOnFirstException( false ) {}
 
 		//! Specifies an image index for multi-part images, like animated GIFs
-		Options& index( int32_t aIndex ) { mIndex = aIndex; return *this; }
-		
-		int32_t				getIndex() const { return mIndex; }
+		Options& index( int32_t index )						{ mIndex = index; return *this; }
+		//! If an exception occurs, enabling this will prevent any attempts at using other handlers to load the image. Default = false, all handlers are tried and if none succeed, the last exception is rethrown. \see ImageIoException
+		Options& throwOnFirstException( bool b = true )		{ mThrowOnFirstException = b; return *this; }
+
+		//! Returns image index. \see index()
+		int32_t				getIndex() const				{ return mIndex; }
+		//! Returns whether throwOnFirstException() is enabled or not.
+		bool				getThrowOnFirstException()		{ return mThrowOnFirstException; }
 		
 	  protected:
 		int32_t			mIndex;
+		bool			mThrowOnFirstException;
 	};
 
 	//! Returns the aspect ratio of individual pixels to accommodate non-square pixels
@@ -192,24 +199,41 @@ void			writeImage( const fs::path &path, const ImageSourceRef &imageSource, Imag
 void			writeImage( ImageTargetRef imageTarget, const ImageSourceRef &imageSource );
 
 class ImageIoException : public Exception {
+  public:
+	ImageIoException( const std::string &description = "" ) : mDescription( description ) {}
+	virtual const char* what() const throw()	{ return mDescription.c_str(); }
+  protected:
+	std::string mDescription;
 };
 
 class ImageIoExceptionFailedLoad : public ImageIoException {
+  public:
+	ImageIoExceptionFailedLoad( const std::string &description = "" ) : ImageIoException( description ) {}
 };
 
 class ImageIoExceptionFailedWrite : public ImageIoException {
+  public:
+	ImageIoExceptionFailedWrite( const std::string &description = "" ) : ImageIoException( description ) {}
 };
 
 class ImageIoExceptionUnknownExtension : public ImageIoException {
+  public:
+	ImageIoExceptionUnknownExtension( const std::string &description = "" ) : ImageIoException( description ) {}
 };
 
 class ImageIoExceptionIllegalColorModel : public ImageIoException {
+  public:
+	ImageIoExceptionIllegalColorModel( const std::string &description = "" ) : ImageIoException( description ) {}
 };
 
 class ImageIoExceptionIllegalDataType : public ImageIoException {
+  public:
+	ImageIoExceptionIllegalDataType( const std::string &description = "" ) : ImageIoException( description ) {}
 };
 
 class ImageIoExceptionIllegalChannelOrder : public ImageIoException {
+  public:
+	ImageIoExceptionIllegalChannelOrder( const std::string &description = "" ) : ImageIoException( description ) {}
 };
 
 

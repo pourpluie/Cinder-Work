@@ -80,6 +80,7 @@
 #define DXGI_1_2_FORMATS
 #endif
 
+#include "cinder/Cinder.h"
 #include "cinder/dx/DDSTextureLoader.h"
 
 #include "cinder/dx/dds.h"
@@ -101,7 +102,7 @@ static HRESULT LoadTextureDataFromFile( _In_z_ const wchar_t* fileName,
     }
 
     // open the file
-#if (_WIN32_WINNT >= 0x0602 /*_WIN32_WINNT_WIN8*/)
+#if (_WIN32_WINNT >= 0x0602 /*_WIN32_WINNT_WIN8*/) && defined( CINDER_WINRT )
     ScopedHandle hFile( safe_handle( CreateFile2( fileName,
                                                   GENERIC_READ,
                                                   FILE_SHARE_READ,
