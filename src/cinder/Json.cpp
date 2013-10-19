@@ -32,6 +32,8 @@
 #include "cinder/Stream.h"
 #include "cinder/Utilities.h"
 
+#include <cstdlib>
+
 using namespace std;
 
 namespace cinder {
@@ -605,7 +607,7 @@ Json::Value JsonTree::createNativeDoc( WriteOptions writeOptions ) const
 				value = Json::Value( fromString<bool>( mValue ) );
 				break;
 			case VALUE_DOUBLE:
-				value = Json::Value( fromString<double>( mValue ) );
+				value = Json::Value( atof( mValue.c_str() ) );
 				break;
 			case VALUE_INT:
 				value = Json::Value( fromString<int64_t>( mValue ) );
@@ -666,13 +668,8 @@ void JsonTree::write( DataTargetRef target, JsonTree::WriteOptions writeOptions 
 
 		// This routine serializes JsonCpp data and formats it
 		if( writeOptions.getIndented() ) {
-			Json::StyledWriter writer;
-			jsonString = writer.write( value.toStyledString() );
-			boost::replace_all( jsonString, "\\n", "\r\n" );
-			boost::replace_all( jsonString, "\\\"", "\"" );
-			if( jsonString.length() >= 3 ) {
-				jsonString = jsonString.substr( 1, boost::trim_copy( jsonString ).length() - 2 );
-			}
+			jsonString = value.toStyledString();
+			boost::replace_all( jsonString, "\n", "\r\n" );
 		} else {
 			Json::FastWriter writer;
 			jsonString = writer.write( value );

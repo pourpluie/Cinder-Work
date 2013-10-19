@@ -136,6 +136,8 @@ void App::privateSetup__()
 
 void App::privateUpdate__()
 {
+	mFrameCount++;
+
 #if !defined( CINDER_WINRT )
 	// service boost::asio::io_service
 	mIo->poll();
@@ -144,7 +146,6 @@ void App::privateUpdate__()
 	mSignalUpdate();
 
 	update();
-	mFrameCount++;
 
 	mTimeline->stepTo( static_cast<float>( getElapsedSeconds() ) );
 

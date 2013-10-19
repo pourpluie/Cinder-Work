@@ -186,8 +186,16 @@ class AppImplMswRendererDx : public AppImplMswRenderer {
  protected:
 	bool	initializeInternal( DX_WINDOW_TYPE wnd );
 	int		initMultisample( int requestedLevelIdx );
+	bool	createDevice(UINT createDeviceFlags);
 	bool	createDeviceResources();
 	bool	createFramebufferResources();
+
+	bool	createShadersFeatureLevel_9_1();
+	bool	createShadersFeatureLevel_9_3();
+	bool	createShadersFeatureLevel_10_1();
+	bool	createShadersFeatureLevel_11_0();
+	bool	createShadersFeatureLevel_11_1();
+
 	void	handleLostDevice();
 	void	getPlatformWindowDimensions(DX_WINDOW_TYPE wnd, float* width, float* height) const;
 	void	releaseNonDeviceResources();

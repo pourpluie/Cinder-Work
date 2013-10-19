@@ -379,8 +379,8 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
 				mInternalFormat = ( imageSource->hasAlpha() ) ? GL_LUMINANCE_ALPHA : GL_LUMINANCE;
 				break;
 			default:
-				throw ImageIoExceptionIllegalColorModel();
-				break;
+				throw ImageIoExceptionIllegalColorModel( "Illegal color model." );
+			break;
 		}
 	}
 	else {

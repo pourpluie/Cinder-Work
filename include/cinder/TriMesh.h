@@ -94,7 +94,7 @@ class TriMesh : public geom::Source {
 	/*! after creating three vertices, pass the indices of the three vertices to create a triangle from them. Until this is done, unlike in an OpenGL triangle strip, the 
 	 triangle will not actually be generated and stored by the TriMesh
 	*/
-	void		appendTriangle( size_t v0, size_t v1, size_t v2 )
+	void		appendTriangle( uint32_t v0, uint32_t v1, uint32_t v2 )
 	{ mIndices.push_back( v0 ); mIndices.push_back( v1 ); mIndices.push_back( v2 ); }
 	//! Appends \a num vertices to the TriMesh pointed to by \a indices
 	void		appendIndices( const uint32_t *indices, size_t num );
@@ -190,6 +190,5 @@ class TriMesh : public geom::Source {
 	std::vector<float>		mTexCoords0;
 	std::vector<uint32_t>	mIndices;
 };
-
 
 } // namespace cinder
