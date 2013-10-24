@@ -41,6 +41,8 @@ class Batch {
 	
 	void			draw();
 
+	const GlslProgRef&	getGlslProgRef() const		{ return mGlsl; }
+
   protected:
 	Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl );
 	Batch( const geom::Source &source, const gl::GlslProgRef &glsl );
