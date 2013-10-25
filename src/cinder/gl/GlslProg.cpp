@@ -144,8 +144,8 @@ GlslProg::AttribSemanticMap& GlslProg::getDefaultAttribNameToSemanticMap()
 		sDefaultAttribNameToSemanticMap["vNormal"] = geom::Attrib::NORMAL;
 		sDefaultAttribNameToSemanticMap["vTexCoord0"] = geom::Attrib::TEX_COORD_0;
 		sDefaultAttribNameToSemanticMap["vColor"] = geom::Attrib::COLOR;
-		sDefaultAttribNameToSemanticMap["vBoneIndex"] = geom::Attrib::BONEINDEX;
-		sDefaultAttribNameToSemanticMap["vBoneWeight"] = geom::Attrib::BONEWEIGHT;
+		sDefaultAttribNameToSemanticMap["vBoneIndex"] = geom::Attrib::BONE_INDEX;
+		sDefaultAttribNameToSemanticMap["vBoneWeight"] = geom::Attrib::BONE_WEIGHT;
 		initialized = true;
 	}
 	
