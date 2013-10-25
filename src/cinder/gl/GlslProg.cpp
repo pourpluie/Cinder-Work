@@ -126,7 +126,9 @@ GlslProg::UniformSemanticMap& GlslProg::getDefaultUniformNameToSemanticMap()
 {
 	static bool initialized = false;
 	if( ! initialized ) {
+		sDefaultUniformNameToSemanticMap["uModelView"] = UNIFORM_MODELVIEW;
 		sDefaultUniformNameToSemanticMap["uModelViewProjection"] = UNIFORM_MODELVIEWPROJECTION;
+		sDefaultUniformNameToSemanticMap["uProjection"] = UNIFORM_PROJECTION;
 		sDefaultUniformNameToSemanticMap["uNormalMatrix"] = UNIFORM_NORMAL_MATRIX;
 		initialized = true;
 	}

@@ -594,14 +594,16 @@ void Context::setDefaultShaderVars()
 		auto uniforms = glslProg->getUniformSemantics();
 		for( auto unifIt = uniforms.cbegin(); unifIt != uniforms.end(); ++unifIt ) {
 			switch( unifIt->second ) {
+				case UNIFORM_MODELVIEW:
+					glslProg->uniform( unifIt->first, gl::getModelView() ); break;
 				case UNIFORM_MODELVIEWPROJECTION:
-					glslProg->uniform( unifIt->first, gl::getProjection() * gl::getModelView() );
-				break;
+					glslProg->uniform( unifIt->first, gl::getProjection() * gl::getModelView() ); break;
+				case UNIFORM_PROJECTION:
+					glslProg->uniform( unifIt->first, gl::getProjection() ); break;
 				case UNIFORM_NORMAL_MATRIX:
-					glslProg->uniform( unifIt->first, gl::calcNormalMatrix() );
-				break;
+					glslProg->uniform( unifIt->first, gl::calcNormalMatrix() ); break;
 			}
-		}		
+		}
 
 		auto attribs = glslProg->getAttribSemantics();
 		for( auto attribIt = attribs.begin(); attribIt != attribs.end(); ++attribIt ) {
