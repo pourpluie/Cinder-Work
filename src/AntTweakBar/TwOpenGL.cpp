@@ -8,7 +8,6 @@
 //  ---------------------------------------------------------------------------
 
 // this forces the right GL headers
-#define CINDER_GL_LEGACY
 #include "TwPrecomp.h"
 
 #if ! defined( CINDER_ANT_TW_BAR_IGNORE )
@@ -16,10 +15,13 @@
 #include "LoadOGL.h"
 #include "TwOpenGL.h"
 #include "TwMgr.h"
-#if defined( CINDER_COCOA )
-	#include <OpenGL/gl.h>
-#else
-	#include <GL/gl.h>
+#if !defined(ANT_OGL_HEADER_INCLUDED)
+#   if defined(ANT_OSX)
+#   	include <OpenGL/gl.h>
+#   else
+#	    include <GL/gl.h>  // must be included after windows.h
+#   endif
+#   define  ANT_OGL_HEADER_INCLUDED
 #endif
 
 using namespace std;

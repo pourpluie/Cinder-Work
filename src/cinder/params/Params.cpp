@@ -29,8 +29,10 @@
 #include <boost/assign/list_of.hpp>
 
 #if defined( USE_DIRECTX )
-#include "cinder/dx/dx.h"
-#include "cinder/app/AppImplMswRendererDx.h"
+	#include "cinder/dx/dx.h"
+	#include "cinder/app/AppImplMswRendererDx.h"
+#else
+	#include "cinder/gl/Environment.h"
 #endif
 
 using namespace std;
@@ -162,9 +164,14 @@ class AntMgr {
 		if( ! TwInit( TW_DIRECT3D11, dx::getDxRenderer()->md3dDevice ) )
 			throw Exception();
 #else
-		if( ! TwInit( TW_OPENGL, NULL ) ) {
-			throw Exception();
-		}		
+		if( gl::env()->isCoreProfile() ) {
+			if( ! TwInit( TW_OPENGL_CORE, NULL ) )
+				throw Exception();
+		}
+		else {
+			if( ! TwInit( TW_OPENGL, NULL ) )
+				throw Exception();
+		}
 #endif
 	}
 	

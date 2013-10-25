@@ -37,6 +37,7 @@ class EnvironmentCore : public Environment {
   public:
 	virtual void	initializeFunctionPointers() override;
 
+	virtual bool	isCoreProfile() const override { return true; }
 	virtual bool	supportsHardwareVao() override;
 
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;

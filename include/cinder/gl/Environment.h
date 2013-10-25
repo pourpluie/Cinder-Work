@@ -65,6 +65,8 @@ class Environment {
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) = 0;
 
 #if ! defined( CINDER_GLES )	
+	virtual bool			isCoreProfile() const = 0;
+
 	static void				setCore();
 	static void				setLegacy();
 #else

@@ -14,11 +14,11 @@
 #define ANT_OGL_HEADER_INCLUDED ////
 */
 
+#include "TwPrecomp.h"
 #if defined ANT_OSX
 #   include <OpenGL/gl3.h>
 #   define ANT_OGL_HEADER_INCLUDED
 #endif
-#include "TwPrecomp.h"
 #include "LoadOGLCore.h"
 #include "TwOpenGLCore.h"
 #include "TwMgr.h"

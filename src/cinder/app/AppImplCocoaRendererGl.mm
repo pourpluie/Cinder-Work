@@ -90,6 +90,7 @@ if( ! view )
 		cinder::gl::Environment::setLegacy();
 	
 	CGLContextObj cglContext = (CGLContextObj)[[view openGLContext] CGLContextObj];
+	::CGLSetCurrentContext( cglContext );
 	auto platformData = std::shared_ptr<cinder::gl::Context::PlatformData>( new cinder::gl::PlatformDataMac( cglContext ) );
 	mContext = cinder::gl::Context::createFromExisting( platformData );
 	mContext->makeCurrent();

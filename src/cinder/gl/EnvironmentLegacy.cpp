@@ -40,6 +40,7 @@ class EnvironmentLegacy : public Environment {
   public:
 	virtual void	initializeFunctionPointers() override;
 	virtual bool	supportsHardwareVao() override;
+	virtual bool	isCoreProfile() const override { return false; }
 
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;

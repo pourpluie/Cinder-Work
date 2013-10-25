@@ -7,13 +7,11 @@
 //
 //  ---------------------------------------------------------------------------
 
-#define CINDER_GL_LEGACY
-
 #include "TwPrecomp.h"
 
 #if ! defined( CINDER_ANT_TW_BAR_IGNORE )
 #include "LoadOGL.h"
-#if defined( CINDER_COCOA )
+#if defined ANT_OSX
 	#include <OpenGL/gl.h>
 #else
 	#include <GL/gl.h>
@@ -507,7 +505,7 @@ namespace GL { PFNGLGetProcAddress _glGetProcAddress = NULL; }
         void *proc=NULL;
         if (gl_dyld == NULL) 
         {
-            gl_dyld = dlopen("OpenGL",RTLD_LAZY);
+            gl_dyld = dlopen("/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL",RTLD_LAZY);
         }
         if (gl_dyld) 
         {

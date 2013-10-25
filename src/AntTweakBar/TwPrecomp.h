@@ -88,13 +88,13 @@
 #	    include <GL/gl.h>  // must be included after windows.h
 #   endif
 #   define  ANT_OGL_HEADER_INCLUDED
-#endif*/
+#endif
 #define  ANT_OGL_HEADER_INCLUDED
 #if defined( USE_DIRECTX )
 #include "cinder/dx/dx.h"
 #else
 #include "cinder/gl/gl.h"
-#endif
+#endif*/
 
 // this removes AntTweakBar from the project at compile time
 #if defined( CINDER_GL_ANGLE )

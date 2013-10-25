@@ -736,6 +736,10 @@
 		00E5A41F163F5AC600AACB3A /* CaptureImplCocoaDummy.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00E5A41D163F5AC500AACB3A /* CaptureImplCocoaDummy.mm */; };
 		00F3BD1D0EBF88AA00382AC1 /* Utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F3BD1C0EBF88AA00382AC1 /* Utilities.cpp */; };
 		00F3BD200EBF89B700382AC1 /* Utilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 00F3BD1F0EBF89B700382AC1 /* Utilities.h */; };
+		00F6BBAB181AC48700C1FFD7 /* TwOpenGLCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F6BBA9181AC48700C1FFD7 /* TwOpenGLCore.cpp */; };
+		00F6BBAC181AC48700C1FFD7 /* TwOpenGLCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 00F6BBAA181AC48700C1FFD7 /* TwOpenGLCore.h */; };
+		00F6BBAF181AC82600C1FFD7 /* LoadOGLCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F6BBAD181AC82500C1FFD7 /* LoadOGLCore.cpp */; };
+		00F6BBB0181AC82600C1FFD7 /* LoadOGLCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 00F6BBAE181AC82600C1FFD7 /* LoadOGLCore.h */; };
 		1161C977165C7DFB00268A5E /* ImageTargetFileQuartz.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00BC8A0810D2EE2000D6DC59 /* ImageTargetFileQuartz.cpp */; };
 		1161C978165C7DFC00268A5E /* ImageTargetFileQuartz.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00BC8A0810D2EE2000D6DC59 /* ImageTargetFileQuartz.cpp */; };
 		1161C979165C847200268A5E /* ImageSourceFileQuartz.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009FD55610CAB8B700D63B1B /* ImageSourceFileQuartz.cpp */; };
@@ -1117,6 +1121,10 @@
 		00E5A41D163F5AC500AACB3A /* CaptureImplCocoaDummy.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CaptureImplCocoaDummy.mm; sourceTree = "<group>"; };
 		00F3BD1C0EBF88AA00382AC1 /* Utilities.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Utilities.cpp; sourceTree = "<group>"; };
 		00F3BD1F0EBF89B700382AC1 /* Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utilities.h; sourceTree = "<group>"; };
+		00F6BBA9181AC48700C1FFD7 /* TwOpenGLCore.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = TwOpenGLCore.cpp; path = ../src/AntTweakBar/TwOpenGLCore.cpp; sourceTree = "<group>"; };
+		00F6BBAA181AC48700C1FFD7 /* TwOpenGLCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TwOpenGLCore.h; path = ../src/AntTweakBar/TwOpenGLCore.h; sourceTree = "<group>"; };
+		00F6BBAD181AC82500C1FFD7 /* LoadOGLCore.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = LoadOGLCore.cpp; path = ../src/AntTweakBar/LoadOGLCore.cpp; sourceTree = "<group>"; };
+		00F6BBAE181AC82600C1FFD7 /* LoadOGLCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LoadOGLCore.h; path = ../src/AntTweakBar/LoadOGLCore.h; sourceTree = "<group>"; };
 		00F976ED0F9D182D00F92D65 /* AppImplCocoaScreenSaver.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppImplCocoaScreenSaver.mm; path = app/AppImplCocoaScreenSaver.mm; sourceTree = "<group>"; };
 		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		0867D6A5FE840307C02AAC07 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -1329,7 +1337,9 @@
 				003ADB6D1038973700ACF6F2 /* TwGraph.h */,
 				003ADB6E1038973700ACF6F2 /* TwFonts.h */,
 				003ADB6F1038973700ACF6F2 /* TwOpenGL.h */,
+				00F6BBAA181AC48700C1FFD7 /* TwOpenGLCore.h */,
 				003ADB701038973700ACF6F2 /* LoadOGL.h */,
+				00F6BBAE181AC82600C1FFD7 /* LoadOGLCore.h */,
 				003ADB711038973700ACF6F2 /* TwColors.h */,
 				003ADB721038973700ACF6F2 /* resource.h */,
 				003ADB731038973700ACF6F2 /* TwPrecomp.h */,
@@ -1344,9 +1354,11 @@
 				003ADB891038974A00ACF6F2 /* TwMgr.cpp */,
 				003ADB8A1038974A00ACF6F2 /* TwPrecomp.cpp */,
 				003ADB8B1038974A00ACF6F2 /* LoadOGL.cpp */,
+				00F6BBAD181AC82500C1FFD7 /* LoadOGLCore.cpp */,
 				003ADB8C1038974A00ACF6F2 /* TwFonts.cpp */,
 				003ADB8D1038974A00ACF6F2 /* TwColors.cpp */,
 				003ADB8E1038974A00ACF6F2 /* TwOpenGL.cpp */,
+				00F6BBA9181AC48700C1FFD7 /* TwOpenGLCore.cpp */,
 				003ADB8F1038974A00ACF6F2 /* TwBar.cpp */,
 			);
 			name = src;
@@ -2294,6 +2306,8 @@
 				008734151795901B00BC2063 /* Batch.h in Headers */,
 				0087345217BB0FC100BC2063 /* GeoSource.h in Headers */,
 				000FAB3B17C7B771002A300D /* GeomIo.h in Headers */,
+				00F6BBAC181AC48700C1FFD7 /* TwOpenGLCore.h in Headers */,
+				00F6BBB0181AC82600C1FFD7 /* LoadOGLCore.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2764,6 +2778,8 @@
 				0087344A17B46F9600BC2063 /* EnvironmentLegacy.cpp in Sources */,
 				0087344D17B4702500BC2063 /* EnvironmentCore.cpp in Sources */,
 				0087346217BB120600BC2063 /* GeomIo.cpp in Sources */,
+				00F6BBAB181AC48700C1FFD7 /* TwOpenGLCore.cpp in Sources */,
+				00F6BBAF181AC82600C1FFD7 /* LoadOGLCore.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
