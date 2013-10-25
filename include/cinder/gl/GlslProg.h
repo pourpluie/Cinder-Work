@@ -109,6 +109,10 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	void	uniform( int location, const Vec3f *data, int count ) const;
 	void	uniform( const std::string &name, const Vec4f *data, int count ) const;
 	void	uniform( int location, const Vec4f *data, int count ) const;
+	void    uniform( int location, const Matrix33f *data, int count, bool transpose = false ) const;
+	void    uniform( const std::string &name, const Matrix33f *data, int count, bool transpose = false ) const;
+	void    uniform( int location, const Matrix44f *data, int count, bool transpose = false ) const;
+	void    uniform( const std::string &name, const Matrix44f *data, int count, bool transpose = false ) const;
 
 	//! Returns a std::map from the uniform name to its OpenGL type (GL_BOOL, GL_FLOAT_VEC3, etc)
 	const std::map<std::string,GLenum>&		getActiveUniformTypes() const;
