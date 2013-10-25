@@ -126,7 +126,9 @@ GlslProg::UniformSemanticMap& GlslProg::getDefaultUniformNameToSemanticMap()
 {
 	static bool initialized = false;
 	if( ! initialized ) {
+		sDefaultUniformNameToSemanticMap["uModelView"] = UNIFORM_MODELVIEW;
 		sDefaultUniformNameToSemanticMap["uModelViewProjection"] = UNIFORM_MODELVIEWPROJECTION;
+		sDefaultUniformNameToSemanticMap["uProjection"] = UNIFORM_PROJECTION;
 		sDefaultUniformNameToSemanticMap["uNormalMatrix"] = UNIFORM_NORMAL_MATRIX;
 		initialized = true;
 	}
@@ -142,6 +144,8 @@ GlslProg::AttribSemanticMap& GlslProg::getDefaultAttribNameToSemanticMap()
 		sDefaultAttribNameToSemanticMap["vNormal"] = geom::Attrib::NORMAL;
 		sDefaultAttribNameToSemanticMap["vTexCoord0"] = geom::Attrib::TEX_COORD_0;
 		sDefaultAttribNameToSemanticMap["vColor"] = geom::Attrib::COLOR;
+		sDefaultAttribNameToSemanticMap["vBoneIndex"] = geom::Attrib::BONEINDEX;
+		sDefaultAttribNameToSemanticMap["vBoneWeight"] = geom::Attrib::BONEWEIGHT;
 		initialized = true;
 	}
 	
@@ -309,6 +313,34 @@ void GlslProg::uniform( const std::string &name, const Vec4f &data ) const
 	glUniform4f( loc, data.x, data.y, data.z, data.w );
 }
 
+// Matrix33f
+void GlslProg::uniform( int location, const Matrix33f &data, bool transpose ) const
+{
+    ShaderScope shaderBind( shared_from_this() );
+    glUniformMatrix3fv( location, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+}
+
+void GlslProg::uniform( const std::string &name, const Matrix33f &data, bool transpose ) const
+{
+    ShaderScope shaderBind( shared_from_this() );
+    GLint loc = getUniformLocation( name );
+    glUniformMatrix3fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+}
+
+// Matrix44f
+void GlslProg::uniform( int location, const Matrix44f &data, bool transpose ) const
+{
+    ShaderScope shaderBind( shared_from_this() );
+    glUniformMatrix4fv( location, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+}
+
+void GlslProg::uniform( const std::string &name, const Matrix44f &data, bool transpose ) const
+{
+    ShaderScope shaderBind( shared_from_this() );
+    GLint loc = getUniformLocation( name );
+    glUniformMatrix4fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+}
+
 // Color
 void GlslProg::uniform( int location, const Color &data ) const
 {
@@ -393,32 +425,32 @@ void GlslProg::uniform( const std::string &name, const Vec4f *data, int count ) 
 	glUniform4fv( loc, count, &data[0].x );
 }
 
-// Matrix33f
-void GlslProg::uniform( int location, const Matrix33f &data, bool transpose ) const
+// Matrix33f*, count
+void GlslProg::uniform( int location, const Matrix33f *data, int count, bool transpose ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
-	glUniformMatrix3fv( location, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+    ShaderScope shaderBind( shared_from_this() );
+    glUniformMatrix3fv( location, count, ( transpose ) ? GL_TRUE : GL_FALSE, &data->m[0] );
 }
 
-void GlslProg::uniform( const std::string &name, const Matrix33f &data, bool transpose ) const
+void GlslProg::uniform( const std::string &name, const Matrix33f *data, int count, bool transpose ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
-	GLint loc = getUniformLocation( name );
-	glUniformMatrix3fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+    ShaderScope shaderBind( shared_from_this() );
+    GLint loc = getUniformLocation( name );
+    glUniformMatrix3fv( loc, count, ( transpose ) ? GL_TRUE : GL_FALSE, &data->m[0] );
 }
 
-// Matrix44f
-void GlslProg::uniform( int location, const Matrix44f &data, bool transpose ) const
+// Matrix44f*, count
+void GlslProg::uniform( int location, const Matrix44f *data, int count, bool transpose ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
-	glUniformMatrix4fv( location, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+    ShaderScope shaderBind( shared_from_this() );
+    glUniformMatrix4fv( location, count, ( transpose ) ? GL_TRUE : GL_FALSE, &data->m[0] );
 }
 
-void GlslProg::uniform( const std::string &name, const Matrix44f &data, bool transpose ) const
+void GlslProg::uniform( const std::string &name, const Matrix44f *data, int count, bool transpose ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
-	GLint loc = getUniformLocation( name );
-	glUniformMatrix4fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+    ShaderScope shaderBind( shared_from_this() );
+    GLint loc = getUniformLocation( name );
+    glUniformMatrix4fv( loc, count, ( transpose ) ? GL_TRUE : GL_FALSE, &data->m[0] );
 }
 
 GLint GlslProg::getUniformLocation( const std::string &name ) const

@@ -34,7 +34,7 @@ namespace cinder { namespace geom {
 typedef std::shared_ptr<class Source>	SourceRef;
 
 // keep this incrementing by 1 only; some code relies on that for iterating
-enum class Attrib { POSITION, COLOR, TEX_COORD_0, NORMAL, TANGENT, BITANGET, NUM_ATTRIBS };
+enum class Attrib { POSITION, COLOR, TEX_COORD_0, NORMAL, TANGENT, BITANGET, BONEINDEX, BONEWEIGHT, NUM_ATTRIBS };
 enum class Primitive { TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN }; 
 
 class BufferLayout {
