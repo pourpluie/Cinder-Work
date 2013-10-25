@@ -70,10 +70,10 @@ ObjLoader::~ObjLoader()
 bool ObjLoader::hasAttrib( geom::Attrib attr ) const
 {
 	switch( attr ) {
-		case geom::Attrib::POSITION: return ! mVertices.empty(); break;
-		case geom::Attrib::COLOR: return ! mColors.empty(); break;
-		case geom::Attrib::TEX_COORD_0: return ! mTexCoords.empty(); break;
-		case geom::Attrib::NORMAL: return ! mNormals.empty();
+		case geom::Attrib::POSITION: return ! mOutputVertices.empty(); break;
+		case geom::Attrib::COLOR: return ! mOutputColors.empty(); break;
+		case geom::Attrib::TEX_COORD_0: return ! mOutputTexCoords.empty(); break;
+		case geom::Attrib::NORMAL: return ! mOutputNormals.empty();
 		default:
 			return false;
 	}
@@ -82,10 +82,10 @@ bool ObjLoader::hasAttrib( geom::Attrib attr ) const
 bool ObjLoader::canProvideAttrib( geom::Attrib attr ) const
 {
 	switch( attr ) {
-		case geom::Attrib::POSITION: return ! mVertices.empty(); break;
-		case geom::Attrib::COLOR: return ! mColors.empty(); break;
-		case geom::Attrib::TEX_COORD_0: return ! mTexCoords.empty(); break;
-		case geom::Attrib::NORMAL: return (! mVertices.empty() ) || ( ! mNormals.empty() ); // we can derive normals if we have only positions
+		case geom::Attrib::POSITION: return ! mOutputVertices.empty(); break;
+		case geom::Attrib::COLOR: return ! mOutputColors.empty(); break;
+		case geom::Attrib::TEX_COORD_0: return ! mOutputTexCoords.empty(); break;
+		case geom::Attrib::NORMAL: return (! mOutputVertices.empty() ) || ( ! mOutputNormals.empty() ); // we can derive normals if we have only positions
 		default:
 			return false;
 	}
@@ -95,16 +95,16 @@ void ObjLoader::copyAttrib( geom::Attrib attr, uint8_t dimensions, size_t stride
 {
 	switch( attr ) {
 		case geom::Attrib::POSITION:
-			copyData( 3, (const float*)&mVertices[0], mVertices.size(), dimensions, stride, dest );
+			copyData( 3, (const float*)&mOutputVertices[0], mOutputVertices.size(), dimensions, stride, dest );
 		break;
 		case geom::Attrib::COLOR:
-			copyData( 3, (const float*)&mColors[0], std::min( mColors.size(), mVertices.size() ), dimensions, stride, dest );
+			copyData( 3, (const float*)&mOutputColors[0], std::min( mOutputColors.size(), mOutputVertices.size() ), dimensions, stride, dest );
 		break;
 		case geom::Attrib::TEX_COORD_0:
-			copyData( 2, (const float*)&mTexCoords[0], std::min( mTexCoords.size(), mVertices.size() ), dimensions, stride, dest );
+			copyData( 2, (const float*)&mOutputTexCoords[0], std::min( mOutputTexCoords.size(), mOutputVertices.size() ), dimensions, stride, dest );
 		break;
 		case geom::Attrib::NORMAL:
-			copyData( 3, (const float*)&mNormals[0], std::min( mNormals.size(), mVertices.size() ), dimensions, stride, dest );
+			copyData( 3, (const float*)&mOutputNormals[0], std::min( mOutputNormals.size(), mOutputVertices.size() ), dimensions, stride, dest );
 		break;
 		default:
 			throw geom::ExcMissingAttrib();
@@ -192,19 +192,19 @@ void ObjLoader::parse( bool includeUVs )
 		if( tag == "v" ) { // vertex
 			Vec3f v;
 			ss >> v.x >> v.y >> v.z;
-			mVertices.push_back( v );
+			mInternalVertices.push_back( v );
 		}
 		else if( tag == "vt" ) { // vertex texture coordinates
 			if( includeUVs ) {
 				Vec2f tex;
 				ss >> tex.x >> tex.y;
-				mTexCoords.push_back( tex );
+				mInternalTexCoords.push_back( tex );
 			}
 		}
 		else if( tag == "vn" ) { // vertex normals
 			Vec3f v;
 			ss >> v.x >> v.y >> v.z;
-			mNormals.push_back( v.normalized() );
+			mInternalNormals.push_back( v.normalized() );
 		}
 		else if( tag == "f" ) { // face
 			parseFace( currentGroup, currentMaterial, line, includeUVs );
@@ -213,9 +213,9 @@ void ObjLoader::parse( bool includeUVs )
 			if( ! currentGroup->mFaces.empty() )
 				mGroups.push_back( Group() );
 			currentGroup = &mGroups[mGroups.size()-1];
-			currentGroup->mBaseVertexOffset = mVertices.size();
-			currentGroup->mBaseTexCoordOffset = mTexCoords.size();
-			currentGroup->mBaseNormalOffset = mNormals.size();
+			currentGroup->mBaseVertexOffset = mInternalVertices.size();
+			currentGroup->mBaseTexCoordOffset = mInternalTexCoords.size();
+			currentGroup->mBaseNormalOffset = mInternalNormals.size();
 			currentGroup->mName = line.substr( line.find( ' ' ) + 1 );
 		}
         else if( tag == "usemtl") { // material
@@ -341,10 +341,11 @@ void ObjLoader::load( boost::tribool loadNormals, boost::tribool loadTexCoords )
 	else { // determine if any groups have texCoords
 		texCoords = false;
 		for( vector<Group>::const_iterator groupIt = mGroups.begin(); groupIt != mGroups.end(); ++groupIt ) {
-			if( groupIt->mHasTexCoords )
+			if( groupIt->mHasTexCoords ) {
 				texCoords = true;
+				break;
+			}
 		}
-	
 	}
 
 	// sort out if we're loading normals
@@ -353,8 +354,10 @@ void ObjLoader::load( boost::tribool loadNormals, boost::tribool loadTexCoords )
 	else { // determine if any groups have normals
 		normals = false;
 		for( vector<Group>::const_iterator groupIt = mGroups.begin(); groupIt != mGroups.end(); ++groupIt ) {
-			if( groupIt->mHasNormals )
+			if( groupIt->mHasNormals ) {
 				normals = true;
+				break;
+			}
 		}
 	}
 
@@ -401,8 +404,8 @@ void ObjLoader::loadGroupNormalsTextures( const Group &group, map<VertexTriple,i
 			}
 		}
 		if( group.mFaces[f].mNormalIndices.empty() ) { // we'll have to derive it from two edges
-			Vec3f edge1 = mVertices[group.mFaces[f].mVertexIndices[1]] - mVertices[group.mFaces[f].mVertexIndices[0]];
-			Vec3f edge2 = mVertices[group.mFaces[f].mVertexIndices[2]] - mVertices[group.mFaces[f].mVertexIndices[0]];
+			Vec3f edge1 = mInternalVertices[group.mFaces[f].mVertexIndices[1]] - mInternalVertices[group.mFaces[f].mVertexIndices[0]];
+			Vec3f edge2 = mInternalVertices[group.mFaces[f].mVertexIndices[2]] - mInternalVertices[group.mFaces[f].mVertexIndices[0]];
 			inferredNormal = edge1.cross( edge2 ).normalized();
 			forceUnique = true;
 		}
@@ -415,31 +418,31 @@ void ObjLoader::loadGroupNormalsTextures( const Group &group, map<VertexTriple,i
 		for( int v = 0; v < group.mFaces[f].mNumVertices; ++v ) {
 			if( ! forceUnique ) {
 				VertexTriple triple = make_tuple( group.mFaces[f].mVertexIndices[v], group.mFaces[f].mTexCoordIndices[v], group.mFaces[f].mNormalIndices[v] );
-				pair<map<VertexTriple,int>::iterator,bool> result = uniqueVerts.insert( make_pair( triple, mVertices.size() ) );
+				pair<map<VertexTriple,int>::iterator,bool> result = uniqueVerts.insert( make_pair( triple, mOutputVertices.size() ) );
 				if( result.second ) { // we've got a new, unique vertex here, so let's append it
-					mVertices.push_back( mVertices[group.mFaces[f].mVertexIndices[v]] );
-					mNormals.push_back( mNormals[group.mFaces[f].mNormalIndices[v]] );
-					mTexCoords.push_back( mTexCoords[group.mFaces[f].mTexCoordIndices[v]] );
+					mOutputVertices.push_back( mInternalVertices[group.mFaces[f].mVertexIndices[v]] );
+					mOutputNormals.push_back( mInternalNormals[group.mFaces[f].mNormalIndices[v]] );
+					mOutputTexCoords.push_back( mInternalTexCoords[group.mFaces[f].mTexCoordIndices[v]] );
 					if( hasColors )
-						mColors.push_back( rgb );
+						mOutputColors.push_back( rgb );
 				}
 				// the unique ID of the vertex is appended for this vert
 				faceIndices.push_back( result.first->second );
 			}
 			else { // have to force unique because this group lacks either normals or texCoords
-				faceIndices.push_back( mVertices.size() );
+				faceIndices.push_back( mOutputVertices.size() );
 
-				mVertices.push_back( mVertices[group.mFaces[f].mVertexIndices[v]] );
+				mOutputVertices.push_back( mInternalVertices[group.mFaces[f].mVertexIndices[v]] );
 				if( ! group.mHasNormals )
-					mNormals.push_back( inferredNormal );
+					mOutputNormals.push_back( inferredNormal );
 				else
-					mNormals.push_back( mNormals[group.mFaces[f].mNormalIndices[v]] );
+					mOutputNormals.push_back( mInternalNormals[group.mFaces[f].mNormalIndices[v]] );
 				if( ! group.mHasTexCoords )
-					mTexCoords.push_back( Vec2f::zero() );
+					mOutputTexCoords.push_back( Vec2f::zero() );
 				else
-					mTexCoords.push_back( mTexCoords[group.mFaces[f].mTexCoordIndices[v]] );
+					mOutputTexCoords.push_back( mInternalTexCoords[group.mFaces[f].mTexCoordIndices[v]] );
                 if( hasColors )
-                    mColors.push_back( rgb );
+                    mOutputColors.push_back( rgb );
 			}
 		}
 
@@ -471,8 +474,8 @@ void ObjLoader::loadGroupNormals( const Group &group, map<VertexPair,int> &uniqu
 		Vec3f inferredNormal;
 		bool forceUnique = false;
 		if( group.mFaces[f].mNormalIndices.empty() ) { // we'll have to derive it from two edges
-			Vec3f edge1 = mVertices[group.mFaces[f].mVertexIndices[1]] - mVertices[group.mFaces[f].mVertexIndices[0]];
-			Vec3f edge2 = mVertices[group.mFaces[f].mVertexIndices[2]] - mVertices[group.mFaces[f].mVertexIndices[0]];
+			Vec3f edge1 = mInternalVertices[group.mFaces[f].mVertexIndices[1]] - mInternalVertices[group.mFaces[f].mVertexIndices[0]];
+			Vec3f edge2 = mInternalVertices[group.mFaces[f].mVertexIndices[2]] - mInternalVertices[group.mFaces[f].mVertexIndices[0]];
 			inferredNormal = edge1.cross( edge2 ).normalized();
 			forceUnique = true;
 		}
@@ -482,26 +485,26 @@ void ObjLoader::loadGroupNormals( const Group &group, map<VertexPair,int> &uniqu
 		for( int v = 0; v < group.mFaces[f].mNumVertices; ++v ) {
 			if( ! forceUnique ) {
 				VertexPair triple = make_tuple( group.mFaces[f].mVertexIndices[v], group.mFaces[f].mNormalIndices[v] );
-				pair<map<VertexPair,int>::iterator,bool> result = uniqueVerts.insert( make_pair( triple, mVertices.size() ) );
+				pair<map<VertexPair,int>::iterator,bool> result = uniqueVerts.insert( make_pair( triple, mOutputVertices.size() ) );
 				if( result.second ) { // we've got a new, unique vertex here, so let's append it
-					mVertices.push_back( mVertices[group.mFaces[f].mVertexIndices[v]] );
-					mNormals.push_back( mNormals[group.mFaces[f].mNormalIndices[v]] );
+					mOutputVertices.push_back( mInternalVertices[group.mFaces[f].mVertexIndices[v]] );
+					mOutputNormals.push_back( mInternalNormals[group.mFaces[f].mNormalIndices[v]] );
                     if( hasColors )
-                        mColors.push_back( rgb );
+                        mOutputColors.push_back( rgb );
 				}
 				// the unique ID of the vertex is appended for this vert
 				faceIndices.push_back( result.first->second );
 			}
 			else { // have to force unique because this group lacks normals
-				faceIndices.push_back( mVertices.size() );
+				faceIndices.push_back( mOutputVertices.size() );
 
-				mVertices.push_back( mVertices[group.mFaces[f].mVertexIndices[v]] );
+				mOutputVertices.push_back( mInternalVertices[group.mFaces[f].mVertexIndices[v]] );
 				if( ! group.mHasNormals )
-					mNormals.push_back( inferredNormal );
+					mOutputNormals.push_back( inferredNormal );
 				else
-					mNormals.push_back( mNormals[group.mFaces[f].mNormalIndices[v]] );
+					mOutputNormals.push_back( mInternalNormals[group.mFaces[f].mNormalIndices[v]] );
                 if( hasColors )
-                    mColors.push_back( rgb );
+                    mOutputColors.push_back( rgb );
 			}
 		}
 
@@ -539,26 +542,26 @@ void ObjLoader::loadGroupTextures( const Group &group, map<VertexPair,int> &uniq
 		for( int v = 0; v < group.mFaces[f].mNumVertices; ++v ) {
 			if( ! forceUnique ) {
 				VertexPair triple = make_tuple( group.mFaces[f].mVertexIndices[v], group.mFaces[f].mTexCoordIndices[v] );
-				pair<map<VertexPair,int>::iterator,bool> result = uniqueVerts.insert( make_pair( triple, mVertices.size() ) );
+				pair<map<VertexPair,int>::iterator,bool> result = uniqueVerts.insert( make_pair( triple, mOutputVertices.size() ) );
 				if( result.second ) { // we've got a new, unique vertex here, so let's append it
-					mVertices.push_back( mVertices[group.mFaces[f].mVertexIndices[v]] );
-					mTexCoords.push_back( mTexCoords[group.mFaces[f].mTexCoordIndices[v]] );
+					mOutputVertices.push_back( mInternalVertices[group.mFaces[f].mVertexIndices[v]] );
+					mOutputTexCoords.push_back( mInternalTexCoords[group.mFaces[f].mTexCoordIndices[v]] );
                     if( hasColors )
-                        mColors.push_back( rgb );
+                        mOutputColors.push_back( rgb );
 				}
 				// the unique ID of the vertex is appended for this vert
 				faceIndices.push_back( result.first->second );
 			}
 			else { // have to force unique because this group lacks texCoords
-				faceIndices.push_back( mVertices.size() );
+				faceIndices.push_back( mOutputVertices.size() );
 
-				mVertices.push_back( mVertices[group.mFaces[f].mVertexIndices[v]] );
+				mOutputVertices.push_back( mInternalVertices[group.mFaces[f].mVertexIndices[v]] );
 				if( ! group.mHasTexCoords )
-					mTexCoords.push_back( Vec2f::zero() );
+					mOutputTexCoords.push_back( Vec2f::zero() );
 				else
-					mTexCoords.push_back( mTexCoords[group.mFaces[f].mTexCoordIndices[v]] );
+					mOutputTexCoords.push_back( mInternalTexCoords[group.mFaces[f].mTexCoordIndices[v]] );
                 if( hasColors )
-                    mColors.push_back( rgb );
+                    mOutputColors.push_back( rgb );
 			}
 		}
 
@@ -590,11 +593,11 @@ void ObjLoader::loadGroup( const Group &group, map<int,int> &uniqueVerts )
 		vector<int> faceIndices;
 		faceIndices.reserve( group.mFaces[f].mNumVertices );
 		for( int v = 0; v < group.mFaces[f].mNumVertices; ++v ) {
-			pair<map<int,int>::iterator,bool> result = uniqueVerts.insert( make_pair( group.mFaces[f].mVertexIndices[v], mVertices.size() ) );
+			pair<map<int,int>::iterator,bool> result = uniqueVerts.insert( make_pair( group.mFaces[f].mVertexIndices[v], mOutputVertices.size() ) );
 			if( result.second ) { // we've got a new, unique vertex here, so let's append it
-				mVertices.push_back( mVertices[group.mFaces[f].mVertexIndices[v]] );
+				mOutputVertices.push_back( mInternalVertices[group.mFaces[f].mVertexIndices[v]] );
                 if( hasColors )
-                    mColors.push_back( rgb );
+                    mOutputColors.push_back( rgb );
 			}
 			// the unique ID of the vertex is appended for this vert
 			faceIndices.push_back( result.first->second );

@@ -116,7 +116,7 @@ class ObjLoader : public geom::Source {
 	//! Returns a vector<> of the Groups in the OBJ.
 	const std::vector<Group>&		getGroups() const { return mGroups; }
 
-	virtual size_t			getNumVertices() const override { return mVertices.size(); }
+	virtual size_t			getNumVertices() const override { return mOutputVertices.size(); }
 	virtual geom::Primitive	getPrimitive() const override { return geom::Primitive::TRIANGLES; }
 	
 	virtual bool		hasAttrib( geom::Attrib attr ) const override;
@@ -141,12 +141,17 @@ class ObjLoader : public geom::Source {
 	void	loadGroupTextures( const Group &group, std::map<boost::tuple<int,int>,int> &uniqueVerts );
 	void	loadGroup( const Group &group, std::map<int,int> &uniqueVerts );	
  
-	std::shared_ptr<IStreamCinder>        mStream;
-	std::vector<Vec3f>			    mVertices, mNormals;
-	std::vector<Vec2f>			    mTexCoords;
+	std::shared_ptr<IStreamCinder>	mStream;
+
+	std::vector<Vec3f>			    mInternalVertices, mInternalNormals;
+	std::vector<Vec2f>			    mInternalTexCoords;
+	std::vector<Colorf>				mInternalColors;
+	std::vector<Vec3f>			    mOutputVertices, mOutputNormals;
+	std::vector<Vec2f>			    mOutputTexCoords;
+	std::vector<Colorf>				mOutputColors;
+
 	std::vector<Group>			    mGroups;
 	std::vector<uint32_t>			mIndices;
-	std::vector<Colorf>				mColors;
 	std::map<std::string, Material> mMaterials;
 };
 
