@@ -18,6 +18,8 @@
 #if defined ANT_OSX
 #   include <OpenGL/gl3.h>
 #   define ANT_OGL_HEADER_INCLUDED
+#else
+#	include <gl/GL.h>
 #endif
 #include "LoadOGLCore.h"
 #include "TwOpenGLCore.h"
@@ -39,7 +41,7 @@ extern const char *g_ErrCantUnloadOGL;
         {
             sprintf(msg, "%s(%d) : [%s] GL_CORE_ERROR=0x%x\n", file, line, func, err);
             #ifdef ANT_WINDOWS
-                OutputDebugString(msg);
+                OutputDebugStringA(msg);
             #endif
             fprintf(stderr, msg);
         }
@@ -98,9 +100,9 @@ static GLuint CompileShader(GLuint shader)
         GLchar strInfoLog[256];
         _glGetShaderInfoLog(shader, sizeof(strInfoLog), NULL, strInfoLog); CHECK_GL_ERROR;
 #ifdef ANT_WINDOWS
-        OutputDebugString("Compile failure: ");
-        OutputDebugString(strInfoLog);
-        OutputDebugString("\n");
+        OutputDebugStringA("Compile failure: ");
+        OutputDebugStringA(strInfoLog);
+        OutputDebugStringA("\n");
 #endif
         fprintf(stderr, "Compile failure: %s\n", strInfoLog);
         shader = 0;
@@ -123,9 +125,9 @@ static GLuint LinkProgram(GLuint program)
         GLchar strInfoLog[256];
         _glGetProgramInfoLog(program, sizeof(strInfoLog), NULL, strInfoLog); CHECK_GL_ERROR;
 #ifdef ANT_WINDOWS
-        OutputDebugString("Linker failure: ");
-        OutputDebugString(strInfoLog);
-        OutputDebugString("\n");
+        OutputDebugStringA("Linker failure: ");
+        OutputDebugStringA(strInfoLog);
+        OutputDebugStringA("\n");
 #endif
         fprintf(stderr, "Linker failure: %s\n", strInfoLog);
         program = 0;
