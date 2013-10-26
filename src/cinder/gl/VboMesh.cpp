@@ -71,7 +71,7 @@ VaoRef VboMesh::buildVao( const GlslProgRef &shader )
 	
 	auto ctx = gl::context();
 	
-	// iterate all the vertex array VBOs
+	// iterate all the vertex array VBOs; map<geom::BufferLayout,VboRef>
 	for( const auto &vertArrayVbo : mVertexArrayVbos ) {
 		// bind this VBO (to the current VAO)
 		vertArrayVbo.second->bind();
