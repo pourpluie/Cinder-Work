@@ -158,6 +158,12 @@ void Batch::draw()
 		ctx->drawArrays( mPrimitive, 0, mNumVertices );
 }
 
+void Batch::bind()
+{
+	mGlsl->bind();
+	mVao->bind();
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // VertBatch
 VertBatch::VertBatch( GLenum primType )

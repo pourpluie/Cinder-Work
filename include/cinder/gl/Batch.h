@@ -40,8 +40,20 @@ class Batch {
 	static BatchRef		create( const geom::SourceRef &sourceRef, const gl::GlslProgRef &glsl );
 	
 	void			draw();
+	void			bind();
 
-	const GlslProgRef&	getGlslProgRef() const		{ return mGlsl; }
+	//! Returns OpenGL primitive type (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc)
+	GLenum			getPrimitive() const { return mPrimitive; }
+	//! Returns the total number of vertices in the associated geometry
+	size_t			getNumVertices() const { return mNumVertices; }
+	//! Returns the number of element indices in the associated geometry; 0 for non-indexed geometry
+	size_t			getNumIndices() const { return mNumIndices; }
+	//! Returns the data type for indices; GL_UNSIGNED_INT or GL_UNSIGNED_SHORT
+	GLenum			getIndexDataType() const { return mIndexType; }
+	//! Returns the shader associated with the Batch
+	const GlslProgRef&	getGlslProg() const	{ return mGlsl; }
+	//! Returns the VAO mapping the Batch's geometry to its shader
+	const VaoRef&		getVao() const { return mVao; }
 
   protected:
 	Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl );
