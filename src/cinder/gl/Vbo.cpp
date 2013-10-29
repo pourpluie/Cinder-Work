@@ -7,9 +7,9 @@ VboRef Vbo::create( GLenum target )
 	return VboRef( new Vbo( target ) );
 }
 
-VboRef Vbo::create( GLenum target, GLsizeiptr allocationSize, const void *data )
+VboRef Vbo::create( GLenum target, GLsizeiptr allocationSize, const void *data, GLenum usage )
 {
-	return VboRef( new Vbo( target, allocationSize, data ) );
+	return VboRef( new Vbo( target, allocationSize, data, usage ) );
 }
 	
 Vbo::Vbo( GLenum target )
@@ -17,8 +17,8 @@ Vbo::Vbo( GLenum target )
 {
 }
 
-Vbo::Vbo( GLenum target, GLsizeiptr allocationSize, const void *data )
-	: BufferObj( target, allocationSize, data )
+Vbo::Vbo( GLenum target, GLsizeiptr allocationSize, const void *data, GLenum usage )
+	: BufferObj( target, allocationSize, data, usage )
 {
 }
 

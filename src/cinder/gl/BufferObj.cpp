@@ -10,13 +10,13 @@ BufferObj::BufferObj( GLenum target )
 	glGenBuffers( 1, &mId );
 }
 
-BufferObj::BufferObj( GLenum target, GLsizeiptr allocationSize, const void *data )
+BufferObj::BufferObj( GLenum target, GLsizeiptr allocationSize, const void *data, GLenum usage )
 	: mId( 0 ), mTarget( target ), mSize( allocationSize )
 {
 	glGenBuffers( 1, &mId );
 	if( allocationSize > 0 ) {
 		BufferScope bufferBind( mTarget, mId );
-		glBufferData( mTarget, allocationSize, data, GL_STATIC_DRAW );
+		glBufferData( mTarget, allocationSize, data, usage );
 	}
 }
 
