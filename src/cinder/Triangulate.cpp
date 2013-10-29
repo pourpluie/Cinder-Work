@@ -100,7 +100,7 @@ void Triangulator::addPolyLine( const PolyLine2f &polyLine )
 
 TriMesh Triangulator::calcMesh( Winding winding )
 {
-	TriMesh result( TriMesh::Format().vertices( 2 ) );
+	TriMesh result( TriMesh::Format().positions( 2 ) );
 	
 	tessTesselate( mTess.get(), (int)winding, TESS_POLYGONS, 3, 2, 0 );
 	result.appendVertices( (Vec2f*)tessGetVertices( mTess.get() ), tessGetVertexCount( mTess.get() ) );

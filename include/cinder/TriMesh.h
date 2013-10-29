@@ -40,12 +40,12 @@ class TriMesh : public geom::Source {
  public:
 	class Format {
 	  public:
-		Format&		vertices( uint8_t dims = 3 ) { mVerticesDims = dims; return *this; }
+		Format&		positions( uint8_t dims = 3 ) { mPositionsDims = dims; return *this; }
 		Format&		normals() { mNormalsDims = 3; return *this; }
 		Format&		colors( uint8_t dims = 3 ) { mColorsDims = dims; return *this; }
 		Format&		texCoords( uint8_t dims = 2 ) { mTexCoords0Dims = dims; return *this; }
 		
-		uint8_t		mVerticesDims, mNormalsDims, mColorsDims;
+		uint8_t		mPositionsDims, mNormalsDims, mColorsDims;
 		uint8_t		mTexCoords0Dims;
 	};
 
@@ -104,7 +104,7 @@ class TriMesh : public geom::Source {
 	//! Returns the total number of triangles contained by a TriMesh.
 	size_t		getNumTriangles() const { return mIndices.size() / 3; }
 	//! Returns the total number of indices contained by a TriMesh.
-	virtual size_t	getNumVertices() const override { if( mVerticesDims ) return mVertices.size() / mVerticesDims; else return 0; }
+	virtual size_t	getNumVertices() const override { if( mPositionsDims ) return mPositions.size() / mPositionsDims; else return 0; }
 
 	//! Puts the 3 vertices of triangle number \a idx into \a a, \a b and \a c. Assumes vertices are 3D
 	void		getTriangleVertices( size_t idx, Vec3f *a, Vec3f *b, Vec3f *c ) const;
@@ -114,10 +114,10 @@ class TriMesh : public geom::Source {
 
 	//! Returns all the vertices for a mesh in a std::vector as Vec<DIM>f. For example, to get 3D vertices, call getVertices<3>().
 	template<uint8_t DIM>
-	const typename VECDIM<DIM,float>::TYPE*	getVertices() const { assert(mVerticesDims==DIM); return (typename VECDIM<DIM,float>::TYPE*)mVertices.data(); }
+	const typename VECDIM<DIM,float>::TYPE*	getVertices() const { assert(mPositionsDims==DIM); return (typename VECDIM<DIM,float>::TYPE*)mPositions.data(); }
 	//! Returns all the vertices for a mesh in a std::vector as Vec<DIM>f. For example, to get 3D vertices, call getVertices<3>().
 	template<uint8_t DIM>
-	typename VECDIM<DIM,float>::TYPE*		getVertices() { assert(mVerticesDims==DIM); return (typename VECDIM<DIM,float>::TYPE*)mVertices.data(); }
+	typename VECDIM<DIM,float>::TYPE*		getVertices() { assert(mPositionsDims==DIM); return (typename VECDIM<DIM,float>::TYPE*)mPositions.data(); }
 	//! Returns all the normals for a mesh in a std::vector as Vec3f objects. There will be one of these for each triangle face in the mesh
 	std::vector<Vec3f>&				getNormals() { return mNormals; }
 	//! Returns all the normals for a mesh in a std::vector as Vec3f objects. There will be one of these for each triangle face in the mesh
@@ -181,10 +181,10 @@ class TriMesh : public geom::Source {
 	
 
   private:
-	uint8_t		mVerticesDims, mNormalsDims, mColorsDims;
+	uint8_t		mPositionsDims, mNormalsDims, mColorsDims;
 	uint8_t		mTexCoords0Dims;
   
-	std::vector<float>		mVertices;
+	std::vector<float>		mPositions;
 	std::vector<float>		mColors;
 	std::vector<Vec3f>		mNormals; // always dim=3
 	std::vector<float>		mTexCoords0;
