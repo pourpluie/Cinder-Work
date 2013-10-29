@@ -43,24 +43,50 @@ typedef std::shared_ptr<class GlslProg> GlslProgRef;
 class GlslProg : public std::enable_shared_from_this<GlslProg> {
   public:
 	struct Format {
+		//! Defaults to specifying location 0 for the \c geom::Attrib::POSITION semantic
 		Format();
 		
+		//! Supplies the GLSL source for the vertex shader
 		Format&		vertex( const DataSourceRef &dataSource );
+		//! Supplies the GLSL source for the vertex shader
 		Format&		vertex( const char *vertexShader );
+		//! Supplies the GLSL source for the fragment shader
 		Format&		fragment( const DataSourceRef &dataSource );
+		//! Supplies the GLSL source for the fragment shader
 		Format&		fragment( const char *vertexShader );
 		
-		Format&		attribLocation( const std::string &attribName, GLint location );
-
-		const char *	getVertex() const { return mVertexShader.get(); }		
-		const char *	getFragment() const { return mFragmentShader.get(); }
+		//! Specifies an attribute name to map to a specific semantic
+		Format&		attrib( geom::Attrib semantic, const std::string &attribName );
+		//! Specifies a uniform name to map to a specific semantic
+		Format&		uniform( UniformSemantic semantic, const std::string &attribName );
 		
-		const std::map<std::string,GLint>&	getAttribLocations() const { return mAttribLocMap; }
+		//! Specifies a location for a specific named attribute
+		Format&		attribLocation( const std::string &attribName, GLint location );
+		//! Specifies a location for a semantic
+		Format&		attribLocation( geom::Attrib attr, GLint location );
+
+		//! Returns the GLSL source for the fragment shader
+		const char*	getVertex() const { return mVertexShader.get(); }		
+		//! Returns the GLSL source for the vertex shader
+		const char*	getFragment() const { return mFragmentShader.get(); }
+
+		//! Returns the map between uniform semantics and uniform names
+		const std::map<std::string,UniformSemantic>&	getUniformSemantics() const { return mUniformSemanticMap; }
+		//! Returns the map between attribute semantics and attribute names
+		const std::map<std::string,geom::Attrib>&		getAttribSemantics() const { return mAttribSemanticMap; }
+		
+		//! Returns the map between attribute names and specified locations
+		const std::map<std::string,GLint>&	getAttribNameLocations() const { return mAttribNameLocMap; }
+		//! Returns the map between attribute semantics and specified locations
+		const std::map<geom::Attrib,GLint>&	getAttribSemanticLocations() const { return mAttribSemanticLocMap; }
 		
 	  protected:
-		std::shared_ptr<char>			mVertexShader;
-		std::shared_ptr<char>			mFragmentShader;
-		std::map<std::string,GLint>		mAttribLocMap;
+		std::shared_ptr<char>					mVertexShader;
+		std::shared_ptr<char>					mFragmentShader;
+		std::map<std::string,GLint>				mAttribNameLocMap;
+		std::map<geom::Attrib,GLint>			mAttribSemanticLocMap;
+		std::map<std::string,UniformSemantic>	mUniformSemanticMap;
+		std::map<std::string,geom::Attrib>		mAttribSemanticMap;
 	};
   
 	typedef std::map<std::string,UniformSemantic>	UniformSemanticMap;
@@ -119,7 +145,9 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	//! Returns a std::map from the attribute name to its OpenGL type (GL_BOOL, GL_FLOAT_VEC3, etc)
 	const std::map<std::string,GLenum>&		getActiveAttribTypes() const;
 
+	//! Returns the map between uniform semantics and uniform names
 	const UniformSemanticMap&		getUniformSemantics() const;
+	//! Returns the map between attribute semantics and attribute names
 	const AttribSemanticMap&		getAttribSemantics() const;
 	
 	bool	hasAttribSemantic( geom::Attrib semantic ) const;

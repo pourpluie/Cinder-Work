@@ -34,6 +34,7 @@ GlslProg::AttribSemanticMap		GlslProg::sDefaultAttribNameToSemanticMap;
 // GlslProg::Format
 GlslProg::Format::Format()
 {
+	mAttribSemanticLocMap[geom::Attrib::POSITION] = 0;
 }
 
 GlslProg::Format& GlslProg::Format::vertex( const DataSourceRef &dataSource )
@@ -70,9 +71,27 @@ GlslProg::Format& GlslProg::Format::fragment( const char *fragmentShader )
 	return *this;
 }
 
-GlslProg::Format&	GlslProg::Format::attribLocation( const std::string &attribName, GLint location )
+GlslProg::Format& GlslProg::Format::attrib( geom::Attrib semantic, const std::string &attribName )
 {
-	mAttribLocMap[attribName] = location;
+	mAttribSemanticMap[attribName] = semantic;
+	return *this;
+}
+
+GlslProg::Format& GlslProg::Format::uniform( UniformSemantic semantic, const std::string &attribName )
+{
+	mUniformSemanticMap[attribName] = semantic;
+	return *this;
+}
+
+GlslProg::Format& GlslProg::Format::attribLocation( const std::string &attribName, GLint location )
+{
+	mAttribNameLocMap[attribName] = location;
+	return *this;
+}
+
+GlslProg::Format& GlslProg::Format::attribLocation( geom::Attrib attrib, GLint location )
+{
+	mAttribSemanticLocMap[attrib] = location;
 	return *this;
 }
 
@@ -115,9 +134,38 @@ GlslProg::GlslProg( const Format &format )
 		loadShader( format.getVertex(), GL_VERTEX_SHADER );
 	if( format.getFragment() )
 		loadShader( format.getFragment(), GL_FRAGMENT_SHADER );
+
+	// copy the Format's attribute-semantic map
+	for( auto &attribSemantic : format.getAttribSemantics() )
+		mAttribNameToSemanticMap.insert( attribSemantic );
+
+	// copy the Format's uniform-semantic map
+	for( auto &uniformSemantic : format.getUniformSemantics() )
+		mUniformNameToSemanticMap.insert( uniformSemantic );
+
+	// THESE sections take all attribute locations which have been specified (either by their semantic or their names)
+	// and ultimately maps them via glBindAttribLocation, which must be done ahead of linking
+	auto attribLocations = format.getAttribNameLocations();
 	
-	for( auto attribIt = format.getAttribLocations().begin(); attribIt != format.getAttribLocations().end(); ++attribIt )
-		glBindAttribLocation( mHandle, attribIt->second, attribIt->first.c_str() );
+	// map the locations-specified semantics to their respective attribute name locations
+	for( auto &semanticLoc : format.getAttribSemanticLocations() ) {
+		string attribName;
+		// first find if we have an attribute associated with a given semantic
+		for( auto &attribSemantic : mAttribNameToSemanticMap ) {
+			if( attribSemantic.second == semanticLoc.first ) {
+				attribName = attribSemantic.first;
+				break;
+			}
+		}
+		
+		// if we found an appropriate attribute-semantic pair, set attribLocations[attrib name] to be the semantic location
+		if( ! attribName.empty() )
+			attribLocations[attribName] = semanticLoc.second;
+	}
+	
+	// finally, bind all location-specified attributes to their respective locations
+	for( auto &attribLoc : attribLocations )
+		glBindAttribLocation( mHandle, attribLoc.second, attribLoc.first.c_str() );
 	
 	link();
 }
