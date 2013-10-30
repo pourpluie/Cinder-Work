@@ -320,6 +320,7 @@ struct FramebufferScope : public boost::noncopyable
 
 struct ActiveTextureScope : public boost::noncopyable
 {
+	//! Sets the currently active texture through glActiveTexture. Expects a \a textureUnit like \c GL_TEXTURE0
 	ActiveTextureScope( GLenum textureUnit )
 		: mCtx( gl::context() )
 	{
@@ -339,11 +340,11 @@ struct ActiveTextureScope : public boost::noncopyable
 
 struct TextureBindScope : public boost::noncopyable
 {
-	TextureBindScope( GLenum target, GLuint texture )
+	TextureBindScope( GLenum target, GLuint textureId )
 		: mCtx( gl::context() ), mTarget( target )
 	{
 		mPrevValue = mCtx->getTextureBinding( mTarget );
-		mCtx->bindTexture( mTarget, texture );
+		mCtx->bindTexture( mTarget, textureId );
 	}
 
 	TextureBindScope( const TextureRef &texture )

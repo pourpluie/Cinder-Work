@@ -40,7 +40,7 @@ namespace cinder { namespace gl {
 
 Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	: mPlatformData( platformData ),
-	mColor( ColorAf::white() ), mCachedActiveTexture( 0 )
+	mColor( ColorAf::white() ), mCachedActiveTexture( GL_TEXTURE0 )
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	,mCachedFramebuffer( -1 )
 #else
