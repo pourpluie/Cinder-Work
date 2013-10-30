@@ -39,35 +39,55 @@ GlslProg::Format::Format()
 
 GlslProg::Format& GlslProg::Format::vertex( const DataSourceRef &dataSource )
 {
-	Buffer buffer( dataSource );
-	mVertexShader = std::shared_ptr<char>( (char*)malloc( buffer.getDataSize() + 1 ), free );
-	memcpy( mVertexShader.get(), buffer.getData(), buffer.getDataSize() );
-	mVertexShader.get()[buffer.getDataSize()] = 0;
+	if( dataSource ) {
+		Buffer buffer( dataSource );
+		mVertexShader = std::unique_ptr<char>( new char[buffer.getDataSize() + 1] );
+		memcpy( mVertexShader.get(), buffer.getData(), buffer.getDataSize() );
+		mVertexShader.get()[buffer.getDataSize()] = 0;
+	}
+	else
+		mVertexShader.reset();
+
 	return *this;
 }
 
 GlslProg::Format& GlslProg::Format::vertex( const char *vertexShader )
 {
-	const size_t stringSize = strlen( vertexShader );
-	mVertexShader = std::shared_ptr<char>( (char*)malloc( stringSize + 1 ), free );
-	strcpy( mVertexShader.get(), vertexShader );
+	if( vertexShader ) {
+		const size_t stringSize = strlen( vertexShader );
+		mVertexShader = std::unique_ptr<char>( new char[stringSize + 1] );
+		strcpy( mVertexShader.get(), vertexShader );
+	}
+	else
+		mVertexShader.reset();
+
 	return *this;
 }
 
 GlslProg::Format& GlslProg::Format::fragment( const DataSourceRef &dataSource )
 {
-	Buffer buffer( dataSource );
-	mFragmentShader = std::shared_ptr<char>( (char*)malloc( buffer.getDataSize() + 1 ), free );
-	memcpy( mFragmentShader.get(), buffer.getData(), buffer.getDataSize() );
-	mFragmentShader.get()[buffer.getDataSize()] = 0;
+	if( dataSource ) {
+		Buffer buffer( dataSource );
+		mFragmentShader = std::unique_ptr<char>( new char[buffer.getDataSize() + 1] );
+		memcpy( mFragmentShader.get(), buffer.getData(), buffer.getDataSize() );
+		mFragmentShader.get()[buffer.getDataSize()] = 0;
+	}
+	else
+		mFragmentShader.reset();
+		
 	return *this;
 }
 
 GlslProg::Format& GlslProg::Format::fragment( const char *fragmentShader )
 {
-	const size_t stringSize = strlen( fragmentShader );
-	mFragmentShader = std::shared_ptr<char>( (char*)malloc( stringSize + 1 ), free );
-	strcpy( mFragmentShader.get(), fragmentShader );
+	if( fragmentShader ) {
+		const size_t stringSize = strlen( fragmentShader );
+		mFragmentShader = std::unique_ptr<char>( new char[stringSize + 1] );
+		strcpy( mFragmentShader.get(), fragmentShader );
+	}
+	else
+		mFragmentShader.reset();
+
 	return *this;
 }
 

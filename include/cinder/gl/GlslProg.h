@@ -81,8 +81,8 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		const std::map<geom::Attrib,GLint>&	getAttribSemanticLocations() const { return mAttribSemanticLocMap; }
 		
 	  protected:
-		std::shared_ptr<char>					mVertexShader;
-		std::shared_ptr<char>					mFragmentShader;
+		std::unique_ptr<char>					mVertexShader;
+		std::unique_ptr<char>					mFragmentShader;
 		std::map<std::string,GLint>				mAttribNameLocMap;
 		std::map<geom::Attrib,GLint>			mAttribSemanticLocMap;
 		std::map<std::string,UniformSemantic>	mUniformSemanticMap;
