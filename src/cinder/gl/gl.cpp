@@ -86,9 +86,35 @@ std::pair<GLint,GLint> getVersion()
 #if defined( CINDER_GLES )
 	return std::make_pair( (GLint)2, (GLint)0 );
 #else
-	GLint major, minor;
-	glGetIntegerv( GL_MAJOR_VERSION, &major );
-	glGetIntegerv( GL_MINOR_VERSION, &minor );
+	// adapted from LoadOGL
+	const char *strVersion = reinterpret_cast<const char*>( glGetString( GL_VERSION ) );
+	GLint major = 0, minor = 0;
+	const char *strDotPos = NULL;
+	int iLength = 0;
+	char strWorkBuff[10];
+
+	strDotPos = strchr( strVersion, '.' );
+	if( ! strDotPos )
+		return std::make_pair( 0, 0 );
+
+	iLength = (int)((ptrdiff_t)strDotPos - (ptrdiff_t)strVersion);
+	strncpy(strWorkBuff, strVersion, iLength);
+	strWorkBuff[iLength] = '\0';
+
+	major = atoi(strWorkBuff);
+	strDotPos = strchr( strVersion + iLength + 1, ' ' );
+	if( ! strDotPos ) { // No extra data. Take the whole rest of the string.
+		strcpy( strWorkBuff, strVersion + iLength + 1 );
+	}
+	else {
+		// Copy only up until the space.
+		int iLengthMinor = (int)((ptrdiff_t)strDotPos - (ptrdiff_t)strVersion); 
+		iLengthMinor = iLengthMinor - (iLength + 1);
+		strncpy( strWorkBuff, strVersion + iLength + 1, iLengthMinor );
+		strWorkBuff[iLengthMinor] = '\0';
+	}
+
+	minor = atoi( strWorkBuff );
 
 	return std::make_pair( major, minor );
 #endif
