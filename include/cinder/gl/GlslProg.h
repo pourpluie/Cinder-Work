@@ -54,6 +54,12 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		Format&		fragment( const DataSourceRef &dataSource );
 		//! Supplies the GLSL source for the fragment shader
 		Format&		fragment( const char *vertexShader );
+#if ! defined( CINDER_GLES )
+		//! Supplies the GLSL source for the geometry shader
+		Format&		geometry( const DataSourceRef &dataSource );
+		//! Supplies the GLSL source for the geometry shader
+		Format&		geometry( const char *geometryShader );
+#endif
 		
 		//! Specifies an attribute name to map to a specific semantic
 		Format&		attrib( geom::Attrib semantic, const std::string &attribName );
@@ -69,6 +75,10 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		const char*	getVertex() const { return mVertexShader.get(); }		
 		//! Returns the GLSL source for the vertex shader
 		const char*	getFragment() const { return mFragmentShader.get(); }
+#if ! defined( CINDER_GLES )
+		//! Returns the GLSL source for the geometry shader
+		const char*	getGeometry() const { return mGeometryShader.get(); }
+#endif
 
 		//! Returns the map between uniform semantics and uniform names
 		const std::map<std::string,UniformSemantic>&	getUniformSemantics() const { return mUniformSemanticMap; }
@@ -83,6 +93,9 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	  protected:
 		std::unique_ptr<char>					mVertexShader;
 		std::unique_ptr<char>					mFragmentShader;
+#if ! defined( CINDER_GLES )
+		std::unique_ptr<char>					mGeometryShader;
+#endif
 		std::map<std::string,GLint>				mAttribNameLocMap;
 		std::map<geom::Attrib,GLint>			mAttribSemanticLocMap;
 		std::map<std::string,UniformSemantic>	mUniformSemanticMap;

@@ -91,6 +91,35 @@ GlslProg::Format& GlslProg::Format::fragment( const char *fragmentShader )
 	return *this;
 }
 
+#if ! defined( CINDER_GLES )
+GlslProg::Format& GlslProg::Format::geometry( const DataSourceRef &dataSource )
+{
+	if( dataSource ) {
+		Buffer buffer( dataSource );
+		mGeometryShader = std::unique_ptr<char>( new char[buffer.getDataSize() + 1] );
+		memcpy( mGeometryShader.get(), buffer.getData(), buffer.getDataSize() );
+		mGeometryShader.get()[buffer.getDataSize()] = 0;
+	}
+	else
+		mGeometryShader.reset();
+		
+	return *this;
+}
+
+GlslProg::Format& GlslProg::Format::geometry( const char *geometryShader )
+{
+	if( geometryShader ) {
+		const size_t stringSize = strlen( geometryShader );
+		mGeometryShader = std::unique_ptr<char>( new char[stringSize + 1] );
+		strcpy( mGeometryShader.get(), geometryShader );
+	}
+	else
+		mGeometryShader.reset();
+
+	return *this;
+}
+#endif // ! defined( CINDER_GLES )
+
 GlslProg::Format& GlslProg::Format::attrib( geom::Attrib semantic, const std::string &attribName )
 {
 	mAttribSemanticMap[attribName] = semantic;
@@ -154,6 +183,10 @@ GlslProg::GlslProg( const Format &format )
 		loadShader( format.getVertex(), GL_VERTEX_SHADER );
 	if( format.getFragment() )
 		loadShader( format.getFragment(), GL_FRAGMENT_SHADER );
+#if ! defined( CINDER_GLES )
+	if( format.getGeometry() )
+		loadShader( format.getGeometry(), GL_GEOMETRY_SHADER );
+#endif
 
 	// copy the Format's attribute-semantic map
 	for( auto &attribSemantic : format.getAttribSemantics() )
