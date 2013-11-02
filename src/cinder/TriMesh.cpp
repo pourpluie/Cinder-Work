@@ -138,7 +138,7 @@ AxisAlignedBox3f TriMesh::calcBoundingBox() const
 		return AxisAlignedBox3f( Vec3f::zero(), Vec3f::zero() );
 
 	Vec3f min(*(const Vec3f*)(&mPositions[0])), max(*(const Vec3f*)(&mPositions[0]));
-	for( size_t i = 1; i < mPositions.size(); ++i ) {
+	for( size_t i = 1; i < mPositions.size() / 3; ++i ) {
 		const Vec3f &v = *(const Vec3f*)(&mPositions[i*3]);
 		if( v.x < min.x )
 			min.x = v.x;
@@ -159,12 +159,13 @@ AxisAlignedBox3f TriMesh::calcBoundingBox() const
 
 AxisAlignedBox3f TriMesh::calcBoundingBox( const Matrix44f &transform ) const
 {
+	assert( mPositionsDims == 3 );
 	if( mPositions.empty() )
 		return AxisAlignedBox3f( Vec3f::zero(), Vec3f::zero() );
 
 	Vec3f min( transform.transformPointAffine( *(const Vec3f*)(&mPositions[0]) ) );
 	Vec3f max( min );
-	for( size_t i = 0; i < mPositions.size(); ++i ) {
+	for( size_t i = 0; i < mPositions.size() / 3; ++i ) {
 		Vec3f v = transform.transformPointAffine( *(const Vec3f*)(&mPositions[i*3]) );
 
 		if( v.x < min.x )
