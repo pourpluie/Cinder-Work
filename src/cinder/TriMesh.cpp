@@ -261,7 +261,7 @@ void TriMesh::write( DataTargetRef dataTarget ) const
 void TriMesh::recalculateNormals()
 {
 	assert( mPositionsDims == 3 );
-	mNormals.assign( mPositions.size(), Vec3f::zero() );
+	mNormals.assign( mPositions.size() / 3, Vec3f::zero() );
 
 	size_t n = getNumTriangles();
 	for( size_t i = 0; i < n; ++i ) {
