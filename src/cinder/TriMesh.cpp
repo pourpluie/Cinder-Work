@@ -16,7 +16,8 @@ TriMesh::TriMesh( const TriMesh::Format &format )
 
 TriMesh::TriMesh( const geom::Source &source )
 {
-	mPositionsDims = mNormalsDims = mColorsDims = mTexCoords0Dims = 0;
+	mPositionsDims = mNormalsDims = mColorsDims = 0;
+	mTexCoords0Dims = mTexCoords1Dims = mTexCoords2Dims = mTexCoords3Dims = 0;
 
 	size_t numVertices = source.getNumVertices();
 	
@@ -41,12 +42,34 @@ TriMesh::TriMesh( const geom::Source &source )
 		source.copyAttrib( geom::Attrib::COLOR, mColorsDims, 0, (float*)mColors.data() );
 	}
 
-	// tex coords
+	// tex coords 0
 	if( source.hasAttrib( geom::Attrib::TEX_COORD_0 ) ) {
 		mTexCoords0Dims = source.getAttribDims( geom::Attrib::TEX_COORD_0 );
 		mTexCoords0.resize( mTexCoords0Dims * numVertices );
 		source.copyAttrib( geom::Attrib::TEX_COORD_0, mTexCoords0Dims, 0, (float*)mTexCoords0.data() );
 	}
+
+	// tex coords 1
+	if( source.hasAttrib( geom::Attrib::TEX_COORD_1 ) ) {
+		mTexCoords1Dims = source.getAttribDims( geom::Attrib::TEX_COORD_1 );
+		mTexCoords1.resize( mTexCoords1Dims * numVertices );
+		source.copyAttrib( geom::Attrib::TEX_COORD_1, mTexCoords1Dims, 0, (float*)mTexCoords1.data() );
+	}
+
+	// tex coords 2
+	if( source.hasAttrib( geom::Attrib::TEX_COORD_2 ) ) {
+		mTexCoords2Dims = source.getAttribDims( geom::Attrib::TEX_COORD_2 );
+		mTexCoords2.resize( mTexCoords2Dims * numVertices );
+		source.copyAttrib( geom::Attrib::TEX_COORD_2, mTexCoords2Dims, 0, (float*)mTexCoords2.data() );
+	}
+
+	// tex coords 3
+	if( source.hasAttrib( geom::Attrib::TEX_COORD_3 ) ) {
+		mTexCoords3Dims = source.getAttribDims( geom::Attrib::TEX_COORD_3 );
+		mTexCoords3.resize( mTexCoords3Dims * numVertices );
+		source.copyAttrib( geom::Attrib::TEX_COORD_3, mTexCoords3Dims, 0, (float*)mTexCoords3.data() );
+	}
+
 
 	size_t numIndices = source.getNumIndices();
 	if( source.getPrimitive() != geom::Primitive::TRIANGLES ) {
@@ -65,6 +88,9 @@ void TriMesh::clear()
 	mNormals.clear();
 	mColors.clear();
 	mTexCoords0.clear();
+	mTexCoords1.clear();
+	mTexCoords2.clear();
+	mTexCoords3.clear();			
 	mIndices.clear();
 }
 
@@ -109,11 +135,86 @@ void TriMesh::appendColors( const ColorA *rgbas, size_t num )
 	mColors.insert( mColors.end(), (const float*)rgbas, (const float*)rgbas + num * 4 );
 }
 
-void TriMesh::appendTexCoords( const Vec2f *texCoords, size_t num )
+///////////////////////////////////////////////////////////////////////////////////////////
+// appendTexCoords*( Vec2f )
+
+void TriMesh::appendTexCoords0( const Vec2f *texCoords, size_t num )
 {
 	assert( mTexCoords0Dims == 2 );
-	mColors.insert( mTexCoords0.end(), (const float*)texCoords, (const float*)texCoords + num * 2 );
+	mTexCoords0.insert( mTexCoords0.end(), (const float*)texCoords, (const float*)texCoords + num * 2 );
 }
+
+void TriMesh::appendTexCoords1( const Vec2f *texCoords, size_t num )
+{
+	assert( mTexCoords1Dims == 2 );
+	mTexCoords1.insert( mTexCoords1.end(), (const float*)texCoords, (const float*)texCoords + num * 2 );
+}
+
+void TriMesh::appendTexCoords2( const Vec2f *texCoords, size_t num )
+{
+	assert( mTexCoords2Dims == 2 );
+	mTexCoords2.insert( mTexCoords2.end(), (const float*)texCoords, (const float*)texCoords + num * 2 );
+}
+
+void TriMesh::appendTexCoords3( const Vec2f *texCoords, size_t num )
+{
+	assert( mTexCoords3Dims == 2 );
+	mTexCoords3.insert( mTexCoords3.end(), (const float*)texCoords, (const float*)texCoords + num * 2 );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// appendTexCoords*( Vec3f )
+void TriMesh::appendTexCoords0( const Vec3f *texCoords, size_t num )
+{
+	assert( mTexCoords0Dims == 3 );
+	mTexCoords0.insert( mTexCoords0.end(), (const float*)texCoords, (const float*)texCoords + num * 3 );
+}
+
+void TriMesh::appendTexCoords1( const Vec3f *texCoords, size_t num )
+{
+	assert( mTexCoords1Dims == 3 );
+	mTexCoords1.insert( mTexCoords1.end(), (const float*)texCoords, (const float*)texCoords + num * 3 );
+}
+
+void TriMesh::appendTexCoords2( const Vec3f *texCoords, size_t num )
+{
+	assert( mTexCoords2Dims == 3 );
+	mTexCoords2.insert( mTexCoords2.end(), (const float*)texCoords, (const float*)texCoords + num * 3 );
+}
+
+void TriMesh::appendTexCoords3( const Vec3f *texCoords, size_t num )
+{
+	assert( mTexCoords3Dims == 3 );
+	mTexCoords3.insert( mTexCoords3.end(), (const float*)texCoords, (const float*)texCoords + num * 3 );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// appendTexCoords*( Vec4f )
+void TriMesh::appendTexCoords0( const Vec4f *texCoords, size_t num )
+{
+	assert( mTexCoords0Dims == 4 );
+	mTexCoords0.insert( mTexCoords0.end(), (const float*)texCoords, (const float*)texCoords + num * 4 );
+}
+
+void TriMesh::appendTexCoords1( const Vec4f *texCoords, size_t num )
+{
+	assert( mTexCoords1Dims == 4 );
+	mTexCoords1.insert( mTexCoords1.end(), (const float*)texCoords, (const float*)texCoords + num * 4 );
+}
+
+void TriMesh::appendTexCoords2( const Vec4f *texCoords, size_t num )
+{
+	assert( mTexCoords2Dims == 4 );
+	mTexCoords2.insert( mTexCoords2.end(), (const float*)texCoords, (const float*)texCoords + num * 4 );
+}
+
+void TriMesh::appendTexCoords3( const Vec4f *texCoords, size_t num )
+{
+	assert( mTexCoords3Dims == 4 );
+	mTexCoords3.insert( mTexCoords3.end(), (const float*)texCoords, (const float*)texCoords + num * 4 );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 void TriMesh::getTriangleVertices( size_t idx, Vec3f *a, Vec3f *b, Vec3f *c ) const
 {
@@ -317,6 +418,9 @@ bool TriMesh::hasAttrib( geom::Attrib attr ) const
 		case geom::Attrib::POSITION: return ! mPositions.empty();
 		case geom::Attrib::COLOR: return ! mColors.empty();
 		case geom::Attrib::TEX_COORD_0: return ! mTexCoords0.empty();
+		case geom::Attrib::TEX_COORD_1: return ! mTexCoords1.empty();
+		case geom::Attrib::TEX_COORD_2: return ! mTexCoords2.empty();
+		case geom::Attrib::TEX_COORD_3: return ! mTexCoords3.empty();						
 		case geom::Attrib::NORMAL: return ! mNormals.empty();
 		default:
 			return false;
@@ -334,6 +438,9 @@ uint8_t TriMesh::getAttribDims( geom::Attrib attr ) const
 		case geom::Attrib::POSITION: return mPositionsDims;
 		case geom::Attrib::COLOR: return mColorsDims;
 		case geom::Attrib::TEX_COORD_0: return mTexCoords0Dims;
+		case geom::Attrib::TEX_COORD_1: return mTexCoords1Dims;
+		case geom::Attrib::TEX_COORD_2: return mTexCoords2Dims;
+		case geom::Attrib::TEX_COORD_3: return mTexCoords3Dims;						
 		case geom::Attrib::NORMAL: return mNormalsDims;
 		default:
 			return false;
@@ -351,6 +458,15 @@ void TriMesh::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, float 
 		break;
 		case geom::Attrib::TEX_COORD_0:
 			copyData( mTexCoords0Dims, mTexCoords0.data(), std::min( getNumVertices(), mTexCoords0.size() / mTexCoords0Dims ), dims, stride, dest );
+		break;
+		case geom::Attrib::TEX_COORD_1:
+			copyData( mTexCoords1Dims, mTexCoords1.data(), std::min( getNumVertices(), mTexCoords1.size() / mTexCoords1Dims ), dims, stride, dest );
+		break;
+		case geom::Attrib::TEX_COORD_2:
+			copyData( mTexCoords2Dims, mTexCoords2.data(), std::min( getNumVertices(), mTexCoords2.size() / mTexCoords2Dims ), dims, stride, dest );
+		break;
+		case geom::Attrib::TEX_COORD_3:
+			copyData( mTexCoords3Dims, mTexCoords3.data(), std::min( getNumVertices(), mTexCoords3.size() / mTexCoords3Dims ), dims, stride, dest );
 		break;
 		case geom::Attrib::NORMAL:
 			copyData( 3, (float*)mNormals.data(), std::min( getNumVertices(), mNormals.size() / 3 ), dims, stride, dest );
