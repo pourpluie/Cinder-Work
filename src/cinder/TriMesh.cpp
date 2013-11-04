@@ -470,7 +470,7 @@ void TriMesh::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, float 
 			copyData( mTexCoords3Dims, mTexCoords3.data(), std::min( getNumVertices(), mTexCoords3.size() / mTexCoords3Dims ), dims, stride, dest );
 		break;
 		case geom::Attrib::NORMAL:
-			copyData( 3, (float*)mNormals.data(), std::min( getNumVertices(), mNormals.size() / 3 ), dims, stride, dest );
+			copyData( 3, (float*)mNormals.data(), std::min( getNumVertices(), mNormals.size() ), dims, stride, dest );
 		break;
 		default:
 			throw geom::ExcMissingAttrib();
