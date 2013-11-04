@@ -209,9 +209,9 @@ class TriMesh : public geom::Source {
 	//! Trimesh indices are ordered such that the indices of triangle T are { indices[T*3+0], indices[T*3+1], indices[T*3+2] }
 	const std::vector<uint32_t>&	getIndices() const { return mIndices; }		
 
-	//! Calculates the bounding box of all vertices
+	//! Calculates the bounding box of all vertices. Fails if the positions are not 3D.
 	AxisAlignedBox3f	calcBoundingBox() const;
-	//! Calculates the bounding box of all vertices as transformed by \a transform
+	//! Calculates the bounding box of all vertices as transformed by \a transform. Fails if the positions are not 3D.
 	AxisAlignedBox3f	calcBoundingBox( const Matrix44f &transform ) const;
 
 	//! This allows you read a TriMesh in from a data file, for instance an .obj file. At present .obj and .dat files are supported
