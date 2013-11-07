@@ -241,16 +241,15 @@ class TriMesh : public geom::Source {
 	// geom::Source virtuals
 	virtual geom::Primitive		getPrimitive() const override { return geom::Primitive::TRIANGLES; }
 	
-	virtual bool		hasAttrib( geom::Attrib attr ) const override;
-	virtual bool		canProvideAttrib( geom::Attrib attr ) const override;
 	virtual uint8_t		getAttribDims( geom::Attrib attr ) const override;	
-	virtual void		copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
 	
 	virtual void		copyIndices( uint16_t *dest ) const override;
 	virtual void		copyIndices( uint32_t *dest ) const override;
 	
 
-  private:
+  private:  
+	void		copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const float *srcData, size_t count ) const;
+
 	uint8_t		mPositionsDims, mNormalsDims, mColorsDims;
 	uint8_t		mTexCoords0Dims, mTexCoords1Dims, mTexCoords2Dims, mTexCoords3Dims;
   
@@ -259,6 +258,8 @@ class TriMesh : public geom::Source {
 	std::vector<Vec3f>		mNormals; // always dim=3
 	std::vector<float>		mTexCoords0, mTexCoords1, mTexCoords2, mTexCoords3;
 	std::vector<uint32_t>	mIndices;
+	
+	friend class TriMeshGeomTarget;
 };
 
 } // namespace cinder
