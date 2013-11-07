@@ -227,5 +227,19 @@ class GlslNullProgramExc : public std::exception {
 	}
 	
 };
+
+class GlslUnknownUniform : public Exception {
+  public:
+	GlslUnknownUniform( const std::string &uniformName )
+	{
+		mMessage = std::string( "Unkown uniform: " ) + uniformName;
+	}
+	
+	virtual const char* what() const throw() {
+		return mMessage.c_str();
+	}
+	
+	std::string		mMessage;
+};
 	
 } } // namespace cinder::gl
