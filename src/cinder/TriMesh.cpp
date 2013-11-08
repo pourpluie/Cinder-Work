@@ -12,6 +12,9 @@ TriMesh::TriMesh( const TriMesh::Format &format )
 	mNormalsDims = format.mNormalsDims;
 	mColorsDims = format.mColorsDims;
 	mTexCoords0Dims = format.mTexCoords0Dims;
+	mTexCoords1Dims = format.mTexCoords1Dims;
+	mTexCoords2Dims = format.mTexCoords2Dims;
+	mTexCoords3Dims = format.mTexCoords3Dims;
 }
 
 TriMesh::TriMesh( const geom::Source &source )
