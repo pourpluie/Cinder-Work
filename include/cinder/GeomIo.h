@@ -85,8 +85,6 @@ class Source : public GeomIo {
 	virtual size_t		getNumVertices() const = 0;
 	virtual size_t		getNumIndices() const { return 0; }
 
-	virtual void		copyIndices( uint16_t *dest ) const; // defaults to throw
-	virtual void		copyIndices( uint32_t *dest ) const; // defaults to throw
 	//! Always copy indices; generate them when they don't exist. Copies getNumVertices() indices when indices don't exist.
 	void				forceCopyIndices( uint16_t *dest ) const;
 	//! Always copy indices; generate them when they don't exist. Copies getNumVertices() indices when indices don't exist.
@@ -115,6 +113,7 @@ class Source : public GeomIo {
 class Target : public GeomIo {
   public:
 	virtual void	copyAttrib( Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) = 0;
+	virtual void	copyIndices( Primitive primitive, const uint32_t *source, size_t numIndices ) const = 0;
 };
 
 class Rect : public Source {
