@@ -336,7 +336,7 @@ void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Rect
-float Rect::sVertices[4*2] = { 0.5f,-0.5f,	-0.5f,-0.5f,	0.5f,0.5f,	-0.5f,0.5f };
+float Rect::sPositions[4*2] = { 0.5f,-0.5f,	-0.5f,-0.5f,	0.5f,0.5f,	-0.5f,0.5f };
 float Rect::sColors[4*3] = { 1, 0, 1,	0, 0, 1,	1, 1, 1,	0, 1, 1 };
 float Rect::sTexCoords[4*2] = { 1, 1,	0, 1,		1, 0,		0, 0 };
 float Rect::sNormals[4*3] = {0, 0, 1,	0, 0, 1,	0, 0, 1,	0, 0, 1 };
@@ -344,64 +344,28 @@ float Rect::sNormals[4*3] = {0, 0, 1,	0, 0, 1,	0, 0, 1,	0, 0, 1 };
 Rect::Rect()
 	: mPos( Vec2f::zero() ), mScale( Vec2f::one() )
 {
-	mHasColor = mHasTexCoord0 = mHasNormals = false;
+	mHasColor = false;
+	mHasTexCoord0 = mHasNormals = true;
 }
 
-bool Rect::hasAttrib( Attrib attr ) const
+void Rect::loadInto( Target *target ) const
 {
-	switch( attr ) {
-		case Attrib::POSITION: return true;
-		case Attrib::COLOR: return mHasColor;
-		case Attrib::TEX_COORD_0: return mHasTexCoord0;
-		case Attrib::NORMAL: return mHasNormals;
-		default:
-			return false;
-	}
-}
-
-bool Rect::canProvideAttrib( Attrib attr ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION:
-		case Attrib::COLOR:
-		case Attrib::TEX_COORD_0:
-		case Attrib::NORMAL:
-			return true;
-		default:
-			return false;
-	}
-}
-
-void Rect::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION:
-			copyDataMultAdd( sVertices, 4, dimensions, stride, dest, mScale, mPos );
-		break;
-		case Attrib::COLOR:
-			copyData( 3, sColors, 4, dimensions, stride, dest );
-		break;
-		case Attrib::TEX_COORD_0:
-			copyData( 2, sTexCoords, 4, dimensions, stride, dest );
-		break;
-		case Attrib::NORMAL:
-			copyData( 3, sNormals, 4, dimensions, stride, dest );
-		break;
-		default:
-			throw ExcMissingAttrib();
-	}
+	target->copyAttrib( Attrib::POSITION, 2, 0, sPositions, 4 );
+	if( mHasColor )
+		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 4 );
+	if( mHasTexCoord0 )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sTexCoords, 4 );
+	if( mHasNormals )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 4 );
 }
 
 uint8_t	Rect::getAttribDims( Attrib attr ) const
 {
-	if( ! canProvideAttrib( attr ) )
-		return 0;
-
 	switch( attr ) {
 		case Attrib::POSITION: return 2;
-		case Attrib::COLOR: return 3;
-		case Attrib::TEX_COORD_0: return 2;
-		case Attrib::NORMAL: return 3;
+		case Attrib::COLOR: return mHasColor ? 3 : 0;
+		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
+		case Attrib::NORMAL: return mHasNormals ? 3 : 0;
 		default:
 			return 0;
 	}
@@ -409,7 +373,7 @@ uint8_t	Rect::getAttribDims( Attrib attr ) const
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Cube
-float Cube::sVertices[24*3] = {  1.0f, 1.0f, 1.0f,   1.0f,-1.0f, 1.0f,	 1.0f,-1.0f,-1.0f,   1.0f, 1.0f,-1.0f,	// +X
+float Cube::sPositions[24*3] = {  1.0f, 1.0f, 1.0f,   1.0f,-1.0f, 1.0f,	 1.0f,-1.0f,-1.0f,   1.0f, 1.0f,-1.0f,	// +X
 								 1.0f, 1.0f, 1.0f,   1.0f, 1.0f,-1.0f,  -1.0f, 1.0f,-1.0f,  -1.0f, 1.0f, 1.0f,	// +Y
 								 1.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 1.0f,  -1.0f,-1.0f, 1.0f,   1.0f,-1.0f, 1.0f,	// +Z
 								-1.0f, 1.0f, 1.0f,  -1.0f, 1.0f,-1.0f,  -1.0f,-1.0f,-1.0f,  -1.0f,-1.0f, 1.0f,	// -X
@@ -448,78 +412,33 @@ float Cube::sNormals[24*3]=	{	1,0,0,	1,0,0,	1,0,0,	1,0,0,
 Cube::Cube()
 	: mPos( Vec3f::zero() ), mScale( Vec3f::one() )
 {
-	mHasColor = mHasTexCoord0 = mHasNormals = false;
-}
-
-bool Cube::hasAttrib( Attrib attr ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION: return true;
-		case Attrib::COLOR: return mHasColor;
-		case Attrib::TEX_COORD_0: return mHasTexCoord0;
-		case Attrib::NORMAL: return mHasNormals;
-		default:
-			return false;
-	}
-}
-
-bool Cube::canProvideAttrib( Attrib attr ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION:
-		case Attrib::COLOR:
-		case Attrib::TEX_COORD_0:
-		case Attrib::NORMAL:
-			return true;
-		default:
-			return false;
-	}
-}
-
-void Cube::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION:
-			copyDataMultAdd( sVertices, 24, dimensions, stride, dest, mScale, mPos );
-		break;
-		case Attrib::COLOR:
-			copyData( 3, sColors, 24, dimensions, stride, dest );
-		break;
-		case Attrib::TEX_COORD_0:
-			copyData( 2, sTexCoords, 24, dimensions, stride, dest );
-		break;
-		case Attrib::NORMAL:
-			copyData( 3, sNormals, 24, dimensions, stride, dest );
-		break;
-		default:
-			throw ExcMissingAttrib();
-	}
-}
-
-void Cube::copyIndices( uint16_t *dest ) const
-{
-	memcpy( dest, sIndices, sizeof(uint16_t) * 36 );
-}
-
-void Cube::copyIndices( uint32_t *dest ) const
-{
-	for( int i = 0; i < 36; ++i )
-		dest[i] = sIndices[i];
+	mHasTexCoord0 = mHasNormals = true;
+	mHasColor = false;
 }
 
 uint8_t	Cube::getAttribDims( Attrib attr ) const
 {
-	if( ! canProvideAttrib( attr ) )
-		return 0;
-
 	switch( attr ) {
 		case Attrib::POSITION: return 3;
-		case Attrib::COLOR: return 3;
-		case Attrib::TEX_COORD_0: return 2;
-		case Attrib::NORMAL: return 3;
+		case Attrib::COLOR: return mHasColor ? 3 : 0;
+		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
+		case Attrib::NORMAL: return mHasNormals ? 2 : 0;;
 		default:
 			return 0;
 	}	
+}
+
+void Cube::loadInto( Target *target ) const
+{
+	target->copyAttrib( Attrib::POSITION, 3, 0, sPositions, 24 );
+	if( mHasColor )
+		target->copyAttrib( Attrib::COLORS, 3, 0, sColors, 24 );
+	if( mHasTexCoord0 )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sColors, 24 );
+	if( mHasNormals )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 24 );
+	
+	target->copyIndices( Primitive::TRIANGLES, sIndices, 24 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

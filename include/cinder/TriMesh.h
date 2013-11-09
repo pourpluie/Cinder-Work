@@ -64,6 +64,8 @@ class TriMesh : public geom::Source {
 	TriMesh( const Format &format );
 	TriMesh( const geom::Source &source );
 	
+	virtual void	loadInto( geom::Target *target ) const override;
+	
 	void		clear();
 	
 	bool		hasNormals() const { return mNormalsDims > 0; }
@@ -247,8 +249,9 @@ class TriMesh : public geom::Source {
 	virtual void		copyIndices( uint32_t *dest ) const override;
 	
 
-  private:  
-	void		copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const float *srcData, size_t count ) const;
+  protected:
+	void		getAttribPointer( geom::Attrib attr, const float **resultPtr, size_t *resultStrideBytes, uint8_t *resultDims ) const;
+	void		copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const float *srcData, size_t count );
 
 	uint8_t		mPositionsDims, mNormalsDims, mColorsDims;
 	uint8_t		mTexCoords0Dims, mTexCoords1Dims, mTexCoords2Dims, mTexCoords3Dims;

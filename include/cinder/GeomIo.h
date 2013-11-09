@@ -31,6 +31,7 @@
 
 namespace cinder { namespace geom {
 
+class Target;
 typedef std::shared_ptr<class Source>	SourceRef;
 
 // keep this incrementing by 1 only; some code relies on that for iterating
@@ -79,7 +80,7 @@ class GeomIo {
 
 class Source : public GeomIo {
   public:
-	virtual void		loadInto( const class Target &target ) = 0;
+	virtual void		loadInto( Target *target ) const = 0;
   
 	virtual size_t		getNumVertices() const = 0;
 	virtual size_t		getNumIndices() const { return 0; }
@@ -113,34 +114,32 @@ class Source : public GeomIo {
 
 class Target : public GeomIo {
   public:
-	virtual void	copyAttrib( Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) const = 0;
+	virtual void	copyAttrib( Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) = 0;
 };
 
 class Rect : public Source {
   public:
+	//! Defaults to having positions, normals and texCoords
 	Rect();
 	
-	Rect&		colors() { mHasColor = true; return *this; }
-	Rect&		texCoords() { mHasTexCoord0 = true; return *this; }
-	Rect&		normals() { mHasNormals = true; return *this; }
+	Rect&		colors( bool enable = true ) { mHasColor = enable; return *this; }
+	Rect&		texCoords( bool enable = true ) { mHasTexCoord0 = enable; return *this; }
+	Rect&		normals( bool enable = true ) { mHasNormals = enable; return *this; }
 	Rect&		position( const Vec2f &pos ) { mPos = pos; return *this; }
 	Rect&		scale( const Vec2f &scale ) { mScale = scale; return *this; }
 	Rect&		scale( float s ) { mScale = Vec2f( s, s ); return *this; }
   
 	virtual size_t		getNumVertices() const override { return 4; }
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLE_STRIP; }
-	
-	virtual bool		hasAttrib( Attrib attr ) const override;
-	virtual bool		canProvideAttrib( Attrib attr ) const override;
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
-
+	virtual void		loadInto( Target *target ) const override = 0;
+	
 	Vec2f		mPos, mScale;
 	bool		mHasColor;
 	bool		mHasTexCoord0;
 	bool		mHasNormals;
 	
-	static float	sVertices[4*2];
+	static float	sPositions[4*2];
 	static float	sColors[4*3];
 	static float	sTexCoords[4*2];
 	static float	sNormals[4*3];
@@ -148,26 +147,21 @@ class Rect : public Source {
 
 class Cube : public Source {
   public:
+	//! Defaults to having positions, normals and texCoords
 	Cube();
 	
-	Cube&		colors() { mHasColor = true; return *this; }
-	Cube&		texCoords() { mHasTexCoord0 = true; return *this; }
-	Cube&		normals() { mHasNormals = true; return *this; }
+	Cube&		colors( bool enable = true ) { mHasColor = enable; return *this; }
+	Cube&		texCoords( bool enable = true ) { mHasTexCoord0 = enable; return *this; }
+	Cube&		normals( bool enable = true ) { mHasNormals = enable; return *this; }
 	Cube&		position( const Vec3f &pos ) { mPos = pos; return *this; }
 	Cube&		scale( const Vec3f &scale ) { mScale = scale; return *this; }
 	Cube&		scale( float s ) { mScale = Vec3f( s, s, s ); return *this; }
   
 	virtual size_t		getNumVertices() const override { return 24; }
-	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
-	
-	virtual bool		hasAttrib( Attrib attr ) const override;
-	virtual bool		canProvideAttrib( Attrib attr ) const override;
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }	
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
-	
 	virtual size_t		getNumIndices() const override { return 36; }
-	virtual void		copyIndices( uint16_t *dest ) const override;
-	virtual void		copyIndices( uint32_t *dest ) const override;
+	virtual void		loadInto( Target *target ) const override = 0;
 
   protected:	
 	Vec3f		mPos, mScale;
@@ -175,7 +169,7 @@ class Cube : public Source {
 	bool		mHasTexCoord0;
 	bool		mHasNormals;
 	
-	static float	sVertices[24*3];
+	static float	sPositions[24*3];
 	static float	sColors[24*3];
 	static float	sTexCoords[24*2];
 	static float	sNormals[24*3];	

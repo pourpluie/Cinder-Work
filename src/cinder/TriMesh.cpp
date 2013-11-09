@@ -4,22 +4,43 @@ using std::vector;
 
 namespace cinder {
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// TriMeshGeomTarget
 class TriMeshGeomTarget : public geom::Target {
   public:
 	TriMeshGeomTarget( TriMesh *mesh )
 		: mMesh( mesh )
 	{}
 	
-	virtual geom::Primitive	getPrimitive() const override
-		{ return geom::Primitive::TRIANGLES; }
-	virtual uint8_t			getAttribDims( geom::Attrib attr ) const override
-		{ return mMesh->getAttribDims( attr ); }
-	virtual void	copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) const
-		{ mMesh->copyAttrib( attr, dims, strideBytes, srcData, count ); }
+	virtual geom::Primitive	getPrimitive() const override;
+	virtual uint8_t	getAttribDims( geom::Attrib attr ) const override;
+	virtual void copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) override;
+	virtual void copyIndices( ... ) override;
+	
   protected:
 	TriMesh		*mMesh;
 };
 
+geom::Primitive	TriMeshGeomTarget::getPrimitive() const
+{
+	return geom::Primitive::TRIANGLES;
+}
+
+uint8_t	TriMeshGeomTarget::getAttribDims( geom::Attrib attr ) const
+{
+	return mMesh->getAttribDims( attr );
+}
+
+void TriMeshGeomTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count )
+{
+	mMesh->copyAttrib( attr, dims, strideBytes, srcData, count );
+}
+
+void TriMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *indices, size_t numIndices )
+{
+	mMesh->mIndices.resize( numIndices );
+	copyIndexDataForceTriangles( primitive, indices, numIndices, mMesh->mIndices.data() );
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // TriMesh
@@ -83,28 +104,30 @@ TriMesh::TriMesh( const geom::Source &source )
 		mTexCoords3.resize( mTexCoords3Dims * numVertices );
 	}
 
-	source.load( TriMeshGeomTarget( this ) );
+	TriMeshGeomTarget target( this );
+	source.loadInto( &target );
 }
 
-void TriMesh::loadInto( const Target &target )
+void TriMesh::loadInto( geom::Target *target ) const
 {
 	// copy attributes
 	for( int attribIt = 0; attribIt < (int)geom::Attrib::NUM_ATTRIBS; ++attribIt ) {
-		attribDims = getAttribDims( attribIt );
+		size_t attribDims = getAttribDims( (geom::Attrib)attribIt );
 		if( attribDims ) {
 			uint8_t dims;
-			float *pointer;
+			const float *pointer;
 			size_t strideBytes;
 
-			getAttribPointer( attribIt, &pointer, &strideBytes, &dims );
+			getAttribPointer( (geom::Attrib)attribIt, &pointer, &strideBytes, &dims );
 			
 			if( pointer )
-				target.copyData( attribIt, dims, strideBytes, pointer, getNumVertices() );
+				target->copyAttrib( (geom::Attrib)attribIt, dims, strideBytes, pointer, getNumVertices() );
 		}
 	}
 	
 	// copy indices
-	
+	if( getNumIndices() )
+		target->copyIndices( geom::Prim::TRIANGLES, mIndices.data(), getNumIndices() );
 }
 
 void TriMesh::clear()
@@ -453,16 +476,16 @@ uint8_t TriMesh::getAttribDims( geom::Attrib attr ) const
 	}
 }
 
-void TriMesh::getAttribPointer( geom::Attrib attr, float **resultPtr, size_t *resultStrideBytes, uint8_t *resultDims ) const
+void TriMesh::getAttribPointer( geom::Attrib attr, const float **resultPtr, size_t *resultStrideBytes, uint8_t *resultDims ) const
 {
 	switch( attr ) {
-		case geom::Attrib::POSITION: *resultPtr = mMesh->mPositions.data(); *resultStrideBytes = 0; *resultDims = mMesh->mPositionsDims; break;
-		case geom::Attrib::COLOR: *resultPtr = mMesh->mColors.data(); *resultStrideBytes = 0; *resultDims = mMesh->mColorsDims; break;
-		case geom::Attrib::TEX_COORD_0: *resultPtr = mMesh->mTexCoords0.data(); *resultStrideBytes = 0; *resultDims = mMesh->mTexCoords0Dims; break;
-		case geom::Attrib::TEX_COORD_1: *resultPtr = mMesh->mTexCoords1.data(); *resultStrideBytes = 0; *resultDims = mMesh->mTexCoords1Dims; break;
-		case geom::Attrib::TEX_COORD_2: *resultPtr = mMesh->mTexCoords2.data(); *resultStrideBytes = 0; *resultDims = mMesh->mTexCoords2Dims; break;
-		case geom::Attrib::TEX_COORD_3: *resultPtr = mMesh->mTexCoords3.data(); *resultStrideBytes = 0; *resultDims = mMesh->mTexCoords3Dims; break;
-		case geom::Attrib::NORMAL: *resultPtr = mMesh->mNormals.data(); *resultStrideBytes = 0; *resultDims = mMesh->mNormalsDims; break;
+		case geom::Attrib::POSITION: *resultPtr = (const float*)mPositions.data(); *resultStrideBytes = 0; *resultDims = mPositionsDims; break;
+		case geom::Attrib::COLOR: *resultPtr = (const float*)mColors.data(); *resultStrideBytes = 0; *resultDims = mColorsDims; break;
+		case geom::Attrib::TEX_COORD_0: *resultPtr = (const float*)mTexCoords0.data(); *resultStrideBytes = 0; *resultDims = mTexCoords0Dims; break;
+		case geom::Attrib::TEX_COORD_1: *resultPtr = (const float*)mTexCoords1.data(); *resultStrideBytes = 0; *resultDims = mTexCoords1Dims; break;
+		case geom::Attrib::TEX_COORD_2: *resultPtr = (const float*)mTexCoords2.data(); *resultStrideBytes = 0; *resultDims = mTexCoords2Dims; break;
+		case geom::Attrib::TEX_COORD_3: *resultPtr = (const float*)mTexCoords3.data(); *resultStrideBytes = 0; *resultDims = mTexCoords3Dims; break;
+		case geom::Attrib::NORMAL: *resultPtr = (const float*)mNormals.data(); *resultStrideBytes = 0; *resultDims = mNormalsDims; break;
 		default:
 			*resultPtr = nullptr; *resultStrideBytes = 0; *resultDims = 0;
 	}
@@ -470,7 +493,7 @@ void TriMesh::getAttribPointer( geom::Attrib attr, float **resultPtr, size_t *re
 
 //void Source::copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData )
 
-void TriMesh::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const float *srcData, size_t numVertices ) const
+void TriMesh::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const float *srcData, size_t numVertices )
 {
 	if( getAttribDims( attr ) == 0 )
 		return;
@@ -495,7 +518,7 @@ void TriMesh::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const 
 			copyData( dims, srcData, numVertices, mTexCoords3Dims, 0, mTexCoords3.data() );
 		break;
 		case geom::Attrib::NORMAL:
-			copyData( dims, srcData, numVertices, 3, 0, mNormals.data() );
+			copyData( dims, srcData, numVertices, 3, 0, (float*)mNormals.data() );
 		break;
 		default:
 			throw geom::ExcMissingAttrib();
