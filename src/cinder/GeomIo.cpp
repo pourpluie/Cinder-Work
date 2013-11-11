@@ -333,6 +333,15 @@ void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
 	}
 }
 
+void Source::loadIntoTarget( Target *target )
+{
+	loadInto( target ); // pure virtual that does the real work
+	
+	// if 'target' needs indices and we haven't given them because the Source has none, make some
+	if( target->requiresIndices() && getNumIndices() == 0 ) {
+		
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Rect
@@ -432,7 +441,7 @@ void Cube::loadInto( Target *target ) const
 {
 	target->copyAttrib( Attrib::POSITION, 3, 0, sPositions, 24 );
 	if( mHasColor )
-		target->copyAttrib( Attrib::COLORS, 3, 0, sColors, 24 );
+		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 24 );
 	if( mHasTexCoord0 )
 		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sColors, 24 );
 	if( mHasNormals )

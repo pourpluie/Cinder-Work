@@ -80,8 +80,8 @@ class GeomIo {
 
 class Source : public GeomIo {
   public:
-	virtual void		loadInto( Target *target ) const = 0;
-  
+	void	loadIntoTarget( Target *target ) const;
+	
 	virtual size_t		getNumVertices() const = 0;
 	virtual size_t		getNumIndices() const { return 0; }
 
@@ -97,6 +97,8 @@ class Source : public GeomIo {
 	void				forceCopyIndicesTriangles( uint32_t *dest ) const;
 	
   protected:
+	virtual void		loadInto( Target *target ) const = 0;
+  
 	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
 	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec2f &mult, const Vec2f &add );
 	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add );

@@ -106,6 +106,12 @@ TriMesh::TriMesh( const geom::Source &source )
 
 	TriMeshGeomTarget target( this );
 	source.loadInto( &target );
+	
+	// source provided no indices but we require them; generate them
+	if( source.getNumIndices() == 0 ) {
+		
+		source.forceCopyIndices( 
+	}
 }
 
 void TriMesh::loadInto( geom::Target *target ) const
@@ -127,7 +133,7 @@ void TriMesh::loadInto( geom::Target *target ) const
 	
 	// copy indices
 	if( getNumIndices() )
-		target->copyIndices( geom::Prim::TRIANGLES, mIndices.data(), getNumIndices() );
+		target->copyIndices( geom::Primitive::TRIANGLES, mIndices.data(), getNumIndices() );
 }
 
 void TriMesh::clear()
