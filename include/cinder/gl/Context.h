@@ -393,6 +393,21 @@ struct ScissorScope : public boost::noncopyable
 	std::pair<Vec2i, Vec2i>	mPrevScissor;
 };
 
+struct ModelViewScope : public boost::noncopyable {
+	ModelViewScope()	{ gl::pushModelView(); }
+	~ModelViewScope()	{ gl::popModelView(); }
+};
+
+struct ProjectionScope : public boost::noncopyable {
+	ProjectionScope()	{ gl::pushProjection(); }
+	~ProjectionScope()	{ gl::popProjection(); }
+};
+
+struct MatricesScope : public boost::noncopyable {
+	MatricesScope()		{ gl::pushMatrices(); }
+	~MatricesScope()	{ gl::popMatrices(); }
+};
+
 class ExcContextAllocation : public Exception {
 };
 

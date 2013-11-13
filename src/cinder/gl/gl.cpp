@@ -341,10 +341,15 @@ void popModelView()
 	ctx->getModelViewStack().pop_back();
 }
 
-void pushProjection( const ci::Camera& cam )
+void pushProjection()
 {
-	auto ctx	= gl::context();
-	ctx->getProjectionStack().push_back( cam.getProjectionMatrix().m );
+	auto ctx = gl::context();
+	ctx->getProjectionStack().push_back( ctx->getProjectionStack().back() );
+}
+
+void popProjection()
+{
+	gl::context()->getProjectionStack().pop_back();
 }
 
 void pushMatrices()
