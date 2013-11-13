@@ -302,67 +302,65 @@ void disableStencilTest()
 
 void setMatrices( const ci::Camera& cam )
 {
-	auto ctx	= gl::context();
+	auto ctx = context();
 	ctx->getModelViewStack().back() = cam.getModelViewMatrix();
 	ctx->getProjectionStack().back() = cam.getProjectionMatrix();
 }
 
 void setModelView( const ci::Matrix44f &m )
 {
-	gl::context()->getModelViewStack().back() = m;
+	context()->getModelViewStack().back() = m;
 }
 
 void setModelView( const ci::Camera& cam )
 {
-	auto ctx	= gl::context();
-	ctx->getModelViewStack().back() = cam.getModelViewMatrix();
+	context()->getModelViewStack().back() = cam.getModelViewMatrix();
 }
 
 void setProjection( const ci::Camera& cam )
 {
-	auto ctx	= gl::context();
-	ctx->getProjectionStack().back() = cam.getProjectionMatrix();
+	context()->getProjectionStack().back() = cam.getProjectionMatrix();
 }
 
 void setProjection( const ci::Matrix44f &m )
 {
-	gl::context()->getProjectionStack().back() = m;
+	context()->getProjectionStack().back() = m;
 }
 
 void pushModelView()
 {
-	auto ctx	= gl::context();
+	auto ctx = context();
 	ctx->getModelViewStack().push_back( ctx->getModelViewStack().back() );
 }
 
 void popModelView()
 {
-	auto ctx	= gl::context();
-	ctx->getModelViewStack().pop_back();
+	context()->getModelViewStack().pop_back();
 }
 
-void pushProjection( const ci::Camera& cam )
+void pushProjection()
 {
-	auto ctx	= gl::context();
-	ctx->getProjectionStack().push_back( cam.getProjectionMatrix().m );
+	auto ctx = context();
+	ctx->getProjectionStack().push_back( ctx->getProjectionStack().back() );
+}
+
+void popProjection()
+{
+	context()->getProjectionStack().pop_back();
 }
 
 void pushMatrices()
 {
-	auto ctx		= gl::context();
-	Matrix44f modelView		= ctx->getModelViewStack().back();
-	Matrix44f projection	= ctx->getProjectionStack().back();
-	ctx->getModelViewStack().push_back( modelView );
-	ctx->getProjectionStack().push_back( projection );
+	auto ctx = context();
+	ctx->getModelViewStack().push_back( ctx->getModelViewStack().back() );
+	ctx->getProjectionStack().push_back( ctx->getProjectionStack().back() );
 }
 
 void popMatrices()
 {
-	auto ctx	= gl::context();
-	if ( ctx->getModelViewStack().size() > 1 && ctx->getProjectionStack().size() > 1 ) {
-		ctx->getModelViewStack().pop_back();
-		ctx->getProjectionStack().pop_back();
-	}
+	auto ctx = context();
+	ctx->getModelViewStack().pop_back();
+	ctx->getProjectionStack().pop_back();
 }
 
 void multModelView( const ci::Matrix44f& mtx )
@@ -387,6 +385,12 @@ Matrix44f getProjection()
 {
 	auto ctx = gl::context();
 	return ctx->getProjectionStack().back();
+}
+
+Matrix44f getModelViewProjection()
+{
+	auto ctx = context();
+	return ctx->getProjectionStack().back() * ctx->getModelViewStack().back();
 }
 
 Matrix33f calcNormalMatrix()
@@ -417,7 +421,7 @@ void setMatricesWindowPersp( const ci::Vec2i& screenSize, float fovDegrees, floa
 
 void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft )
 {
-	auto ctx	= gl::context();
+	auto ctx = gl::context();
 	ctx->getModelViewStack().back().setToIdentity();
 	if( originUpperLeft )
 		ctx->getProjectionStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
@@ -438,7 +442,7 @@ void setMatricesWindow( const ci::Vec2i& screenSize, bool originUpperLeft )
 
 void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis )
 {
-	auto ctx	= gl::context();
+	auto ctx = gl::context();
 //	ctx->getModelViewStack().back().rotate( Vec3f( toRadians( xAxis ), toRadians( yAxis ), toRadians( zAxis ) ) );
 	ctx->getModelViewStack().back().rotate( Vec3f( xAxis, yAxis, zAxis ), toRadians( angleDegrees ) );
 }
@@ -454,13 +458,13 @@ void rotate( const cinder::Quatf &quat )
 	
 void scale( const ci::Vec3f& v )
 {
-	auto ctx	= gl::context();
+	auto ctx = gl::context();
 	ctx->getModelViewStack().back().scale( v );
 }
 
 void translate( const ci::Vec3f& v )
 {
-	auto ctx	= gl::context();
+	auto ctx = gl::context();
 	ctx->getModelViewStack().back().translate( v );
 }
 	
@@ -820,7 +824,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 
 void draw( const TextureRef &texture, const Rectf &rect )
 {
-	Context *ctx = context();
+	auto ctx = context();
 	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture( texture ).color() );
 	ShaderScope shaderScope( shader );
 	TextureBindScope texBindScope( texture );
@@ -867,7 +871,7 @@ void drawSolidRect( const Rectf& r )
 
 void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 {
-	Context *ctx = context();
+	auto ctx = context();
 	GLfloat data[8+8]; // both verts and texCoords
 	GLfloat *verts = data, *texCoords = data + 8;
 	
@@ -904,7 +908,7 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 
 void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 {
-	Context *ctx = context();
+	auto ctx = context();
 	gl::GlslProgRef shader = ctx->getCurrentShader();
 	if( ! shader )
 		return;

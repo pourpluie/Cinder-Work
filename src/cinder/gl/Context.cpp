@@ -597,7 +597,7 @@ void Context::setDefaultShaderVars()
 				case UNIFORM_MODELVIEW:
 					glslProg->uniform( unifIt->first, gl::getModelView() ); break;
 				case UNIFORM_MODELVIEWPROJECTION:
-					glslProg->uniform( unifIt->first, gl::getProjection() * gl::getModelView() ); break;
+					glslProg->uniform( unifIt->first, gl::getModelViewProjection() ); break;
 				case UNIFORM_PROJECTION:
 					glslProg->uniform( unifIt->first, gl::getProjection() ); break;
 				case UNIFORM_NORMAL_MATRIX:

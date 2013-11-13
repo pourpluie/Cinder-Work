@@ -124,8 +124,8 @@ void setProjection( const ci::Camera &cam );
 void setProjection( const ci::Matrix44f &m );
 void pushModelView();
 void popModelView();
-void pushModelView( const ci::Camera &cam );
-void pushProjection( const ci::Camera &cam );
+void pushProjection();
+void popProjection();
 void pushMatrices();
 void popMatrices();
 void multModelView( const ci::Matrix44f &mtx );
@@ -133,6 +133,7 @@ void multProjection( const ci::Matrix44f &mtx );
 
 Matrix44f getModelView();
 Matrix44f getProjection();
+Matrix44f getModelViewProjection();
 Matrix33f calcNormalMatrix();
 
 void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 1000.0f, bool originUpperLeft = true );

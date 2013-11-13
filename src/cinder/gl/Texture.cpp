@@ -790,15 +790,15 @@ float Texture::getMaxV() const
 	return mMaxV;
 }
 
-void Texture::bind( GLuint textureUnit ) const
+void Texture::bind( uint8_t textureUnit ) const
 {
-	ActiveTextureScope activeTextureScope( textureUnit );
+	ActiveTextureScope activeTextureScope( GL_TEXTURE0 + textureUnit );
 	gl::context()->bindTexture( mTarget, mTextureId );
 }
 
-void Texture::unbind( GLuint textureUnit ) const
+void Texture::unbind( uint8_t textureUnit ) const
 {
-	ActiveTextureScope activeTextureScope( textureUnit );
+	ActiveTextureScope activeTextureScope( GL_TEXTURE0 + textureUnit );
 	gl::context()->bindTexture( mTarget, 0 );
 }
 
