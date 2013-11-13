@@ -359,10 +359,8 @@ void pushMatrices()
 void popMatrices()
 {
 	auto ctx = context();
-	if ( ctx->getModelViewStack().size() > 1 && ctx->getProjectionStack().size() > 1 ) {
-		ctx->getModelViewStack().pop_back();
-		ctx->getProjectionStack().pop_back();
-	}
+	ctx->getModelViewStack().pop_back();
+	ctx->getProjectionStack().pop_back();
 }
 
 void multModelView( const ci::Matrix44f& mtx )
