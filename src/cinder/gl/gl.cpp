@@ -389,6 +389,12 @@ Matrix44f getProjection()
 	return ctx->getProjectionStack().back();
 }
 
+Matrix44f getModelViewProjection()
+{
+	auto ctx = context();
+	return ctx->getProjectionStack().back() * ctx->getModelViewStack().back();
+}
+
 Matrix33f calcNormalMatrix()
 {
 	Matrix33f mv = getModelView().subMatrix33( 0, 0 );
