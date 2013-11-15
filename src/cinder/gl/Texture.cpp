@@ -174,6 +174,73 @@ void TextureBase::setMaxAnisotropy( GLfloat maxAnisotropy )
 	glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy );
 }
 
+void TextureBase::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )
+{
+	switch( sco.getCode() ) {
+		case SurfaceChannelOrder::RGB:
+			*dataFormat = GL_RGB;
+			*type = GL_UNSIGNED_BYTE;
+		break;
+		case SurfaceChannelOrder::RGBA:
+		case SurfaceChannelOrder::RGBX:
+			*dataFormat = GL_RGBA;
+			*type = GL_UNSIGNED_BYTE;
+		break;
+		case SurfaceChannelOrder::BGRA:
+		case SurfaceChannelOrder::BGRX:
+#if defined( CINDER_GLES )
+			*dataFormat = GL_BGRA_EXT;
+#else
+			*dataFormat = GL_BGRA;
+#endif
+			*type = GL_UNSIGNED_BYTE;
+		break;
+		default:
+			throw TextureDataExc( "Invalid channel order" ); // this is an unsupported channel order for a texture
+		break;
+	}
+}
+
+bool TextureBase::dataFormatHasAlpha( GLint dataFormat )
+{
+	switch( dataFormat ) {
+		case GL_RGBA:
+		case GL_ALPHA:
+		case GL_LUMINANCE_ALPHA:
+			return true;
+		break;
+		default:
+			return false;
+	}
+}
+
+bool TextureBase::dataFormatHasColor( GLint dataFormat )
+{
+	switch( dataFormat ) {
+		case GL_ALPHA:
+		case GL_LUMINANCE:
+		case GL_LUMINANCE_ALPHA:
+			return false;
+	}
+	
+	return true;
+}
+
+Vec2i TextureBase::calcMipLevelSize( int mipLevel, GLint width, GLint height )
+{
+	width = max( 1, (int)floor( width >> mipLevel ) );
+	height = max( 1, (int)floor( height >> mipLevel ) );
+	
+	return Vec2i( width, height );
+}
+	
+GLfloat TextureBase::getMaxMaxAnisotropy()
+{
+	GLfloat maxMaxAnisotropy;
+	glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxMaxAnisotropy );
+	return maxMaxAnisotropy;
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // Texture::Format
 TextureBase::Format::Format()
@@ -685,76 +752,9 @@ void Texture::update( const Channel8u &channel, const Area &area, int mipLevel )
 	}
 }
 
-Vec2i Texture::calcMipLevelSize( int mipLevel, GLint width, GLint height )
-{
-	width = max( 1, (int)floor( width >> mipLevel ) );
-	height = max( 1, (int)floor( height >> mipLevel ) );
-	
-	return Vec2i( width, height );
-}
-	
 int Texture::getNumMipLevels() const
 {
 	return floor( log( std::max( mWidth, mHeight ) ) / log(2) ) + 1;
-}
-
-void Texture::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )
-{
-	switch( sco.getCode() ) {
-		case SurfaceChannelOrder::RGB:
-			*dataFormat = GL_RGB;
-			*type = GL_UNSIGNED_BYTE;
-		break;
-		case SurfaceChannelOrder::RGBA:
-		case SurfaceChannelOrder::RGBX:
-			*dataFormat = GL_RGBA;
-			*type = GL_UNSIGNED_BYTE;
-		break;
-		case SurfaceChannelOrder::BGRA:
-		case SurfaceChannelOrder::BGRX:
-#if defined( CINDER_GLES )
-			*dataFormat = GL_BGRA_EXT;
-#else
-			*dataFormat = GL_BGRA;
-#endif
-			*type = GL_UNSIGNED_BYTE;
-		break;
-		default:
-			throw TextureDataExc( "Invalid channel order" ); // this is an unsupported channel order for a texture
-		break;
-	}
-}
-
-bool Texture::dataFormatHasAlpha( GLint dataFormat )
-{
-	switch( dataFormat ) {
-		case GL_RGBA:
-		case GL_ALPHA:
-		case GL_LUMINANCE_ALPHA:
-			return true;
-		break;
-		default:
-			return false;
-	}
-}
-
-bool Texture::dataFormatHasColor( GLint dataFormat )
-{
-	switch( dataFormat ) {
-		case GL_ALPHA:
-		case GL_LUMINANCE:
-		case GL_LUMINANCE_ALPHA:
-			return false;
-	}
-	
-	return true;
-}
-
-GLfloat Texture::getMaxMaxAnisotropy()
-{
-	GLfloat maxMaxAnisotropy;
-	glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxMaxAnisotropy );
-	return maxMaxAnisotropy;
 }
 	
 void Texture::setCleanTexCoords( float maxU, float maxV )
@@ -1015,28 +1015,18 @@ Texture3d::Texture3d( GLint width, GLint height, GLint depth, Format format )
 	glTexImage3D( mTarget, 0, mInternalFormat, mWidth, mHeight, mDepth, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL );
 }
 
-void Texture::update( const Surface &surface, int depthLevel )
+void Texture3d::update( const Surface &surface, int depth, int mipLevel )
 {
 	GLint dataFormat;
 	GLenum type;
-		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
-		if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) ) {
-			throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
-		}
+	SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
+		
+	Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
+	if( surface.getSize() != mipMapSize )
+		throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
 	
-		TextureBindScope tbs( mTarget, mTextureId );
-		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-		glTexImage3D( mTarget, mipLevel, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, type, surface.getData() );
-	}
-	else {
-		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
-		
-		Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
-		
-		TextureBindScope tbs( mTarget, mTextureId );
-		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-		glTexImage2D( mTarget, mipLevel, getInternalFormat(), mipMapSize.x, mipMapSize.y, 0, dataFormat, type, surface.getData() );
-	}
+	TextureBindScope tbs( mTarget, mTextureId );
+	glTexImage2D( mTarget, mipLevel, getInternalFormat(), mipMapSize.x, mipMapSize.y, depth, dataFormat, type, surface.getData() );
 }
 
 /////////////////////////////////////////////////////////////////////////////////

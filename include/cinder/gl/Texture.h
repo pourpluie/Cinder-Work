@@ -50,6 +50,17 @@ class TextureBase {
 	
 	//! Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_TEXTURE_2D -> GL_TEXTURE_BINDING_2D. Returns 0 on failure.
 	static GLenum getBindingConstantForTarget( GLenum target );
+	//! Converts a SurfaceChannelOrder into an appropriate OpenGL dataFormat and type
+	static void		SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type );
+	//! Returns whether a given OpenGL dataFormat contains an alpha channel
+	static bool		dataFormatHasAlpha( GLint dataFormat );
+	//! Returns whether a give OpenGL dataFormat contains color channels
+	static bool		dataFormatHasColor( GLint dataFormat );
+	//! calculate the size of mipMap for the corresponding level
+	static Vec2i	calcMipLevelSize( int level, GLint width, GLint height );
+	/** Gets the maximum anisotropic filtering maximum allowed by the extension **/
+	static GLfloat	getMaxMaxAnisotropy();
+	
 
 	struct Format {			
 		//! Specifies the texture's target. The default is \c GL_TEXTURE_2D
@@ -211,10 +222,6 @@ class Texture : public TextureBase {
 	//! Replaces the pixels of a texture with contents of \a channel. Expects \a area's size to match the Texture's.
 	void			update( const Channel8u &channel, const Area &area, int mipLevel = 0 );
 	
-	//! calculate the size of mipMap for the corresponding level
-	static Vec2i	calcMipLevelSize( int level, GLint width, GLint height );
-	/** Gets the maximum anisotropic filtering maximum allowed by the extension **/
-	static GLfloat	getMaxMaxAnisotropy();
 	//! calculates and sets the total levels of mipmap
 	GLint			getNumMipLevels() const;
 	//! the width of the texture in pixels
@@ -252,13 +259,6 @@ class Texture : public TextureBase {
 	
 	//!	Creates a new Texture from raw DirectDraw Stream data
 	static Texture	loadDds( IStreamRef ddsStream, Format format );
-	
-	//! Converts a SurfaceChannelOrder into an appropriate OpenGL dataFormat and type
-	static void		SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type );
-	//! Returns whether a given OpenGL dataFormat contains an alpha channel
-	static bool		dataFormatHasAlpha( GLint dataFormat );
-	//! Returns whether a give OpenGL dataFormat contains color channels
-	static bool		dataFormatHasColor( GLint dataFormat );
 	
 #if ! defined( CINDER_GLES )
 	//! Returns an ImageSource pointing to this Texture
@@ -323,6 +323,7 @@ class Texture3d : public TextureBase {
 	};
   
 	Texture3d( GLint width, GLint height, GLint depth, Format format );
+	void	update( const Surface &surface, int depth, int mipLevel );
 	
 	//! Returns the width of the texture in pixels
 	GLint			getWidth() const { return mWidth; }
