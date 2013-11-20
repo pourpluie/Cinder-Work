@@ -23,7 +23,7 @@ TextureDataExc::TextureDataExc( const std::string &log ) throw()
 // ImageTargetGLTexture
 template<typename T>
 class ImageTargetGLTexture : public ImageTarget {
-public:
+  public:
 	static shared_ptr<ImageTargetGLTexture> createRef( const Texture *aTexture, ImageIo::ChannelOrder &aChannelOrder, bool aIsGray, bool aHasAlpha );
 	~ImageTargetGLTexture();
 	
@@ -32,7 +32,7 @@ public:
 	
 	const void*		getData() const { return mData; }
 	
-private:
+  private:
 	ImageTargetGLTexture( const Texture *aTexture, ImageIo::ChannelOrder &aChannelOrder, bool aIsGray, bool aHasAlpha );
 	const Texture		*mTexture;
 	bool				mIsGray;
@@ -43,8 +43,207 @@ private:
 };
 
 /////////////////////////////////////////////////////////////////////////////////
+// TextureBase
+TextureBase::TextureBase()
+	: mTarget( 0 ), mTextureId( 0 ), mInternalFormat( -1 ), mDoNotDispose( false )
+{
+}
+
+TextureBase::TextureBase( GLenum target, GLuint textureId, GLint internalFormat )
+	: mTarget( target ), mTextureId( textureId ), mInternalFormat( internalFormat ), mDoNotDispose( false )
+{
+}
+
+TextureBase::~TextureBase()
+{
+	if ( ( mTextureId > 0 ) && ( ! mDoNotDispose ) ) {
+		auto ctx = gl::context();
+		if( ctx ) {
+			gl::context()->textureDeleted( mTarget, mTextureId );
+			glDeleteTextures( 1, &mTextureId );
+		}
+	}
+}
+
+void TextureBase::initParams( const Format &format )
+{
+	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
+	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
+	glTexParameteri( mTarget, GL_TEXTURE_WRAP_R, format.mWrapR );	
+	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
+	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
+	
+	if( format.mMaxAnisotropy > 1.0f )
+		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mMaxAnisotropy );
+}
+
+GLint TextureBase::getInternalFormat() const
+{
+	return mInternalFormat;
+}
+
+void TextureBase::bind( GLuint textureUnit ) const
+{
+	ActiveTextureScope activeTextureScope( textureUnit );
+	gl::context()->bindTexture( mTarget, mTextureId );
+}
+
+void TextureBase::unbind( GLuint textureUnit ) const
+{
+	ActiveTextureScope activeTextureScope( textureUnit );
+	gl::context()->bindTexture( mTarget, 0 );
+}
+
+// Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_TEXTURE_2D -> GL_TEXTURE_BINDING_2D
+GLenum TextureBase::getBindingConstantForTarget( GLenum target )
+{
+	switch( target ) {
+		case GL_TEXTURE_2D:
+			return GL_TEXTURE_BINDING_2D;
+		break;
+		case GL_TEXTURE_CUBE_MAP:
+			return GL_TEXTURE_BINDING_CUBE_MAP;
+		break;
+#if ! defined( CINDER_GLES )
+		case GL_TEXTURE_RECTANGLE: // equivalent to GL_TEXTURE_RECTANGLE_ARB
+			return GL_TEXTURE_BINDING_RECTANGLE;
+		break;
+		case GL_TEXTURE_1D:
+			return GL_TEXTURE_BINDING_1D;
+		break;
+		case GL_TEXTURE_3D:
+			return GL_TEXTURE_BINDING_3D;
+		break;
+		case GL_TEXTURE_2D_ARRAY:
+			return GL_TEXTURE_BINDING_2D_ARRAY;
+		break;
+		case GL_TEXTURE_1D_ARRAY:
+			return GL_TEXTURE_BINDING_1D_ARRAY;
+		break;
+		case GL_TEXTURE_CUBE_MAP_ARRAY:
+			return GL_TEXTURE_BINDING_CUBE_MAP_ARRAY;
+		break;			
+		case GL_TEXTURE_BUFFER:
+			return GL_TEXTURE_BINDING_BUFFER;
+		break;			
+		case GL_TEXTURE_2D_MULTISAMPLE:
+			return GL_TEXTURE_BINDING_2D_MULTISAMPLE;
+		break;
+		case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
+			return GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY;
+		break;
+#endif
+		default:
+			return 0;
+	}
+}
+
+void TextureBase::setWrapS( GLenum wrapS )
+{
+	TextureBindScope tbs( mTarget, mTextureId );
+	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, wrapS );
+}
+
+void TextureBase::setWrapT( GLenum wrapT )
+{
+	TextureBindScope tbs( mTarget, mTextureId );
+	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, wrapT );
+}
+
+void TextureBase::setWrapR( GLenum wrapR )
+{
+	TextureBindScope tbs( mTarget, mTextureId );
+	glTexParameteri( mTarget, GL_TEXTURE_WRAP_R, wrapR );
+}
+
+void TextureBase::setMinFilter( GLenum minFilter )
+{
+	TextureBindScope tbs( mTarget, mTextureId );
+	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, minFilter );
+}
+
+void TextureBase::setMagFilter( GLenum magFilter )
+{
+	TextureBindScope tbs( mTarget, mTextureId );
+	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, magFilter );
+}
+	
+void TextureBase::setMaxAnisotropy( GLfloat maxAnisotropy )
+{
+	TextureBindScope tbs( mTarget, mTextureId );
+	glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy );
+}
+
+void TextureBase::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )
+{
+	switch( sco.getCode() ) {
+		case SurfaceChannelOrder::RGB:
+			*dataFormat = GL_RGB;
+			*type = GL_UNSIGNED_BYTE;
+		break;
+		case SurfaceChannelOrder::RGBA:
+		case SurfaceChannelOrder::RGBX:
+			*dataFormat = GL_RGBA;
+			*type = GL_UNSIGNED_BYTE;
+		break;
+		case SurfaceChannelOrder::BGRA:
+		case SurfaceChannelOrder::BGRX:
+#if defined( CINDER_GLES )
+			*dataFormat = GL_BGRA_EXT;
+#else
+			*dataFormat = GL_BGRA;
+#endif
+			*type = GL_UNSIGNED_BYTE;
+		break;
+		default:
+			throw TextureDataExc( "Invalid channel order" ); // this is an unsupported channel order for a texture
+		break;
+	}
+}
+
+bool TextureBase::dataFormatHasAlpha( GLint dataFormat )
+{
+	switch( dataFormat ) {
+		case GL_RGBA:
+		case GL_ALPHA:
+		case GL_LUMINANCE_ALPHA:
+			return true;
+		break;
+		default:
+			return false;
+	}
+}
+
+bool TextureBase::dataFormatHasColor( GLint dataFormat )
+{
+	switch( dataFormat ) {
+		case GL_ALPHA:
+		case GL_LUMINANCE:
+		case GL_LUMINANCE_ALPHA:
+			return false;
+	}
+	
+	return true;
+}
+
+Vec2i TextureBase::calcMipLevelSize( int mipLevel, GLint width, GLint height )
+{
+	width = max( 1, (int)floor( width >> mipLevel ) );
+	height = max( 1, (int)floor( height >> mipLevel ) );
+	
+	return Vec2i( width, height );
+}
+	
+GLfloat TextureBase::getMaxMaxAnisotropy()
+{
+	GLfloat maxMaxAnisotropy;
+	glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxMaxAnisotropy );
+	return maxMaxAnisotropy;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
 // Texture::Format
-Texture::Format::Format()
+TextureBase::Format::Format()
 {
 	mTarget = GL_TEXTURE_2D;
 	mWrapS = GL_CLAMP_TO_EDGE;
@@ -102,23 +301,10 @@ TextureRef Texture::create( GLenum target, GLuint textureID, int width, int heig
 	return TextureRef( new Texture( target, textureID, width, height, doNotDispose ) );
 }
 	
-Texture::~Texture()
-{
-	if ( ( mTextureId > 0 ) && ( ! mDoNotDispose ) ) {
-		auto ctx = gl::context();
-		if( ctx ) {
-			gl::context()->textureDeleted( mTarget, mTextureId );
-			glDeleteTextures( 1, &mTextureId );
-		}
-	}
-}
-
-	
-
 Texture::Texture( int width, int height, Format format )
 	: mWidth( width ), mHeight( height ),
 	mCleanWidth( width ), mCleanHeight( height ),
-	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
+	mFlipped( false )
 {
 	if( format.mInternalFormat == -1 ) {
 		format.mInternalFormat = GL_RGBA;
@@ -127,17 +313,17 @@ Texture::Texture( int width, int height, Format format )
 	mTarget = format.mTarget;
 
     if ( format.mRenderTexture || format.mDepthTexture ) {
-        init( format );
+		init( format );
     }
     else {
-        init( (unsigned char*)0, 0, GL_RGBA, GL_UNSIGNED_BYTE, format );
+		init( (unsigned char*)0, 0, GL_RGBA, GL_UNSIGNED_BYTE, format );
     }
 }
 
 Texture::Texture( const unsigned char *data, int dataFormat, int width, int height, Format format )
 	: mWidth( width ), mHeight( height ),
 	mCleanWidth( width ), mCleanHeight( height ),
-	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
+	mFlipped( false )
 {
 	if( format.mInternalFormat == -1 ) {
 		format.mInternalFormat = GL_RGBA;
@@ -150,7 +336,7 @@ Texture::Texture( const unsigned char *data, int dataFormat, int width, int heig
 Texture::Texture( const Surface8u &surface, Format format )
 	: mWidth( surface.getWidth() ), mHeight( surface.getHeight() ),
 	mCleanWidth( surface.getWidth() ), mCleanHeight( surface.getHeight() ),
-	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
+	mFlipped( false )
 {
 	if( format.mInternalFormat < 0 ) {
 		format.mInternalFormat = surface.hasAlpha() ? GL_RGBA : GL_RGB;
@@ -168,7 +354,7 @@ Texture::Texture( const Surface8u &surface, Format format )
 Texture::Texture( const Surface32f &surface, Format format )
 	: mWidth( surface.getWidth() ), mHeight( surface.getHeight() ),
 	mCleanWidth( surface.getWidth() ), mCleanHeight( surface.getHeight() ),
-	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
+	mFlipped( false )
 {
 	if( format.mInternalFormat < 0 ) {
 #if defined( CINDER_GLES )
@@ -186,7 +372,7 @@ Texture::Texture( const Surface32f &surface, Format format )
 Texture::Texture( const Channel8u &channel, Format format )
 	: mWidth( channel.getWidth() ), mHeight( channel.getHeight() ),
 	mCleanWidth( channel.getWidth() ), mCleanHeight( channel.getHeight() ),
-	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
+	mFlipped( false )
 {
 	if( format.mInternalFormat < 0 ) {
 		format.mInternalFormat = GL_LUMINANCE;
@@ -217,7 +403,7 @@ Texture::Texture( const Channel8u &channel, Format format )
 Texture::Texture( const Channel32f &channel, Format format )
 	: mWidth( channel.getWidth() ), mHeight( channel.getHeight() ),
 	mCleanWidth( channel.getWidth() ), mCleanHeight( channel.getHeight() ),
-	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
+	mFlipped( false )
 {
 	if( format.mInternalFormat < 0 ) {
 		format.mInternalFormat = GL_LUMINANCE;
@@ -249,17 +435,17 @@ Texture::Texture( const Channel32f &channel, Format format )
 
 Texture::Texture( ImageSourceRef imageSource, Format format )
 	: mWidth( -1 ), mHeight( -1 ), mCleanWidth( -1 ), mCleanHeight( -1 ),
-	mInternalFormat( -1 ), mTextureId( 0 ), mFlipped( false ), mDoNotDispose( false )
+	mFlipped( false )
 {
 	init( imageSource, format );
 }
 
 Texture::Texture( GLenum target, GLuint textureId, int width, int height, bool doNotDispose )
-	: mTarget( target ), mTextureId( textureId ),
-	mWidth( width ), mHeight( height ),
+	: TextureBase( target, textureId, -1 ), mWidth( width ), mHeight( height ),
 	mCleanWidth( width ), mCleanHeight( height ),
-	mInternalFormat( -1 ), mFlipped( false ), mDoNotDispose( doNotDispose )
+	mFlipped( false )
 {
+	mDoNotDispose = doNotDispose;
 	if( mTarget == GL_TEXTURE_2D ) {
 		mMaxU = mMaxV = 1.0f;
 	}
@@ -284,10 +470,7 @@ void Texture::init( const Format &format )
     }
     glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 	
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
-	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
-	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
+	TextureBase::initParams( format );
     glTexImage2D( mTarget, 0, format.mInternalFormat, mWidth, mHeight, 0, format.mPixelDataFormat, format.mPixelDataType, NULL );
     
     if( format.mMipmapping )
@@ -317,14 +500,7 @@ void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataF
 	if( format.mMipmapping ) 
 		glGenerateMipmap( mTarget );
 	
-	if( format.mMaxAnisotropy > 1.0f )
-		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mMaxAnisotropy );
-	
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
-	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
-	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
-	
+	TextureBase::initParams( format );
 }
 
 void Texture::init( const float *data, GLint dataFormat, const Format &format )
@@ -352,15 +528,7 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
     if( format.mMipmapping ) 
 		glGenerateMipmap( mTarget );
 	
-	if( format.mMaxAnisotropy > 1.0f )
-		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mMaxAnisotropy );
-	
-		
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
-	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
-	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
-	
+	TextureBase::initParams( format );
 }
 
 void Texture::init( ImageSourceRef imageSource, const Format &format )
@@ -439,14 +607,7 @@ void Texture::init( ImageSourceRef imageSource, const Format &format )
     if( format.mMipmapping )
 		glGenerateMipmap( mTarget );
 	
-	if( format.mMaxAnisotropy > 1.0f )
-		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mMaxAnisotropy );
-		
-	
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
-	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
-	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
+	TextureBase::initParams( format );
 }
 
 void Texture::update( const Surface &surface, int mipLevel )
@@ -591,101 +752,9 @@ void Texture::update( const Channel8u &channel, const Area &area, int mipLevel )
 	}
 }
 
-Vec2i Texture::calcMipLevelSize( int mipLevel, GLint width, GLint height )
-{
-	width = max( 1, (int)floor( width >> mipLevel ) );
-	height = max( 1, (int)floor( height >> mipLevel ) );
-	
-	return Vec2i( width, height );
-}
-	
 int Texture::getNumMipLevels() const
 {
 	return floor( log( std::max( mWidth, mHeight ) ) / log(2) ) + 1;
-}
-
-void Texture::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )
-{
-	switch( sco.getCode() ) {
-		case SurfaceChannelOrder::RGB:
-			*dataFormat = GL_RGB;
-			*type = GL_UNSIGNED_BYTE;
-		break;
-		case SurfaceChannelOrder::RGBA:
-		case SurfaceChannelOrder::RGBX:
-			*dataFormat = GL_RGBA;
-			*type = GL_UNSIGNED_BYTE;
-		break;
-		case SurfaceChannelOrder::BGRA:
-		case SurfaceChannelOrder::BGRX:
-#if defined( CINDER_GLES )
-			*dataFormat = GL_BGRA_EXT;
-#else
-			*dataFormat = GL_BGRA;
-#endif
-			*type = GL_UNSIGNED_BYTE;
-		break;
-		default:
-			throw TextureDataExc( "Invalid channel order" ); // this is an unsupported channel order for a texture
-		break;
-	}
-}
-
-bool Texture::dataFormatHasAlpha( GLint dataFormat )
-{
-	switch( dataFormat ) {
-		case GL_RGBA:
-		case GL_ALPHA:
-		case GL_LUMINANCE_ALPHA:
-			return true;
-		break;
-		default:
-			return false;
-	}
-}
-
-bool Texture::dataFormatHasColor( GLint dataFormat )
-{
-	switch( dataFormat ) {
-		case GL_ALPHA:
-		case GL_LUMINANCE:
-		case GL_LUMINANCE_ALPHA:
-			return false;
-	}
-	
-	return true;
-}
-
-void Texture::setWrapS( GLenum wrapS )
-{
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, wrapS );
-}
-
-void Texture::setWrapT( GLenum wrapT )
-{
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, wrapT );
-}
-
-void Texture::setMinFilter( GLenum minFilter )
-{
-	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, minFilter );
-}
-
-void Texture::setMagFilter( GLenum magFilter )
-{
-	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, magFilter );
-}
-	
-void Texture::setMaxAnisotropy( GLfloat maxAnisotropy )
-{
-	glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy );
-}
-
-GLfloat Texture::getMaxMaxAnisotropy()
-{
-	GLfloat maxMaxAnisotropy;
-	glGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxMaxAnisotropy );
-	return maxMaxAnisotropy;
 }
 	
 void Texture::setCleanTexCoords( float maxU, float maxV )
@@ -728,11 +797,6 @@ float Texture::getRight() const
 float Texture::getTop() const
 {
 	return ( mFlipped ) ? getMaxV() : 0.0f;
-}
-
-GLint Texture::getInternalFormat() const
-{
-	return mInternalFormat;
 }
 
 GLint Texture::getWidth() const
@@ -788,74 +852,6 @@ float Texture::getMaxU() const
 float Texture::getMaxV() const
 {
 	return mMaxV;
-}
-
-void Texture::bind( uint8_t textureUnit ) const
-{
-	ActiveTextureScope activeTextureScope( GL_TEXTURE0 + textureUnit );
-	gl::context()->bindTexture( mTarget, mTextureId );
-}
-
-void Texture::unbind( uint8_t textureUnit ) const
-{
-	ActiveTextureScope activeTextureScope( GL_TEXTURE0 + textureUnit );
-	gl::context()->bindTexture( mTarget, 0 );
-}
-
-void Texture::enableAndBind() const
-{
-	auto ctx = gl::context();
-	ctx->enable( mTarget );
-	gl::context()->bindTexture( mTarget, mTextureId );
-}
-
-void Texture::disable() const
-{
-	gl::context()->enable( mTarget, false );
-}
-
-// Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_TEXTURE_2D -> GL_TEXTURE_BINDING_2D
-GLenum Texture::getBindingConstantForTarget( GLenum target )
-{
-	switch( target ) {
-		case GL_TEXTURE_2D:
-			return GL_TEXTURE_BINDING_2D;
-		break;
-		case GL_TEXTURE_CUBE_MAP:
-			return GL_TEXTURE_BINDING_CUBE_MAP;
-		break;
-#if ! defined( CINDER_GLES )
-		case GL_TEXTURE_RECTANGLE: // equivalent to GL_TEXTURE_RECTANGLE_ARB
-			return GL_TEXTURE_BINDING_RECTANGLE;
-		break;
-		case GL_TEXTURE_1D:
-			return GL_TEXTURE_BINDING_1D;
-		break;
-		case GL_TEXTURE_3D:
-			return GL_TEXTURE_BINDING_3D;
-		break;
-		case GL_TEXTURE_2D_ARRAY:
-			return GL_TEXTURE_BINDING_2D_ARRAY;
-		break;
-		case GL_TEXTURE_1D_ARRAY:
-			return GL_TEXTURE_BINDING_1D_ARRAY;
-		break;
-		case GL_TEXTURE_CUBE_MAP_ARRAY:
-			return GL_TEXTURE_BINDING_CUBE_MAP_ARRAY;
-		break;			
-		case GL_TEXTURE_BUFFER:
-			return GL_TEXTURE_BINDING_BUFFER;
-		break;			
-		case GL_TEXTURE_2D_MULTISAMPLE:
-			return GL_TEXTURE_BINDING_2D_MULTISAMPLE;
-		break;
-		case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
-			return GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY;
-		break;
-#endif
-		default:
-			return 0;
-	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1000,6 +996,45 @@ Texture::operator ImageSourceRef() const
 }
 
 #endif // ! defined( CINDER_GLES )
+
+/////////////////////////////////////////////////////////////////////////////////
+// Texture3d
+Texture3dRef Texture3d::create( GLint width, GLint height, GLint depth, Format format )
+{
+	return Texture3dRef( new Texture3d( width, height, depth, format ) );
+}
+
+Texture3d::Texture3d( GLint width, GLint height, GLint depth, Format format )
+	: mWidth( width ), mHeight( height ), mDepth( depth )
+{
+	mTarget = format.mTarget;
+
+	if( format.mInternalFormat == -1 )
+		format.mInternalFormat = GL_RGB;
+	mInternalFormat = format.mInternalFormat;
+
+	glGenTextures( 1, &mTextureId );	
+	TextureBindScope tbs( mTarget, mTextureId );
+	TextureBase::initParams( format );
+
+	glTexImage3D( mTarget, 0, mInternalFormat, mWidth, mHeight, mDepth, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL );
+}
+
+void Texture3d::update( const Surface &surface, int depth, int mipLevel )
+{
+	GLint dataFormat;
+	GLenum type;
+	SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
+		
+	Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
+	if( surface.getSize() != mipMapSize )
+		throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
+	
+	TextureBindScope tbs( mTarget, mTextureId );
+	glTexSubImage3D( mTarget, mipLevel,
+		0, 0, depth, // offsets
+		mipMapSize.x, mipMapSize.y, 1, dataFormat, type, surface.getData() );
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 // ImageTargetGLTexture
