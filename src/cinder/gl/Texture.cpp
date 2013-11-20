@@ -999,13 +999,18 @@ Texture::operator ImageSourceRef() const
 
 /////////////////////////////////////////////////////////////////////////////////
 // Texture3d
+Texture3dRef Texture3d::create( GLint width, GLint height, GLint depth, Format format )
+{
+	return Texture3dRef( new Texture3d( width, height, depth, format ) );
+}
+
 Texture3d::Texture3d( GLint width, GLint height, GLint depth, Format format )
 	: mWidth( width ), mHeight( height ), mDepth( depth )
 {
 	mTarget = format.mTarget;
 
 	if( format.mInternalFormat == -1 )
-		format.mInternalFormat = GL_RGBA;
+		format.mInternalFormat = GL_RGB;
 	mInternalFormat = format.mInternalFormat;
 
 	glGenTextures( 1, &mTextureId );	
@@ -1026,7 +1031,9 @@ void Texture3d::update( const Surface &surface, int depth, int mipLevel )
 		throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
 	
 	TextureBindScope tbs( mTarget, mTextureId );
-	glTexImage2D( mTarget, mipLevel, getInternalFormat(), mipMapSize.x, mipMapSize.y, depth, dataFormat, type, surface.getData() );
+	glTexSubImage3D( mTarget, mipLevel,
+		0, 0, depth, // offsets
+		mipMapSize.x, mipMapSize.y, 1, dataFormat, type, surface.getData() );
 }
 
 /////////////////////////////////////////////////////////////////////////////////

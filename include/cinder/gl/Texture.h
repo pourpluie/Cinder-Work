@@ -11,7 +11,9 @@
 
 namespace cinder { namespace gl {
 
-typedef std::shared_ptr<class Texture> TextureRef;
+typedef std::shared_ptr<class Texture>		TextureRef;
+typedef std::shared_ptr<class Texture2d>	Texture2dRef;
+typedef std::shared_ptr<class Texture3d>	Texture3dRef;
 
 class TextureBase {
   public:
@@ -49,7 +51,7 @@ class TextureBase {
 	void			setMaxAnisotropy( GLfloat maxAnisotropy );
 	
 	//! Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_TEXTURE_2D -> GL_TEXTURE_BINDING_2D. Returns 0 on failure.
-	static GLenum getBindingConstantForTarget( GLenum target );
+	static GLenum	getBindingConstantForTarget( GLenum target );
 	//! Converts a SurfaceChannelOrder into an appropriate OpenGL dataFormat and type
 	static void		SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type );
 	//! Returns whether a given OpenGL dataFormat contains an alpha channel
@@ -321,9 +323,10 @@ class Texture3d : public TextureBase {
 		
 		friend Texture3d;
 	};
+
+	static Texture3dRef create( GLint width, GLint height, GLint depth, Format format = Format() );
   
-	Texture3d( GLint width, GLint height, GLint depth, Format format );
-	void	update( const Surface &surface, int depth, int mipLevel );
+	void	update( const Surface &surface, int depth, int mipLevel = 0 );
 	
 	//! Returns the width of the texture in pixels
 	GLint			getWidth() const { return mWidth; }
@@ -331,6 +334,10 @@ class Texture3d : public TextureBase {
 	GLint			getHeight() const { return mHeight; }
 	//! Returns the depth of the texture, which is the number of images in a texture array, or the depth of a 3D texture measured in pixels
 	GLint			getDepth() const { return mDepth; }
+
+
+  protected:
+  	Texture3d( GLint width, GLint height, GLint depth, Format format );
 	
 	GLint		mWidth, mHeight, mDepth;
 };
