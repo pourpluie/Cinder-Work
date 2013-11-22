@@ -165,7 +165,7 @@ void TextureMipmappingApp::setup()
 		.maxAnisotropy( mMaxAnisoFilterAmount )
 		.wrapT( GL_REPEAT ).wrapS( GL_REPEAT )
 		.target( GL_TEXTURE_2D )
-		.mipMap();
+		.mipmap();
 	
 	gl::Texture::Format rightFormat = leftFormat;
 	rightFormat.setMinFilter( GL_NEAREST_MIPMAP_NEAREST );
