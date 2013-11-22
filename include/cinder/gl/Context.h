@@ -93,8 +93,10 @@ class Context {
 	void		textureDeleted( GLenum target, GLuint textureId );
 	GLuint		getTextureBinding( GLenum target );
 
-	void		activeTexture( GLenum textureUnit );
-	GLenum		getActiveTexture();
+	//! Sets the active texture unit; expects values relative to 0, \em not GL_TEXTURE0
+	void		activeTexture( uint8_t textureUnit );
+	//! Returns the active texture unit with values relative to 0, \em not GL_TEXTURE0
+	uint8_t		getActiveTexture();
 
 	void		bindFramebuffer( const FboRef &fbo );
 	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
@@ -320,8 +322,8 @@ struct FramebufferScope : public boost::noncopyable
 
 struct ActiveTextureScope : public boost::noncopyable
 {
-	//! Sets the currently active texture through glActiveTexture. Expects a \a textureUnit like \c GL_TEXTURE0
-	ActiveTextureScope( GLenum textureUnit )
+	//! Sets the currently active texture through glActiveTexture. Expects values relative to \c 0, \em not GL_TEXTURE0
+	ActiveTextureScope( uint8_t textureUnit )
 		: mCtx( gl::context() )
 	{
 		mPrevValue = mCtx->getActiveTexture();
@@ -335,7 +337,7 @@ struct ActiveTextureScope : public boost::noncopyable
 	
   private:
 	Context		*mCtx;
-	GLenum		mPrevValue;
+	uint8_t		mPrevValue;
 };
 
 struct TextureBindScope : public boost::noncopyable

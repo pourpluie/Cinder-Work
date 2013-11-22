@@ -69,7 +69,7 @@ void TextureBase::initParams( const Format &format )
 {
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_R, format.mWrapR );	
+	glTexParameteri( mTarget, GL_TEXTURE_WRAP_R, format.mWrapR );
 	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
 	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
 	
@@ -82,13 +82,13 @@ GLint TextureBase::getInternalFormat() const
 	return mInternalFormat;
 }
 
-void TextureBase::bind( GLuint textureUnit ) const
+void TextureBase::bind( uint8_t textureUnit ) const
 {
 	ActiveTextureScope activeTextureScope( textureUnit );
 	gl::context()->bindTexture( mTarget, mTextureId );
 }
 
-void TextureBase::unbind( GLuint textureUnit ) const
+void TextureBase::unbind( uint8_t textureUnit ) const
 {
 	ActiveTextureScope activeTextureScope( textureUnit );
 	gl::context()->bindTexture( mTarget, 0 );
@@ -248,6 +248,7 @@ TextureBase::Format::Format()
 	mTarget = GL_TEXTURE_2D;
 	mWrapS = GL_CLAMP_TO_EDGE;
 	mWrapT = GL_CLAMP_TO_EDGE;
+	mWrapR = GL_CLAMP_TO_EDGE;
 	mMinFilter = GL_LINEAR;
 	mMagFilter = GL_LINEAR;
 	mMipmapping = false;

@@ -26,9 +26,9 @@ class TextureBase {
 	//! the target associated with texture. Typical values are \c GL_TEXTURE_2D and \c GL_TEXTURE_RECTANGLE_ARB
 	GLenum			getTarget() const { return mTarget; }
 	//!	Binds the Texture's texture to its target in the multitexturing unit \c GL_TEXTURE0 + \a textureUnit
-	void 			bind( GLuint textureUnit = 0 ) const;
+	void 			bind( uint8_t textureUnit = 0 ) const;
 	//!	Unbinds the Texture currently bound in the Texture's target
-	void			unbind( GLuint textureUnit = 0 ) const;
+	void			unbind( uint8_t textureUnit = 0 ) const;
 
 	//! Sets the wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE.
 	void			setWrap( GLenum wrapS, GLenum wrapT ) { setWrapS( wrapS ); setWrapT( wrapT ); }

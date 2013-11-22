@@ -40,7 +40,7 @@ namespace cinder { namespace gl {
 
 Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	: mPlatformData( platformData ),
-	mColor( ColorAf::white() ), mCachedActiveTexture( GL_TEXTURE0 )
+	mColor( ColorAf::white() ), mCachedActiveTexture( 0 )
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	,mCachedFramebuffer( -1 )
 #else
@@ -274,7 +274,7 @@ GLenum Context::getTextureBinding( GLenum target )
 
 //////////////////////////////////////////////////////////////////
 // ActiveTexture
-void Context::activeTexture( GLenum textureUnit )
+void Context::activeTexture( uint8_t textureUnit )
 {
 	if( mCachedActiveTexture != textureUnit ) {
 		mCachedActiveTexture = textureUnit;
@@ -282,7 +282,7 @@ void Context::activeTexture( GLenum textureUnit )
 	}
 }
 
-GLenum Context::getActiveTexture()
+uint8_t Context::getActiveTexture()
 {
 	return mCachedActiveTexture;
 }
