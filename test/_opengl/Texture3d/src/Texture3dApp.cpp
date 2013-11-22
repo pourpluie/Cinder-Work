@@ -41,7 +41,8 @@ void Texture3dApp::setup()
 	mTex3d = gl::Texture3d::create( 256, 256, 3 );
 	mTex3d->update( createSolid( mTex3d->getWidth(), mTex3d->getHeight(), Color8u(255,0,0) ), 0 );
 	mTex3d->update( createSolid( mTex3d->getWidth(), mTex3d->getHeight(), Color8u(0,255,0) ), 1 );
-	mTex3d->update( createSolid( mTex3d->getWidth(), mTex3d->getHeight(), Color8u(0,0,255) ), 2 );	
+	mTex3d->update( createSolid( mTex3d->getWidth(), mTex3d->getHeight(), Color8u(0,0,255) ), 2 );
+	mTex3d->setWrapR( GL_REPEAT );
 
 	// GL_TEXTURE_2D_ARRAY
 	mTex2dArray = gl::Texture3d::create( 256, 256, 3, gl::Texture3d::Format().target( GL_TEXTURE_2D_ARRAY ) );
