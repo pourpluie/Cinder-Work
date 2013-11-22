@@ -278,7 +278,7 @@ void Context::activeTexture( uint8_t textureUnit )
 {
 	if( mCachedActiveTexture != textureUnit ) {
 		mCachedActiveTexture = textureUnit;
-		glActiveTexture( textureUnit );
+		glActiveTexture( GL_TEXTURE0 + textureUnit );
 	}
 }
 
