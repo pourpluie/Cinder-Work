@@ -165,7 +165,19 @@ void App::emitShutdown()
 	mSignalShutdown();
 	shutdown();
 }
-	
+
+#if ! defined( CINDER_WINRT )
+void App::emitWillResignActive()
+{
+	mSignalWillResignActive();
+}
+
+void App::emitDidBecomeActive()
+{
+	mSignalDidBecomeActive();
+}
+#endif
+
 DataSourceRef App::loadResource( const string &macPath, int mswID, const string &mswType )
 {
 #if defined( CINDER_COCOA )
