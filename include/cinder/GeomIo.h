@@ -80,7 +80,7 @@ class GeomIo {
 
 class Source : public GeomIo {
   public:
-	void	loadIntoTarget( Target *target ) const;
+	virtual void	loadInto( Target *target ) const = 0;
 	
 	virtual size_t		getNumVertices() const = 0;
 	virtual size_t		getNumIndices() const { return 0; }
@@ -96,9 +96,7 @@ class Source : public GeomIo {
 	//! Always copy indices appropriate for a \c Primitive::TRIANGLES; generate them when they don't exist. Copies getNumIndicesTriangles().
 	void				forceCopyIndicesTriangles( uint32_t *dest ) const;
 	
-  protected:
-	virtual void		loadInto( Target *target ) const = 0;
-  
+  protected:  
 	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
 	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec2f &mult, const Vec2f &add );
 	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add );
@@ -115,7 +113,11 @@ class Source : public GeomIo {
 class Target : public GeomIo {
   public:
 	virtual void	copyAttrib( Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) = 0;
-	virtual void	copyIndices( Primitive primitive, const uint32_t *source, size_t numIndices ) const = 0;
+	virtual void	copyIndices( Primitive primitive, const uint16_t *source, size_t numIndices, uint8_t requiredBytesPerIndex ) const = 0;
+	
+  protected:
+	void copyIndexDataForceTriangles( Primitive primitive, const uint32_t *source, size_t numIndices, uint32_t *target );
+	void copyIndexDataForceTriangles( Primitive primitive, const uint32_t *source, size_t numIndices, uint16_t *target );
 };
 
 class Rect : public Source {

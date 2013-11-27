@@ -333,14 +333,58 @@ void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
 	}
 }
 
-void Source::loadIntoTarget( Target *target )
+namespace { 
+template<typename T>
+void copyIndexDataForceTrianglesImpl( Primitive primitive, const uint32_t *source, size_t numIndices, T *target )
 {
-	loadInto( target ); // pure virtual that does the real work
-	
-	// if 'target' needs indices and we haven't given them because the Source has none, make some
-	if( target->requiresIndices() && getNumIndices() == 0 ) {
-		
+	switch( primitive ) {
+		case Primitive::TRIANGLES:
+			memcpy( target, source, sizeof(uint32_t) * numIndices );
+		break;
+		case Primitive::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
+			if( numIndices < 3 )
+				return;
+			size_t outIdx = 0; // (012, 213), (234, 435), etc : (odd,even), (odd,even), etc
+			for( size_t i = 0; i < numIndices - 2; ++i ) {
+				if( i & 1 ) { // odd
+					dest[outIdx++] = source[i+1];
+					dest[outIdx++] = source[0];
+					dest[outIdx++] = source[i+2];
+				}
+				else { // even
+					dest[outIdx++] = source[i];
+					dest[outIdx++] = source[i+1];
+					dest[outIdx++] = source[i+2];
+				}
+			}
+		}
+		break;
+		case Primitive::TRIANGLE_FAN: { // ABC, ACD, ADE, etc
+			if( numIndices < 3 )
+				return;
+			size_t outIdx = 0;
+			for( size_t i = 0; i < numIndices - 2; ++i ) {
+				dest[outIdx++] = source[0];
+				dest[outIdx++] = source[i+1];
+				dest[outIdx++] = source[i+2];
+			}
+		}
+		default:
+			throw ExcIllegalPrimitiveType();			
+		break;
 	}
+}
+
+} // anonymous namespace
+
+void Target::copyIndexDataForceTriangles( Primitive primitive, const uint32_t *source, size_t numIndices, uint32_t *target )
+{
+	copyIndexDataForceTrianglesImpl<uint32_t>( primitive, source, numIndices, target );
+}
+
+void Target::copyIndexDataForceTriangles( Primitive primitive, const uint32_t *source, size_t numIndices, uint16_t *target )
+{
+	copyIndexDataForceTrianglesImpl<uint16_t>( primitive, source, numIndices, target );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -389,7 +433,7 @@ float Cube::sPositions[24*3] = {  1.0f, 1.0f, 1.0f,   1.0f,-1.0f, 1.0f,	 1.0f,-1
 								-1.0f,-1.0f,-1.0f,   1.0f,-1.0f,-1.0f,   1.0f,-1.0f, 1.0f,  -1.0f,-1.0f, 1.0f,	// -Y
 								 1.0f,-1.0f,-1.0f,  -1.0f,-1.0f,-1.0f,  -1.0f, 1.0f,-1.0f,   1.0f, 1.0f,-1.0f };// -Z
 
-uint16_t Cube::sIndices[6*6] ={	0, 1, 2, 0, 2, 3,
+uint32_t Cube::sIndices[6*6] ={	0, 1, 2, 0, 2, 3,
 								4, 5, 6, 4, 6, 7,
 								8, 9,10, 8, 10,11,
 								12,13,14,12,14,15,
@@ -447,7 +491,7 @@ void Cube::loadInto( Target *target ) const
 	if( mHasNormals )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 24 );
 	
-	target->copyIndices( Primitive::TRIANGLES, sIndices, 24 );
+	target->copyIndices( Primitive::TRIANGLES, sIndices, 24, 1 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

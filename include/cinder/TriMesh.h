@@ -243,11 +243,7 @@ class TriMesh : public geom::Source {
 	// geom::Source virtuals
 	virtual geom::Primitive		getPrimitive() const override { return geom::Primitive::TRIANGLES; }
 	
-	virtual uint8_t		getAttribDims( geom::Attrib attr ) const override;	
-	
-	virtual void		copyIndices( uint16_t *dest ) const override;
-	virtual void		copyIndices( uint32_t *dest ) const override;
-	
+	virtual uint8_t		getAttribDims( geom::Attrib attr ) const override;
 
   protected:
 	void		getAttribPointer( geom::Attrib attr, const float **resultPtr, size_t *resultStrideBytes, uint8_t *resultDims ) const;
