@@ -62,82 +62,36 @@ ObjLoader::ObjLoader( DataSourceRef dataSource, DataSourceRef materialSource, bo
     parse( includeUVs );
 	load();	
 }
-    
-ObjLoader::~ObjLoader()
-{
-}
 
-bool ObjLoader::hasAttrib( geom::Attrib attr ) const
+void ObjLoader::loadInto( geom::Target *target ) const
 {
-	switch( attr ) {
-		case geom::Attrib::POSITION: return ! mOutputVertices.empty(); break;
-		case geom::Attrib::COLOR: return ! mOutputColors.empty(); break;
-		case geom::Attrib::TEX_COORD_0: return ! mOutputTexCoords.empty(); break;
-		case geom::Attrib::NORMAL: return ! mOutputNormals.empty();
-		default:
-			return false;
-	}
-}
-
-bool ObjLoader::canProvideAttrib( geom::Attrib attr ) const
-{
-	switch( attr ) {
-		case geom::Attrib::POSITION: return ! mOutputVertices.empty(); break;
-		case geom::Attrib::COLOR: return ! mOutputColors.empty(); break;
-		case geom::Attrib::TEX_COORD_0: return ! mOutputTexCoords.empty(); break;
-		case geom::Attrib::NORMAL: return (! mOutputVertices.empty() ) || ( ! mOutputNormals.empty() ); // we can derive normals if we have only positions
-		default:
-			return false;
-	}
-}
-
-void ObjLoader::copyAttrib( geom::Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
-{
-	switch( attr ) {
-		case geom::Attrib::POSITION:
-			copyData( 3, (const float*)&mOutputVertices[0], mOutputVertices.size(), dimensions, stride, dest );
-		break;
-		case geom::Attrib::COLOR:
-			copyData( 3, (const float*)&mOutputColors[0], std::min( mOutputColors.size(), mOutputVertices.size() ), dimensions, stride, dest );
-		break;
-		case geom::Attrib::TEX_COORD_0:
-			copyData( 2, (const float*)&mOutputTexCoords[0], std::min( mOutputTexCoords.size(), mOutputVertices.size() ), dimensions, stride, dest );
-		break;
-		case geom::Attrib::NORMAL:
-			copyData( 3, (const float*)&mOutputNormals[0], std::min( mOutputNormals.size(), mOutputVertices.size() ), dimensions, stride, dest );
-		break;
-		default:
-			throw geom::ExcMissingAttrib();
-	}
+	// copy attributes
+	if( getAttribDims( geom::Attrib::POSITION ) && target->getAttribDims( geom::Attrib::POSITION ) )
+		target->copyAttrib( geom::Attrib::POSITION, getAttribDims( geom::Attrib::POSITION ), 0, (const float*)mOutputVertices.data(), getNumVertices() );
+	if( getAttribDims( geom::Attrib::COLOR ) && target->getAttribDims( geom::Attrib::COLOR ) )
+		target->copyAttrib( geom::Attrib::COLOR, getAttribDims( geom::Attrib::COLOR ), 0, (const float*)mOutputColors.data(), std::min( mOutputColors.size(), mOutputVertices.size() ) );
+	if( getAttribDims( geom::Attrib::TEX_COORD_0 ) && target->getAttribDims( geom::Attrib::TEX_COORD_0 ) )
+		target->copyAttrib( geom::Attrib::TEX_COORD_0, getAttribDims( geom::Attrib::TEX_COORD_0 ), 0, (const float*)mOutputTexCoords.data(), std::min( mOutputTexCoords.size(), mOutputVertices.size() ) );
+	if( getAttribDims( geom::Attrib::NORMAL ) && target->getAttribDims( geom::Attrib::NORMAL ) )
+		target->copyAttrib( geom::Attrib::NORMAL, getAttribDims( geom::Attrib::NORMAL ), 0, (const float*)mOutputNormals.data(), std::min( mOutputNormals.size(), mOutputVertices.size() ) );
+	
+	// copy indices
+	if( getNumIndices() )
+		target->copyIndices( geom::Primitive::TRIANGLES, mIndices.data(), getNumIndices(), 4 /* bytes per index */ );
 }
 
 uint8_t	ObjLoader::getAttribDims( geom::Attrib attr ) const
 {
-	if( ! canProvideAttrib( attr ) )
-		return 0;
-
 	switch( attr ) {
-		case geom::Attrib::POSITION: return 3;
-		case geom::Attrib::COLOR: return 3;
-		case geom::Attrib::TEX_COORD_0: return 2;
-		case geom::Attrib::NORMAL: return 3;
+		case geom::Attrib::POSITION: return mOutputVertices.empty() ? 0 : 3;
+		case geom::Attrib::COLOR: return mOutputColors.empty() ? 0 : 3;
+		case geom::Attrib::TEX_COORD_0: return mOutputTexCoords.empty() ? 0 : 2;
+		case geom::Attrib::NORMAL: return mOutputNormals.empty() ? 0 : 3;
 		default:
 			return 0;
 	}
 }
 
-void ObjLoader::copyIndices( uint16_t *dest ) const
-{
-	size_t ct = mIndices.size();
-	for( size_t i = 0; i < ct; ++i )
-		dest[i] = mIndices[i];	
-}
-
-void ObjLoader::copyIndices( uint32_t *dest ) const
-{
-	memcpy( dest, &mIndices[0], sizeof(uint32_t) * mIndices.size() );
-}
-   
 void ObjLoader::parseMaterial( std::shared_ptr<IStreamCinder> material )
 {
     Material m;
@@ -610,9 +564,61 @@ void ObjLoader::loadGroup( const Group &group, map<int,int> &uniqueVerts )
 	}	
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// OBJ Writing
+namespace {
+class ObjWriteTarget : public geom::Target {
+  public:
+	ObjWriteTarget( OStreamRef stream )
+		: mStream( stream )
+	{}
+	
+	virtual geom::Primitive	getPrimitive() const override;
+	virtual uint8_t	getAttribDims( geom::Attrib attr ) const override;
+	virtual void copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) override;
+	virtual void copyIndices( geom::Primitive primitive, const uint32_t *source, size_t numIndices, uint8_t requiredBytesPerIndex ) override;
+	
+  protected:
+	OStreamRef		mStream;
+};
+
+geom::Primitive	ObjWriteTarget::getPrimitive() const
+{
+	return geom::Primitive::TRIANGLES;
+}
+
+uint8_t	ObjWriteTarget::getAttribDims( geom::Attrib attr ) const
+{
+	switch( attr ) {
+		case geom::Attrib::POSITION: return 3;
+		case geom::Attrib::COLOR: return 3;
+		case geom::Attrib::TEX_COORD_0: return 2;
+		case geom::Attrib::NORMAL: return 3;
+		default:
+			return 0;
+	}
+}
+
+void ObjWriteTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count )
+{
+	mMesh->copyAttrib( attr, dims, strideBytes, srcData, count );
+}
+
+void ObjWriteTarget::copyIndices( geom::Primitive primitive, const uint32_t *source, size_t numIndices, uint8_t requiredBytesPerIndex )
+{
+	mMesh->mIndices.resize( numIndices );
+	copyIndexDataForceTriangles( primitive, source, numIndices, mMesh->mIndices.data() );
+}
+} // anonymous namespace
+
 void objWrite( DataTargetRef dataTarget, const geom::Source &source, bool writeNormals, bool includeUVs )
 {
 	OStreamRef stream = dataTarget->getStream();
+	
+	unique_ptr<ObjWriteTarget> target( new ObjWriteTarget( stream ) );
+	source.loadInto( target.get() );
+	
+	
 	const size_t numVerts = source.getNumVertices();
 	switch( source.getAttribDims( geom::Attrib::POSITION ) ) {
 		case 2:

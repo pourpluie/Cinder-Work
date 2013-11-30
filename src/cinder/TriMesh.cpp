@@ -15,7 +15,7 @@ class TriMeshGeomTarget : public geom::Target {
 	virtual geom::Primitive	getPrimitive() const override;
 	virtual uint8_t	getAttribDims( geom::Attrib attr ) const override;
 	virtual void copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) override;
-	virtual void copyIndices( geom::Primitive primitive, const uint32_t *source, size_t numIndices, uint8_t requiredBytesPerIndex ) const override;
+	virtual void copyIndices( geom::Primitive primitive, const uint32_t *source, size_t numIndices, uint8_t requiredBytesPerIndex ) override;
 	
   protected:
 	TriMesh		*mMesh;
@@ -36,7 +36,7 @@ void TriMeshGeomTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stri
 	mMesh->copyAttrib( attr, dims, strideBytes, srcData, count );
 }
 
-void TriMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *source, size_t numIndices, uint8_t requiredBytesPerIndex ) const
+void TriMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *source, size_t numIndices, uint8_t requiredBytesPerIndex )
 {
 	mMesh->mIndices.resize( numIndices );
 	copyIndexDataForceTriangles( primitive, source, numIndices, mMesh->mIndices.data() );
@@ -107,9 +107,9 @@ TriMesh::TriMesh( const geom::Source &source )
 	TriMeshGeomTarget target( this );
 	source.loadInto( &target );
 	
-	// if source is-nonindexed; generate indices
+	// if source is-nonindexed, generate indices
 	if( source.getNumIndices() == 0 )
-		target->generateIndicesTriangles();
+		target.generateIndices( source.getPrimitive(), source.getNumVertices() );
 }
 
 void TriMesh::loadInto( geom::Target *target ) const
@@ -131,7 +131,7 @@ void TriMesh::loadInto( geom::Target *target ) const
 	
 	// copy indices
 	if( getNumIndices() )
-		target->copyIndices( geom::Primitive::TRIANGLES, mIndices.data(), getNumIndices() );
+		target->copyIndices( geom::Primitive::TRIANGLES, mIndices.data(), getNumIndices(), 4 /* bytes per index */ );
 }
 
 void TriMesh::clear()
@@ -527,18 +527,6 @@ void TriMesh::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const 
 		default:
 			throw geom::ExcMissingAttrib();
 	}
-}
-
-void TriMesh::copyIndices( uint16_t *dest ) const
-{
-	size_t numIndices = mIndices.size();
-	for( int i = 0; i < numIndices; ++i )
-		dest[i] = mIndices[i];
-}
-
-void TriMesh::copyIndices( uint32_t *dest ) const
-{
-	memcpy( dest, mIndices.data(), mIndices.size() * sizeof(uint32_t) );
 }
 
 #if 0

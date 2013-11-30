@@ -162,16 +162,6 @@ void Source::copyDataMultAdd( const float *srcData, size_t numElements,
 	}
 }
 
-void Source::copyIndices( uint16_t *dest ) const
-{
-	throw ExcNoIndices();
-}
-
-void Source::copyIndices( uint32_t *dest ) const
-{
-	throw ExcNoIndices();
-}
-
 // Always copy indices; generate them when they don't exist
 void Source::forceCopyIndices( uint16_t *dest ) const
 {
@@ -347,14 +337,14 @@ void copyIndexDataForceTrianglesImpl( Primitive primitive, const uint32_t *sourc
 			size_t outIdx = 0; // (012, 213), (234, 435), etc : (odd,even), (odd,even), etc
 			for( size_t i = 0; i < numIndices - 2; ++i ) {
 				if( i & 1 ) { // odd
-					dest[outIdx++] = source[i+1];
-					dest[outIdx++] = source[0];
-					dest[outIdx++] = source[i+2];
+					target[outIdx++] = source[i+1];
+					target[outIdx++] = source[0];
+					target[outIdx++] = source[i+2];
 				}
 				else { // even
-					dest[outIdx++] = source[i];
-					dest[outIdx++] = source[i+1];
-					dest[outIdx++] = source[i+2];
+					target[outIdx++] = source[i];
+					target[outIdx++] = source[i+1];
+					target[outIdx++] = source[i+2];
 				}
 			}
 		}
@@ -364,9 +354,9 @@ void copyIndexDataForceTrianglesImpl( Primitive primitive, const uint32_t *sourc
 				return;
 			size_t outIdx = 0;
 			for( size_t i = 0; i < numIndices - 2; ++i ) {
-				dest[outIdx++] = source[0];
-				dest[outIdx++] = source[i+1];
-				dest[outIdx++] = source[i+2];
+				target[outIdx++] = source[0];
+				target[outIdx++] = source[i+1];
+				target[outIdx++] = source[i+2];
 			}
 		}
 		default:
@@ -385,6 +375,22 @@ void Target::copyIndexDataForceTriangles( Primitive primitive, const uint32_t *s
 void Target::copyIndexDataForceTriangles( Primitive primitive, const uint32_t *source, size_t numIndices, uint16_t *target )
 {
 	copyIndexDataForceTrianglesImpl<uint16_t>( primitive, source, numIndices, target );
+}
+
+void Target::generateIndices( Primitive sourcePrimitive, size_t sourceNumIndices );
+{
+	unique_ptr<uint32_t> indices( new indices[sourceNumIndices] );
+
+	uint32_t count = 0;
+	std::generate( indices, indices + sourceNumIndices, [&] { return count++; } );
+	
+	uint8_t requiredBytesPerIndex = 4;
+	if( sourceNumIndices < 256 )
+		requiredBytesPerIndex = 1;
+	else if( sourceNumIndices < 65536 )
+		requiredBytesPerIndex = 2;
+	// now have the target copy these indices
+	copyIndices( sourcePrimitive, indices.get(), sourceNumIndices, requiredBytesPerIndex );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

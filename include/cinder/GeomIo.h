@@ -113,7 +113,10 @@ class Source : public GeomIo {
 class Target : public GeomIo {
   public:
 	virtual void	copyAttrib( Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) = 0;
-	virtual void	copyIndices( Primitive primitive, const uint16_t *source, size_t numIndices, uint8_t requiredBytesPerIndex ) const = 0;
+	virtual void	copyIndices( Primitive primitive, const uint32_t *source, size_t numIndices, uint8_t requiredBytesPerIndex ) = 0;
+	
+	//! For non-indexed geometry, this generates appropriate indices and then calls the copyIndices() virtual method.
+	void	generateIndices( Primitive sourcePrimitive, size_t sourceNumIndices );
 	
   protected:
 	void copyIndexDataForceTriangles( Primitive primitive, const uint32_t *source, size_t numIndices, uint32_t *target );
