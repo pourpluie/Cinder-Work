@@ -543,9 +543,6 @@
     <ClCompile Include="..\src\cinder\GeomIo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\GeoSource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cinder\dx\DxRenderTarget.cpp">
       <Filter>Source Files\dx</Filter>
     </ClCompile>

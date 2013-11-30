@@ -230,7 +230,6 @@
     <ClCompile Include="..\src\cinder\Font.cpp" />
     <ClCompile Include="..\src\cinder\Frustum.cpp" />
     <ClCompile Include="..\src\cinder\GeomIo.cpp" />
-    <ClCompile Include="..\src\cinder\GeoSource.cpp" />
     <ClCompile Include="..\src\cinder\gl\Batch.cpp" />
     <ClCompile Include="..\src\cinder\gl\BufferObj.cpp" />
     <ClCompile Include="..\src\cinder\gl\Context.cpp" />
