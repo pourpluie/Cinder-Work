@@ -55,6 +55,7 @@ class VboMesh {
 	std::vector<std::pair<geom::BufferLayout,VboRef>>	mVertexArrayVbos;
 	VboRef												mElements;
 	
+	friend class VboMeshGeomTarget;
 /*  public:	
 	class Layout {
 	  public:
