@@ -371,7 +371,7 @@ void TriMesh::read( DataSourceRef dataSource )
 		for( int v = 0; v < 2; ++v ) {
 			float f;
 			in->readLittle( &f );
-			mTexCoords0.push_back( v );
+			mTexCoords0.push_back( f );
 		}
 	}
 

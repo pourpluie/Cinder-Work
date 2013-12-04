@@ -1106,6 +1106,9 @@
     <ClInclude Include="..\src\AntTweakBar\TwOpenGLCore.h">
       <Filter>Source Files\AntTweakBar</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cinder\gl\Batch.h">
+      <Filter>Header Files\gl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\jsoncpp\json_internalarray.inl">
