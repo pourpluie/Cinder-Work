@@ -16,7 +16,9 @@ class VboMeshGeomTarget : public geom::Target {
   public:
 	VboMeshGeomTarget( geom::Primitive prim, const geom::BufferLayout &bufferLayout, uint8_t *data, VboMesh *vboMesh )
 		: mPrimitive( prim ), mBufferLayout( bufferLayout ), mData( data ), mVboMesh( vboMesh )
-	{}
+	{
+		mVboMesh->mNumIndices = 0; // this may be replaced later with a copyIndices call
+	}
 	
 	virtual geom::Primitive	getPrimitive() const override;
 	virtual uint8_t	getAttribDims( geom::Attrib attr ) const override;

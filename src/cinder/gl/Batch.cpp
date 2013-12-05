@@ -34,7 +34,9 @@ class BatchGeomTarget : public geom::Target {
   public:
 	BatchGeomTarget( geom::Primitive prim, const geom::BufferLayout &bufferLayout, uint8_t *data, Batch *batch )
 		: mPrimitive( prim ), mBufferLayout( bufferLayout ), mData( data ), mBatch( batch )
-	{}
+	{
+		mBatch->mNumIndices = 0; // this may be replaced later with a copyIndices call
+	}
 	
 	virtual geom::Primitive	getPrimitive() const override;
 	virtual uint8_t	getAttribDims( geom::Attrib attr ) const override;
