@@ -69,7 +69,9 @@ void TextureBase::initParams( const Format &format )
 {
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
+#if ! defined( CINDER_GLES )
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_R, format.mWrapR );
+#endif // ! defined( CINDER_GLES )
 	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
 	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
 	
@@ -150,11 +152,13 @@ void TextureBase::setWrapT( GLenum wrapT )
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, wrapT );
 }
 
+#if ! defined( CINDER_GLES )
 void TextureBase::setWrapR( GLenum wrapR )
 {
 	TextureBindScope tbs( mTarget, mTextureId );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_R, wrapR );
 }
+#endif
 
 void TextureBase::setMinFilter( GLenum minFilter )
 {
@@ -999,6 +1003,7 @@ Texture::operator ImageSourceRef() const
 
 #endif // ! defined( CINDER_GLES )
 
+#if ! defined( CINDER_GLES )
 /////////////////////////////////////////////////////////////////////////////////
 // Texture3d
 Texture3dRef Texture3d::create( GLint width, GLint height, GLint depth, Format format )
@@ -1037,6 +1042,8 @@ void Texture3d::update( const Surface &surface, int depth, int mipLevel )
 		0, 0, depth, // offsets
 		mipMapSize.x, mipMapSize.y, 1, dataFormat, type, surface.getData() );
 }
+
+#endif // ! defined( CINDER_GLES )
 
 /////////////////////////////////////////////////////////////////////////////////
 // ImageTargetGLTexture

@@ -35,12 +35,14 @@ class TextureBase {
 	/** \brief Sets the horizontal wrapping behavior when a texture coordinate falls outside the range of [0,1].
 	 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
 	void			setWrapS( GLenum wrapS );
-	/** \brief Sets the verical wrapping behavior when a texture coordinate falls outside the range of [0,1].
+	/** \brief Sets the vertical wrapping behavior when a texture coordinate falls outside the range of [0,1].
 	 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
 	void			setWrapT( GLenum wrapT );
-	/** \brief Sets the verical depth behavior when a texture coordinate falls outside the range of [0,1].
+	/** \brief Sets the depth wrapping behavior when a texture coordinate falls outside the range of [0,1].
 	 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
+#if ! defined( CINDER_GLES )
 	void			setWrapR( GLenum wrapR );
+#endif	
 	/** \brief Sets the filtering behavior when a texture is displayed at a lower resolution than its native resolution.
 	 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 	void			setMinFilter( GLenum minFilter );
@@ -91,12 +93,14 @@ class TextureBase {
 		/** \brief Sets the horizontal wrapping behavior when a texture coordinate falls outside the range of [0,1].
 		 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP_TO_EDGE **/
 		void	setWrapS( GLenum wrapS ) { mWrapS = wrapS; }
-		/** \brief Sets the verical wrapping behavior when a texture coordinate falls outside the range of [0,1].
+		/** \brief Sets the vertical wrapping behavior when a texture coordinate falls outside the range of [0,1].
 		 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP_TO_EDGE. **/
 		void	setWrapT( GLenum wrapT ) { mWrapT = wrapT; }
-		/** \brief Sets the verical wrapping behavior when a texture coordinate falls outside the range of [0,1].
+		/** \brief Sets the depth wrapping behavior when a texture coordinate falls outside the range of [0,1].
 		 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP_TO_EDGE. **/
+#if ! defined( CINDER_GLES )
 		void	setWrapR( GLenum wrapR ) { mWrapR = wrapR; }
+#endif
 		/** \brief Sets the filtering behavior when a texture is displayed at a lower resolution than its native resolution. Default is \c GL_LINEAR
 		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 		void	setMinFilter( GLenum minFilter ) { mMinFilter = minFilter; }
@@ -126,7 +130,9 @@ class TextureBase {
 		//! Returns the vertical wrapping behavior for the texture coordinates.
 		GLenum	getWrapT() const { return mWrapT; }
 		//! Returns the depth wrapping behavior for the texture coordinates.
+#if ! defined( CINDER_GLES )
 		GLenum	getWrapR() const { return mWrapR; }
+#endif
 		//! Returns the texture minifying function, which is used whenever the pixel being textured maps to an area greater than one texture element.
 		GLenum	getMinFilter() const { return mMinFilter; }
 		//! Returns the texture magnifying function, which is used whenever the pixel being textured maps to an area less than or equal to one texture element.
@@ -181,7 +187,9 @@ class Texture : public TextureBase {
 		Format& wrap( GLenum wrap ) { mWrapS = mWrapT = mWrapR = wrap; return *this; }
 		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
 		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
-		Format& wrapR( GLenum wrapR ) { mWrapR = wrapR; return *this; }		
+#if ! defined( CINDER_GLES )
+		Format& wrapR( GLenum wrapR ) { mWrapR = wrapR; return *this; }
+#endif
 		Format& minFilter( GLenum minFilter ) { mMinFilter = minFilter; return *this; }
 		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
 		Format& pixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; return *this; }
@@ -299,6 +307,7 @@ class Texture : public TextureBase {
 	friend class TextureCache;
 };
 
+#ifndef CINDER_GLES
 class Texture3d : public TextureBase {
   public:
 	struct Format : public TextureBase::Format {
@@ -313,7 +322,9 @@ class Texture3d : public TextureBase {
 		Format& wrap( GLenum wrap ) { mWrapS = mWrapT = mWrapR = wrap; return *this; }
 		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
 		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
-		Format& wrapR( GLenum wrapR ) { mWrapR = wrapR; return *this; }		
+#if ! defined( CINDER_GLES )
+		Format& wrapR( GLenum wrapR ) { mWrapR = wrapR; return *this; }
+#endif
 		Format& minFilter( GLenum minFilter ) { mMinFilter = minFilter; return *this; }
 		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
 		Format& pixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; return *this; }
@@ -341,6 +352,7 @@ class Texture3d : public TextureBase {
 	
 	GLint		mWidth, mHeight, mDepth;
 };
+#endif
 
 typedef std::shared_ptr<class TextureCache> TextureCacheRef;
 	
