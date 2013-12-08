@@ -349,7 +349,7 @@ struct TextureBindScope : public boost::noncopyable
 		mCtx->bindTexture( mTarget, textureId );
 	}
 
-	TextureBindScope( const TextureRef &texture )
+	TextureBindScope( const TextureBaseRef &texture )
 		: mCtx( gl::context() ), mTarget( texture->getTarget() )
 	{
 		mPrevValue = mCtx->getTextureBinding( mTarget );
