@@ -11,6 +11,7 @@
 
 namespace cinder { namespace gl {
 
+typedef std::shared_ptr<class TextureBase>	TextureBaseRef;
 typedef std::shared_ptr<class Texture>		TextureRef;
 typedef std::shared_ptr<class Texture2d>	Texture2dRef;
 typedef std::shared_ptr<class Texture3d>	Texture3dRef;
@@ -315,6 +316,7 @@ class Texture3d : public TextureBase {
 		Format() : TextureBase::Format() { mTarget = GL_TEXTURE_3D; }
 
 		//! Chaining functions for Format class.
+		//! Sets the target, defaults to \c GL_TEXTURE_3D, also supports \c GL_TEXTURE_2D_ARRAY
 		Format& target( GLenum target ) { mTarget = target; return *this; }
 		Format& mipmap( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; return *this; }
 		Format& maxAnisotropy( float maxAnisotropy ) { mMaxAnisotropy = maxAnisotropy; return *this; }
@@ -345,7 +347,10 @@ class Texture3d : public TextureBase {
 	GLint			getHeight() const { return mHeight; }
 	//! Returns the depth of the texture, which is the number of images in a texture array, or the depth of a 3D texture measured in pixels
 	GLint			getDepth() const { return mDepth; }
-
+	//! the aspect ratio of the texture (width / height)
+	float			getAspectRatio() const { return getWidth() / (float)getHeight(); }
+	//! the Area defining the Texture's 2D bounds in pixels: [0,0]-[width,height]
+	Area			getBounds() const { return Area( 0, 0, getWidth(), getHeight() ); }
 
   protected:
   	Texture3d( GLint width, GLint height, GLint depth, Format format );
