@@ -1011,6 +1011,11 @@ Texture3dRef Texture3d::create( GLint width, GLint height, GLint depth, Format f
 	return Texture3dRef( new Texture3d( width, height, depth, format ) );
 }
 
+Texture3dRef Texture3d::create( GLint width, GLint height, GLint depth, GLenum dataFormat, const uint8_t *data, Format format )
+{
+	return Texture3dRef( new Texture3d( width, height, depth, dataFormat, data, format ) );
+}
+
 Texture3d::Texture3d( GLint width, GLint height, GLint depth, Format format )
 	: mWidth( width ), mHeight( height ), mDepth( depth )
 {
@@ -1025,6 +1030,22 @@ Texture3d::Texture3d( GLint width, GLint height, GLint depth, Format format )
 	TextureBase::initParams( format );
 
 	glTexImage3D( mTarget, 0, mInternalFormat, mWidth, mHeight, mDepth, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL );
+}
+
+Texture3d::Texture3d( GLint width, GLint height, GLint depth, GLenum dataFormat, const uint8_t *data, Format format )
+	: mWidth( width ), mHeight( height ), mDepth( depth )
+{
+	mTarget = format.mTarget;
+
+	if( format.mInternalFormat == -1 )
+		format.mInternalFormat = GL_RGB;
+	mInternalFormat = format.mInternalFormat;
+
+	glGenTextures( 1, &mTextureId );	
+	TextureBindScope tbs( mTarget, mTextureId );
+	TextureBase::initParams( format );
+
+	glTexImage3D( mTarget, 0, mInternalFormat, mWidth, mHeight, mDepth, 0, dataFormat, GL_UNSIGNED_BYTE, data );
 }
 
 void Texture3d::update( const Surface &surface, int depth, int mipLevel )

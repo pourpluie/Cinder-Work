@@ -338,6 +338,7 @@ class Texture3d : public TextureBase {
 	};
 
 	static Texture3dRef create( GLint width, GLint height, GLint depth, Format format = Format() );
+	static Texture3dRef create( GLint width, GLint height, GLint depth, GLenum dataFormat, const uint8_t *data, Format format = Format() );	
   
 	void	update( const Surface &surface, int depth, int mipLevel = 0 );
 	
@@ -354,7 +355,7 @@ class Texture3d : public TextureBase {
 
   protected:
   	Texture3d( GLint width, GLint height, GLint depth, Format format );
-	
+	Texture3d( GLint width, GLint height, GLint depth, GLenum dataFormat, const uint8_t *data, Format format );
 	GLint		mWidth, mHeight, mDepth;
 };
 #endif
