@@ -884,14 +884,13 @@ TextureCache::TextureCache( const Surface8u &prototypeSurface, const Texture::Fo
 
 gl::TextureRef TextureCache::cache( const Surface8u &data )
 {
-	pair<int,TextureRef> *resultPair;
-	
 	// find an available slot and update that if possible
+	pair<int,TextureRef> *foundPair;
 	bool found = false;
 	for( vector<pair<int,TextureRef> >::iterator texIt = mTextures.begin(); texIt != mTextures.end(); ++texIt ) {
 		if( texIt->first == -1 ) { // this texture is available, let's use it!
-			resultPair = &(*texIt);
-			resultPair->second->update( data );
+			foundPair = &(*texIt);
+			foundPair->second->update( data );
 			found = true;
 			break;
 		}
@@ -899,15 +898,15 @@ gl::TextureRef TextureCache::cache( const Surface8u &data )
 	
 	// we didn't find an available slot, so let's make a new texture
 	if( ! found ) {
-		TextureRef tex( new Texture( data, mFormat ), textureCacheDeallocator );
-		mTextures.push_back( make_pair( -1, tex ) );
-		resultPair = &mTextures.back();
+		TextureRef tex( new Texture( data, mFormat ), std::bind( &TextureCache::markTextureAsFree, this, mNextId ) );
+		mTextures.push_back( make_pair( mNextId, tex ) );
+		mNextId++;
+		return tex;
 	}
-	
-	resultPair->first	= mNextId++;
-	TextureRef result	= resultPair->second;
-	
-	return result;
+	else {
+		foundPair->first = mNextId++;
+		return foundPair->second;
+	}
 }
 
 void TextureCache::markTextureAsFree( int id )
@@ -918,13 +917,6 @@ void TextureCache::markTextureAsFree( int id )
 			break;
 		}
 	}
-}
-
-void TextureCache::textureCacheDeallocator( void *aDeallocatorRefcon )
-{
-	pair<TextureCache*,int> *refconPair = reinterpret_cast<pair<TextureCache*,int>* >( aDeallocatorRefcon );
-	refconPair->first->markTextureAsFree( refconPair->second );
-	delete refconPair;
 }
 
 /////////////////////////////////////////////////////////////////////////////////

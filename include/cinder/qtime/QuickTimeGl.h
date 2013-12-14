@@ -68,7 +68,7 @@ class MovieGl : public MovieBase {
 		
 		gl::TextureRef		mTexture;
 #if defined( CINDER_MSW )
-		gl::TextureCache	mTextureCache;
+		gl::TextureCacheRef	mTextureCache;
 #endif
 	};
  	

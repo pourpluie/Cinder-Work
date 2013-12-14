@@ -365,8 +365,8 @@ typedef std::shared_ptr<class TextureCache> TextureCacheRef;
 class TextureCache
 {
   public:
-	TextureCacheRef create();
-	TextureCacheRef create( const Surface8u &prototypeSurface, const Texture::Format &format );
+	static TextureCacheRef create();
+	static TextureCacheRef create( const Surface8u &prototypeSurface, const Texture::Format &format );
 	
 	TextureRef		cache( const Surface8u &data );
   protected:
@@ -381,8 +381,6 @@ class TextureCache
 	
 	int										mNextId;
 	std::vector<std::pair<int,TextureRef> >	mTextures;
-	
-	static void textureCacheDeallocator( void *aDeallocatorRefcon );
 };
 
 

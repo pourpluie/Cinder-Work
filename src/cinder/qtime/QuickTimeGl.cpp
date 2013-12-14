@@ -23,6 +23,28 @@
 #if ! defined( __LP64__ )
 
 #include "cinder/qtime/QuickTimeGl.h"
+#include "cinder/qtime/QuickTimeUtils.h"
+
+#if defined( CINDER_MSW )
+	#pragma push_macro( "__STDC_CONSTANT_MACROS" )
+	#pragma push_macro( "_STDINT_H" )
+		#undef __STDC_CONSTANT_MACROS
+		#if _MSC_VER >= 1600 // VC10 or greater
+			#define _STDINT_H
+			#define __FP__
+		#endif
+		#include <QTML.h>
+		#include <CVPixelBuffer.h>
+		#include <ImageCompression.h>
+		#include <Movies.h>
+		#include <GXMath.h>
+	#pragma pop_macro( "_STDINT_H" )
+	#pragma pop_macro( "__STDC_CONSTANT_MACROS" )
+	// this call is improperly defined as Mac-only in the headers
+	extern "C" {
+	EXTERN_API_C( OSStatus ) QTPixelBufferContextCreate( CFAllocatorRef, CFDictionaryRef, QTVisualContextRef* );
+	}
+#endif
 
 namespace cinder { namespace qtime {
 
@@ -136,9 +158,9 @@ void MovieGl::Obj::newFrame( CVImageBufferRef cvImage )
 	if( ! mTextureCache ) {
 		gl::Texture::Format format;
 		format.setTargetRect();
-		mTextureCache = gl::TextureCache( Surface8u( ptr, width, height, rowBytes, sco ), format );
+		mTextureCache = gl::TextureCache::create( Surface8u( ptr, width, height, rowBytes, sco ), format );
 	}
-	mTexture = mTextureCache.cache( Surface8u( ptr, width, height, rowBytes, sco ) );
+	mTexture = mTextureCache->cache( Surface8u( ptr, width, height, rowBytes, sco ) );
 	
 	::CVBufferRelease( imgRef );
 #endif
