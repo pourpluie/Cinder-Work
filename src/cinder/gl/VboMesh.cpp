@@ -17,6 +17,11 @@ VboMeshRef VboMesh::create( const geom::Source &source )
 	return VboMeshRef( new VboMesh( source ) );
 }
 
+VboMeshRef VboMesh::create( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo )
+{
+	return VboMeshRef( new VboMesh( numVertices, numIndices, glPrimitive, indexType, vertexArrayBuffers, indexVbo ) );
+}
+
 VboMesh::VboMesh( const geom::Source &source )
 {
 	mNumVertices = source.getNumVertices();
@@ -62,6 +67,11 @@ VboMesh::VboMesh( const geom::Source &source )
 			delete [] indices;
 		}
 	}
+}
+
+VboMesh::VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo )
+	: mNumVertices( numVertices ), mNumIndices( numIndices ), mGlPrimitive( glPrimitive ), mIndexType( indexType ), mVertexArrayVbos( vertexArrayBuffers ), mElements( indexVbo )
+{
 }
 
 VaoRef VboMesh::buildVao( const GlslProgRef &shader )

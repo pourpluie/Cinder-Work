@@ -21,6 +21,7 @@ void drawRange( const VboMeshRef& vbo, GLint start, GLsizei count );
 class VboMesh {
   public:
 	static VboMeshRef	create( const geom::Source &source );
+	static VboMeshRef	create( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo = VboRef() );
 
 	//! Constructs a VAO that matches \a this to GlslProg \a shader
 	VaoRef		buildVao( const GlslProgRef &shader );
@@ -46,6 +47,7 @@ class VboMesh {
 
   protected:
 	VboMesh( const geom::Source &source );
+	VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo );
 
 	uint32_t			mNumVertices, mNumIndices;
 	GLenum				mGlPrimitive;
