@@ -885,34 +885,26 @@ TextureCache::TextureCache( const Surface8u &prototypeSurface, const Texture::Fo
 gl::TextureRef TextureCache::cache( const Surface8u &data )
 {
 	// find an available slot and update that if possible
-	pair<int,TextureRef> *foundPair;
-	bool found = false;
-	for( vector<pair<int,TextureRef> >::iterator texIt = mTextures.begin(); texIt != mTextures.end(); ++texIt ) {
+	for( vector<pair<int,TextureRef>>::iterator texIt = mTextures.begin(); texIt != mTextures.end(); ++texIt ) {
 		if( texIt->first == -1 ) { // this texture is available, let's use it!
-			foundPair = &(*texIt);
-			foundPair->second->update( data );
-			found = true;
-			break;
+			texIt->second->update( data );
+			texIt->first = mNextId++;
+			// normally this would be very wrong, but when the result TextureRef is destroyed, it calls markTextureAsFree rather than deleting the master texture
+			return TextureRef( texIt->second.get(), std::bind( &TextureCache::markTextureAsFree, this, texIt->first ) );
 		}
 	}
 	
 	// we didn't find an available slot, so let's make a new texture
-	if( ! found ) {
-		TextureRef tex( new Texture( data, mFormat ), std::bind( &TextureCache::markTextureAsFree, this, mNextId ) );
-		mTextures.push_back( make_pair( mNextId, tex ) );
-		mNextId++;
-		return tex;
-	}
-	else {
-		foundPair->first = mNextId++;
-		return foundPair->second;
-	}
+	TextureRef masterTex( new Texture( data, mFormat ) );
+	mTextures.push_back( make_pair( mNextId++, masterTex ) );
+	// normally this would be very wrong, but when the result TextureRef is destroyed, it calls markTextureAsFree rather than deleting the master texture
+	return TextureRef( mTextures.back().second.get(), std::bind( &TextureCache::markTextureAsFree, this, mTextures.back().first ) );
 }
 
 void TextureCache::markTextureAsFree( int id )
 {
-	for ( vector<pair<int,TextureRef> >::iterator texIt = mTextures.begin(); texIt != mTextures.end(); ++texIt ) {
-		if ( texIt->first == id ) { // this texture is available, let's use it!
+	for( vector<pair<int,TextureRef> >::iterator texIt = mTextures.begin(); texIt != mTextures.end(); ++texIt ) {
+		if( texIt->first == id ) { // this texture is available now, let's mark it as usable
 			texIt->first = -1;
 			break;
 		}
