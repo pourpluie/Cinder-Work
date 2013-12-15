@@ -232,7 +232,7 @@ class GlslUnknownUniform : public Exception {
   public:
 	GlslUnknownUniform( const std::string &uniformName )
 	{
-		mMessage = std::string( "Unkown uniform: " ) + uniformName;
+		mMessage = std::string( "Unknown uniform: " ) + uniformName;
 	}
 	
 	virtual const char* what() const throw() {
