@@ -147,7 +147,7 @@ class Rect : public Source {
 	virtual size_t		getNumVertices() const override { return 4; }
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLE_STRIP; }
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		loadInto( Target *target ) const override = 0;
+	virtual void		loadInto( Target *target ) const override;
 	
 	Vec2f		mPos, mScale;
 	bool		mHasColor;
