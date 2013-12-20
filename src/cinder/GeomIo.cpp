@@ -28,10 +28,38 @@ using namespace std;
 
 namespace cinder { namespace geom {
 
+///////////////////////////////////////////////////////////////////////////////////////
+// BufferLayout
+BufferLayout::AttribInfo BufferLayout::getAttribInfo( Attrib attrib ) const
+{
+	for( const auto &atIt : mAttribs )
+		if( atIt.getAttrib() == attrib )
+			return atIt;
+
+	throw ExcMissingAttrib();
+}
+
+bool BufferLayout::hasAttrib( Attrib attrib ) const
+{
+	for( const auto &atIt : mAttribs )
+		if( atIt.getAttrib() == attrib )
+			return true;
+	
+	return false;
+}
+
+uint8_t	BufferLayout::getAttribDims( Attrib attrib ) const
+{
+	for( const auto &atIt : mAttribs ) {
+		if( atIt.getAttrib() == attrib )
+			return atIt.getDims();
+	}
+
+	return 0;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Source
-
 namespace { // these are helper functions for copyData() and copyDataMultAdd
 
 template<uint8_t SRCDIM, uint8_t DSTDIM>
@@ -102,7 +130,7 @@ void copyDataMultAddImpl( const float *srcData, size_t numElements, size_t dstSt
 
 } // anonymous namespace
 
-void Source::copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData )
+void GeomIo::copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData )
 {
 	// we can get away with a memcpy
 	if( (srcDimensions == dstDimensions) && (dstStrideBytes == 0) ) {
@@ -162,17 +190,8 @@ void Source::copyDataMultAdd( const float *srcData, size_t numElements,
 	}
 }
 
-void Source::copyIndices( uint16_t *dest ) const
-{
-	throw ExcNoIndices();
-}
-
-void Source::copyIndices( uint32_t *dest ) const
-{
-	throw ExcNoIndices();
-}
-
 // Always copy indices; generate them when they don't exist
+/*
 void Source::forceCopyIndices( uint16_t *dest ) const
 {
 	size_t numIndices = getNumIndices();
@@ -187,6 +206,7 @@ void Source::forceCopyIndices( uint16_t *dest ) const
 		std::generate( dest, dest + getNumVertices(), [&] { return count++; } );
 	}
 }
+
 
 // Always copy indices; generate them when they don't exist
 void Source::forceCopyIndices( uint32_t *dest ) const
@@ -230,6 +250,7 @@ void Source::forceCopyIndicesTriangles( uint16_t *dest ) const
 {
 	forceCopyIndicesTrianglesImpl<uint16_t>( dest );
 }
+
 
 void Source::forceCopyIndicesTriangles( uint32_t *dest ) const
 {
@@ -332,11 +353,92 @@ void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
 		}
 	}
 }
+*/
 
+namespace { 
+template<typename T>
+void copyIndexDataForceTrianglesImpl( Primitive primitive, const uint32_t *source, size_t numIndices, T *target )
+{
+	switch( primitive ) {
+		case Primitive::TRIANGLES:
+			memcpy( target, source, sizeof(uint32_t) * numIndices );
+		break;
+		case Primitive::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
+			if( numIndices < 3 )
+				return;
+			size_t outIdx = 0; // (012, 213), (234, 435), etc : (odd,even), (odd,even), etc
+			for( size_t i = 0; i < numIndices - 2; ++i ) {
+				if( i & 1 ) { // odd
+					target[outIdx++] = source[i+1];
+					target[outIdx++] = source[0];
+					target[outIdx++] = source[i+2];
+				}
+				else { // even
+					target[outIdx++] = source[i];
+					target[outIdx++] = source[i+1];
+					target[outIdx++] = source[i+2];
+				}
+			}
+		}
+		break;
+		case Primitive::TRIANGLE_FAN: { // ABC, ACD, ADE, etc
+			if( numIndices < 3 )
+				return;
+			size_t outIdx = 0;
+			for( size_t i = 0; i < numIndices - 2; ++i ) {
+				target[outIdx++] = source[0];
+				target[outIdx++] = source[i+1];
+				target[outIdx++] = source[i+2];
+			}
+		}
+		default:
+			throw ExcIllegalPrimitiveType();			
+		break;
+	}
+}
+
+} // anonymous namespace
+
+void Target::copyIndexDataForceTriangles( Primitive primitive, const uint32_t *source, size_t numIndices, uint32_t *target )
+{
+	copyIndexDataForceTrianglesImpl<uint32_t>( primitive, source, numIndices, target );
+}
+
+void Target::copyIndexDataForceTriangles( Primitive primitive, const uint32_t *source, size_t numIndices, uint16_t *target )
+{
+	copyIndexDataForceTrianglesImpl<uint16_t>( primitive, source, numIndices, target );
+}
+
+void Target::copyIndexData( const uint32_t *source, size_t numIndices, uint32_t *target )
+{
+	memcpy( target, source, numIndices * sizeof(float) );
+}
+
+void Target::copyIndexData( const uint32_t *source, size_t numIndices, uint16_t *target )
+{
+	for( size_t v = 0; v < numIndices; ++v )
+		target[v] = source[v];
+}
+
+void Target::generateIndices( Primitive sourcePrimitive, size_t sourceNumIndices )
+{
+	unique_ptr<uint32_t> indices( new uint32_t[sourceNumIndices] );
+
+	uint32_t count = 0;
+	std::generate( indices.get(), indices.get() + sourceNumIndices, [&] { return count++; } );
+	
+	uint8_t requiredBytesPerIndex = 4;
+	if( sourceNumIndices < 256 )
+		requiredBytesPerIndex = 1;
+	else if( sourceNumIndices < 65536 )
+		requiredBytesPerIndex = 2;
+	// now have the target copy these indices
+	copyIndices( sourcePrimitive, indices.get(), sourceNumIndices, requiredBytesPerIndex );
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Rect
-float Rect::sVertices[4*2] = { 0.5f,-0.5f,	-0.5f,-0.5f,	0.5f,0.5f,	-0.5f,0.5f };
+float Rect::sPositions[4*2] = { 0.5f,-0.5f,	-0.5f,-0.5f,	0.5f,0.5f,	-0.5f,0.5f };
 float Rect::sColors[4*3] = { 1, 0, 1,	0, 0, 1,	1, 1, 1,	0, 1, 1 };
 float Rect::sTexCoords[4*2] = { 1, 1,	0, 1,		1, 0,		0, 0 };
 float Rect::sNormals[4*3] = {0, 0, 1,	0, 0, 1,	0, 0, 1,	0, 0, 1 };
@@ -344,64 +446,28 @@ float Rect::sNormals[4*3] = {0, 0, 1,	0, 0, 1,	0, 0, 1,	0, 0, 1 };
 Rect::Rect()
 	: mPos( Vec2f::zero() ), mScale( Vec2f::one() )
 {
-	mHasColor = mHasTexCoord0 = mHasNormals = false;
+	mHasColor = false;
+	mHasTexCoord0 = mHasNormals = true;
 }
 
-bool Rect::hasAttrib( Attrib attr ) const
+void Rect::loadInto( Target *target ) const
 {
-	switch( attr ) {
-		case Attrib::POSITION: return true;
-		case Attrib::COLOR: return mHasColor;
-		case Attrib::TEX_COORD_0: return mHasTexCoord0;
-		case Attrib::NORMAL: return mHasNormals;
-		default:
-			return false;
-	}
-}
-
-bool Rect::canProvideAttrib( Attrib attr ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION:
-		case Attrib::COLOR:
-		case Attrib::TEX_COORD_0:
-		case Attrib::NORMAL:
-			return true;
-		default:
-			return false;
-	}
-}
-
-void Rect::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION:
-			copyDataMultAdd( sVertices, 4, dimensions, stride, dest, mScale, mPos );
-		break;
-		case Attrib::COLOR:
-			copyData( 3, sColors, 4, dimensions, stride, dest );
-		break;
-		case Attrib::TEX_COORD_0:
-			copyData( 2, sTexCoords, 4, dimensions, stride, dest );
-		break;
-		case Attrib::NORMAL:
-			copyData( 3, sNormals, 4, dimensions, stride, dest );
-		break;
-		default:
-			throw ExcMissingAttrib();
-	}
+	target->copyAttrib( Attrib::POSITION, 2, 0, sPositions, 4 );
+	if( mHasColor )
+		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 4 );
+	if( mHasTexCoord0 )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sTexCoords, 4 );
+	if( mHasNormals )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 4 );
 }
 
 uint8_t	Rect::getAttribDims( Attrib attr ) const
 {
-	if( ! canProvideAttrib( attr ) )
-		return 0;
-
 	switch( attr ) {
 		case Attrib::POSITION: return 2;
-		case Attrib::COLOR: return 3;
-		case Attrib::TEX_COORD_0: return 2;
-		case Attrib::NORMAL: return 3;
+		case Attrib::COLOR: return mHasColor ? 3 : 0;
+		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
+		case Attrib::NORMAL: return mHasNormals ? 3 : 0;
 		default:
 			return 0;
 	}
@@ -409,14 +475,14 @@ uint8_t	Rect::getAttribDims( Attrib attr ) const
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Cube
-float Cube::sVertices[24*3] = {  1.0f, 1.0f, 1.0f,   1.0f,-1.0f, 1.0f,	 1.0f,-1.0f,-1.0f,   1.0f, 1.0f,-1.0f,	// +X
+float Cube::sPositions[24*3] = {  1.0f, 1.0f, 1.0f,   1.0f,-1.0f, 1.0f,	 1.0f,-1.0f,-1.0f,   1.0f, 1.0f,-1.0f,	// +X
 								 1.0f, 1.0f, 1.0f,   1.0f, 1.0f,-1.0f,  -1.0f, 1.0f,-1.0f,  -1.0f, 1.0f, 1.0f,	// +Y
 								 1.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 1.0f,  -1.0f,-1.0f, 1.0f,   1.0f,-1.0f, 1.0f,	// +Z
 								-1.0f, 1.0f, 1.0f,  -1.0f, 1.0f,-1.0f,  -1.0f,-1.0f,-1.0f,  -1.0f,-1.0f, 1.0f,	// -X
 								-1.0f,-1.0f,-1.0f,   1.0f,-1.0f,-1.0f,   1.0f,-1.0f, 1.0f,  -1.0f,-1.0f, 1.0f,	// -Y
 								 1.0f,-1.0f,-1.0f,  -1.0f,-1.0f,-1.0f,  -1.0f, 1.0f,-1.0f,   1.0f, 1.0f,-1.0f };// -Z
 
-uint16_t Cube::sIndices[6*6] ={	0, 1, 2, 0, 2, 3,
+uint32_t Cube::sIndices[6*6] ={	0, 1, 2, 0, 2, 3,
 								4, 5, 6, 4, 6, 7,
 								8, 9,10, 8, 10,11,
 								12,13,14,12,14,15,
@@ -446,80 +512,34 @@ float Cube::sNormals[24*3]=	{	1,0,0,	1,0,0,	1,0,0,	1,0,0,
 
 
 Cube::Cube()
-	: mPos( Vec3f::zero() ), mScale( Vec3f::one() )
 {
-	mHasColor = mHasTexCoord0 = mHasNormals = false;
-}
-
-bool Cube::hasAttrib( Attrib attr ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION: return true;
-		case Attrib::COLOR: return mHasColor;
-		case Attrib::TEX_COORD_0: return mHasTexCoord0;
-		case Attrib::NORMAL: return mHasNormals;
-		default:
-			return false;
-	}
-}
-
-bool Cube::canProvideAttrib( Attrib attr ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION:
-		case Attrib::COLOR:
-		case Attrib::TEX_COORD_0:
-		case Attrib::NORMAL:
-			return true;
-		default:
-			return false;
-	}
-}
-
-void Cube::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION:
-			copyDataMultAdd( sVertices, 24, dimensions, stride, dest, mScale, mPos );
-		break;
-		case Attrib::COLOR:
-			copyData( 3, sColors, 24, dimensions, stride, dest );
-		break;
-		case Attrib::TEX_COORD_0:
-			copyData( 2, sTexCoords, 24, dimensions, stride, dest );
-		break;
-		case Attrib::NORMAL:
-			copyData( 3, sNormals, 24, dimensions, stride, dest );
-		break;
-		default:
-			throw ExcMissingAttrib();
-	}
-}
-
-void Cube::copyIndices( uint16_t *dest ) const
-{
-	memcpy( dest, sIndices, sizeof(uint16_t) * 36 );
-}
-
-void Cube::copyIndices( uint32_t *dest ) const
-{
-	for( int i = 0; i < 36; ++i )
-		dest[i] = sIndices[i];
+	mHasTexCoord0 = mHasNormals = true;
+	mHasColor = false;
 }
 
 uint8_t	Cube::getAttribDims( Attrib attr ) const
 {
-	if( ! canProvideAttrib( attr ) )
-		return 0;
-
 	switch( attr ) {
 		case Attrib::POSITION: return 3;
-		case Attrib::COLOR: return 3;
-		case Attrib::TEX_COORD_0: return 2;
-		case Attrib::NORMAL: return 3;
+		case Attrib::COLOR: return mHasColor ? 3 : 0;
+		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
+		case Attrib::NORMAL: return mHasNormals ? 2 : 0;;
 		default:
 			return 0;
 	}	
+}
+
+void Cube::loadInto( Target *target ) const
+{
+	target->copyAttrib( Attrib::POSITION, 3, 0, sPositions, 24 );
+	if( mHasColor )
+		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 24 );
+	if( mHasTexCoord0 )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sColors, 24 );
+	if( mHasNormals )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 24 );
+	
+	target->copyIndices( Primitive::TRIANGLES, sIndices, 24, 1 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -571,9 +591,17 @@ const float Teapot::sCurveData[][3] =
 	-1.5f, 0.075f}, {0.f, -1.425f, 0.f}, {1.5f, -0.84f, 0.075f}, {0.84f, -1.5f, 0.075f} };
 
 Teapot::Teapot()
-	: mSubdivision( 4 ), mPos( Vec3f::zero() ), mScale( Vec3f::one() ), mCalculationsCached( false )
+	: mSubdivision( 4 )
 {
 	mHasTexCoord0 = mHasNormals = false;
+	mNumVertices = calcNumVertices( mSubdivision );
+}
+
+Teapot&	Teapot::subdivision( int sub )
+{
+	mSubdivision = sub;
+	mNumVertices = calcNumVertices( mSubdivision );
+	return *this;
 }
 
 size_t Teapot::getNumVertices() const
@@ -583,46 +611,15 @@ size_t Teapot::getNumVertices() const
 	return mNumVertices;
 }
 
-bool Teapot::hasAttrib( Attrib attr ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION: return true;
-		case Attrib::TEX_COORD_0: return mHasTexCoord0;
-		case Attrib::NORMAL: return mHasNormals;
-		default:
-			return false;
-	}
-}
-
-bool Teapot::canProvideAttrib( Attrib attr ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION:
-		case Attrib::TEX_COORD_0:
-		case Attrib::NORMAL:
-			return true;
-		default:
-			return false;
-	}
-}
-
-void Teapot::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
+void Teapot::loadInto( Target *target ) const
 {
 	calculate();
 
-	switch( attr ) {
-		case Attrib::POSITION:
-			copyDataMultAdd( mVertices.get(), mNumVertices, dimensions, stride, dest, mScale, mPos );
-		break;
-		case Attrib::TEX_COORD_0:
-			copyData( 2, mTexCoords.get(), mNumVertices, dimensions, stride, dest );
-		break;
-		case Attrib::NORMAL:
-			copyData( 3, mNormals.get(), mNumVertices, dimensions, stride, dest );
-		break;
-		default:
-			throw ExcMissingAttrib();
-	}
+	target->copyAttrib( Attrib::POSITION, 3, 0, (const float*)mPositions.get(), mNumVertices );
+	if( mHasTexCoord0 )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, (const float*)mTexCoords.get(), mNumVertices );
+	if( mHasNormals )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, (const float*)mNormals.get(), mNumVertices );
 }
 
 size_t Teapot::getNumIndices() const
@@ -632,51 +629,32 @@ size_t Teapot::getNumIndices() const
 	return mNumIndices;
 }
 
-void Teapot::copyIndices( uint16_t *dest ) const
-{
-	calculate();
-	
-	for( int i = 0; i < mNumIndices; ++i )
-		dest[i] = mIndices.get()[i];
-}
-
-void Teapot::copyIndices( uint32_t *dest ) const
-{
-	calculate();
-			
-	memcpy( dest, mIndices.get(), mNumIndices * sizeof(uint32_t) );		
-}
-
 uint8_t	Teapot::getAttribDims( Attrib attr ) const
 {
-	if( ! canProvideAttrib( attr ) )
-		return 0;
-
 	switch( attr ) {
 		case Attrib::POSITION: return 3;
-		case Attrib::TEX_COORD_0: return 2;
-		case Attrib::NORMAL: return 3;
+		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
+		case Attrib::NORMAL: return mHasNormals ? 3 : 0;
 		default:
 			return 0;
 	}
 }
 
+size_t Teapot::calcNumVertices( int subdivision )
+{
+	return 32 * (subdivision + 1) * (subdivision + 1);
+}
+
 void Teapot::calculate() const
 {
-	if( mCalculationsCached )
-		return;
-	
-	mNumVertices = 32 * (mSubdivision + 1) * (mSubdivision + 1);
 	int numFaces = mSubdivision * mSubdivision * 32;
 	mNumIndices = numFaces * 6;
-	mVertices = unique_ptr<float>( new float[mNumVertices * 3] );
+	mPositions = unique_ptr<float>( new float[mNumVertices * 3] );
 	mTexCoords = unique_ptr<float>( new float[mNumVertices * 2] );	
 	mNormals = unique_ptr<float>( new float[mNumVertices * 3] );
 	mIndices = unique_ptr<uint32_t>( new uint32_t[mNumIndices] );
 
-	generatePatches( mVertices.get(), mNormals.get(), mTexCoords.get(), mIndices.get(), mSubdivision );
-	
-	mCalculationsCached = true;
+	generatePatches( mPositions.get(), mNormals.get(), mTexCoords.get(), mIndices.get(), mSubdivision );
 }
 
 void Teapot::generatePatches( float *v, float *n, float *tc, uint32_t *el, int grid )
@@ -862,106 +840,84 @@ Circle::Circle()
 	: mNumSegments( -1 ), mCenter( 0, 0 ), mRadius( 1.0f )
 {
 	mHasTexCoord0 = mHasNormals = false;
-	mCalculationsCached = false;
+	mNumVertices = 3;
+}
+
+Circle&	Circle::segments( int segments )
+{
+	mNumSegments = segments;
+	mNumVertices = calcNumVertices( mNumSegments, mRadius );
+	return *this;
+}
+
+Circle&	Circle::radius( float radius )
+{
+	mRadius = radius;
+	mNumVertices = calcNumVertices( mNumSegments, mRadius );
+	return *this;
+}
+
+// If numSegments<0, calculate based on radius
+size_t Circle::calcNumVertices( int numSegments, float radius )
+{
+	if( numSegments <= 0 )
+		numSegments = (int)math<double>::floor( radius * M_PI * 2 );
+	
+	if( numSegments < 3 ) numSegments = 3;
+	return numSegments * 2;
 }
 
 void Circle::calculate() const
 {
-	if( mCalculationsCached )
-		return;
-	
-	int numSegments = mNumSegments;
-	if( numSegments <= 0 )
-		numSegments = (int)math<double>::floor( mRadius * M_PI * 2 );
-	
-	if( numSegments < 3 ) numSegments = 3;
-	
-	mNumVertices = numSegments + 2;
-	mVertices = unique_ptr<Vec2f>( new Vec2f[mNumVertices] );
+	mPositions = unique_ptr<Vec2f>( new Vec2f[mNumVertices] );
 	if( mHasTexCoord0 )
 		mTexCoords = unique_ptr<Vec2f>( new Vec2f[mNumVertices] );
 	if( mHasNormals )		
 		mNormals = unique_ptr<Vec3f>( new Vec3f[mNumVertices] );	
 
 	// center
-	mVertices.get()[0] = mCenter;
+	mPositions.get()[0] = mCenter;
 	if( mHasTexCoord0 )
 		mTexCoords.get()[0] = Vec2f( 0.5f, 0.5f );
 	if( mHasNormals )
 		mNormals.get()[0] = Vec3f( 0, 0, 1 );
 	
 	// iterate the segments
-	const float tDelta = 1 / (float)numSegments * 2.0f * 3.14159f;
+	const float tDelta = 1 / (float)mNumSegments * 2.0f * 3.14159f;
 	float t = 0;
-	for( int s = 0; s <= numSegments; s++ ) {
+	for( int s = 0; s <= mNumSegments; s++ ) {
 		Vec2f unit( math<float>::cos( t ), math<float>::sin( t ) );
-		mVertices.get()[s+1] = mCenter + unit * mRadius;
+		mPositions.get()[s+1] = mCenter + unit * mRadius;
 		if( mHasTexCoord0 )
 			mTexCoords.get()[s+1] = unit * 0.5f + Vec2f( 0.5f, 0.5f );
 		if( mHasNormals )
 			mNormals.get()[s+1] = Vec3f( 0, 0, 1 );
 		t += tDelta;
 	}
-	
-	mCalculationsCached = true;
 }
 
 size_t Circle::getNumVertices() const
 {
-	calculate();
-	
 	return mNumVertices;
 }
 
-bool Circle::hasAttrib( Attrib attr ) const
+void Circle::loadInto( Target *target ) const
 {
-	switch( attr ) {
-		case Attrib::POSITION: return true;
-		case Attrib::TEX_COORD_0: return mHasTexCoord0;
-		case Attrib::NORMAL: return mHasNormals;
-		default:
-			return false;
-	}
-}
+	calculate();
 
-bool Circle::canProvideAttrib( Attrib attr ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION:
-		case Attrib::TEX_COORD_0:
-		case Attrib::NORMAL:
-			return true;
-		default:
-			return false;
-	}
-}
-
-void Circle::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
-{
-	switch( attr ) {
-		case Attrib::POSITION:
-			copyData( 2, mVertices.get()->ptr(), mNumVertices, dimensions, stride, dest );
-		break;
-		case Attrib::TEX_COORD_0:
-			copyData( 2, mTexCoords.get()->ptr(), mNumVertices, dimensions, stride, dest );
-		break;
-		case Attrib::NORMAL:
-			copyData( 3, mNormals.get()->ptr(), mNumVertices, dimensions, stride, dest );
-		break;
-		default:
-			throw ExcMissingAttrib();
-	}
+	target->copyAttrib( Attrib::POSITION, 2, 0, (const float*)mPositions.get(), mNumVertices );
+	if( mHasTexCoord0 )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, (const float*)mTexCoords.get(), mNumVertices );
+	if( mHasNormals )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, (const float*)mNormals.get(), mNumVertices );
 }
 
 uint8_t	Circle::getAttribDims( Attrib attr ) const
 {
-	if( ! canProvideAttrib( attr ) )
-		return 0;
-
 	switch( attr ) {
 		case Attrib::POSITION: return 2;
-		case Attrib::TEX_COORD_0: return 2;
-		case Attrib::NORMAL: return 3;
+		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
+		case Attrib::NORMAL: return mHasNormals ? 3 : 0;
 		default:
 			return 0;
 	}

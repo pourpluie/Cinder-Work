@@ -230,7 +230,6 @@
     <ClCompile Include="..\src\cinder\Font.cpp" />
     <ClCompile Include="..\src\cinder\Frustum.cpp" />
     <ClCompile Include="..\src\cinder\GeomIo.cpp" />
-    <ClCompile Include="..\src\cinder\GeoSource.cpp" />
     <ClCompile Include="..\src\cinder\gl\Batch.cpp" />
     <ClCompile Include="..\src\cinder\gl\BufferObj.cpp" />
     <ClCompile Include="..\src\cinder\gl\Context.cpp" />
@@ -372,6 +371,7 @@
     <ClInclude Include="..\include\cinder\Filesystem.h" />
     <ClInclude Include="..\include\cinder\Frustum.h" />
     <ClInclude Include="..\include\cinder\GeomIo.h" />
+    <ClInclude Include="..\include\cinder\gl\Batch.h" />
     <ClInclude Include="..\include\cinder\gl\BufferObj.h" />
     <ClInclude Include="..\include\cinder\gl\Context.h" />
     <ClInclude Include="..\include\cinder\gl\Environment.h" />

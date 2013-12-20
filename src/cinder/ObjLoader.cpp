@@ -62,82 +62,36 @@ ObjLoader::ObjLoader( DataSourceRef dataSource, DataSourceRef materialSource, bo
     parse( includeUVs );
 	load();	
 }
-    
-ObjLoader::~ObjLoader()
-{
-}
 
-bool ObjLoader::hasAttrib( geom::Attrib attr ) const
+void ObjLoader::loadInto( geom::Target *target ) const
 {
-	switch( attr ) {
-		case geom::Attrib::POSITION: return ! mOutputVertices.empty(); break;
-		case geom::Attrib::COLOR: return ! mOutputColors.empty(); break;
-		case geom::Attrib::TEX_COORD_0: return ! mOutputTexCoords.empty(); break;
-		case geom::Attrib::NORMAL: return ! mOutputNormals.empty();
-		default:
-			return false;
-	}
-}
-
-bool ObjLoader::canProvideAttrib( geom::Attrib attr ) const
-{
-	switch( attr ) {
-		case geom::Attrib::POSITION: return ! mOutputVertices.empty(); break;
-		case geom::Attrib::COLOR: return ! mOutputColors.empty(); break;
-		case geom::Attrib::TEX_COORD_0: return ! mOutputTexCoords.empty(); break;
-		case geom::Attrib::NORMAL: return (! mOutputVertices.empty() ) || ( ! mOutputNormals.empty() ); // we can derive normals if we have only positions
-		default:
-			return false;
-	}
-}
-
-void ObjLoader::copyAttrib( geom::Attrib attr, uint8_t dimensions, size_t stride, float *dest ) const
-{
-	switch( attr ) {
-		case geom::Attrib::POSITION:
-			copyData( 3, (const float*)&mOutputVertices[0], mOutputVertices.size(), dimensions, stride, dest );
-		break;
-		case geom::Attrib::COLOR:
-			copyData( 3, (const float*)&mOutputColors[0], std::min( mOutputColors.size(), mOutputVertices.size() ), dimensions, stride, dest );
-		break;
-		case geom::Attrib::TEX_COORD_0:
-			copyData( 2, (const float*)&mOutputTexCoords[0], std::min( mOutputTexCoords.size(), mOutputVertices.size() ), dimensions, stride, dest );
-		break;
-		case geom::Attrib::NORMAL:
-			copyData( 3, (const float*)&mOutputNormals[0], std::min( mOutputNormals.size(), mOutputVertices.size() ), dimensions, stride, dest );
-		break;
-		default:
-			throw geom::ExcMissingAttrib();
-	}
+	// copy attributes
+	if( getAttribDims( geom::Attrib::POSITION ) && target->getAttribDims( geom::Attrib::POSITION ) )
+		target->copyAttrib( geom::Attrib::POSITION, getAttribDims( geom::Attrib::POSITION ), 0, (const float*)mOutputVertices.data(), getNumVertices() );
+	if( getAttribDims( geom::Attrib::COLOR ) && target->getAttribDims( geom::Attrib::COLOR ) )
+		target->copyAttrib( geom::Attrib::COLOR, getAttribDims( geom::Attrib::COLOR ), 0, (const float*)mOutputColors.data(), std::min( mOutputColors.size(), mOutputVertices.size() ) );
+	if( getAttribDims( geom::Attrib::TEX_COORD_0 ) && target->getAttribDims( geom::Attrib::TEX_COORD_0 ) )
+		target->copyAttrib( geom::Attrib::TEX_COORD_0, getAttribDims( geom::Attrib::TEX_COORD_0 ), 0, (const float*)mOutputTexCoords.data(), std::min( mOutputTexCoords.size(), mOutputVertices.size() ) );
+	if( getAttribDims( geom::Attrib::NORMAL ) && target->getAttribDims( geom::Attrib::NORMAL ) )
+		target->copyAttrib( geom::Attrib::NORMAL, getAttribDims( geom::Attrib::NORMAL ), 0, (const float*)mOutputNormals.data(), std::min( mOutputNormals.size(), mOutputVertices.size() ) );
+	
+	// copy indices
+	if( getNumIndices() )
+		target->copyIndices( geom::Primitive::TRIANGLES, mIndices.data(), getNumIndices(), 4 /* bytes per index */ );
 }
 
 uint8_t	ObjLoader::getAttribDims( geom::Attrib attr ) const
 {
-	if( ! canProvideAttrib( attr ) )
-		return 0;
-
 	switch( attr ) {
-		case geom::Attrib::POSITION: return 3;
-		case geom::Attrib::COLOR: return 3;
-		case geom::Attrib::TEX_COORD_0: return 2;
-		case geom::Attrib::NORMAL: return 3;
+		case geom::Attrib::POSITION: return mOutputVertices.empty() ? 0 : 3;
+		case geom::Attrib::COLOR: return mOutputColors.empty() ? 0 : 3;
+		case geom::Attrib::TEX_COORD_0: return mOutputTexCoords.empty() ? 0 : 2;
+		case geom::Attrib::NORMAL: return mOutputNormals.empty() ? 0 : 3;
 		default:
 			return 0;
 	}
 }
 
-void ObjLoader::copyIndices( uint16_t *dest ) const
-{
-	size_t ct = mIndices.size();
-	for( size_t i = 0; i < ct; ++i )
-		dest[i] = mIndices[i];	
-}
-
-void ObjLoader::copyIndices( uint32_t *dest ) const
-{
-	memcpy( dest, &mIndices[0], sizeof(uint32_t) * mIndices.size() );
-}
-   
 void ObjLoader::parseMaterial( std::shared_ptr<IStreamCinder> material )
 {
     Material m;
@@ -610,101 +564,126 @@ void ObjLoader::loadGroup( const Group &group, map<int,int> &uniqueVerts )
 	}	
 }
 
-void objWrite( DataTargetRef dataTarget, const geom::Source &source, bool writeNormals, bool includeUVs )
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// OBJ Writing
+namespace {
+class ObjWriteTarget : public geom::Target {
+  public:
+	ObjWriteTarget( OStreamRef stream, bool includeNormals, bool includeTexCoords )
+		: mStream( stream ), mIncludeNormals( includeNormals ), mIncludeTexCoords( includeTexCoords )
+	{
+		mHasNormals = mHasTexCoords = false;
+	}
+	
+	virtual geom::Primitive	getPrimitive() const override;
+	virtual uint8_t	getAttribDims( geom::Attrib attr ) const override;
+	virtual void copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) override;
+	virtual void copyIndices( geom::Primitive primitive, const uint32_t *source, size_t numIndices, uint8_t requiredBytesPerIndex ) override;
+	
+  protected:
+	void writeData( const std::string &typeSpecifier, uint8_t dims, size_t strideBytes, const float *srcData, size_t count );
+
+	OStreamRef		mStream;
+	bool			mIncludeTexCoords, mIncludeNormals;
+	bool			mHasTexCoords, mHasNormals;
+};
+
+geom::Primitive	ObjWriteTarget::getPrimitive() const
 {
-	OStreamRef stream = dataTarget->getStream();
-	const size_t numVerts = source.getNumVertices();
-	switch( source.getAttribDims( geom::Attrib::POSITION ) ) {
-		case 2:
-		case 3: {
-			unique_ptr<Vec3f> verts( new Vec3f[numVerts] );
-			source.copyAttrib( geom::Attrib::POSITION, 3, 0, (float*)verts.get() );
-			for( size_t p = 0; p < numVerts; ++p ) {
-				ostringstream os;
-				os << "v " << verts.get()[p].x << " " << verts.get()[p].y << " " << verts.get()[p].z << std::endl;
-				stream->writeData( os.str().c_str(), os.str().length() );
-			}
-		}
-		break;
-		case 4: {
-			unique_ptr<Vec4f> verts( new Vec4f[numVerts] );
-			source.copyAttrib( geom::Attrib::POSITION, 3, 0, (float*)verts.get() );
-			for( size_t p = 0; p < numVerts; ++p ) {
-				ostringstream os;
-				os << "v " << verts.get()[p].x << " " << verts.get()[p].y << " " << verts.get()[p].z << " " << verts.get()[p].w << std::endl;
-				stream->writeData( os.str().c_str(), os.str().length() );
-			}
-		}
-		break;
-	}
+	return geom::Primitive::TRIANGLES;
+}
 
-	const bool processTexCoords = source.hasAttrib( geom::Attrib::TEX_COORD_0 ) && includeUVs;
-	if( processTexCoords ) {
-		switch( source.getAttribDims( geom::Attrib::TEX_COORD_0 ) ) {
-			case 2: {
-				unique_ptr<Vec2f> texCoords( new Vec2f[numVerts] );
-				source.copyAttrib( geom::Attrib::TEX_COORD_0, 2, 0, (float*)texCoords.get() );
-				for( size_t p = 0; p < numVerts; ++p ) {
-					ostringstream os;
-					os << "vt " << texCoords.get()[p].x << " " << texCoords.get()[p].y << std::endl;
-					stream->writeData( os.str().c_str(), os.str().length() );
-				}
-			}
-			break;
-			case 3: {
-				unique_ptr<Vec3f> texCoords( new Vec3f[numVerts] );
-				source.copyAttrib( geom::Attrib::TEX_COORD_0, 3, 0, (float*)texCoords.get() );
-				for( size_t p = 0; p < numVerts; ++p ) {
-					ostringstream os;
-					os << "vt " << texCoords.get()[p].x << " " << texCoords.get()[p].y << " " << texCoords.get()[p].z << std::endl;
-					stream->writeData( os.str().c_str(), os.str().length() );
-				}
-			}
-			break;
-		}
+uint8_t	ObjWriteTarget::getAttribDims( geom::Attrib attr ) const
+{
+	switch( attr ) {
+		case geom::Attrib::POSITION: return 3;
+		case geom::Attrib::COLOR: return 3;
+		case geom::Attrib::TEX_COORD_0: return 2;
+		case geom::Attrib::NORMAL: return 3;
+		default:
+			return 0;
 	}
-	
-	const bool processNormals = source.hasAttrib( geom::Attrib::NORMAL ) && writeNormals;
-	if( processNormals ) {
-		unique_ptr<Vec3f> normals( new Vec3f[numVerts] );
-		source.copyAttrib( geom::Attrib::NORMAL, 3, 0, (float*)normals.get() );
-		for( size_t p = 0; p < numVerts; ++p ) {
-			ostringstream os;
-			os << "vn " << normals.get()[p].x << " " << normals.get()[p].y << " " << normals.get()[p].z << std::endl;
-			stream->writeData( os.str().c_str(), os.str().length() );
-		}
-	}
-	
-	size_t numIndices = source.getNumIndicesTriangles();
-	unique_ptr<uint32_t> indices( new uint32_t[numIndices] );
-	source.forceCopyIndicesTriangles( indices.get() );
+}
 
+void ObjWriteTarget::writeData( const std::string &typeSpecifier, uint8_t dims, size_t strideBytes, const float *srcData, size_t count )
+{
+	const float *data = srcData;
+	if( strideBytes == 0 )
+		strideBytes = sizeof(float) * dims;
+	for( size_t v = 0; v < count; ++v ) {
+		ostringstream os;
+		os << typeSpecifier << " ";
+		for( uint8_t d = 0; d < dims; ++d ) {
+			os << data[d];
+			if( d == dims - 1 ) os << std::endl;
+			else os << ' ';
+		}
+		mStream->writeData( os.str().c_str(), os.str().length() );
+		data = (const float*)(((const uint8_t*)srcData) + strideBytes);
+	}
+}
+
+void ObjWriteTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count )
+{
+	switch( attr ) {
+		case geom::Attrib::POSITION:
+			writeData( "v", dims, strideBytes, srcData, count );
+		break;
+		case geom::Attrib::TEX_COORD_0:
+			if( mIncludeTexCoords ) {
+				writeData( "vt", dims, strideBytes, srcData, count );
+				mHasTexCoords = true;
+			}
+		break;
+		case geom::Attrib::NORMAL:
+			if( mIncludeNormals ) {
+				writeData( "vn", dims, strideBytes, srcData, count );
+				mHasNormals = true;
+			}
+		break;
+	}
+}
+
+void ObjWriteTarget::copyIndices( geom::Primitive primitive, const uint32_t *source, size_t numIndices, uint8_t requiredBytesPerIndex )
+{
 	for( size_t i = 0; i < numIndices; i += 3 ) {
 		ostringstream os;
 		os << "f ";
-		if( processNormals && processTexCoords ) {
-			os << indices.get()[i]+1 << "/" << indices.get()[i+0]+1 << "/" << indices.get()[i+0]+1 << " ";
-			os << indices.get()[i+1]+1 << "/" << indices.get()[i+1]+1 << "/" << indices.get()[i+1]+1 << " ";
-			os << indices.get()[i+2]+1 << "/" << indices.get()[i+2]+1 << "/" << indices.get()[i+2]+1 << " ";
+		if( mHasNormals && mHasTexCoords ) {
+			os << source[i]+1 << "/" << source[i+0]+1 << "/" << source[i+0]+1 << " ";
+			os << source[i+1]+1 << "/" << source[i+1]+1 << "/" << source[i+1]+1 << " ";
+			os << source[i+2]+1 << "/" << source[i+2]+1 << "/" << source[i+2]+1 << " ";
 		}
-		else if ( processNormals ) {
-			os << indices.get()[i+0]+1 << "//" << indices.get()[i+0]+1 << " ";
-			os << indices.get()[i+1]+1 << "//" << indices.get()[i+1]+1 << " ";
-			os << indices.get()[i+2]+1 << "//" << indices.get()[i+2]+1 << " ";
+		else if ( mHasNormals ) {
+			os << source[i+0]+1 << "//" << source[i+0]+1 << " ";
+			os << source[i+1]+1 << "//" << source[i+1]+1 << " ";
+			os << source[i+2]+1 << "//" << source[i+2]+1 << " ";
 		}
-		else if( processTexCoords ) {
-			os << indices.get()[i+0]+1 << "/" << indices.get()[i+0]+1 << " ";
-			os << indices.get()[i+1]+1 << "/" << indices.get()[i+1]+1 << " ";
-			os << indices.get()[i+2]+1 << "/" << indices.get()[i+2]+1 << " ";
+		else if( mHasTexCoords ) {
+			os << source[i+0]+1 << "/" << source[i+0]+1 << " ";
+			os << source[i+1]+1 << "/" << source[i+1]+1 << " ";
+			os << source[i+2]+1 << "/" << source[i+2]+1 << " ";
 		}
 		else { // just verts
-			os << indices.get()[i+0]+1 << " ";
-			os << indices.get()[i+1]+1 << " ";
-			os << indices.get()[i+2]+1 << " ";			
+			os << source[i+0]+1 << " ";
+			os << source[i+1]+1 << " ";
+			os << source[i+2]+1 << " ";			
 		}
 		os << std::endl;
-		stream->writeData( os.str().c_str(), os.str().length() );
+		mStream->writeData( os.str().c_str(), os.str().length() );
 	}
+}
+} // anonymous namespace
+
+void objWrite( DataTargetRef dataTarget, const geom::Source &source, bool includeNormals, bool includeTexCoords )
+{
+	OStreamRef stream = dataTarget->getStream();
+	
+	unique_ptr<ObjWriteTarget> target( new ObjWriteTarget( stream, includeNormals, includeTexCoords ) );
+	source.loadInto( target.get() );	
+	
+	if( source.getNumIndices() == 0 )
+		target->generateIndices( geom::Primitive::TRIANGLES, source.getNumVertices() );
 }
 
 } // namespace cinder

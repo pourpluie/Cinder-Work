@@ -57,15 +57,15 @@ void HighDynamicRangeApp::fileDrop( FileDropEvent event )
 void HighDynamicRangeApp::mouseDrag( MouseEvent event )
 {
 	mExposure = powf( event.getPos().x / (float)getWindowWidth() * 2, 4 );
-	console() << "Exposure: " << mExposure;
+	console() << "Exposure: " << mExposure << std::endl;
 }
 
 void HighDynamicRangeApp::draw()
 {
 	gl::clear( Color( 0, 0, 0 ) );
 
-
 	gl::ShaderScope shader( mShader );
+	gl::TextureBindScope texBind( mHdrTexture );
 	mShader->uniform( "uExposure", mExposure );
 	gl::drawSolidRect( mHdrTexture->getBounds() );
 }

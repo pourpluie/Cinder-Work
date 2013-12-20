@@ -73,6 +73,8 @@ class Batch {
 	size_t		mNumVertices;
 	size_t		mNumIndices;
 	GLenum		mIndexType;
+
+	friend class BatchGeomTarget;
 };
 
 //! Cannot be shared across contexts

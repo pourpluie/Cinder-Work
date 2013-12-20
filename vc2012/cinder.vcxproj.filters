@@ -543,9 +543,6 @@
     <ClCompile Include="..\src\cinder\GeomIo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\GeoSource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cinder\dx\DxRenderTarget.cpp">
       <Filter>Source Files\dx</Filter>
     </ClCompile>
@@ -1111,6 +1108,9 @@
     </ClInclude>
     <ClInclude Include="..\src\AntTweakBar\TwOpenGLCore.h">
       <Filter>Source Files\AntTweakBar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\gl\Batch.h">
+      <Filter>Header Files\gl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

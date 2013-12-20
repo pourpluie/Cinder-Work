@@ -61,7 +61,6 @@ class ObjLoader : public geom::Source {
 	 * \param includeUVs if false UV coordinates will be skipped, which can provide a faster load time
      **/
 	ObjLoader( DataSourceRef dataSource, DataSourceRef materialSource, bool includeUVs = true );
-	~ObjLoader();
 
 	/**Loads all the groups present in the file
 	 * \param loadNormals  should normals be loaded or generated if not present. Default determines from the contents of the file
@@ -116,17 +115,11 @@ class ObjLoader : public geom::Source {
 	//! Returns a vector<> of the Groups in the OBJ.
 	const std::vector<Group>&		getGroups() const { return mGroups; }
 
+	virtual void			loadInto( geom::Target *target ) const override;
 	virtual size_t			getNumVertices() const override { return mOutputVertices.size(); }
+	virtual size_t			getNumIndices() const override { return mIndices.size(); }	
 	virtual geom::Primitive	getPrimitive() const override { return geom::Primitive::TRIANGLES; }
-	
-	virtual bool		hasAttrib( geom::Attrib attr ) const override;
-	virtual bool		canProvideAttrib( geom::Attrib attr ) const override;
-	virtual uint8_t		getAttribDims( geom::Attrib attr ) const override;
-	virtual void		copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
-
-	virtual size_t		getNumIndices() const override { return mIndices.size(); }
-	virtual void		copyIndices( uint16_t *dest ) const override;
-	virtual void		copyIndices( uint32_t *dest ) const override;
+	virtual uint8_t			getAttribDims( geom::Attrib attr ) const override;
 	
   private:
 	typedef boost::tuple<int,int> VertexPair;
@@ -156,10 +149,10 @@ class ObjLoader : public geom::Source {
 };
 
 //! Writes a new OBJ file to \a dataTarget.
-void	objWrite( DataTargetRef dataTarget, const geom::Source &source, bool writeNormals = true, bool writeUVs = true );	
-inline void	objWrite( DataTargetRef dataTarget, const geom::SourceRef &source, bool writeNormals = true, bool writeUVs = true )
+void	objWrite( DataTargetRef dataTarget, const geom::Source &source, bool includeNormals = true, bool includeTexCoords = true );	
+inline void	objWrite( DataTargetRef dataTarget, const geom::SourceRef &source, bool includeNormals = true, bool includeTexCoords = true )
 {
-	objWrite( dataTarget, *source, writeNormals, writeUVs );
+	objWrite( dataTarget, *source, includeNormals, includeTexCoords );
 }
 
 } // namespace cinder

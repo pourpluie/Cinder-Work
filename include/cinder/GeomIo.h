@@ -31,6 +31,7 @@
 
 namespace cinder { namespace geom {
 
+class Target;
 typedef std::shared_ptr<class Source>	SourceRef;
 
 // keep this incrementing by 1 only; some code relies on that for iterating
@@ -41,18 +42,18 @@ enum class Primitive { TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN };
 class BufferLayout {
   public:
 	struct AttribInfo {
-		AttribInfo( const Attrib &attrib, int32_t size, size_t stride, size_t offset )
-			: mAttrib( attrib ), mSize( size ), mStride( stride ), mOffset( offset )
+		AttribInfo( const Attrib &attrib, uint8_t dims, size_t stride, size_t offset )
+			: mAttrib( attrib ), mDims( dims ), mStride( stride ), mOffset( offset )
 		{}
 	
 		Attrib	getAttrib() const { return mAttrib; }
-		int32_t	getSize() const { return mSize; }
+		uint8_t	getDims() const { return mDims; }
 		size_t	getStride() const { return mStride; }
 		size_t	getOffset() const { return mOffset;	}
 		
 	  protected:
 		Attrib		mAttrib;
-		int32_t		mSize;
+		int32_t		mDims;
 		size_t		mStride;
 		size_t		mOffset;
 	}; 
@@ -60,29 +61,38 @@ class BufferLayout {
 
 	BufferLayout() {}
 	
-	void append( const Attrib &attrib, int32_t size, size_t stride, size_t offset ) {
-		mAttribs.push_back( AttribInfo( attrib, size, stride, offset ) );
+	void append( const Attrib &attrib, uint8_t dims, size_t stride, size_t offset ) {
+		mAttribs.push_back( AttribInfo( attrib, dims, stride, offset ) );
 	}
 	
+	//! Returns the AttribInfo for a given Attrib, and throws ExcMissingAttrib if it is not available
+	AttribInfo		getAttribInfo( Attrib attrib ) const;
+	//! Returns whether a given Attrib is present in the BufferLayout
+	bool			hasAttrib( Attrib attrib ) const;
+	//! Returns the dimensions for a given Attrib, or 0 if it is not in the BufferLayout
+	uint8_t			getAttribDims( Attrib attrib ) const;
+	//! Returns a vector of all present Attribs
 	const std::vector<AttribInfo>&	getAttribs() const { return mAttribs; }
-	
   protected:
 	std::vector<AttribInfo>		mAttribs;
 };
 
-class Source {
+class GeomIo {
   public:
-	virtual size_t		getNumVertices() const = 0;
 	virtual Primitive	getPrimitive() const = 0;
 	
-	virtual bool		hasAttrib( Attrib attr ) const = 0;
-	virtual bool		canProvideAttrib( Attrib attr ) const = 0;
-	virtual uint8_t		getAttribDims( Attrib attr ) const = 0;	
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const = 0;
+	virtual uint8_t		getAttribDims( Attrib attr ) const = 0;
+
+	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
+};
+
+class Source : public GeomIo {
+  public:
+	virtual void	loadInto( Target *target ) const = 0;
 	
+	virtual size_t		getNumVertices() const = 0;
 	virtual size_t		getNumIndices() const { return 0; }
-	virtual void		copyIndices( uint16_t *dest ) const; // defaults to throw
-	virtual void		copyIndices( uint32_t *dest ) const; // defaults to throw
+/*
 	//! Always copy indices; generate them when they don't exist. Copies getNumVertices() indices when indices don't exist.
 	void				forceCopyIndices( uint16_t *dest ) const;
 	//! Always copy indices; generate them when they don't exist. Copies getNumVertices() indices when indices don't exist.
@@ -93,9 +103,8 @@ class Source {
 	void				forceCopyIndicesTriangles( uint16_t *dest ) const;
 	//! Always copy indices appropriate for a \c Primitive::TRIANGLES; generate them when they don't exist. Copies getNumIndicesTriangles().
 	void				forceCopyIndicesTriangles( uint32_t *dest ) const;
-	
-  protected:
-	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
+*/	
+  protected:  
 	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec2f &mult, const Vec2f &add );
 	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add );
 	
@@ -108,31 +117,44 @@ class Source {
 	
 };
 
+class Target : public GeomIo {
+  public:
+	virtual void	copyAttrib( Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) = 0;
+	virtual void	copyIndices( Primitive primitive, const uint32_t *source, size_t numIndices, uint8_t requiredBytesPerIndex ) = 0;
+	
+	//! For non-indexed geometry, this generates appropriate indices and then calls the copyIndices() virtual method.
+	void	generateIndices( Primitive sourcePrimitive, size_t sourceNumIndices );
+	
+  protected:
+	void copyIndexData( const uint32_t *source, size_t numIndices, uint32_t *target );
+	void copyIndexData( const uint32_t *source, size_t numIndices, uint16_t *target );
+	void copyIndexDataForceTriangles( Primitive primitive, const uint32_t *source, size_t numIndices, uint32_t *target );
+	void copyIndexDataForceTriangles( Primitive primitive, const uint32_t *source, size_t numIndices, uint16_t *target );
+};
+
 class Rect : public Source {
   public:
+	//! Defaults to having positions, normals and texCoords
 	Rect();
 	
-	Rect&		colors() { mHasColor = true; return *this; }
-	Rect&		texCoords() { mHasTexCoord0 = true; return *this; }
-	Rect&		normals() { mHasNormals = true; return *this; }
+	Rect&		colors( bool enable = true ) { mHasColor = enable; return *this; }
+	Rect&		texCoords( bool enable = true ) { mHasTexCoord0 = enable; return *this; }
+	Rect&		normals( bool enable = true ) { mHasNormals = enable; return *this; }
 	Rect&		position( const Vec2f &pos ) { mPos = pos; return *this; }
 	Rect&		scale( const Vec2f &scale ) { mScale = scale; return *this; }
 	Rect&		scale( float s ) { mScale = Vec2f( s, s ); return *this; }
   
 	virtual size_t		getNumVertices() const override { return 4; }
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLE_STRIP; }
-	
-	virtual bool		hasAttrib( Attrib attr ) const override;
-	virtual bool		canProvideAttrib( Attrib attr ) const override;
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
-
+	virtual void		loadInto( Target *target ) const override;
+	
 	Vec2f		mPos, mScale;
 	bool		mHasColor;
 	bool		mHasTexCoord0;
 	bool		mHasNormals;
 	
-	static float	sVertices[4*2];
+	static float	sPositions[4*2];
 	static float	sColors[4*3];
 	static float	sTexCoords[4*2];
 	static float	sNormals[4*3];
@@ -140,39 +162,30 @@ class Rect : public Source {
 
 class Cube : public Source {
   public:
+	//! Defaults to having positions, normals and texCoords
 	Cube();
 	
-	Cube&		colors() { mHasColor = true; return *this; }
-	Cube&		texCoords() { mHasTexCoord0 = true; return *this; }
-	Cube&		normals() { mHasNormals = true; return *this; }
-	Cube&		position( const Vec3f &pos ) { mPos = pos; return *this; }
-	Cube&		scale( const Vec3f &scale ) { mScale = scale; return *this; }
-	Cube&		scale( float s ) { mScale = Vec3f( s, s, s ); return *this; }
+	Cube&		colors( bool enable = true ) { mHasColor = enable; return *this; }
+	Cube&		texCoords( bool enable = true ) { mHasTexCoord0 = enable; return *this; }
+	Cube&		normals( bool enable = true ) { mHasNormals = enable; return *this; }
   
 	virtual size_t		getNumVertices() const override { return 24; }
-	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
-	
-	virtual bool		hasAttrib( Attrib attr ) const override;
-	virtual bool		canProvideAttrib( Attrib attr ) const override;
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }	
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
-	
 	virtual size_t		getNumIndices() const override { return 36; }
-	virtual void		copyIndices( uint16_t *dest ) const override;
-	virtual void		copyIndices( uint32_t *dest ) const override;
+	virtual void		loadInto( Target *target ) const override = 0;
 
   protected:	
-	Vec3f		mPos, mScale;
 	bool		mHasColor;
 	bool		mHasTexCoord0;
 	bool		mHasNormals;
 	
-	static float	sVertices[24*3];
+	static float	sPositions[24*3];
 	static float	sColors[24*3];
 	static float	sTexCoords[24*2];
 	static float	sNormals[24*3];	
 	
-	static uint16_t	sIndices[36];
+	static uint32_t	sIndices[36];
 };
 
 class Teapot : public Source {
@@ -181,25 +194,18 @@ class Teapot : public Source {
 	
 	Teapot&		texCoords() { mHasTexCoord0 = true; return *this; }
 	Teapot&		normals() { mHasNormals = true; return *this; }
-	Teapot&		position( const Vec3f &pos ) { mPos = pos; return *this; }
-	Teapot&		scale( const Vec3f &scale ) { mScale = scale; return *this; }
-	Teapot&		scale( float s ) { mScale = Vec3f( s, s, s ); return *this; }
-	Teapot&		subdivision( int sub ) { mSubdivision = sub; return *this; }
+	Teapot&		subdivision( int sub );
   
 	virtual size_t		getNumVertices() const override;
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
-	
-	virtual bool		hasAttrib( Attrib attr ) const override;
-	virtual bool		canProvideAttrib( Attrib attr ) const override;
+	virtual void		loadInto( Target *target ) const override;
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
 
 	virtual size_t		getNumIndices() const override;
-	virtual void		copyIndices( uint16_t *dest ) const override;
-	virtual void		copyIndices( uint32_t *dest ) const override;
 
   protected:
 	void			calculate() const;
+	static size_t	calcNumVertices( int subdivision );
   
 	static void		generatePatches( float *v, float *n, float *tc, uint32_t *el, int grid );
 	static void		buildPatchReflect( int patchNum, float *B, float *dB, float *v, float *n, float *tc, unsigned int *el,
@@ -212,14 +218,12 @@ class Teapot : public Source {
 	static Vec3f	evaluateNormal( int gridU, int gridV, const float *B, const float *dB, const Vec3f patch[][4] );
 
 	int			mSubdivision;
-	Vec3f		mPos, mScale;
 	bool		mHasTexCoord0;
 	bool		mHasNormals;
 
-	mutable bool						mCalculationsCached;
-	mutable	int32_t						mNumVertices;
-	mutable int32_t						mNumIndices;
-	mutable std::unique_ptr<float>		mVertices;
+	mutable	size_t						mNumVertices;
+	mutable size_t						mNumIndices;
+	mutable std::unique_ptr<float>		mPositions;
 	mutable std::unique_ptr<float>		mTexCoords;
 	mutable std::unique_ptr<float>		mNormals;	
 	mutable std::unique_ptr<uint32_t>	mIndices;
@@ -235,21 +239,20 @@ class Circle : public Source {
 	Circle&		texCoords() { mHasTexCoord0 = true; return *this; }
 	Circle&		normals() { mHasNormals = true; return *this; }
 	Circle&		center( const Vec2f &center ) { mCenter = center; return *this; }
-	Circle&		radius( float radius ) { mRadius = radius; return *this; }	
-	Circle&		segments( int segments ) { mNumSegments = segments; return *this; }
+	Circle&		radius( float radius );	
+	Circle&		segments( int segments );
   
+	void		loadInto( Target *target ) const;
 	virtual size_t		getNumVertices() const override;
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLE_FAN; }
 	
-	virtual bool		hasAttrib( Attrib attr ) const override;
-	virtual bool		canProvideAttrib( Attrib attr ) const override;
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
 
 	virtual size_t		getNumIndices() const override { return 0; }
 
   private:
-	void		calculate() const;
+	static size_t	calcNumVertices( int numSegments, float radius );
+	void			calculate() const;
 
 	bool		mHasTexCoord0;
 	bool		mHasNormals;
@@ -257,13 +260,10 @@ class Circle : public Source {
 	float		mRadius;
 	int			mNumSegments;
 
-	mutable bool						mCalculationsCached;
-	mutable	int32_t						mNumVertices;
-	mutable int32_t						mNumIndices;
-	mutable std::unique_ptr<Vec2f>		mVertices;
+	size_t		mNumVertices;
+	mutable std::unique_ptr<Vec2f>		mPositions;
 	mutable std::unique_ptr<Vec2f>		mTexCoords;
 	mutable std::unique_ptr<Vec3f>		mNormals;	
-	mutable std::unique_ptr<uint32_t>	mIndices;	
 };
 
 #if 0
