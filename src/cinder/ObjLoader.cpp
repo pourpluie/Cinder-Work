@@ -641,6 +641,8 @@ void ObjWriteTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideB
 				mHasNormals = true;
 			}
 		break;
+		default:
+		break;
 	}
 }
 
