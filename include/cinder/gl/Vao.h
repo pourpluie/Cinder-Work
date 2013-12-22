@@ -33,6 +33,8 @@ typedef std::shared_ptr<class Vao> VaoRef;
 
 class Vao : public std::enable_shared_from_this<Vao> {
   public:
+	struct Layout;
+	
 	static VaoRef		create();
 	virtual ~Vao() {}
 	
@@ -40,9 +42,9 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	void	unbind() const;
 
 	GLuint	getId() const { return mId; }
-	
-  protected:
-	Vao();
+
+	//! This is meant to allow efficient replacement of a VAO without allocating a new VaoRef
+	void	swap( const Layout &layout );
 
 	struct VertexAttrib {
 		VertexAttrib()
@@ -62,6 +64,25 @@ class Vao : public std::enable_shared_from_this<Vao> {
 		GLuint			mArrayBufferBinding;
 	};
 
+	//! Represent a software-only mirror of the state a VAO records. Can be used directly for efficient swapping (primarily by the gl:: convenience functions)
+	struct Layout {
+		Layout();
+		
+		//! The equivalent of glBindBuffer( GL_ARRAY_BUFFER, \a binding );
+		void	bindArrayBuffer( GLuint binding );
+		//! The equivalent of glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, \a binding );
+		void	bindElementArrayBuffer( GLuint binding );
+		void	enableVertexAttrib( 
+		//! Does not enable the vertex attrib
+		void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+		
+		GLuint							mArrayBufferBinding, mElementArrayBufferBinding;
+		std::map<GLuint,VertexAttrib>	mVertexAttribs;		
+	};
+	
+  protected:
+	Vao();
+
 
 	// Does the actual work of binding the VAO; called by Context
 	virtual void	bindImpl( class Context *context ) = 0;
@@ -78,10 +99,8 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	static void		invalidateContext( class Context *context );
 
 
-	
 	GLuint							mId;
-	GLuint							mArrayBufferBinding, mElementArrayBufferBinding;
-	std::map<GLuint,VertexAttrib>	mVertexAttribs;
+	Layout							mLayout;
 
 	friend class Context;
 };

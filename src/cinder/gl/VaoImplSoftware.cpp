@@ -65,12 +65,12 @@ VaoImplSoftware::~VaoImplSoftware()
 
 void VaoImplSoftware::enableVertexAttribArrayImpl( GLuint index )
 {
-	auto existing = mVertexAttribs.find( index );
-	if( existing != mVertexAttribs.end() ) {
+	auto existing = mLayout.mVertexAttribs.find( index );
+	if( existing != mLayout.mVertexAttribs.end() ) {
 		existing->second.mEnabled = true;
 	}
 	else {
-		mVertexAttribs[index] = VertexAttrib();
+		mLayout.mVertexAttribs[index] = VertexAttrib();
 	}
 	
 	glEnableVertexAttribArray( index );
@@ -78,20 +78,20 @@ void VaoImplSoftware::enableVertexAttribArrayImpl( GLuint index )
 
 void VaoImplSoftware::bindImpl( Context *context )
 {
-	for( auto attribIt = mVertexAttribs.begin(); attribIt != mVertexAttribs.end(); ++attribIt ) {
+	for( auto attribIt = mLayout.mVertexAttribs.begin(); attribIt != mLayout.mVertexAttribs.end(); ++attribIt ) {
 		if( attribIt->second.mEnabled ) {
 			glEnableVertexAttribArray( attribIt->first );
 			glBindBuffer( GL_ARRAY_BUFFER, attribIt->second.mArrayBufferBinding );
 			glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
 		}
 	}
-	glBindBuffer( GL_ARRAY_BUFFER, mArrayBufferBinding );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mElementArrayBufferBinding );
+	glBindBuffer( GL_ARRAY_BUFFER, mLayout.mArrayBufferBinding );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
 }
 
 void VaoImplSoftware::unbindImpl( Context *context )
 {
-	for( auto attribIt = mVertexAttribs.begin(); attribIt != mVertexAttribs.end(); ++attribIt ) {
+	for( auto attribIt = mLayout.mVertexAttribs.begin(); attribIt != mLayout.mVertexAttribs.end(); ++attribIt ) {
 		if( attribIt->second.mEnabled ) {
 			glDisableVertexAttribArray( attribIt->first );
 		}
@@ -103,17 +103,17 @@ void VaoImplSoftware::unbindImpl( Context *context )
 
 void VaoImplSoftware::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-	auto existing = mVertexAttribs.find( index );
-	if( existing != mVertexAttribs.end() ) {
+	auto existing = mLayout.mVertexAttribs.find( index );
+	if( existing != mLayout.mVertexAttribs.end() ) {
 		existing->second.mSize = size;
 		existing->second.mType = type;
 		existing->second.mNormalized = normalized;
 		existing->second.mStride = stride;
 		existing->second.mPointer = pointer;
-		existing->second.mArrayBufferBinding = mArrayBufferBinding;
+		existing->second.mArrayBufferBinding = mLayout.mArrayBufferBinding;
 	}
 	else {
-		mVertexAttribs[index] = VertexAttrib( size, type, normalized, stride, pointer, mArrayBufferBinding );
+		mLayout.mVertexAttribs[index] = VertexAttrib( size, type, normalized, stride, pointer, mLayout.mArrayBufferBinding );
 	}
 	
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );

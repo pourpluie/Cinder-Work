@@ -71,7 +71,6 @@ VaoRef Vao::create()
 }
 
 Vao::Vao()
-	: mArrayBufferBinding( 0 ), mElementArrayBufferBinding( 0 )
 {
 }
 
@@ -97,11 +96,41 @@ void Vao::invalidateContext( Context *context )
 void Vao::reflectBindBuffer( GLenum target, GLuint buffer )
 {
 	if( target == GL_ARRAY_BUFFER ) {
-		mArrayBufferBinding = buffer;
+		mLayout.mArrayBufferBinding = buffer;
 	}
 	else if( target == GL_ELEMENT_ARRAY_BUFFER ) {
-		mElementArrayBufferBinding = buffer;
+		mLayout.mElementArrayBufferBinding = buffer;
 	}
+}
+
+void Vao::swap( const Vao::Layout &layout )
+{
+	VaoScope vaoScope( shared_from_this() );
+	
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Vao::Layout
+
+Vao::Layout::Layout()
+	: mArrayBufferBinding( 0 ), mElementArrayBufferBinding( 0 )
+{
+}
+
+void Vao::Layout::bindArrayBuffer( GLuint binding )
+{
+	mArrayBufferBinding = binding;
+}
+
+//! The equivalent of glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, \a binding );
+void Vao::Layout::bindElementArrayBuffer( GLuint binding )
+{
+	mElementArrayBufferBinding = binding;
+}
+
+void Vao::Layout::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
+{
+	mVertexAttribs[index] = Vao::VertexAttrib( size, type, normalized, stride, pointer, mArrayBufferBinding );
 }
 
 } }
