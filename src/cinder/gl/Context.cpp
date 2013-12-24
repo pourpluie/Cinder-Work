@@ -481,6 +481,14 @@ void Context::enableVertexAttribArray( GLuint index )
 		vao->enableVertexAttribArrayImpl( index );
 }
 
+
+void Context::disableVertexAttribArray( GLuint index )
+{
+	VaoRef vao = vaoGet();
+	if( vao )
+		vao->disableVertexAttribArrayImpl( index );
+}
+
 void Context::vertexAttrib1f( GLuint index, float v0 )
 {
 	glVertexAttrib1f( index, v0 );
@@ -619,6 +627,15 @@ void Context::setDefaultShaderVars()
 			}
 		}
 	}
+}
+
+VaoRef Context::getDefaultVao()
+{
+	if( ! mDefaultVao ) {
+		mDefaultVao = Vao::create();
+	}
+
+	return mDefaultVao;
 }
 
 VboRef Context::getDefaultArrayVbo( size_t requiredSize )

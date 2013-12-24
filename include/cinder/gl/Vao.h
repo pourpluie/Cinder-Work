@@ -23,6 +23,7 @@
 #pragma once
 
 #include "cinder/gl/gl.h"
+#include "cinder/gl/BufferObj.h"
 #include <memory>
 #include <vector>
 #include <map>
@@ -68,16 +69,23 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	struct Layout {
 		Layout();
 		
-		//! The equivalent of glBindBuffer( GL_ARRAY_BUFFER, \a binding );
+		//! The equivalent of glBindBuffer( GL_ARRAY_BUFFER, \a binding )
 		void	bindArrayBuffer( GLuint binding );
-		//! The equivalent of glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, \a binding );
+		//! The equivalent of glBindBuffer( GL_ARRAY_BUFFER, \a vbo->getId() )
+		void	bindArrayBuffer( const VboRef &vbo );
+		//! The equivalent of glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, \a binding )
 		void	bindElementArrayBuffer( GLuint binding );
-		void	enableVertexAttrib( 
+		//! The equivalent of glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, \a vbo->getId() )
+		void	bindElementArrayBuffer( const VboRef &vbo );
+		//! The equivalent of glEnableVertexAttribArray( \a index )
+		void	enableVertexAttribArray( GLuint index );
 		//! Does not enable the vertex attrib
 		void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
 		
 		GLuint							mArrayBufferBinding, mElementArrayBufferBinding;
-		std::map<GLuint,VertexAttrib>	mVertexAttribs;		
+		std::map<GLuint,VertexAttrib>	mVertexAttribs;
+
+		friend class Vao;
 	};
 	
   protected:
@@ -90,6 +98,8 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	virtual void	unbindImpl( class Context *context ) = 0;
 	// Analogous to glEnableVertexAttribArray(). Expects this to be the currently bound VAO; called by Context
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) = 0;
+	// Analogous to glDisableVertexAttribArray(). Expects this to be the currently bound VAO; called by Context
+	virtual void	disableVertexAttribArrayImpl( GLuint index ) = 0;
 	// Analogous to glVertexAttribPointer(). Expects this to be the currently bound VAO; called by Context
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) = 0;
 	// Caches the currently bound buffer; called by Context when GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER changes
@@ -100,9 +110,10 @@ class Vao : public std::enable_shared_from_this<Vao> {
 
 
 	GLuint							mId;
+	Context							*mCtx;
 	Layout							mLayout;
 
-	friend class Context;
+	friend Context;
 };
 	
 } }

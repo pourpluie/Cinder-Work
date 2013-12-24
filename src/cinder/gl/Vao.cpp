@@ -41,6 +41,10 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Environment.h"
 
+#include <set>
+
+using namespace std;
+
 namespace cinder { namespace gl {
 
 // defined in VaoImplEs
@@ -71,19 +75,20 @@ VaoRef Vao::create()
 }
 
 Vao::Vao()
+	: mCtx( gl::context() )
 {
 }
 
 void Vao::bind()
 {
 	// this will "come back" by calling bindImpl if it's necessary
-	context()->vaoBind( shared_from_this() );
+	mCtx->vaoBind( shared_from_this() );
 }
 
 void Vao::unbind() const
 {
 	// this will "come back" by calling bindImpl if it's necessary
-	context()->vaoBind( nullptr );
+	mCtx->vaoBind( nullptr );
 }
 
 void Vao::invalidateContext( Context *context )
@@ -107,6 +112,49 @@ void Vao::swap( const Vao::Layout &layout )
 {
 	VaoScope vaoScope( shared_from_this() );
 	
+	// gather all the array buffer bindings
+	set<GLuint> arrayBufferBindings;
+	for( const auto &attrib : layout.mVertexAttribs )
+		arrayBufferBindings.insert( attrib.second.mArrayBufferBinding );
+
+	// iterate all the represented array buffer bindings, bind them, and call glVertexAttribPointer
+	for( auto &arrayBufferBinding : arrayBufferBindings ) {
+		mCtx->bindBuffer( GL_ARRAY_BUFFER, arrayBufferBinding );
+		// iterate all attributes to find the ones whose mArrayBufferBinding is 'arrayBufferBinding'
+		for( auto &attrib : layout.mVertexAttribs ) {
+			if( attrib.second.mArrayBufferBinding == arrayBufferBinding ) {
+				// does 'this' have an attribute for this location? 
+				if( mLayout.mVertexAttribs.find( attrib.first ) != mLayout.mVertexAttribs.end() ) {
+					// since we already have this attribute location, only enable/disable if layout's is different
+					if( mLayout.mVertexAttribs[attrib.first].mEnabled != attrib.second.mEnabled ) {
+						if( attrib.second.mEnabled )
+							enableVertexAttribArrayImpl( attrib.first );
+						else
+							disableVertexAttribArrayImpl( attrib.first );
+					}
+
+					vertexAttribPointerImpl( attrib.first, attrib.second.mSize, attrib.second.mType, attrib.second.mNormalized,
+							attrib.second.mStride, attrib.second.mPointer );
+				}
+				else {
+					if( attrib.second.mEnabled )
+						enableVertexAttribArrayImpl( attrib.first );
+				}
+			}
+		}
+	}
+
+	mCtx->bindBuffer( GL_ARRAY_BUFFER, mLayout.mArrayBufferBinding );
+	mCtx->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
+
+	// iterate all the vertex attribs in 'this' which are not in layout and disable them
+	for( auto &attrib : mLayout.mVertexAttribs ) {
+		if( attrib.second.mEnabled && ( layout.mVertexAttribs.find( attrib.first ) == layout.mVertexAttribs.end() ) )
+			disableVertexAttribArrayImpl( attrib.first );
+	}
+
+	// finally, this->mLayout becomes 'layout'
+	mLayout = layout;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,10 +170,30 @@ void Vao::Layout::bindArrayBuffer( GLuint binding )
 	mArrayBufferBinding = binding;
 }
 
-//! The equivalent of glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, \a binding );
+void Vao::Layout::bindArrayBuffer( const VboRef &vbo )
+{
+	bindArrayBuffer( vbo->getId() );
+}
+
 void Vao::Layout::bindElementArrayBuffer( GLuint binding )
 {
 	mElementArrayBufferBinding = binding;
+}
+
+void Vao::Layout::bindElementArrayBuffer( const VboRef &vbo )
+{
+	bindElementArrayBuffer( vbo->getId() );
+}
+
+void Vao::Layout::enableVertexAttribArray( GLuint index )
+{
+	auto existing = mVertexAttribs.find( index );
+	if( existing != mVertexAttribs.end() ) {
+		existing->second.mEnabled = true;
+	}
+	else {
+		mVertexAttribs[index] = VertexAttrib();
+	}
 }
 
 void Vao::Layout::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )

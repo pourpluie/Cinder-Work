@@ -118,6 +118,8 @@ class Context {
 	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
 	//! Analogous to glEnableVertexAttribArray()
 	void		enableVertexAttribArray( GLuint index );
+	//! Analogous to glDisableVertexAttribArray()
+	void		disableVertexAttribArray( GLuint index );
 	//! Analogous to glVertexAttrib1f()
 	void		vertexAttrib1f( GLuint index, float v0 );
 	//! Analogous to glVertexAttrib2f()
@@ -149,8 +151,12 @@ class Context {
 	GlslProgRef		getStockShader( const ShaderDef &shaderDef );
 	void			setDefaultShaderVars();
 
+	//! Returns default VBO for vertex array data, ensuring it is at least \a requiredSize bytes. Designed for use with convenience functions.
 	VboRef			getDefaultArrayVbo( size_t requiredSize );
+	//! Returns default VBO for element array data, ensuring it is at least \a requiredSize bytes. Designed for use with convenience functions.
 	VboRef			getDefaultElementVbo( size_t requiredSize );
+	//! Returns default VAO, designed for use with convenience functions.
+	VaoRef			getDefaultVao();
 
 	//! Returns a reference to the immediate mode emulation structure. Generally use gl::begin() and friends instead.
 	VertBatch&		immediate() { return *mImmediateMode; }
@@ -174,7 +180,7 @@ class Context {
 	GLint						mCachedActiveTexture;
 	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
 	
-	VaoRef						mDefaultVao;	
+	VaoRef						mDefaultVao;
 	VboRef						mDefaultArrayVbo, mDefaultElementVbo;
 	VertBatchRef				mImmediateMode;
 	

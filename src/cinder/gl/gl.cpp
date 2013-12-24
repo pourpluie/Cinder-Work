@@ -830,7 +830,7 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	TextureBindScope texBindScope( texture );
 
 	shader->uniform( "uTex0", 0 );
-		
+
 	GLfloat data[8+8]; // both verts and texCoords
 	GLfloat *verts = data, *texCoords = data + 8;
 	
@@ -843,27 +843,30 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	verts[3*2+0] = rect.getX1(); texCoords[3*2+0] = texture->getLeft();
 	verts[3*2+1] = rect.getY2(); texCoords[3*2+1] = texture->getBottom();
 	
-	VaoRef vao = Vao::create();
-	VaoScope vaoScope( vao );
+	Vao::Layout vaoLayout;
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(data) );
+	vaoLayout.bindArrayBuffer( arrayVbo );
 	arrayVbo->bind();
 	arrayVbo->bufferData( sizeof(data), data, GL_DYNAMIC_DRAW );
 
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
-		enableVertexAttribArray( posLoc );
-		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+		vaoLayout.enableVertexAttribArray( posLoc );
+		vaoLayout.vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
 	}
 	int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 	if( texLoc >= 0 ) {
-		enableVertexAttribArray( texLoc );	
-		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
+		vaoLayout.enableVertexAttribArray( texLoc );	
+		vaoLayout.vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 	}
 	
+	VaoRef vao = ctx->getDefaultVao();
+	VaoScope vaoScp( vao );
+	vao->swap( vaoLayout );
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
-	
+
 void drawSolidRect( const Rectf& r )
 {
 	drawSolidRect( r, Rectf( 0, 0, 1, 1 ) );

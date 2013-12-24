@@ -41,6 +41,7 @@ class VaoImplSoftware : public Vao {
 	virtual void	bindImpl( Context *context ) override;
 	virtual void	unbindImpl( Context *context ) override;
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
+	virtual void	disableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
 	
   protected:
@@ -74,6 +75,20 @@ void VaoImplSoftware::enableVertexAttribArrayImpl( GLuint index )
 	}
 	
 	glEnableVertexAttribArray( index );
+}
+
+void VaoImplSoftware::disableVertexAttribArrayImpl( GLuint index )
+{
+	auto existing = mLayout.mVertexAttribs.find( index );
+	if( existing != mLayout.mVertexAttribs.end() ) {
+		existing->second.mEnabled = false;
+	}
+	else {
+		mLayout.mVertexAttribs[index] = VertexAttrib();
+		mLayout.mVertexAttribs[index].mEnabled = false;
+	}
+	
+	glDisableVertexAttribArray( index );
 }
 
 void VaoImplSoftware::bindImpl( Context *context )
