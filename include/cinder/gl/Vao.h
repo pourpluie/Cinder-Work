@@ -49,7 +49,7 @@ class Vao : public std::enable_shared_from_this<Vao> {
 
 	struct VertexAttrib {
 		VertexAttrib()
-			: mEnabled( true ), mSize( 0 ), mType( GL_FLOAT ), mNormalized( false ), mStride( 0 ), mPointer( 0 ), mArrayBufferBinding( 0 )
+			: mEnabled( false ), mSize( 0 ), mType( GL_FLOAT ), mNormalized( false ), mStride( 0 ), mPointer( 0 ), mArrayBufferBinding( 0 )
 		{}
 		
 		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer, GLuint arrayBufferBinding )
@@ -91,6 +91,8 @@ class Vao : public std::enable_shared_from_this<Vao> {
   protected:
 	Vao();
 
+	//! only necessary when VAO is created without
+	void setContext( Context *context );
 
 	// Does the actual work of binding the VAO; called by Context
 	virtual void	bindImpl( class Context *context ) = 0;

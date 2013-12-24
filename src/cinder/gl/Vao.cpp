@@ -79,6 +79,11 @@ Vao::Vao()
 {
 }
 
+void Vao::setContext( Context *context )
+{
+	mCtx = context;
+}
+
 void Vao::bind()
 {
 	// this will "come back" by calling bindImpl if it's necessary
@@ -193,12 +198,16 @@ void Vao::Layout::enableVertexAttribArray( GLuint index )
 	}
 	else {
 		mVertexAttribs[index] = VertexAttrib();
+		mVertexAttribs[index].mEnabled = true;
 	}
 }
 
 void Vao::Layout::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
+	auto existing = mVertexAttribs.find( index );
+	bool enabled = ( existing != mVertexAttribs.end() ) && ( existing->second.mEnabled );
 	mVertexAttribs[index] = Vao::VertexAttrib( size, type, normalized, stride, pointer, mArrayBufferBinding );
+	mVertexAttribs[index].mEnabled = enabled;
 }
 
 } }

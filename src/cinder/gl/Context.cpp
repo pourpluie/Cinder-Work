@@ -53,6 +53,7 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	// setup default VAO
 #if ! defined( CINDER_GLES )
 	mCachedVao = mDefaultVao = Vao::create();
+	mDefaultVao->setContext( this );
 	mDefaultVao->bindImpl( NULL );
 #endif
 
@@ -167,7 +168,8 @@ void Context::setScissor( const std::pair<Vec2i, Vec2i> &scissor )
 // Buffer
 void Context::bindBuffer( GLenum target, GLuint id )
 {
-	if( mCachedBuffer[target] != id ) {
+	auto cachedIt = mCachedBuffer.find( target );
+	if( (cachedIt == mCachedBuffer.end()) || (cachedIt->second != id) ) {
 		mCachedBuffer[target] = id;
 		glBindBuffer( target, id );
 		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
