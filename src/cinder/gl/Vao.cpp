@@ -137,14 +137,14 @@ void Vao::swap( const Vao::Layout &layout )
 						else
 							disableVertexAttribArrayImpl( attrib.first );
 					}
-
-					vertexAttribPointerImpl( attrib.first, attrib.second.mSize, attrib.second.mType, attrib.second.mNormalized,
-							attrib.second.mStride, attrib.second.mPointer );
 				}
 				else {
 					if( attrib.second.mEnabled )
 						enableVertexAttribArrayImpl( attrib.first );
 				}
+
+				vertexAttribPointerImpl( attrib.first, attrib.second.mSize, attrib.second.mType, attrib.second.mNormalized,
+							attrib.second.mStride, attrib.second.mPointer );
 			}
 		}
 	}
