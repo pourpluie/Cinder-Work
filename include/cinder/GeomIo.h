@@ -205,7 +205,7 @@ class Teapot : public Source {
 
   protected:
 	void			calculate() const;
-	static size_t	calcNumVertices( int subdivision );
+	void			updateVertexCounts() const;
   
 	static void		generatePatches( float *v, float *n, float *tc, uint32_t *el, int grid );
 	static void		buildPatchReflect( int patchNum, float *B, float *dB, float *v, float *n, float *tc, unsigned int *el,

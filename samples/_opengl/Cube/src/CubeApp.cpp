@@ -42,8 +42,8 @@ void RotatingCubeApp::setup()
 //	mCubeBatch = gl::Batch::create( geo::Cube(), mGlsl );
 //	mCubeBatch = gl::Batch::create( geom::Teapot().subdivision( 6 ).scale( 0.5f ), mGlsl );
 
-	//mTeapotMesh = gl::VboMesh::create( geom::Teapot().texCoords().normals().subdivision( 5 ) );
-	mTeapotMesh = gl::VboMesh::create( geom::Circle().segments( 12 ).radius( 2 ).texCoords().normals() );
+	mTeapotMesh = gl::VboMesh::create( geom::Teapot().texCoords().normals().subdivision( 5 ) );
+	//mTeapotMesh = gl::VboMesh::create( geom::Circle().segments( 12 ).radius( 2 ).texCoords().normals() );
 	mCubeBatch = gl::Batch::create( mTeapotMesh, mGlsl );
 
 	gl::enableDepthWrite();
@@ -74,8 +74,8 @@ void RotatingCubeApp::draw()
 	mTexture->bind();
 	gl::pushMatrices();
 		gl::multModelView( mCubeRotation );
-		mCubeBatch->draw();
-//		gl::draw( mTeapotMesh );
+		//mCubeBatch->draw();
+		gl::draw( mTeapotMesh );
 	gl::popMatrices();
 }
 

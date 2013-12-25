@@ -594,20 +594,18 @@ Teapot::Teapot()
 	: mSubdivision( 4 )
 {
 	mHasTexCoord0 = mHasNormals = false;
-	mNumVertices = calcNumVertices( mSubdivision );
+	updateVertexCounts();
 }
 
 Teapot&	Teapot::subdivision( int sub )
 {
 	mSubdivision = sub;
-	mNumVertices = calcNumVertices( mSubdivision );
+	updateVertexCounts();
 	return *this;
 }
 
 size_t Teapot::getNumVertices() const
 {
-	calculate();
-	
 	return mNumVertices;
 }
 
@@ -620,12 +618,12 @@ void Teapot::loadInto( Target *target ) const
 		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, (const float*)mTexCoords.get(), mNumVertices );
 	if( mHasNormals )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, (const float*)mNormals.get(), mNumVertices );
+
+	target->copyIndices( Primitive::TRIANGLES, mIndices.get(), mNumIndices, 4 );
 }
 
 size_t Teapot::getNumIndices() const
 {
-	calculate();
-	
 	return mNumIndices;
 }
 
@@ -640,15 +638,17 @@ uint8_t	Teapot::getAttribDims( Attrib attr ) const
 	}
 }
 
-size_t Teapot::calcNumVertices( int subdivision )
+void Teapot::updateVertexCounts() const
 {
-	return 32 * (subdivision + 1) * (subdivision + 1);
+	int numFaces = mSubdivision * mSubdivision * 32;
+	mNumIndices = numFaces * 6;
+	mNumVertices = 32 * (mSubdivision + 1) * (mSubdivision + 1);
 }
 
 void Teapot::calculate() const
 {
-	int numFaces = mSubdivision * mSubdivision * 32;
-	mNumIndices = numFaces * 6;
+	updateVertexCounts();
+
 	mPositions = unique_ptr<float>( new float[mNumVertices * 3] );
 	mTexCoords = unique_ptr<float>( new float[mNumVertices * 2] );	
 	mNormals = unique_ptr<float>( new float[mNumVertices * 3] );
