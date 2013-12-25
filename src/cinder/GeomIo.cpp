@@ -659,34 +659,31 @@ void Teapot::calculate() const
 
 void Teapot::generatePatches( float *v, float *n, float *tc, uint32_t *el, int grid )
 {
-	float *B = new float[4*(grid+1)];  // Pre-computed Bernstein basis functions
-	float *dB = new float[4*(grid+1)]; // Pre-computed derivitives of basis functions
+	unique_ptr<float> B( new float[4*(grid+1)] );  // Pre-computed Bernstein basis functions
+	unique_ptr<float> dB( new float[4*(grid+1)] ); // Pre-computed derivitives of basis functions
 	int idx = 0, elIndex = 0, tcIndex = 0;
 
 	// Pre-compute the basis functions  (Bernstein polynomials)
 	// and their derivatives
-	computeBasisFunctions( B, dB, grid );
+	computeBasisFunctions( B.get(), dB.get(), grid );
 
 	// Build each patch
 	// The rim
-	buildPatchReflect( 0, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 0, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
 	// The body
-	buildPatchReflect( 1, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
-	buildPatchReflect( 2, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 1, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 2, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
 	// The lid
-	buildPatchReflect( 3, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
-	buildPatchReflect( 4, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 3, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 4, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
 	// The bottom
-	buildPatchReflect( 5, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 5, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
 	// The handle
-	buildPatchReflect( 6, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
-	buildPatchReflect( 7, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
+	buildPatchReflect( 6, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
+	buildPatchReflect( 7, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
 	// The spout
-	buildPatchReflect( 8, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
-	buildPatchReflect( 9, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
-
-	delete [] B;
-	delete [] dB;
+	buildPatchReflect( 8, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
+	buildPatchReflect( 9, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
 }
 
 void Teapot::buildPatchReflect( int patchNum, float *B, float *dB, float *v, float *n, float *tc, unsigned int *el,
@@ -768,19 +765,19 @@ void Teapot::getPatch( int patchNum, Vec3f patch[][4], bool reverseV )
 {
 	for( int u = 0; u < 4; u++) {          // Loop in u direction
 		for( int v = 0; v < 4; v++ ) {     // Loop in v direction
-		if( reverseV ) {
-			patch[u][v] = Vec3f(
-				sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][0],
-				sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][1],
-				sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][2]
-			);
-		}
-		else {
-			patch[u][v] = Vec3f(
-				sCurveData[sPatchIndices[patchNum][u*4+v]][0],
-				sCurveData[sPatchIndices[patchNum][u*4+v]][1],
-				sCurveData[sPatchIndices[patchNum][u*4+v]][2]
-			);
+			if( reverseV ) {
+				patch[u][v] = Vec3f(
+					sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][0],
+					sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][1],
+					sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][2]
+				);
+			}
+			else {
+				patch[u][v] = Vec3f(
+					sCurveData[sPatchIndices[patchNum][u*4+v]][0],
+					sCurveData[sPatchIndices[patchNum][u*4+v]][1],
+					sCurveData[sPatchIndices[patchNum][u*4+v]][2]
+				);
 			}
 		}
 	}
