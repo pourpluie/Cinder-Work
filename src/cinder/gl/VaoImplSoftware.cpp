@@ -43,7 +43,8 @@ class VaoImplSoftware : public Vao {
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	disableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
-	
+	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;
+
   protected:
 	
 	friend class Context;
@@ -132,6 +133,12 @@ void VaoImplSoftware::vertexAttribPointerImpl( GLuint index, GLint size, GLenum 
 	}
 	
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
+}
+
+void VaoImplSoftware::reflectBindBufferImpl( GLenum target, GLuint buffer )
+{
+	mLayout.bindBuffer( target, buffer );
+	glBindBuffer( target, buffer );
 }
 
 } }

@@ -103,14 +103,9 @@ void Vao::invalidateContext( Context *context )
 	context->invalidateBufferBinding( GL_ELEMENT_ARRAY_BUFFER );
 }
 
-void Vao::reflectBindBuffer( GLenum target, GLuint buffer )
+void Vao::swap( const VaoCacheRef &vao )
 {
-	if( target == GL_ARRAY_BUFFER ) {
-		mLayout.mArrayBufferBinding = buffer;
-	}
-	else if( target == GL_ELEMENT_ARRAY_BUFFER ) {
-		mLayout.mElementArrayBufferBinding = buffer;
-	}
+	swap( vao->getLayout() );
 }
 
 void Vao::swap( const Vao::Layout &layout )
@@ -164,30 +159,17 @@ void Vao::swap( const Vao::Layout &layout )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Vao::Layout
-
 Vao::Layout::Layout()
 	: mArrayBufferBinding( 0 ), mElementArrayBufferBinding( 0 )
 {
 }
 
-void Vao::Layout::bindArrayBuffer( GLuint binding )
+void Vao::Layout::bindBuffer( GLenum target, GLuint buffer )
 {
-	mArrayBufferBinding = binding;
-}
-
-void Vao::Layout::bindArrayBuffer( const VboRef &vbo )
-{
-	bindArrayBuffer( vbo->getId() );
-}
-
-void Vao::Layout::bindElementArrayBuffer( GLuint binding )
-{
-	mElementArrayBufferBinding = binding;
-}
-
-void Vao::Layout::bindElementArrayBuffer( const VboRef &vbo )
-{
-	bindElementArrayBuffer( vbo->getId() );
+	if( target == GL_ARRAY_BUFFER )
+		mArrayBufferBinding = buffer;
+	else if( target == GL_ELEMENT_ARRAY_BUFFER )
+		mElementArrayBufferBinding = buffer;
 }
 
 void Vao::Layout::enableVertexAttribArray( GLuint index )
@@ -202,12 +184,65 @@ void Vao::Layout::enableVertexAttribArray( GLuint index )
 	}
 }
 
+void Vao::Layout::disableVertexAttribArray( GLuint index )
+{
+	auto existing = mVertexAttribs.find( index );
+	if( existing != mVertexAttribs.end() ) {
+		existing->second.mEnabled = false;
+	}
+	else {
+		mVertexAttribs[index] = VertexAttrib();
+		mVertexAttribs[index].mEnabled = false;
+	}
+}
+
 void Vao::Layout::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
 	auto existing = mVertexAttribs.find( index );
 	bool enabled = ( existing != mVertexAttribs.end() ) && ( existing->second.mEnabled );
 	mVertexAttribs[index] = Vao::VertexAttrib( size, type, normalized, stride, pointer, mArrayBufferBinding );
 	mVertexAttribs[index].mEnabled = enabled;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VaoCache
+VaoCacheRef VaoCache::create()
+{
+	return VaoCacheRef( new VaoCache() );
+}
+
+VaoCache::VaoCache()
+{
+}
+
+void VaoCache::bindImpl( class Context *context )
+{
+	// no-op; we're just a cache
+}
+
+void VaoCache::unbindImpl( class Context *context )
+{
+	// no-op; we're just a cache
+}
+
+void VaoCache::enableVertexAttribArrayImpl( GLuint index )
+{
+	mLayout.enableVertexAttribArray( index );
+}
+
+void VaoCache::disableVertexAttribArrayImpl( GLuint index )
+{
+	mLayout.disableVertexAttribArray( index );
+}
+
+void VaoCache::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
+{
+	mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
+}
+
+void VaoCache::reflectBindBufferImpl( GLenum target, GLuint buffer )
+{
+	mLayout.bindBuffer( target, buffer );
 }
 
 } }

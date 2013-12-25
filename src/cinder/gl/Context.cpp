@@ -171,12 +171,13 @@ void Context::bindBuffer( GLenum target, GLuint id )
 	auto cachedIt = mCachedBuffer.find( target );
 	if( (cachedIt == mCachedBuffer.end()) || (cachedIt->second != id) ) {
 		mCachedBuffer[target] = id;
-		glBindBuffer( target, id );
 		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
 			VaoRef vao = vaoGet();
-			if( vao ) {
-				vao->reflectBindBuffer( target, id );
-			}
+			if( vao )
+				vao->reflectBindBufferImpl( target, id );
+		}
+		else {
+			glBindBuffer( target, id );
 		}
 	}
 }
