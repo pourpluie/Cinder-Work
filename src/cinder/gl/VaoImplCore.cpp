@@ -94,22 +94,29 @@ void VaoImplCore::unbindImpl( Context *context )
 
 void VaoImplCore::enableVertexAttribArrayImpl( GLuint index )
 {
+	mLayout.enableVertexAttribArray( index );
+
 	glEnableVertexAttribArray( index );
 }
 
 void VaoImplCore::disableVertexAttribArrayImpl( GLuint index )
 {
+	mLayout.disableVertexAttribArray( index );
+
 	glDisableVertexAttribArray( index );
 }
 
 void VaoImplCore::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
+	mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
+
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
 }
 
 void VaoImplCore::reflectBindBufferImpl( GLenum target, GLuint buffer )
 {
 	mLayout.bindBuffer( target, buffer );
+
 	glBindBuffer( target, buffer );
 }
 

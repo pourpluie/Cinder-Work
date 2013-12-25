@@ -67,28 +67,15 @@ VaoImplSoftware::~VaoImplSoftware()
 
 void VaoImplSoftware::enableVertexAttribArrayImpl( GLuint index )
 {
-	auto existing = mLayout.mVertexAttribs.find( index );
-	if( existing != mLayout.mVertexAttribs.end() ) {
-		existing->second.mEnabled = true;
-	}
-	else {
-		mLayout.mVertexAttribs[index] = VertexAttrib();
-	}
+	mLayout.enableVertexAttribArray( index );
 	
 	glEnableVertexAttribArray( index );
 }
 
 void VaoImplSoftware::disableVertexAttribArrayImpl( GLuint index )
 {
-	auto existing = mLayout.mVertexAttribs.find( index );
-	if( existing != mLayout.mVertexAttribs.end() ) {
-		existing->second.mEnabled = false;
-	}
-	else {
-		mLayout.mVertexAttribs[index] = VertexAttrib();
-		mLayout.mVertexAttribs[index].mEnabled = false;
-	}
-	
+	mLayout.disableVertexAttribArray( index );
+
 	glDisableVertexAttribArray( index );
 }
 
@@ -119,25 +106,15 @@ void VaoImplSoftware::unbindImpl( Context *context )
 
 void VaoImplSoftware::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-	auto existing = mLayout.mVertexAttribs.find( index );
-	if( existing != mLayout.mVertexAttribs.end() ) {
-		existing->second.mSize = size;
-		existing->second.mType = type;
-		existing->second.mNormalized = normalized;
-		existing->second.mStride = stride;
-		existing->second.mPointer = pointer;
-		existing->second.mArrayBufferBinding = mLayout.mArrayBufferBinding;
-	}
-	else {
-		mLayout.mVertexAttribs[index] = VertexAttrib( size, type, normalized, stride, pointer, mLayout.mArrayBufferBinding );
-	}
-	
+	mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
+
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
 }
 
 void VaoImplSoftware::reflectBindBufferImpl( GLenum target, GLuint buffer )
 {
 	mLayout.bindBuffer( target, buffer );
+
 	glBindBuffer( target, buffer );
 }
 
