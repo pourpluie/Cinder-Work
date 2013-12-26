@@ -53,7 +53,7 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	// setup default VAO
 #if ! defined( CINDER_GLES )
 	mDefaultVao = Vao::create();
-	mStackVaos.push_back( mDefaultVao );
+	mVaoStack.push_back( mDefaultVao );
 	mDefaultVao->setContext( this );
 	mDefaultVao->bindImpl( NULL );
 #endif
@@ -71,7 +71,7 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	mModelViewStack.back().setToIdentity();
 	mProjectionStack.push_back( Matrix44f() );
 	mProjectionStack.back().setToIdentity();
-	mStackShaders.push_back( GlslProgRef() );
+	mGlslProgStack.push_back( GlslProgRef() );
 }
 
 Context::~Context()
@@ -134,9 +134,9 @@ void Context::bindVao( const VaoRef &vao )
 {
 	VaoRef prevVao = getVao();
 
-	if( mStackVaos.empty() || (prevVao != vao) ) {
-		if( ! mStackVaos.empty() )
-			mStackVaos.back() = vao;
+	if( mVaoStack.empty() || (prevVao != vao) ) {
+		if( ! mVaoStack.empty() )
+			mVaoStack.back() = vao;
 		if( prevVao )
 			prevVao->unbindImpl( this );
 		if( vao )
@@ -147,7 +147,7 @@ void Context::bindVao( const VaoRef &vao )
 void Context::pushVao( const VaoRef &vao )
 {
 	VaoRef prevVao = getVao();
-	mStackVaos.push_back( vao );
+	mVaoStack.push_back( vao );
 	if( prevVao )
 		prevVao->unbindImpl( this );
 	if( vao )
@@ -158,14 +158,14 @@ void Context::popVao()
 {
 	VaoRef prevVao = getVao();
 
-	if( ! mStackVaos.empty() ) {
-		mStackVaos.pop_back();
-		if( ! mStackVaos.empty() ) {
-			if( prevVao != mStackVaos.back() ) {
+	if( ! mVaoStack.empty() ) {
+		mVaoStack.pop_back();
+		if( ! mVaoStack.empty() ) {
+			if( prevVao != mVaoStack.back() ) {
 				if( prevVao )
 					prevVao->unbindImpl( this );
-				if( mStackVaos.back() )
-					mStackVaos.back()->bindImpl( this );
+				if( mVaoStack.back() )
+					mVaoStack.back()->bindImpl( this );
 			}
 		}
 		else {
@@ -177,8 +177,8 @@ void Context::popVao()
 
 VaoRef Context::getVao()
 {
-	if( ! mStackVaos.empty() )
-		return mStackVaos.back();
+	if( ! mVaoStack.empty() )
+		return mVaoStack.back();
 	else
 		return VaoRef();
 }
@@ -248,31 +248,31 @@ void Context::invalidateBufferBinding( GLenum target )
 
 //////////////////////////////////////////////////////////////////
 // Shader
-void Context::pushShader( const GlslProgRef &prog )
+void Context::pushGlslProg( const GlslProgRef &prog )
 {
-	mStackShaders.push_back( prog );
+	mGlslProgStack.push_back( prog );
 	if( prog )
 		glUseProgram( prog->getHandle() );
 }
 
-void Context::popShader()
+void Context::popGlslProg()
 {
-	GlslProgRef prevShader = getShader();
+	GlslProgRef prevShader = getGlslProg();
 
-	if( ! mStackShaders.empty() ) {
-		mStackShaders.pop_back();
-		if( ! mStackShaders.empty() ) {
-			if( prevShader != mStackShaders.back() )
-				glUseProgram( mStackShaders.back()->getHandle() );
+	if( ! mGlslProgStack.empty() ) {
+		mGlslProgStack.pop_back();
+		if( ! mGlslProgStack.empty() ) {
+			if( prevShader != mGlslProgStack.back() )
+				glUseProgram( mGlslProgStack.back()->getHandle() );
 		}
 	}
 }
 
-void Context::bindShader( const GlslProgRef &prog )
+void Context::bindGlslProg( const GlslProgRef &prog )
 {
-	if( mStackShaders.empty() || (mStackShaders.back() != prog) ) {
-		if( ! mStackShaders.empty() )
-			mStackShaders.back() = prog;
+	if( mGlslProgStack.empty() || (mGlslProgStack.back() != prog) ) {
+		if( ! mGlslProgStack.empty() )
+			mGlslProgStack.back() = prog;
 		if( prog )
 			glUseProgram( prog->getHandle() );
 		else
@@ -280,10 +280,10 @@ void Context::bindShader( const GlslProgRef &prog )
 	}
 }
 
-GlslProgRef Context::getShader()
+GlslProgRef Context::getGlslProg()
 {
-	if( ! mStackShaders.empty() )
-		return mStackShaders.back();
+	if( ! mGlslProgStack.empty() )
+		return mGlslProgStack.back();
 	else
 		return GlslProgRef();
 }
@@ -654,7 +654,7 @@ GlslProgRef	Context::getStockShader( const ShaderDef &shaderDef )
 void Context::setDefaultShaderVars()
 {
 	auto ctx = gl::context();
-	auto glslProg = ctx->getShader();
+	auto glslProg = ctx->getGlslProg();
 	if( glslProg ) {
 		auto uniforms = glslProg->getUniformSemantics();
 		for( auto unifIt = uniforms.cbegin(); unifIt != uniforms.end(); ++unifIt ) {

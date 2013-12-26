@@ -136,7 +136,7 @@ void bindStockShader( const class ShaderDef &shaderDef )
 {
 	auto ctx = gl::context();
 	auto shader = ctx->getStockShader( shaderDef );
-	ctx->bindShader( shader );
+	ctx->bindGlslProg( shader );
 }
 
 void setDefaultShaderVars()
@@ -481,7 +481,7 @@ void end()
 	if( ctx->immediate().empty() )
 		return;
 	else {
-		ShaderScope shaderScope( ctx->getStockShader( ShaderDef().color() ) );
+		GlslProgScope GlslProgScope( ctx->getStockShader( ShaderDef().color() ) );
 		ctx->immediate().draw();
 		ctx->immediate().clear();
 	}
@@ -606,7 +606,7 @@ void polygonMode( GLenum face, GLenum mode )
 void draw( const VboMeshRef& mesh )
 {
 	auto ctx = gl::context();
-	auto curShader = ctx->getShader();
+	auto curShader = ctx->getGlslProg();
 	if( ! curShader )
 		return;
 
@@ -756,7 +756,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 									20,21,22,20,22,23 };
 	
 	Context *ctx = gl::context();
-	GlslProgRef curShader = ctx->getShader();
+	GlslProgRef curShader = ctx->getGlslProg();
 	if( ! curShader )
 		return;
 
@@ -826,7 +826,7 @@ void draw( const TextureRef &texture, const Rectf &rect )
 {
 	auto ctx = context();
 	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture( texture ).color() );
-	ShaderScope shaderScope( shader );
+	GlslProgScope GlslProgScope( shader );
 	TextureBindScope texBindScope( texture );
 
 	shader->uniform( "uTex0", 0 );
@@ -895,7 +895,7 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	arrayVbo->bind();
 	arrayVbo->bufferData( sizeof(data), data, GL_DYNAMIC_DRAW );
 	
-	gl::GlslProgRef shader = ctx->getShader();
+	gl::GlslProgRef shader = ctx->getGlslProg();
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
@@ -914,7 +914,7 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 {
 	auto ctx = context();
-	gl::GlslProgRef shader = ctx->getShader();
+	gl::GlslProgRef shader = ctx->getGlslProg();
 	if( ! shader )
 		return;
 

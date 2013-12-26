@@ -187,7 +187,7 @@ void Batch::draw()
 {
 	auto ctx = gl::context();
 	
-	gl::ShaderScope shaderScope( mGlsl );
+	gl::GlslProgScope GlslProgScope( mGlsl );
 	gl::VaoScope vaoScope( mVao );
 	ctx->setDefaultShaderVars();
 	if( mNumIndices )
@@ -357,7 +357,7 @@ void VertBatch::setupBuffers()
 
 	// Setup the VAO
 	mVao = gl::Vao::create();
-	GlslProgRef shader = ctx->getShader();
+	GlslProgRef shader = ctx->getGlslProg();
 	VaoScope vaoScope( mVao );
 	BufferScope vboScope( mVbo );
 	size_t offset = 0;

@@ -85,10 +85,10 @@ class Context {
 	//! Marks the Context's cache of the binding for \a target as invalid
 	void		invalidateBufferBinding( GLenum target );
 
-	void		pushShader( const GlslProgRef &prog );
-	void		popShader();
-	void		bindShader( const GlslProgRef &prog );
-	GlslProgRef	getShader();
+	void		pushGlslProg( const GlslProgRef &prog );
+	void		popGlslProg();
+	void		bindGlslProg( const GlslProgRef &prog );
+	GlslProgRef	getGlslProg();
 
 	void		bindTexture( GLenum target, GLuint texture );
 	//! No-op if texture wasn't bound to target, otherwise reflects the binding as 0 (in accordance with what GL has done)
@@ -167,8 +167,8 @@ class Context {
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
 	std::map<GLenum,int>		mCachedBuffer;
-	std::vector<GlslProgRef>	mStackShaders;
-	std::vector<VaoRef>			mStackVaos;
+	std::vector<GlslProgRef>	mGlslProgStack;
+	std::vector<VaoRef>			mVaoStack;
 
 #if defined( CINDER_GLES ) && (! defined( CINDER_COCOA_TOUCH ))
 	GLint						mCachedFramebuffer;
@@ -279,29 +279,28 @@ struct BlendScope : public boost::noncopyable
 	GLint		mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha;
 };
 
-struct ShaderScope : public boost::noncopyable
+struct GlslProgScope : public boost::noncopyable
 {
-	ShaderScope( const GlslProgRef &prog )
+	GlslProgScope( const GlslProgRef &prog )
 		: mCtx( gl::context() )
 	{
-		mCtx->pushShader( prog );
+		mCtx->pushGlslProg( prog );
 	}
 
 	// this is for convenience
-	ShaderScope( const std::shared_ptr<const GlslProg> &prog )
+	GlslProgScope( const std::shared_ptr<const GlslProg> &prog )
 		: mCtx( gl::context() )
 	{
-		mCtx->pushShader( std::const_pointer_cast<GlslProg>( prog ) );
+		mCtx->pushGlslProg( std::const_pointer_cast<GlslProg>( prog ) );
 	}
 
-	~ShaderScope()
+	~GlslProgScope()
 	{
-		mCtx->popShader();
+		mCtx->popGlslProg();
 	}
 
   private:
 	Context		*mCtx;
-	GlslProgRef	mPrevProg;
 };
 
 struct FramebufferScope : public boost::noncopyable
