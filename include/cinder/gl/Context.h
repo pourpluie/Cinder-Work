@@ -81,6 +81,9 @@ class Context {
 	void							setScissor( const std::pair<Vec2i, Vec2i> &scissor );
 
 	void		bindBuffer( GLenum target, GLuint id );
+	void		pushBufferBinding( GLenum target, GLuint id );
+	void		popBufferBinding( GLenum target );
+	//! Returns the value currently bound to \a target
 	GLuint		getBufferBinding( GLenum target );
 	//! Marks the Context's cache of the binding for \a target as invalid
 	void		invalidateBufferBinding( GLenum target );
@@ -166,9 +169,9 @@ class Context {
   protected:
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
-	std::map<GLenum,int>		mCachedBuffer;
-	std::vector<GlslProgRef>	mGlslProgStack;
-	std::vector<VaoRef>			mVaoStack;
+	std::map<GLenum,std::vector<int>>	mBufferBindingStack;
+	std::vector<GlslProgRef>			mGlslProgStack;
+	std::vector<VaoRef>					mVaoStack;
 
 #if defined( CINDER_GLES ) && (! defined( CINDER_COCOA_TOUCH ))
 	GLint						mCachedFramebuffer;
@@ -232,17 +235,15 @@ struct BufferScope : public boost::noncopyable {
 	BufferScope( GLenum target, GLuint id )
 		: mCtx( gl::context() ), mTarget( target )
 	{
-		mPrevId = mCtx->getBufferBinding( target );
-		mCtx->bindBuffer( target, id );
+		mCtx->pushBufferBinding( target, id );
 	}
 
 	~BufferScope() {
-		mCtx->bindBuffer( mTarget, mPrevId );
+		mCtx->popBufferBinding( mTarget );
 	}
   private:
 	Context		*mCtx;
 	GLenum		mTarget;
-	GLuint		mPrevId;
 };
 
 template<typename T>

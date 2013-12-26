@@ -204,9 +204,13 @@ void Context::setScissor( const std::pair<Vec2i, Vec2i> &scissor )
 // Buffer
 void Context::bindBuffer( GLenum target, GLuint id )
 {
-	auto cachedIt = mCachedBuffer.find( target );
-	if( (cachedIt == mCachedBuffer.end()) || (cachedIt->second != id) ) {
-		mCachedBuffer[target] = id;
+	auto cachedIt = mBufferBindingStack.find( target );
+	if( (cachedIt == mBufferBindingStack.end()) || cachedIt->second.empty() || ( cachedIt->second.back() != id ) ) {
+		// first time we've met this target; start an empty stack
+		if( cachedIt == mBufferBindingStack.end() )
+			mBufferBindingStack[target] = vector<int>();
+		mBufferBindingStack[target].push_back( id );
+		// for these targets we need to alert the VAO
 		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
 			VaoRef vao = getVao();
 			if( vao )
@@ -218,10 +222,36 @@ void Context::bindBuffer( GLenum target, GLuint id )
 	}
 }
 
+void Context::pushBufferBinding( GLenum target, GLuint id )
+{
+	auto cachedIt = mBufferBindingStack.find( target );
+	int existing = -1;
+	if( cachedIt == mBufferBindingStack.end() )
+		mBufferBindingStack[target] = vector<int>();
+	else if( ! cachedIt->second.empty() )
+		existing = cachedIt->second.back();
+
+	mBufferBindingStack[target].push_back( id );
+	
+	if( existing != id )
+		glBindBuffer( target, id );
+}
+
+void Context::popBufferBinding( GLenum target )
+{
+	GLuint existing = getBufferBinding( target );
+	auto cachedIt = mBufferBindingStack.find( target );
+	if( ( cachedIt == mBufferBindingStack.end() ) && ( ! cachedIt->second.empty() ) ) {
+		cachedIt->second.pop_back();
+		if( ( ! cachedIt->second.empty() ) && ( existing != cachedIt->second.back() ) )
+			glBindBuffer( target, cachedIt->second.back() );
+	}
+}
+
 GLuint Context::getBufferBinding( GLenum target )
 {
-	auto cachedIt = mCachedBuffer.find( target );
-	if( (cachedIt == mCachedBuffer.end()) || ( cachedIt->second == -1 ) ) {
+	auto cachedIt = mBufferBindingStack.find( target );
+	if( (cachedIt == mBufferBindingStack.end()) || cachedIt->second.empty() || ( cachedIt->second.back() == -1 ) ) {
 		GLint queriedInt = -1;
 		switch( target ) {
 			case GL_ARRAY_BUFFER:
@@ -230,40 +260,72 @@ GLuint Context::getBufferBinding( GLenum target )
 			case GL_ELEMENT_ARRAY_BUFFER:
 				glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
 			break;
+			case GL_PIXEL_PACK_BUFFER:
+				glGetIntegerv( GL_PIXEL_PACK_BUFFER_BINDING, &queriedInt );
+			break;
+			case GL_PIXEL_UNPACK_BUFFER:
+				glGetIntegerv( GL_PIXEL_UNPACK_BUFFER_BINDING, &queriedInt );
+			break;
+			case GL_TEXTURE_BUFFER:
+				glGetIntegerv( GL_TEXTURE_BINDING_BUFFER, &queriedInt );
+			break;
+			case GL_TRANSFORM_FEEDBACK_BUFFER:
+				glGetIntegerv( GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, &queriedInt );
+			break;
+			case GL_UNIFORM_BUFFER:
+				glGetIntegerv( GL_UNIFORM_BUFFER_BINDING, &queriedInt );
+			break;
 			default:
 				; // warning?
 		}
 		
-		mCachedBuffer[target] = queriedInt;
+		// first time we've met this target; start an empty stack
+		if( cachedIt == mBufferBindingStack.end() )
+			mBufferBindingStack[target] = vector<int>();
+		mBufferBindingStack[target].back() = queriedInt;
 		return (GLuint)queriedInt;
 	}
 	else
-		return (GLuint)cachedIt->second;
+		return (GLuint)cachedIt->second.back();
 }
 
 void Context::invalidateBufferBinding( GLenum target )
 {
-	mCachedBuffer[target] = -1;
+	// first time we've met this target; start an empty stack
+	if( mBufferBindingStack.find(target) == mBufferBindingStack.end() )
+		mBufferBindingStack[target] = vector<int>();
+
+	mBufferBindingStack[target].back() = -1;
 }
 
 //////////////////////////////////////////////////////////////////
 // Shader
 void Context::pushGlslProg( const GlslProgRef &prog )
 {
+	GlslProgRef prevGlsl = getGlslProg();
+
 	mGlslProgStack.push_back( prog );
-	if( prog )
-		glUseProgram( prog->getHandle() );
+	if( prog != prevGlsl ) {
+		if( prog )
+			glUseProgram( prog->getHandle() );
+		else
+			glUseProgram( 0 );
+	}
 }
 
 void Context::popGlslProg()
 {
-	GlslProgRef prevShader = getGlslProg();
+	GlslProgRef prevGlsl = getGlslProg();
 
 	if( ! mGlslProgStack.empty() ) {
 		mGlslProgStack.pop_back();
 		if( ! mGlslProgStack.empty() ) {
-			if( prevShader != mGlslProgStack.back() )
-				glUseProgram( mGlslProgStack.back()->getHandle() );
+			if( prevGlsl != mGlslProgStack.back() ) {
+				if( mGlslProgStack.back() )
+					glUseProgram( mGlslProgStack.back()->getHandle() );
+				else
+					glUseProgram( 0 );
+			}
 		}
 	}
 }
@@ -479,11 +541,11 @@ return;
 
 	// assert cached GL_ARRAY_BUFFER is correct
 	glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &queriedInt );
-	assert( mCachedBuffer[GL_ARRAY_BUFFER] == queriedInt );
+	assert( getBufferBinding( GL_ARRAY_BUFFER ) == queriedInt );
 
 	// assert cached GL_ELEMENT_ARRAY_BUFFER is correct
 	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
-	assert( mCachedBuffer[GL_ELEMENT_ARRAY_BUFFER] == queriedInt );
+	assert( getBufferBinding( GL_ELEMENT_ARRAY_BUFFER ) == queriedInt );
 
 	// assert cached (VAO) GL_VERTEX_ARRAY_BINDING is correct
 #if defined( CINDER_GLES )
@@ -724,8 +786,7 @@ VboRef Context::getDefaultElementVbo( size_t requiredSize )
 BufferScope::BufferScope( const BufferObjRef &bufferObj )
 	: mCtx( gl::context() ), mTarget( bufferObj->getTarget() )
 {
-	mPrevId = mCtx->getBufferBinding( mTarget );
-	mCtx->bindBuffer( mTarget, bufferObj->getId() );
+	mCtx->pushBufferBinding( mTarget, bufferObj->getId() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
