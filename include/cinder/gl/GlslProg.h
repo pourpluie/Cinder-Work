@@ -112,7 +112,6 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	~GlslProg();
 	
 	void			bind() const;
-	static void		unbind();
 	
 	GLuint			getHandle() const { return mHandle; }
 	

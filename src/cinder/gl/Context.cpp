@@ -66,11 +66,11 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
     glGetIntegerv( GL_SCISSOR_BOX, params );
     mScissor = std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) );
     
-	
     mModelViewStack.push_back( Matrix44f() );
 	mModelViewStack.back().setToIdentity();
 	mProjectionStack.push_back( Matrix44f() );
 	mProjectionStack.back().setToIdentity();
+	mStackShaders.push_back( GlslProgRef() );
 }
 
 Context::~Context()
@@ -212,10 +212,31 @@ void Context::invalidateBufferBinding( GLenum target )
 
 //////////////////////////////////////////////////////////////////
 // Shader
+void Context::pushShader( const GlslProgRef &prog )
+{
+	mStackShaders.push_back( prog );
+	if( prog )
+		glUseProgram( prog->getHandle() );
+}
+
+void Context::popShader()
+{
+	GlslProgRef prevShader = getCurrentShader();
+
+	if( ! mStackShaders.empty() ) {
+		mStackShaders.pop_back();
+		if( ! mStackShaders.empty() ) {
+			if( prevShader != mStackShaders.back() )
+				glUseProgram( mStackShaders.back()->getHandle() );
+		}
+	}
+}
+
 void Context::bindShader( const GlslProgRef &prog )
 {
-	if( mCachedGlslProg != prog ) {
-		mCachedGlslProg = prog;
+	if( mStackShaders.empty() || (mStackShaders.back() != prog) ) {
+		if( ! mStackShaders.empty() )
+			mStackShaders.back() = prog;
 		if( prog )
 			glUseProgram( prog->getHandle() );
 		else
@@ -223,15 +244,12 @@ void Context::bindShader( const GlslProgRef &prog )
 	}
 }
 
-void Context::unbindShader()
-{
-	mCachedGlslProg = GlslProgRef();
-	glUseProgram( 0 );
-}
-
 GlslProgRef Context::getCurrentShader()
 {
-	return mCachedGlslProg;
+	if( ! mStackShaders.empty() )
+		return mStackShaders.back();
+	else
+		return GlslProgRef();
 }
 
 //////////////////////////////////////////////////////////////////

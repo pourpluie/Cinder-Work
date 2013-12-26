@@ -281,11 +281,6 @@ void GlslProg::bind() const
 	gl::context()->bindShader( std::const_pointer_cast<GlslProg>( shared_from_this() ) );
 }
 
-void GlslProg::unbind()
-{
-	gl::context()->unbindShader();
-}
-
 std::string GlslProg::getShaderLog( GLuint handle ) const
 {
 	string log;
