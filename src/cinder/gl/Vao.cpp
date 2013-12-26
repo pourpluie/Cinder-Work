@@ -87,13 +87,13 @@ void Vao::setContext( Context *context )
 void Vao::bind()
 {
 	// this will "come back" by calling bindImpl if it's necessary
-	mCtx->vaoBind( shared_from_this() );
+	mCtx->bindVao( shared_from_this() );
 }
 
 void Vao::unbind() const
 {
 	// this will "come back" by calling bindImpl if it's necessary
-	mCtx->vaoBind( nullptr );
+	mCtx->bindVao( nullptr );
 }
 
 void Vao::invalidateContext( Context *context )

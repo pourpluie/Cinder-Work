@@ -357,7 +357,7 @@ void VertBatch::setupBuffers()
 
 	// Setup the VAO
 	mVao = gl::Vao::create();
-	GlslProgRef shader = ctx->getCurrentShader();
+	GlslProgRef shader = ctx->getShader();
 	VaoScope vaoScope( mVao );
 	BufferScope vboScope( mVbo );
 	size_t offset = 0;

@@ -64,9 +64,11 @@ class Context {
 	const std::vector<Matrix44f>&	getProjectionStack() const { return mProjectionStack; }
 	
 	//! Binds a VAO. Consider using a VaoScope instead.
-	void		vaoBind( const VaoRef &vao );
+	void		bindVao( const VaoRef &vao );
+	void		pushVao( const VaoRef &vao );
+	void		popVao();
 	//! Returns the currently bound VAO
-	VaoRef		vaoGet();
+	VaoRef		getVao();
 	
 	//! Returns a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively of the viewport
 	const std::pair<Vec2i, Vec2i>	getViewport() const { return mViewport; }
@@ -86,7 +88,7 @@ class Context {
 	void		pushShader( const GlslProgRef &prog );
 	void		popShader();
 	void		bindShader( const GlslProgRef &prog );
-	GlslProgRef	getCurrentShader();
+	GlslProgRef	getShader();
 
 	void		bindTexture( GLenum target, GLuint texture );
 	//! No-op if texture wasn't bound to target, otherwise reflects the binding as 0 (in accordance with what GL has done)
@@ -164,10 +166,10 @@ class Context {
   protected:
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
-	VaoRef						mCachedVao;
 	std::map<GLenum,int>		mCachedBuffer;
 	std::vector<GlslProgRef>	mStackShaders;
-	
+	std::vector<VaoRef>			mStackVaos;
+
 #if defined( CINDER_GLES ) && (! defined( CINDER_COCOA_TOUCH ))
 	GLint						mCachedFramebuffer;
 #else
@@ -215,16 +217,14 @@ struct VaoScope : public boost::noncopyable {
 	VaoScope( const VaoRef &vao )
 		: mCtx( gl::context() )
 	{
-		mPrevVao = mCtx->vaoGet();
-		mCtx->vaoBind( vao );
+		mCtx->pushVao( vao );
 	}
 	
 	~VaoScope() {
-		mCtx->vaoBind( mPrevVao );
+		mCtx->popVao();
 	}
   private:
 	Context		*mCtx;
-	VaoRef		mPrevVao;
 };
 
 struct BufferScope : public boost::noncopyable {

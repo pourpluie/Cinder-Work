@@ -98,7 +98,7 @@ void VaoImplSoftware::unbindImpl( Context *context )
 		if( attribIt->second.mEnabled ) {
 			glDisableVertexAttribArray( attribIt->first );
 		}
-	}	
+	}
 	
 	if( context )
 		invalidateContext( context );

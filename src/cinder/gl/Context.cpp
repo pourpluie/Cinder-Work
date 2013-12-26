@@ -52,7 +52,8 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 {
 	// setup default VAO
 #if ! defined( CINDER_GLES )
-	mCachedVao = mDefaultVao = Vao::create();
+	mDefaultVao = Vao::create();
+	mStackVaos.push_back( mDefaultVao );
 	mDefaultVao->setContext( this );
 	mDefaultVao->bindImpl( NULL );
 #endif
@@ -129,22 +130,57 @@ Context* Context::getCurrent()
 
 //////////////////////////////////////////////////////////////////
 // VAO
-void Context::vaoBind( const VaoRef &vao )
+void Context::bindVao( const VaoRef &vao )
 {
-	if( mCachedVao != vao ) {
-		if( mCachedVao )
-			mCachedVao->unbindImpl( this );
-		if( vao ) {
+	VaoRef prevVao = getVao();
+
+	if( mStackVaos.empty() || (prevVao != vao) ) {
+		if( ! mStackVaos.empty() )
+			mStackVaos.back() = vao;
+		if( prevVao )
+			prevVao->unbindImpl( this );
+		if( vao )
 			vao->bindImpl( this );
-		}
-		
-		mCachedVao = vao;
 	}
 }
 
-VaoRef Context::vaoGet()
+void Context::pushVao( const VaoRef &vao )
 {
-	return mCachedVao;
+	VaoRef prevVao = getVao();
+	mStackVaos.push_back( vao );
+	if( prevVao )
+		prevVao->unbindImpl( this );
+	if( vao )
+		vao->bindImpl( this );
+}
+
+void Context::popVao()
+{
+	VaoRef prevVao = getVao();
+
+	if( ! mStackVaos.empty() ) {
+		mStackVaos.pop_back();
+		if( ! mStackVaos.empty() ) {
+			if( prevVao != mStackVaos.back() ) {
+				if( prevVao )
+					prevVao->unbindImpl( this );
+				if( mStackVaos.back() )
+					mStackVaos.back()->bindImpl( this );
+			}
+		}
+		else {
+			if( prevVao )
+				prevVao->unbindImpl( this );
+		}
+	}
+}
+
+VaoRef Context::getVao()
+{
+	if( ! mStackVaos.empty() )
+		return mStackVaos.back();
+	else
+		return VaoRef();
 }
 
 //////////////////////////////////////////////////////////////////
@@ -172,7 +208,7 @@ void Context::bindBuffer( GLenum target, GLuint id )
 	if( (cachedIt == mCachedBuffer.end()) || (cachedIt->second != id) ) {
 		mCachedBuffer[target] = id;
 		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
-			VaoRef vao = vaoGet();
+			VaoRef vao = getVao();
 			if( vao )
 				vao->reflectBindBufferImpl( target, id );
 		}
@@ -221,7 +257,7 @@ void Context::pushShader( const GlslProgRef &prog )
 
 void Context::popShader()
 {
-	GlslProgRef prevShader = getCurrentShader();
+	GlslProgRef prevShader = getShader();
 
 	if( ! mStackShaders.empty() ) {
 		mStackShaders.pop_back();
@@ -244,7 +280,7 @@ void Context::bindShader( const GlslProgRef &prog )
 	}
 }
 
-GlslProgRef Context::getCurrentShader()
+GlslProgRef Context::getShader()
 {
 	if( ! mStackShaders.empty() )
 		return mStackShaders.back();
@@ -490,14 +526,14 @@ void Context::printState( std::ostream &os ) const
 // Vertex Attributes
 void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-	VaoRef vao = vaoGet();
+	VaoRef vao = getVao();
 	if( vao )
 		vao->vertexAttribPointerImpl( index, size, type, normalized, stride, pointer );
 }
 
 void Context::enableVertexAttribArray( GLuint index )
 {
-	VaoRef vao = vaoGet();
+	VaoRef vao = getVao();
 	if( vao )
 		vao->enableVertexAttribArrayImpl( index );
 }
@@ -505,7 +541,7 @@ void Context::enableVertexAttribArray( GLuint index )
 
 void Context::disableVertexAttribArray( GLuint index )
 {
-	VaoRef vao = vaoGet();
+	VaoRef vao = getVao();
 	if( vao )
 		vao->disableVertexAttribArrayImpl( index );
 }
@@ -618,7 +654,7 @@ GlslProgRef	Context::getStockShader( const ShaderDef &shaderDef )
 void Context::setDefaultShaderVars()
 {
 	auto ctx = gl::context();
-	auto glslProg = ctx->getCurrentShader();
+	auto glslProg = ctx->getShader();
 	if( glslProg ) {
 		auto uniforms = glslProg->getUniformSemantics();
 		for( auto unifIt = uniforms.cbegin(); unifIt != uniforms.end(); ++unifIt ) {

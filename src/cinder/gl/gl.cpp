@@ -606,7 +606,7 @@ void polygonMode( GLenum face, GLenum mode )
 void draw( const VboMeshRef& mesh )
 {
 	auto ctx = gl::context();
-	auto curShader = ctx->getCurrentShader();
+	auto curShader = ctx->getShader();
 	if( ! curShader )
 		return;
 
@@ -756,7 +756,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 									20,21,22,20,22,23 };
 	
 	Context *ctx = gl::context();
-	GlslProgRef curShader = ctx->getCurrentShader();
+	GlslProgRef curShader = ctx->getShader();
 	if( ! curShader )
 		return;
 
@@ -895,7 +895,7 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	arrayVbo->bind();
 	arrayVbo->bufferData( sizeof(data), data, GL_DYNAMIC_DRAW );
 	
-	gl::GlslProgRef shader = ctx->getCurrentShader();
+	gl::GlslProgRef shader = ctx->getShader();
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
@@ -914,7 +914,7 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 {
 	auto ctx = context();
-	gl::GlslProgRef shader = ctx->getCurrentShader();
+	gl::GlslProgRef shader = ctx->getShader();
 	if( ! shader )
 		return;
 
