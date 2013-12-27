@@ -988,6 +988,8 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 
 void draw( const TextureRef &texture, const Vec2f &v )
 {
+	if( ! texture )
+		return;
 	draw( texture, Rectf( texture->getBounds() ) + v );
 }
 

@@ -109,11 +109,12 @@ class Context {
 	void		unbindFramebuffer();
 	GLuint		getFramebufferBinding( GLenum target );
 
-	template<typename T>
-	void			stateSet( GLenum cap, T value );
-	void			enable( GLenum cap, GLboolean value = true );
-	template<typename T>
-	T				stateGet( GLenum cap );
+	void		setBoolState( GLenum cap, GLboolean value );
+	void		setBoolState( GLenum cap, GLboolean value, const std::function<void(GLboolean)> &setter );
+	void		pushBoolState( GLenum cap, GLboolean value );
+	void		popBoolState( GLenum cap );
+	void		enable( GLenum cap, GLboolean value = true );
+	GLboolean	getBoolState( GLenum cap );
 	
 	void		sanityCheck();
 	void		printState( std::ostream &os ) const;
@@ -138,6 +139,10 @@ class Context {
 	void		blendFunc( GLenum sfactor, GLenum dfactor );
 	//! Analogous to glBlendFuncSeparate(). Consider using a BlendScope instead.
 	void		blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
+	//! Analogous to glBlendFuncSeparate, but pushes values rather than replaces them
+	void		pushBlendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
+	//! Analogous to glBlendFuncSeparate, but pushes values rather than replaces them
+	void		popBlendFuncSeparate();
 
 	//! Analogous to glDepthMask()
 	void		depthMask( GLboolean enable );
@@ -167,11 +172,24 @@ class Context {
 	VertBatch&		immediate() { return *mImmediateMode; }
 
   protected:
+	//! Returns \c true if \a value is different from the previous top of the stack
+	bool		pushIntState( std::vector<GLint> &stack, GLint value );
+	//! Returns \c true if the new top of \a stack is different from the previous top
+	bool		popIntState( std::vector<GLint> &stack );
+	//! Returns \c true if \a value is different from the previous top of the stack
+	bool		setIntState( std::vector<GLint> &stack, GLint value );
+	//! Returns \c true if \a result is valid; will return \c false when \a stack was empty
+	bool		getIntState( std::vector<GLint> &stack, GLint *result );
+
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
 	std::map<GLenum,std::vector<int>>	mBufferBindingStack;
 	std::vector<GlslProgRef>			mGlslProgStack;
 	std::vector<VaoRef>					mVaoStack;
+
+	// Blend state stacks
+	std::vector<GLint>					mBlendSrcRgbStack, mBlendDstRgbStack;
+	std::vector<GLint>					mBlendSrcAlphaStack, mBlendDstAlphaStack;
 
 #if defined( CINDER_GLES ) && (! defined( CINDER_COCOA_TOUCH ))
 	GLint						mCachedFramebuffer;
@@ -179,8 +197,7 @@ class Context {
 	GLint						mCachedReadFramebuffer, mCachedDrawFramebuffer;
 #endif
 	
-	std::map<GLenum,GLboolean>	mCachedStateBoolean;
-	std::map<GLenum,GLint>		mCachedStateInt;
+	std::map<GLenum,std::vector<GLboolean>>	mStateStackBoolean;
 	std::map<GLenum,GLint>		mCachedTextureBinding;
 	GLint						mCachedActiveTexture;
 	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
@@ -251,33 +268,29 @@ struct StateScope : public boost::noncopyable {
 	StateScope( GLenum cap, T value )
 		: mCtx( gl::context() ), mCap( cap )
 	{
-		mPrevValue = mCtx->stateGet<T>( cap );
-		mCtx->stateSet<T>( cap, value );
+		mCtx->pushState<T>( cap, value );
 	}
 
 	~StateScope() {
-		mCtx->stateSet<T>( mCap, mPrevValue );
+		mCtx->popState<T>( mCap );
 	}
   private:
 	Context		*mCtx;
 	GLenum		mCap;
-	T			mPrevValue;
 };
 
 struct BlendScope : public boost::noncopyable
 {
 	BlendScope( GLboolean enable );
-	//! Parallels glBlendFunc(), implicitly enables blending
+	//! Parallels glBlendFunc(), and implicitly enables blending
 	BlendScope( GLenum sfactor, GLenum dfactor );
-	//! Parallels glBlendFuncSeparate(), implicitly enables blending
+	//! Parallels glBlendFuncSeparate(), and implicitly enables blending
 	BlendScope( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
 	~BlendScope();
 	
   private:
 	Context		*mCtx;
-	bool		mSaveFactors; // whether we should also set th blend factors rather than just the blend state
-	GLboolean	mPrevBlend;
-	GLint		mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha;
+	bool		mSaveFactors; // whether we should also set the blend factors rather than just the blend state
 };
 
 struct GlslProgScope : public boost::noncopyable

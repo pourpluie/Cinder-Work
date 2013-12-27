@@ -292,10 +292,12 @@ GLuint Context::getBufferBinding( GLenum target )
 void Context::invalidateBufferBinding( GLenum target )
 {
 	// first time we've met this target; start an empty stack
-	if( mBufferBindingStack.find(target) == mBufferBindingStack.end() )
+	if( mBufferBindingStack.find(target) == mBufferBindingStack.end() ) {
 		mBufferBindingStack[target] = vector<int>();
-
-	mBufferBindingStack[target].back() = -1;
+		mBufferBindingStack[target].push_back( -1 );
+	}
+	else
+		mBufferBindingStack[target].back() = -1;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -487,12 +489,19 @@ GLuint Context::getFramebufferBinding( GLenum target )
 
 //////////////////////////////////////////////////////////////////
 // States
-template<>
-void Context::stateSet<GLboolean>( GLenum cap, GLboolean value )
+void Context::setBoolState( GLenum cap, GLboolean value )
 {
-	auto cached = mCachedStateBoolean.find( cap );
-	if( cached == mCachedStateBoolean.end() || cached->second != value ) {
-		mCachedStateBoolean[cap] = value;
+	bool needsToBeSet = true;
+	auto cached = mStateStackBoolean.find( cap );
+	if( ( cached != mStateStackBoolean.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
+		needsToBeSet = false;
+	if( cached == mStateStackBoolean.end() ) {
+		mStateStackBoolean[cap] = vector<GLboolean>();
+		mStateStackBoolean[cap].push_back( value );
+	}
+	else
+		mStateStackBoolean[cap].back() = value;
+	if( needsToBeSet ) {
 		if( value )
 			glEnable( cap );
 		else
@@ -500,37 +509,136 @@ void Context::stateSet<GLboolean>( GLenum cap, GLboolean value )
 	}	
 }
 
+void Context::setBoolState( GLenum cap, GLboolean value, const std::function<void(GLboolean)> &setter )
+{
+	bool needsToBeSet = true;
+	auto cached = mStateStackBoolean.find( cap );
+	if( ( cached != mStateStackBoolean.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
+		needsToBeSet = false;
+	if( cached == mStateStackBoolean.end() ) {
+		mStateStackBoolean[cap] = vector<GLboolean>();
+		mStateStackBoolean[cap].push_back( value );
+	}
+	else
+		mStateStackBoolean[cap].back() = value;
+	if( needsToBeSet )
+		setter( value );
+}
+
+void Context::pushBoolState( GLenum cap, GLboolean value )
+{
+	bool needsToBeSet = true;
+	auto cached = mStateStackBoolean.find( cap );
+	if( ( cached != mStateStackBoolean.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
+		needsToBeSet = false;
+	else if( cached == mStateStackBoolean.end() )
+		mStateStackBoolean[cap] = vector<GLboolean>();
+	mStateStackBoolean[cap].push_back( value );
+	if( needsToBeSet ) {
+		if( value )
+			glEnable( cap );
+		else
+			glDisable( cap );
+	}	
+}
+
+void Context::popBoolState( GLenum cap )
+{
+	auto cached = mStateStackBoolean.find( cap );
+	if( ( cached != mStateStackBoolean.end() ) && ( ! cached->second.empty() ) ) {
+		GLboolean prevValue = cached->second.back();
+		cached->second.pop_back();
+		if( ! cached->second.empty() ) {
+			if( cached->second.back() != prevValue ) {
+				if( cached->second.back() )
+					glEnable( cap );
+				else
+					glDisable( cap );
+			}
+		}
+	}
+}
+
 void Context::enable( GLenum cap, GLboolean value )
 {
-	stateSet<GLboolean>( cap, value );
+	setBoolState( cap, value );
 }
 
-template<>
-GLboolean Context::stateGet<GLboolean>( GLenum cap )
+GLboolean Context::getBoolState( GLenum cap )
 {
-	auto cached = mCachedStateBoolean.find( cap );
-	if( cached == mCachedStateBoolean.end() ) {
+	auto cached = mStateStackBoolean.find( cap );
+	if( ( cached == mStateStackBoolean.end() ) || cached->second.empty() ) {
 		GLboolean result = glIsEnabled( cap );
-		mCachedStateBoolean[cap] = result;
+		if( cached == mStateStackBoolean.end() )
+			mStateStackBoolean[cap] = vector<GLboolean>();
+		mStateStackBoolean[cap].push_back( result );
 		return result;
 	}
 	else
-		return cached->second;
+		return cached->second.back();
 }
 
-template<>
-GLint Context::stateGet<GLint>( GLenum pname )
+bool Context::pushIntState( std::vector<GLint> &stack, GLint value )
 {
-	auto cached = mCachedStateInt.find( pname );
-	if( cached == mCachedStateInt.end() ) {
+	bool needsToBeSet = true;
+	if( ( ! stack.empty() ) && ( stack.back() == value ) )
+		needsToBeSet = false;
+	stack.push_back( value );
+	return needsToBeSet;
+}
+
+bool Context::popIntState( std::vector<GLint> &stack )
+{
+	if( ! stack.empty() ) {
+		GLint prevValue = stack.back();
+		stack.pop_back();
+		if( ! stack.empty() )
+			return stack.back() != prevValue;
+		else
+			return true;
+	}
+	else
+		return true;
+}
+
+bool Context::setIntState( std::vector<GLint> &stack, GLint value )
+{
+	bool needsToBeSet = true;
+	if( ( ! stack.empty() ) && ( stack.back() == value ) )
+		needsToBeSet = false;
+	else if( stack.empty() )
+		stack.push_back( value );
+	else
+		stack.back() = value;
+	return needsToBeSet;
+}
+
+bool Context::getIntState( std::vector<GLint> &stack, GLint *result )
+{
+	if( stack.empty() )
+		return false;
+	else {
+		*result = stack.back();
+		return true;
+	}
+}
+
+/*
+template<>
+GLint Context::getState<GLint>( GLenum cap )
+{
+	auto cached = mStateStackInt.find( cap );
+	if( ( cached == mStateStackInt.end() ) || cached->second.empty() ) {
 		GLint result;
-		glGetIntegerv( pname, &result );
-		mCachedStateInt[pname] = result;
+		glGetIntegerv( cap, &result );
+		if( cached->second.empty() )
+			cached->second = vector<GLint>();
+		mStateStackInt[cap].push_back( result );
 		return result;
 	}
 	else
-		return cached->second;
-}
+		return cached->second.back();
+}*/
 
 /////////////////////////////////////////////////////////////////////////////////////
 // This routine confirms that the ci::gl::Context's understanding of the world matches OpenGL's
@@ -637,27 +745,39 @@ void Context::blendFunc( GLenum sfactor, GLenum dfactor )
 
 void Context::blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
 {
-	if( ( mCachedStateInt[GL_BLEND_SRC_RGB] != srcRGB ) ||
-		( mCachedStateInt[GL_BLEND_DST_RGB] != dstRGB ) ||
-		( mCachedStateInt[GL_BLEND_SRC_ALPHA] != srcAlpha ) ||
-		( mCachedStateInt[GL_BLEND_DST_ALPHA] != dstAlpha ) )
-	{
+	bool needsChange = setIntState( mBlendSrcRgbStack, srcRGB );
+	needsChange = setIntState( mBlendDstRgbStack, dstRGB ) || needsChange;
+	needsChange = setIntState( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
+	needsChange = setIntState( mBlendDstAlphaStack, dstAlpha ) || needsChange;
+	if( needsChange )
 		glBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
-		mCachedStateInt[GL_BLEND_SRC_RGB] = srcRGB;
-		mCachedStateInt[GL_BLEND_DST_RGB] = dstRGB;
-		mCachedStateInt[GL_BLEND_SRC_ALPHA] = srcAlpha;
-		mCachedStateInt[GL_BLEND_DST_ALPHA] = dstAlpha;
-	}
+}
+
+void Context::pushBlendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
+{
+	bool needsChange = pushIntState( mBlendSrcRgbStack, srcRGB );
+	needsChange = pushIntState( mBlendDstRgbStack, dstRGB ) || needsChange;
+	needsChange = pushIntState( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
+	needsChange = pushIntState( mBlendDstAlphaStack, dstAlpha ) || needsChange;
+	if( needsChange )
+		glBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
+}
+
+void Context::popBlendFuncSeparate()
+{
+	bool needsChange = popIntState( mBlendSrcRgbStack );
+	needsChange = popIntState( mBlendDstRgbStack ) || needsChange;
+	needsChange = popIntState( mBlendSrcAlphaStack ) || needsChange;
+	needsChange = popIntState( mBlendDstAlphaStack ) || needsChange;
+	if( needsChange && ( ! mBlendSrcRgbStack.empty() ) && ( ! mBlendSrcAlphaStack.empty() ) && ( ! mBlendDstRgbStack.empty() ) && ( ! mBlendDstAlphaStack.empty() ) )
+		glBlendFuncSeparate( mBlendSrcRgbStack.back(), mBlendDstRgbStack.back(), mBlendSrcAlphaStack.back(), mBlendDstAlphaStack.back() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // DepthMask
 void Context::depthMask( GLboolean enable )
 {
-	if( mCachedStateBoolean[GL_DEPTH_WRITEMASK] != enable ) {
-		mCachedStateBoolean[GL_DEPTH_WRITEMASK] = enable;
-		glDepthMask( enable );
-	}
+	setBoolState( GL_DEPTH_WRITEMASK, enable, glDepthMask );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -794,41 +914,30 @@ BufferScope::BufferScope( const BufferObjRef &bufferObj )
 BlendScope::BlendScope( GLboolean enable )
 	: mCtx( gl::context() ), mSaveFactors( false )
 {
-	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
-	mCtx->stateSet( GL_BLEND, enable );
+	mCtx->pushBoolState( GL_BLEND, enable );
 }
 
 //! Parallels glBlendFunc(), implicitly enables blending
 BlendScope::BlendScope( GLenum sfactor, GLenum dfactor )
 	: mCtx( gl::context() ), mSaveFactors( true )
 {
-	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
-	mPrevSrcRgb = mCtx->stateGet<GLint>( GL_BLEND_SRC_RGB );
-	mPrevDstRgb = mCtx->stateGet<GLint>( GL_BLEND_DST_RGB );
-	mPrevSrcAlpha = mCtx->stateGet<GLint>( GL_BLEND_SRC_ALPHA );
-	mPrevDstAlpha = mCtx->stateGet<GLint>( GL_BLEND_DST_ALPHA );
-	mCtx->stateSet<GLboolean>( GL_BLEND, GL_TRUE );
-	mCtx->blendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
+	mCtx->pushBoolState( GL_BLEND, GL_TRUE );
+	mCtx->pushBlendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
 }
 
 //! Parallels glBlendFuncSeparate(), implicitly enables blending
 BlendScope::BlendScope( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
 	: mCtx( gl::context() ), mSaveFactors( true )
 {
-	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
-	mPrevSrcRgb = mCtx->stateGet<GLint>( GL_BLEND_SRC_RGB );
-	mPrevDstRgb = mCtx->stateGet<GLint>( GL_BLEND_DST_RGB );
-	mPrevSrcAlpha = mCtx->stateGet<GLint>( GL_BLEND_SRC_ALPHA );
-	mPrevDstAlpha = mCtx->stateGet<GLint>( GL_BLEND_DST_ALPHA );
-	mCtx->stateSet<GLboolean>( GL_BLEND, GL_TRUE );
-	mCtx->blendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
+	mCtx->pushBoolState( GL_BLEND, GL_TRUE );
+	mCtx->pushBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
 }
 
 BlendScope::~BlendScope()
 {
-	mCtx->stateSet( GL_BLEND, mPrevBlend );
+	mCtx->popBoolState( GL_BLEND );
 	if( mSaveFactors )
-		mCtx->blendFuncSeparate( mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha );
+		mCtx->popBlendFuncSeparate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
