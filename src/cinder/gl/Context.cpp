@@ -260,6 +260,7 @@ GLuint Context::getBufferBinding( GLenum target )
 			case GL_ELEMENT_ARRAY_BUFFER:
 				glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
 			break;
+#if ! defined( CINDER_GLES )
 			case GL_PIXEL_PACK_BUFFER:
 				glGetIntegerv( GL_PIXEL_PACK_BUFFER_BINDING, &queriedInt );
 			break;
@@ -275,6 +276,7 @@ GLuint Context::getBufferBinding( GLenum target )
 			case GL_UNIFORM_BUFFER:
 				glGetIntegerv( GL_UNIFORM_BUFFER_BINDING, &queriedInt );
 			break;
+#endif
 			default:
 				; // warning?
 		}

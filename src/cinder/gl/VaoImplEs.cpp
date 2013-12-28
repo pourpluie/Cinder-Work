@@ -44,7 +44,9 @@ class VaoImplEs : public Vao {
 	virtual void	bindImpl( class Context *context ) override;
 	virtual void	unbindImpl( class Context *context ) override;
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
+	virtual void	disableVertexAttribArrayImpl( GLuint index );
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
+	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer );
 	
 	friend class Context;
 };
@@ -86,12 +88,30 @@ void VaoImplEs::unbindImpl( Context *context )
 
 void VaoImplEs::enableVertexAttribArrayImpl( GLuint index )
 {
+	mLayout.enableVertexAttribArray( index );
+
 	glEnableVertexAttribArray( index );
+}
+
+void VaoImplEs::disableVertexAttribArrayImpl( GLuint index )
+{
+	mLayout.disableVertexAttribArray( index );
+	
+	glDisableVertexAttribArray( index );
 }
 
 void VaoImplEs::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
+	mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
+
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
+}
+
+void VaoImplEs::reflectBindBufferImpl( GLenum target, GLuint buffer )
+{
+	mLayout.bindBuffer( target, buffer );
+
+	glBindBuffer( target, buffer );
 }
 
 } }
