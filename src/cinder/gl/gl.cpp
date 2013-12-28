@@ -702,6 +702,22 @@ GLenum toGl( geom::Primitive prim )
 	}
 }
 
+geom::Primitive toGeomPrimitive( GLenum prim )
+{
+	switch( prim ) {
+		case GL_TRIANGLES:
+			return geom::Primitive::TRIANGLES;
+		break;
+		case GL_TRIANGLE_STRIP:
+			return geom::Primitive::TRIANGLE_STRIP;
+		break;
+		case GL_TRIANGLE_FAN:
+			return geom::Primitive::TRIANGLE_FAN;
+		default:
+			return geom::Primitive( 65535 ); // no clear right choice here
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Draw*
 void drawArrays( GLenum mode, GLint first, GLsizei count )

@@ -183,8 +183,10 @@ void vertex( const ci::Vec4f &v );
 void polygonMode( GLenum face, GLenum mode );
 #endif
 
-//! Converts a geom::Mode to an OpenGL primitive mode( GL_TRIANGLES, GL_TRIANGLE_STRIP, etc )
+//! Converts a geom::Primitive to an OpenGL primitive mode( GL_TRIANGLES, GL_TRIANGLE_STRIP, etc )
 GLenum toGl( geom::Primitive prim );
+//! Converts an OpenGL primitive mode( GL_TRIANGLES, GL_TRIANGLE_STRIP, etc ) to a geom::Primitive
+geom::Primitive toGeomPrimitive( GLenum prim );
 
 void draw( const VboMeshRef &mesh );
 void draw( const TextureRef &texture, const Rectf &rect );

@@ -17,8 +17,9 @@ class BufferObj {
 	void				bufferData( GLsizeiptr size, const GLvoid *data, GLenum usage );
 	void				bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *data );
 
-#if ! defined( CINDER_GL_ANGLE )	
-	uint8_t*			map( GLenum access ) const;
+#if ! defined( CINDER_GL_ANGLE )
+	//! Analogous to glMapBuffer(). \a access must be \c GL_READ_ONLY, \c GL_WRITE_ONLY, or \c GL_READ_WRITE
+	void*				map( GLenum access ) const;
 	void				unmap() const;
 #endif
 	

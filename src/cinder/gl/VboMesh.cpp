@@ -1,14 +1,32 @@
-/*
- * NOT FINISHED
- */
-
 #include "cinder/gl/VboMesh.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Context.h"
 
+using namespace std;
+
 namespace cinder { namespace gl {
 
-using namespace std;
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// VboMeshGeomSource
+#if ! defined( CINDER_GL_ANGLE )
+class VboMeshSource : public geom::Source {
+  public:
+	static std::shared_ptr<VboMeshSource>	create( const gl::VboMesh *vboMesh );
+	
+	virtual void	loadInto( geom::Target *target ) const override;
+	
+	virtual size_t			getNumVertices() const override;
+	virtual size_t			getNumIndices() const override;
+	virtual geom::Primitive	getPrimitive() const override;
+	
+	virtual uint8_t			getAttribDims( geom::Attrib attr ) const override;
+	
+  protected:
+	VboMeshSource( const gl::VboMesh *vboMesh );
+  
+	const gl::VboMesh		*mVboMesh;
+};
+#endif // ! defined( CINDER_GL_ANGLE )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // VboMeshGeomTarget
@@ -158,303 +176,109 @@ std::vector<VboRef>	VboMesh::getVertexArrayVbos()
 	return result;
 }
 
-/*	{
-		// PREPARE VAO
-		mVao = Vao::create();
-		VaoScope vaoScope( mVao );
-
-	}*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#if 0
-
-/////////////////////////////////////////////////////////////////
-VboMesh::Layout::Layout()
-: mAttrColor( Vao::ATTRIB_COLOR ), mAttrNormal( Vao::ATTRIB_NORMAL ),
-mAttrPosition( Vao::ATTRIB_POSITION ), mAttrTexCoord( Vao::ATTRIB_TEXCOORD ),
-mUsageColor( NONE ), mUsageIndex( NONE ), mUsageNormal( NONE ),
-mUsagePosition( NONE ), mUsageTexCoord( NONE )
+uint8_t	VboMesh::getAttribDims( geom::Attrib attr ) const
 {
-}
-
-GLuint VboMesh::Layout::getColorAttribLocation() const
-{
-	return mAttrColor;
-}
-
-GLuint VboMesh::Layout::getNormalAttribLocation() const
-{
-	return mAttrNormal;
-}
-
-GLuint VboMesh::Layout::getPositionAttribLocation() const
-{
-	return mAttrPosition;
-}
-
-GLuint VboMesh::Layout::getTexCoordAttribLocation() const
-{
-	return mAttrTexCoord;
-}
-
-void VboMesh::Layout::setColorAttribLocation( GLuint index )
-{
-	mAttrColor = index;
-}
-
-void VboMesh::Layout::setNormalAttribLocation( GLuint index )
-{
-	mAttrNormal = index;
-}
-
-void VboMesh::Layout::setPositionAttribLocation( GLuint index )
-{
-	mAttrPosition = index;
-}
-
-void VboMesh::Layout::setTexCoordAttribLocation( GLuint index )
-{
-	mAttrTexCoord = index;
-}
-	
-VboMesh::Layout::Usage VboMesh::Layout::getColorUsage() const
-{
-	return mUsageColor;
-}
-
-void VboMesh::Layout::setColorUsage( VboMesh::Layout::Usage u )
-{
-	mUsageColor = u;
-}
-
-VboMesh::Layout::Usage VboMesh::Layout::getNormalUsage() const
-{
-	return mUsageNormal;
-}
-
-void VboMesh::Layout::setNormalUsage( VboMesh::Layout::Usage u )
-{
-	mUsageNormal = u;
-}
-
-VboMesh::Layout::Usage VboMesh::Layout::getPositionUsage() const
-{
-	return mUsagePosition;
-}
-
-void VboMesh::Layout::setPositionUsage( VboMesh::Layout::Usage u )
-{
-	mUsagePosition = u;
-}
-
-VboMesh::Layout::Usage VboMesh::Layout::getTexCoordUsage() const
-{
-	return mUsageTexCoord;
-}
-	
-void VboMesh::Layout::setTexCoordUsage( VboMesh::Layout::Usage u )
-{
-	mUsageTexCoord = u;
-}
-	
-VboMesh::Layout::Usage VboMesh::Layout::getIndexUsage() const
-{
-	return mUsageIndex;
-}
-
-void VboMesh::Layout::setIndexUsage( VboMesh::Layout::Usage u )
-{
-	mUsageIndex = u;
-}
-
-/////////////////////////////////////////////////////////////////
-
-VboMeshRef VboMesh::create( size_t numIndices, size_t numVertices, const VboMesh::Layout& layout, GLenum mode )
-{
-	return VboMeshRef( new VboMesh( numIndices, numVertices, layout, mode ) );
-}
-	
-VboMeshRef VboMesh::create( size_t numVertices, const VboMesh::Layout& layout, GLenum mode )
-{
-	return VboMeshRef( new VboMesh( numVertices, layout, mode ) );
-}
-	
-VboMeshRef VboMesh::create( const TriMesh& mesh, const VboMesh::Layout& layout )
-{
-	return VboMeshRef( new VboMesh( mesh, layout ) );
-}
-
-VboMesh::VboMesh( size_t numVertices, const VboMesh::Layout& layout, GLenum glPrimitive )
-: mLayout( layout ), mGlPrimitive( glPrimitive ), mNumIndices( 0 ), mNumVertices( numVertices )
-{
-}
-
-VboMesh::VboMesh( size_t numIndices, size_t numVertices, const VboMesh::Layout& layout, GLenum glPrimitive )
-: mLayout( layout ), mGlPrimitive( glPrimitive ), mNumIndices( numIndices ), mNumVertices( numVertices )
-{
-}
-
-VboMesh::VboMesh( const TriMesh& mesh, const VboMesh::Layout& layout )
-: mLayout( layout ), mGlPrimitive( GL_TRIANGLES ), mNumIndices( mesh.getNumIndices() ),
-mNumVertices( mesh.getNumVertices() )
-{
-	if ( mesh.hasColorsRGBA() && mLayout.getColorUsage() == Layout::Usage::NONE ) {
-		mLayout.setColorUsage( Layout::Usage::STATIC );
-	}
-	if ( mesh.hasNormals() && mLayout.getNormalUsage() == Layout::Usage::NONE ) {
-		mLayout.setNormalUsage( Layout::Usage::STATIC );
-	}
-	if ( !mesh.getVertices().empty() && mLayout.getPositionUsage() == Layout::Usage::NONE ) {
-		mLayout.setPositionUsage( Layout::Usage::STATIC );
-	}
-	if ( mesh.hasTexCoords() && mLayout.getTexCoordUsage() == Layout::Usage::NONE ) {
-		mLayout.setTexCoordUsage( Layout::Usage::STATIC );
-	}
-	mLayout.setIndexUsage( Layout::Usage::STATIC );
-	
-	if ( mVboIndices ) {
-		GLuint count	= sizeof( uint32_t ) * mNumIndices;
-		GLenum usage	= mLayout.getIndexUsage() == Layout::Usage::STATIC ? GL_STATIC_DRAW : GL_STREAM_DRAW;
-		mVboIndices->bufferData( count, &mesh.getIndices()[ 0 ], usage );
-	}
-}
-
-/*void VboMesh::bind() const
-{
-	mVao->bind();
-	if ( mVboIndices ) {
-		mVboIndices->bind();
-	}
-	if ( mVboVerticesDynamic ) {
-		mVboVerticesDynamic->bind();
-	}
-	if ( mVboVerticesStatic ) {
-		mVboVerticesStatic->bind();
-	}
-}*/
-
-void VboMesh::unbind() const
-{
-	if ( mVboVerticesStatic ) {
-		mVboVerticesStatic->unbind();
-	}
-	if ( mVboVerticesDynamic ) {
-		mVboVerticesDynamic->unbind();
-	}
-	if ( mVboIndices ) {
-		mVboIndices->unbind();
-	}
-	mVao->unbind();
-}
-	
-void VboMesh::initializeBuffers()
-{
-	mVao = Vao::create();
-	
-	if ( mNumIndices > 0 ) {
-		mVboIndices = Vbo::create( GL_ELEMENT_ARRAY_BUFFER );
-	}
-	
-	if ( mNumVertices > 0 ) {
-		bool hasDynamic	= mLayout.getColorUsage() == Layout::Usage::DYNAMIC || mLayout.getNormalUsage() == Layout::Usage::DYNAMIC ||
-			mLayout.getPositionUsage() == Layout::Usage::DYNAMIC || mLayout.getTexCoordUsage() == Layout::Usage::DYNAMIC;
-		bool hasStatic	= mLayout.getColorUsage() == Layout::Usage::STATIC || mLayout.getNormalUsage() == Layout::Usage::STATIC ||
-			mLayout.getPositionUsage() == Layout::Usage::STATIC || mLayout.getTexCoordUsage() == Layout::Usage::STATIC;
-		
-		if ( hasDynamic ) {
-			mVboVerticesDynamic = Vbo::create( GL_ARRAY_BUFFER );
-			
-			size_t offset = 0;
-			if ( mLayout.getColorUsage() == Layout::Usage::DYNAMIC ) {
-				// TODO add attribute to VAO
-				offset += 4;
-			}
-			if ( mLayout.getNormalUsage() == Layout::Usage::DYNAMIC ) {
-				// TODO add attribute to VAO
-				offset += 3;
-			}
-			if ( mLayout.getPositionUsage() == Layout::Usage::DYNAMIC ) {
-				// TODO add attribute to VAO
-				offset += 3;
-			}
-			if ( mLayout.getTexCoordUsage() == Layout::Usage::DYNAMIC ) {
-				// TODO add attribute to VAO
-				offset += 4;
-			}
-			
-			GLuint stride = offset * sizeof( GL_FLOAT ) * mNumVertices;
-			mVboVerticesDynamic->bufferData( stride, 0, GL_STREAM_DRAW );
-		}
-		
-		if ( hasStatic ) {
-			mVboVerticesStatic = Vbo::create( GL_ARRAY_BUFFER );
-			
-			size_t offset = 0;
-			if ( mLayout.getColorUsage() == Layout::Usage::STATIC ) {
-				// TODO add attribute to VAO
-				offset += 4 * mNumVertices;
-			}
-			if ( mLayout.getNormalUsage() == Layout::Usage::STATIC ) {
-				// TODO add attribute to VAO
-				offset += 3 * mNumVertices;
-			}
-			if ( mLayout.getPositionUsage() == Layout::Usage::STATIC ) {
-				// TODO add attribute to VAO
-				offset += 3 * mNumVertices;
-			}
-			if ( mLayout.getTexCoordUsage() == Layout::Usage::STATIC ) {
-				// TODO add attribute to VAO
-				offset += 4 * mNumVertices;
-			}
-			
-			GLuint stride = offset * sizeof( GL_FLOAT );
-			mVboVerticesStatic->bufferData( stride, 0, GL_STATIC_DRAW );
+	for( const auto &vertArrayVbo : mVertexArrayVbos ) {
+		// now iterate the attributes associated with this VBO
+		for( const auto &attribInfo : vertArrayVbo.first.getAttribs() ) {
+			if( attribInfo.getAttrib() == attr )
+				return attribInfo.getDims();
 		}
 	}
-}
 	
-void VboMesh::bufferIndices( const vector<GLuint>& indices )
+	// not found
+	return 0;
+}
+
+#if ! defined( CINDER_GL_ANGLE )
+geom::SourceRef	VboMesh::createSource() const
+{
+	return VboMeshSource::create( this );
+}
+
+void VboMesh::copyIndices( uint32_t *dest ) const
+{
+	if( (! mElements) || (getNumIndices() == 0) )
+		return;
+
+	const void *data = mElements->map( GL_READ_ONLY );
+	if( mGlPrimitive == GL_UNSIGNED_SHORT ) {
+		const uint16_t *source = reinterpret_cast<const uint16_t*>( data );
+		for( size_t e = 0; e < getNumIndices(); ++e )
+			dest[e] = source[e];
+	}
+	else
+		memcpy( dest, data, getNumIndices() * sizeof(uint32_t) );
+		
+	mElements->unmap();
+}
+#endif // ! defined( CINDER_GL_ANGLE )
+
+
+#if ! defined( CINDER_GL_ANGLE )
+
+VboMeshSource::VboMeshSource( const gl::VboMesh *vboMesh )
+	: mVboMesh( vboMesh )
 {
 }
 
-void VboMesh::bufferColors( const vector<ColorAf>& colors )
+std::shared_ptr<VboMeshSource> VboMeshSource::create( const gl::VboMesh *vboMesh )
 {
+	return std::shared_ptr<VboMeshSource>( new VboMeshSource( vboMesh ) );
 }
 
-void VboMesh::bufferNormals( const vector<Vec3f>& normals )
+void VboMeshSource::loadInto( geom::Target *target ) const
 {
-}
-
-void VboMesh::bufferPositions( const vector<Vec3f>& positions )
-{
-}
-
-void VboMesh::bufferTexCoords( const vector<Vec2f>& texCoords )
-{
-}
+	// iterate all the vertex array VBOs; map<geom::BufferLayout,VboRef>
+	for( const auto &vertArrayVbo : mVboMesh->getVertexArrayLayoutVbos() ) {
+		// map this VBO
+		const void *rawData = vertArrayVbo.second->map( GL_READ_ONLY );
+		// now iterate the attributes associated with this VBO
+		for( const auto &attribInfo : vertArrayVbo.first.getAttribs() ) {
+			target->copyAttrib( attribInfo.getAttrib(), attribInfo.getDims(), attribInfo.getStride(), (const float*)((const uint8_t*)rawData + attribInfo.getOffset()), getNumVertices() );
+		}
+		
+		vertArrayVbo.second->unmap();
+	}
 	
-void VboMesh::bufferTexCoords( const vector<Vec3f>& texCoords )
-{
-}
-	
-void VboMesh::bufferTexCoords( const vector<Vec4f>& texCoords )
-{
+	// copy index data if it's present
+	if( mVboMesh->getNumIndices() ) {
+		uint8_t bytesPerIndex;
+		switch( mVboMesh->getIndexDataType() ) {
+			case GL_UNSIGNED_SHORT:
+				bytesPerIndex = 2;
+			break;
+			case GL_UNSIGNED_INT:
+				bytesPerIndex = 4;
+			break;
+		}
+		
+		std::unique_ptr<uint32_t> indices( new uint32_t[mVboMesh->getNumIndices()] );
+		mVboMesh->copyIndices( indices.get() );
+		target->copyIndices( gl::toGeomPrimitive( mVboMesh->getGlPrimitive() ), indices.get(), mVboMesh->getNumIndices(), bytesPerIndex );
+	}
 }
 
-#endif
+size_t VboMeshSource::getNumVertices() const
+{
+	return mVboMesh->getNumVertices();
+}
 
-} }
+size_t VboMeshSource::getNumIndices() const
+{
+	return mVboMesh->getNumIndices();
+}
+
+geom::Primitive VboMeshSource::getPrimitive() const
+{
+	return gl::toGeomPrimitive( mVboMesh->getGlPrimitive() );
+}
+
+uint8_t VboMeshSource::getAttribDims( geom::Attrib attr ) const
+{
+	return mVboMesh->getAttribDims( attr );
+}
+
+#endif // ! defined( CINDER_GL_ANGLE )
+
+} } // namespace cinder::gl

@@ -3,7 +3,9 @@
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Batch.h"
 #include "cinder/gl/VboMesh.h"
+#include "cinder/ObjLoader.h"
 #include "cinder/ImageIo.h"
+#include "cinder/Utilities.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -45,6 +47,8 @@ void RotatingCubeApp::setup()
 	mTeapotMesh = gl::VboMesh::create( geom::Teapot().texCoords().normals().subdivision( 5 ) );
 	//mTeapotMesh = gl::VboMesh::create( geom::Circle().segments( 12 ).radius( 2 ).texCoords().normals() );
 	mCubeBatch = gl::Batch::create( mTeapotMesh, mGlsl );
+
+objWrite( writeFile( getHomeDirectory() / "test.obj" ), mTeapotMesh->createSource() );
 
 	gl::enableDepthWrite();
 	gl::enableDepthRead();

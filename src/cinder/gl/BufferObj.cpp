@@ -44,13 +44,13 @@ void BufferObj::bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *d
 }
 
 #if ! defined( CINDER_GL_ANGLE )	
-uint8_t* BufferObj::map( GLenum access ) const
+void* BufferObj::map( GLenum access ) const
 {
 	BufferScope bufferBind( mTarget, mId );
 #if defined( CINDER_GLES )
-	return reinterpret_cast<uint8_t*>( glMapBufferOES( mTarget, access ) );
+	return reinterpret_cast<void*>( glMapBufferOES( mTarget, access ) );
 #else
-	return reinterpret_cast<uint8_t*>( glMapBuffer( mTarget, access ) );
+	return reinterpret_cast<void*>( glMapBuffer( mTarget, access ) );
 #endif
 }
 
