@@ -28,6 +28,8 @@
 #include <vector>
 #include <map>
 
+#include <ostream>
+
 namespace cinder { namespace gl {
 
 typedef std::shared_ptr<class Vao> VaoRef;
@@ -118,6 +120,8 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	Layout							mLayout;
 
 	friend Context;
+	friend std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs );
+	friend std::ostream& operator<<( std::ostream &lhs, const Vao &rhs );
 };
 
 class VaoCache : public Vao {
@@ -139,5 +143,12 @@ class VaoCache : public Vao {
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;
 };
+
+// Convenience method for dumping VAO contents to a std::ostream
+std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs );
+// Convenience method for dumping VAO contents to a std::ostream
+std::ostream& operator<<( std::ostream &lhs, const Vao &rhs );
+// Convenience method for dumping Vao::Layout contents to a std::ostream
+std::ostream& operator<<( std::ostream &lhs, const Vao::Layout &rhs );
 	
 } }

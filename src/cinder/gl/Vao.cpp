@@ -204,6 +204,39 @@ void Vao::Layout::vertexAttribPointer( GLuint index, GLint size, GLenum type, GL
 	mVertexAttribs[index].mEnabled = enabled;
 }
 
+std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs )
+{
+	lhs << *rhs;
+	return lhs;
+}
+
+std::ostream& operator<<( std::ostream &lhs, const Vao &rhs )
+{
+	lhs << "ID: " << rhs.getId() << std::endl;
+	lhs << rhs.getLayout();
+	
+	return lhs;
+}
+
+std::ostream& operator<<( std::ostream &lhs, const Vao::Layout &rhs )
+{
+	lhs << "ARRAY_BUFFER_BINDING: " << rhs.mArrayBufferBinding << "  ELEMENT_ARRAY_BUFFER_BINDING: " << rhs.mElementArrayBufferBinding << std::endl;
+	lhs << "{" << std::endl;
+	for( auto &attrib : rhs.mVertexAttribs ) {
+		lhs << " Loc: " << attrib.first << std::endl;
+		lhs << "        Enabled: " << attrib.second.mEnabled << std::endl;
+		lhs << "           Size: " << attrib.second.mSize << std::endl;
+		lhs << "           Type: " << gl::typeToString( attrib.second.mType ) << "(" << attrib.second.mType << ")" << std::endl;
+		lhs << "     Normalized: " << ( attrib.second.mNormalized ? "TRUE" : "FALSE" ) << std::endl;
+		lhs << "         Stride: " << attrib.second.mStride << std::endl;
+		lhs << "        Pointer: " << attrib.second.mPointer << "(" << (size_t)attrib.second.mPointer << ")" << std::endl;
+		lhs << "   Array Buffer: " << attrib.second.mArrayBufferBinding << std::endl;
+	}
+	lhs << "}";
+
+	return lhs;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // VaoCache
 VaoCacheRef VaoCache::create()

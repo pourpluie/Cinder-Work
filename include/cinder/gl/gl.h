@@ -187,6 +187,8 @@ void polygonMode( GLenum face, GLenum mode );
 GLenum toGl( geom::Primitive prim );
 //! Converts an OpenGL primitive mode( GL_TRIANGLES, GL_TRIANGLE_STRIP, etc ) to a geom::Primitive
 geom::Primitive toGeomPrimitive( GLenum prim );
+//! Converts an OpenGL type enum ( \c GL_BYTE, \c GL_UNSIGNED_BYTE, \c GL_SHORT, \c GL_UNSIGNED_SHORT, \c GL_FIXED, or \c GL_FLOAT ) to a string, without GL_ prefix
+std::string typeToString( GLenum type );
 
 void draw( const VboMeshRef &mesh );
 void draw( const TextureRef &texture, const Rectf &rect );

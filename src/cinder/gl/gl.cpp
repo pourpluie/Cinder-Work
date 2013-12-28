@@ -718,6 +718,21 @@ geom::Primitive toGeomPrimitive( GLenum prim )
 	}
 }
 
+std::string typeToString( GLenum type )
+{
+	switch( type ) {
+		case GL_BYTE: return "BYTE";
+		case GL_UNSIGNED_BYTE: return "UNSIGNED_BYTE";
+		case GL_SHORT: return "SHORT";
+		case GL_UNSIGNED_SHORT: return "UNSIGNED_SHORT";
+		case GL_INT: return "INT";
+		case GL_UNSIGNED_INT: return "UNSIGNED_INT";
+		case GL_FIXED: return "FIXED";
+		case GL_FLOAT: return "FLOAT";
+		default: return "UNKNOWN";
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Draw*
 void drawArrays( GLenum mode, GLint first, GLsizei count )

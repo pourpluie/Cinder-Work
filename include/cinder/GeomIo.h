@@ -34,9 +34,10 @@ namespace cinder { namespace geom {
 class Target;
 typedef std::shared_ptr<class Source>	SourceRef;
 
-// keep this incrementing by 1 only; some code relies on that for iterating
+// keep this incrementing by 1 only; some code relies on that for iterating; add corresponding entry to sAttribNames
 enum class Attrib { POSITION, COLOR, TEX_COORD_0, TEX_COORD_1, TEX_COORD_2, TEX_COORD_3,
-	NORMAL, TANGENT, BITANGET, BONE_INDEX, BONE_WEIGHT, NUM_ATTRIBS };
+					NORMAL, TANGENT, BITANGET, BONE_INDEX, BONE_WEIGHT, NUM_ATTRIBS };
+extern std::string sAttribNames[(int)Attrib::NUM_ATTRIBS];
 enum class Primitive { TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN }; 
 
 class BufferLayout {

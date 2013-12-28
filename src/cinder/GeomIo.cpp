@@ -28,6 +28,11 @@ using namespace std;
 
 namespace cinder { namespace geom {
 
+std::string sAttribNames[(int)Attrib::NUM_ATTRIBS] = {
+	"POSITION", "COLOR", "TEX_COORD_0", "TEX_COORD_1", "TEX_COORD_2", "TEX_COORD_3",
+	"NORMAL", "TANGENT", "BITANGET", "BONE_INDEX", "BONE_WEIGHT"
+};
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // BufferLayout
 BufferLayout::AttribInfo BufferLayout::getAttribInfo( Attrib attrib ) const
