@@ -263,16 +263,15 @@ struct BufferScope : public boost::noncopyable {
 	GLenum		mTarget;
 };
 
-template<typename T>
 struct StateScope : public boost::noncopyable {
-	StateScope( GLenum cap, T value )
+	StateScope( GLenum cap, GLboolean value )
 		: mCtx( gl::context() ), mCap( cap )
 	{
-		mCtx->pushState<T>( cap, value );
+		mCtx->pushBoolState( cap, value );
 	}
 
 	~StateScope() {
-		mCtx->popState<T>( mCap );
+		mCtx->popBoolState( mCap );
 	}
   private:
 	Context		*mCtx;

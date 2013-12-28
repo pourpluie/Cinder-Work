@@ -241,7 +241,7 @@ void Context::popBufferBinding( GLenum target )
 {
 	GLuint existing = getBufferBinding( target );
 	auto cachedIt = mBufferBindingStack.find( target );
-	if( ( cachedIt == mBufferBindingStack.end() ) && ( ! cachedIt->second.empty() ) ) {
+	if( ( cachedIt != mBufferBindingStack.end() ) && ( ! cachedIt->second.empty() ) ) {
 		cachedIt->second.pop_back();
 		if( ( ! cachedIt->second.empty() ) && ( existing != cachedIt->second.back() ) )
 			glBindBuffer( target, cachedIt->second.back() );
@@ -296,7 +296,7 @@ void Context::invalidateBufferBinding( GLenum target )
 		mBufferBindingStack[target] = vector<int>();
 		mBufferBindingStack[target].push_back( -1 );
 	}
-	else
+	else if( ! mBufferBindingStack[target].empty() )
 		mBufferBindingStack[target].back() = -1;
 }
 

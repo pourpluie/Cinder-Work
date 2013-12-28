@@ -217,12 +217,14 @@ VaoCache::VaoCache()
 
 void VaoCache::bindImpl( class Context *context )
 {
-	// no-op; we're just a cache
+	if( context )
+		invalidateContext( context );
 }
 
 void VaoCache::unbindImpl( class Context *context )
 {
-	// no-op; we're just a cache
+	if( context )
+		invalidateContext( context );
 }
 
 void VaoCache::enableVertexAttribArrayImpl( GLuint index )
