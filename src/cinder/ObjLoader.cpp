@@ -607,10 +607,10 @@ uint8_t	ObjWriteTarget::getAttribDims( geom::Attrib attr ) const
 
 void ObjWriteTarget::writeData( const std::string &typeSpecifier, uint8_t dims, size_t strideBytes, const float *srcData, size_t count )
 {
-	const float *data = srcData;
 	if( strideBytes == 0 )
 		strideBytes = sizeof(float) * dims;
 	for( size_t v = 0; v < count; ++v ) {
+		const float *data = (const float*)(((const uint8_t*)srcData) + v * strideBytes);
 		ostringstream os;
 		os << typeSpecifier << " ";
 		for( uint8_t d = 0; d < dims; ++d ) {
@@ -619,7 +619,6 @@ void ObjWriteTarget::writeData( const std::string &typeSpecifier, uint8_t dims, 
 			else os << ' ';
 		}
 		mStream->writeData( os.str().c_str(), os.str().length() );
-		data = (const float*)(((const uint8_t*)srcData) + strideBytes);
 	}
 }
 
@@ -652,11 +651,11 @@ void ObjWriteTarget::copyIndices( geom::Primitive primitive, const uint32_t *sou
 		ostringstream os;
 		os << "f ";
 		if( mHasNormals && mHasTexCoords ) {
-			os << source[i]+1 << "/" << source[i+0]+1 << "/" << source[i+0]+1 << " ";
+			os << source[i+0]+1 << "/" << source[i+0]+1 << "/" << source[i+0]+1 << " ";
 			os << source[i+1]+1 << "/" << source[i+1]+1 << "/" << source[i+1]+1 << " ";
 			os << source[i+2]+1 << "/" << source[i+2]+1 << "/" << source[i+2]+1 << " ";
 		}
-		else if ( mHasNormals ) {
+		else if( mHasNormals ) {
 			os << source[i+0]+1 << "//" << source[i+0]+1 << " ";
 			os << source[i+1]+1 << "//" << source[i+1]+1 << " ";
 			os << source[i+2]+1 << "//" << source[i+2]+1 << " ";
