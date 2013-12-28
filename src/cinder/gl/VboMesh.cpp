@@ -8,7 +8,7 @@ namespace cinder { namespace gl {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // VboMeshGeomSource
-#if ! defined( CINDER_GL_ANGLE )
+#if ! defined( CINDER_GLES )
 class VboMeshSource : public geom::Source {
   public:
 	static std::shared_ptr<VboMeshSource>	create( const gl::VboMesh *vboMesh );
@@ -26,7 +26,7 @@ class VboMeshSource : public geom::Source {
   
 	const gl::VboMesh		*mVboMesh;
 };
-#endif // ! defined( CINDER_GL_ANGLE )
+#endif // ! defined( CINDER_GLES )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // VboMeshGeomTarget
@@ -190,7 +190,7 @@ uint8_t	VboMesh::getAttribDims( geom::Attrib attr ) const
 	return 0;
 }
 
-#if ! defined( CINDER_GL_ANGLE )
+#if ! defined( CINDER_GLES )
 geom::SourceRef	VboMesh::createSource() const
 {
 	return VboMeshSource::create( this );
@@ -201,7 +201,11 @@ void VboMesh::copyIndices( uint32_t *dest ) const
 	if( (! mElements) || (getNumIndices() == 0) )
 		return;
 
+#if defined( CINDER_GLES )
+	const void *data = mElements->map( GL_READ_ONLY_OES );
+#else
 	const void *data = mElements->map( GL_READ_ONLY );
+#endif
 	if( mGlPrimitive == GL_UNSIGNED_SHORT ) {
 		const uint16_t *source = reinterpret_cast<const uint16_t*>( data );
 		for( size_t e = 0; e < getNumIndices(); ++e )
@@ -215,7 +219,7 @@ void VboMesh::copyIndices( uint32_t *dest ) const
 #endif // ! defined( CINDER_GL_ANGLE )
 
 
-#if ! defined( CINDER_GL_ANGLE )
+#if ! defined( CINDER_GLES )
 
 VboMeshSource::VboMeshSource( const gl::VboMesh *vboMesh )
 	: mVboMesh( vboMesh )
@@ -279,6 +283,6 @@ uint8_t VboMeshSource::getAttribDims( geom::Attrib attr ) const
 	return mVboMesh->getAttribDims( attr );
 }
 
-#endif // ! defined( CINDER_GL_ANGLE )
+#endif // ! defined( CINDER_GLES )
 
 } } // namespace cinder::gl

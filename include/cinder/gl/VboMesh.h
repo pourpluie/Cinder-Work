@@ -48,7 +48,7 @@ class VboMesh {
 	//! Returns the vector of pairs of (BufferLayout,VboRef) for the vertex data of the mesh
 	const std::vector<std::pair<geom::BufferLayout,VboRef>>&	getVertexArrayLayoutVbos() const { return mVertexArrayVbos; }
 
-#if ! defined( CINDER_GL_ANGLE )
+#if ! defined( CINDER_GLES )
 	//! Returns a geom::Source which references 'this'. Inefficient - primarily useful for debugging. The returned geom::SourceRef should not outlive 'this' (not a shared_ptr).
 	geom::SourceRef	createSource() const;
 	

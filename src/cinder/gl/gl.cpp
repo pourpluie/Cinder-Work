@@ -729,6 +729,12 @@ std::string typeToString( GLenum type )
 		case GL_UNSIGNED_INT: return "UNSIGNED_INT";
 		case GL_FIXED: return "FIXED";
 		case GL_FLOAT: return "FLOAT";
+#if ! defined( CINDER_GLES )
+		case GL_HALF_FLOAT: return "HALF_FLOAT";
+		case GL_DOUBLE: return "DOUBLE";
+		case GL_INT_2_10_10_10_REV: return "INT_2_10_10_10_REV";
+		case GL_UNSIGNED_INT_2_10_10_10_REV: return "UNSIGNED_INT_2_10_10_10_REV";
+#endif
 		default: return "UNKNOWN";
 	}
 }
