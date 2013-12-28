@@ -224,7 +224,7 @@ std::ostream& operator<<( std::ostream &lhs, const Vao::Layout &rhs )
 	lhs << "{" << std::endl;
 	for( auto &attrib : rhs.mVertexAttribs ) {
 		lhs << " Loc: " << attrib.first << std::endl;
-		lhs << "        Enabled: " << attrib.second.mEnabled << std::endl;
+		lhs << "        Enabled: " << ( attrib.second.mEnabled ? "TRUE" : "FALSE" ) << std::endl;
 		lhs << "           Size: " << attrib.second.mSize << std::endl;
 		lhs << "           Type: " << gl::typeToString( attrib.second.mType ) << "(" << attrib.second.mType << ")" << std::endl;
 		lhs << "     Normalized: " << ( attrib.second.mNormalized ? "TRUE" : "FALSE" ) << std::endl;

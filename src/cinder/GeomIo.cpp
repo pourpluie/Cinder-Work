@@ -33,6 +33,14 @@ std::string sAttribNames[(int)Attrib::NUM_ATTRIBS] = {
 	"NORMAL", "TANGENT", "BITANGET", "BONE_INDEX", "BONE_WEIGHT"
 };
 
+std::string attribToString( Attrib attrib )
+{
+	if( attrib < Attrib::NUM_ATTRIBS )
+		return sAttribNames[(int)attrib];
+	else
+		return "";
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // BufferLayout
 BufferLayout::AttribInfo BufferLayout::getAttribInfo( Attrib attrib ) const

@@ -40,6 +40,7 @@
 
 namespace cinder { namespace gl {
 
+// Remember to add a matching case to uniformSemanticToString
 enum UniformSemantic {
 	UNIFORM_MODELVIEW,
 	UNIFORM_MODELVIEWPROJECTION,
@@ -187,8 +188,10 @@ void polygonMode( GLenum face, GLenum mode );
 GLenum toGl( geom::Primitive prim );
 //! Converts an OpenGL primitive mode( GL_TRIANGLES, GL_TRIANGLE_STRIP, etc ) to a geom::Primitive
 geom::Primitive toGeomPrimitive( GLenum prim );
-//! Converts an OpenGL type enum ( \c GL_BYTE, \c GL_UNSIGNED_BYTE, \c GL_SHORT, \c GL_UNSIGNED_SHORT, \c GL_FIXED, or \c GL_FLOAT ) to a string, without GL_ prefix
+//! Converts an OpenGL type enum ( \c GL_BYTE series, \c GL_FLOAT_VEC3 series ) to a string, without GL_ prefix
 std::string typeToString( GLenum type );
+//! Converts a UniformSemantic to its name
+std::string uniformSemanticToString( UniformSemantic uniformSemantic );
 
 void draw( const VboMeshRef &mesh );
 void draw( const TextureRef &texture, const Rectf &rect );

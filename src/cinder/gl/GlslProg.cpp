@@ -718,6 +718,50 @@ GLint GlslProg::getAttribLocation( const std::string &name ) const
 		return existing->second;
 }
 
+std::ostream& operator<<( std::ostream &lhs, const GlslProgRef &rhs )
+{
+	lhs << *rhs;
+	return lhs;
+}
+
+std::ostream& operator<<( std::ostream &lhs, const GlslProg &rhs )
+{
+	lhs << "ID: " << rhs.mHandle << std::endl;
+	lhs << " Uniforms: " << std::endl;
+	auto uniformTypes = rhs.getActiveUniformTypes();
+	for( auto &uni : rhs.mUniformLocs ) {
+		lhs << "  \"" << uni.first << "\":" << std::endl;
+		lhs << "    Loc: " << uni.second << std::endl;
+		auto typeIt = uniformTypes.find( uni.first );
+		if( typeIt != uniformTypes.end() )
+			lhs << "    Type: " << gl::typeToString( typeIt->second ) << std::endl;
+		else
+			lhs << "    Type: UNKNOWN" << std::endl;
+		auto semIt = rhs.getUniformSemantics().find( uni.first );
+		if( semIt != rhs.getUniformSemantics().end() ) {
+			lhs << "    Semantic: <" << gl::uniformSemanticToString( semIt->second ) << ">" << std::endl;
+		}
+	}
+
+	auto attribTypes = rhs.getActiveAttribTypes();
+	lhs << " Attributes: " << std::endl;
+	for( auto &attrib : rhs.mAttribLocs ) {
+		lhs << "  \"" << attrib.first << "\":" << std::endl;
+		lhs << "    Loc: " << attrib.second << std::endl;
+		auto typeIt = attribTypes.find( attrib.first );
+		if( typeIt != attribTypes.end() )
+			lhs << "    Type: " << gl::typeToString( typeIt->second ) << std::endl;
+		else
+			lhs << "    Type: UNKNOWN" << std::endl;
+		auto semIt = rhs.getAttribSemantics().find( attrib.first );
+		if( semIt != rhs.getAttribSemantics().end() ) {
+			lhs << "    Semantic: <" << geom::attribToString( semIt->second ) << ">" << std::endl;
+		}
+	}	
+
+	return lhs;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // GlslProgCompileExc
 GlslProgCompileExc::GlslProgCompileExc( const std::string &log, GLint aShaderType ) throw()

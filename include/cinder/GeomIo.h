@@ -40,6 +40,9 @@ enum class Attrib { POSITION, COLOR, TEX_COORD_0, TEX_COORD_1, TEX_COORD_2, TEX_
 extern std::string sAttribNames[(int)Attrib::NUM_ATTRIBS];
 enum class Primitive { TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN }; 
 
+//! Debug utility which returns the name of \a attrib as a std::string
+std::string attribToString( Attrib attrib );
+
 class BufferLayout {
   public:
 	struct AttribInfo {

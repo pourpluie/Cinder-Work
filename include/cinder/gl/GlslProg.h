@@ -203,6 +203,9 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	AttribSemanticMap						mAttribNameToSemanticMap;
 	mutable bool							mAttribSemanticsCached;
 	mutable AttribSemanticMap				mAttribSemantics;
+	
+	friend std::ostream& operator<<( std::ostream &lhs, const GlslProgRef &rhs );
+	friend std::ostream& operator<<( std::ostream &lhs, const GlslProg &rhs );
 };
 
 class GlslProgCompileExc : public std::exception {
