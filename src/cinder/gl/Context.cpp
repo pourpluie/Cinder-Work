@@ -64,6 +64,16 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
     
 	glGetIntegerv( GL_SCISSOR_BOX, params );
 	mScissorStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
+
+	GLint queriedInt;
+	glGetIntegerv( GL_BLEND_SRC_RGB, &queriedInt );
+	mBlendSrcRgbStack.push_back( queriedInt );
+	glGetIntegerv( GL_BLEND_DST_RGB, &queriedInt );
+	mBlendDstRgbStack.push_back( queriedInt );
+	glGetIntegerv( GL_BLEND_SRC_ALPHA, &queriedInt );
+	mBlendSrcAlphaStack.push_back( queriedInt );
+	glGetIntegerv( GL_BLEND_DST_ALPHA, &queriedInt );
+	mBlendDstAlphaStack.push_back( queriedInt );
     
     mModelViewStack.push_back( Matrix44f() );
 	mModelViewStack.back().setToIdentity();
@@ -654,8 +664,10 @@ void Context::pushBoolState( GLenum cap, GLboolean value )
 	auto cached = mBoolStateStack.find( cap );
 	if( ( cached != mBoolStateStack.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
 		needsToBeSet = false;
-	else if( cached == mBoolStateStack.end() )
+	else if( cached == mBoolStateStack.end() ) {
 		mBoolStateStack[cap] = vector<GLboolean>();
+		mBoolStateStack[cap].push_back( glIsEnabled( cap ) );
+	}
 	mBoolStateStack[cap].push_back( value );
 	if( needsToBeSet ) {
 		if( value )
