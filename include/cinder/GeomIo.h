@@ -255,14 +255,14 @@ class Circle : public Source {
 	virtual size_t		getNumIndices() const override { return 0; }
 
   private:
-	static size_t	calcNumVertices( int numSegments, float radius );
-	void			calculate() const;
+	void	updateVertexCounts();
+	void	calculate() const;
 
 	bool		mHasTexCoord0;
 	bool		mHasNormals;
 	Vec2f		mCenter;
 	float		mRadius;
-	int			mNumSegments;
+	int			mRequestedSegments, mNumSegments;
 
 	size_t		mNumVertices;
 	mutable std::unique_ptr<Vec2f>		mPositions;

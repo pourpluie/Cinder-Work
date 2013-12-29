@@ -847,34 +847,36 @@ Vec3f Teapot::evaluateNormal( int gridU, int gridV, const float *B, const float 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Circle
 Circle::Circle()
-	: mNumSegments( -1 ), mCenter( 0, 0 ), mRadius( 1.0f )
+	: mRequestedSegments( -1 ), mCenter( 0, 0 ), mRadius( 1.0f )
 {
-	mHasTexCoord0 = mHasNormals = false;
-	mNumVertices = 3;
+	mHasTexCoord0 = mHasNormals = true;
+	updateVertexCounts();
 }
 
 Circle&	Circle::segments( int segments )
 {
-	mNumSegments = segments;
-	mNumVertices = calcNumVertices( mNumSegments, mRadius );
+	mRequestedSegments = segments;
+	updateVertexCounts();
 	return *this;
 }
 
 Circle&	Circle::radius( float radius )
 {
 	mRadius = radius;
-	mNumVertices = calcNumVertices( mNumSegments, mRadius );
+	updateVertexCounts();
 	return *this;
 }
 
 // If numSegments<0, calculate based on radius
-size_t Circle::calcNumVertices( int numSegments, float radius )
+void Circle::updateVertexCounts()
 {
-	if( numSegments <= 0 )
-		numSegments = (int)math<double>::floor( radius * M_PI * 2 );
+	if( mRequestedSegments <= 0 )
+		mNumSegments = (int)math<double>::floor( mRadius * M_PI * 2 );
+	else
+		mNumSegments = mRequestedSegments;
 	
-	if( numSegments < 3 ) numSegments = 3;
-	return numSegments * 2;
+	if( mNumSegments < 3 ) mNumSegments = 3;
+	mNumVertices = mNumSegments * 2;
 }
 
 void Circle::calculate() const
