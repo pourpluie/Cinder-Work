@@ -37,7 +37,7 @@ namespace cinder { namespace gl {
 
 Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	: mPlatformData( platformData ),
-	mColor( ColorAf::white() ), mCachedActiveTexture( 0 )
+	mColor( ColorAf::white() )
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	,mCachedFramebuffer( -1 )
 #else
@@ -54,6 +54,7 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	mDefaultVao->setContext( this );
 	mDefaultVao->bindImpl( NULL );
 #endif
+	mActiveTextureStack.push_back( 0 );
 
 	mImmediateMode = gl::VertBatch::create();
 	
@@ -431,17 +432,34 @@ void Context::textureDeleted( GLenum target, GLuint textureId )
 
 //////////////////////////////////////////////////////////////////
 // ActiveTexture
-void Context::activeTexture( uint8_t textureUnit )
+void Context::setActiveTexture( uint8_t textureUnit )
 {
-	if( mCachedActiveTexture != textureUnit ) {
-		mCachedActiveTexture = textureUnit;
+	if( setStackState<uint8_t>( mActiveTextureStack, textureUnit ) )
 		glActiveTexture( GL_TEXTURE0 + textureUnit );
-	}
+}
+
+void Context::pushActiveTexture( uint8_t textureUnit )
+{
+	if( pushStackState<uint8_t>( mActiveTextureStack, textureUnit ) )
+		glActiveTexture( GL_TEXTURE0 + textureUnit );
+}
+
+//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
+void Context::popActiveTexture()
+{
+	if( mActiveTextureStack.empty() || popStackState<uint8_t>( mActiveTextureStack ) )
+		glActiveTexture( GL_TEXTURE0 + getActiveTexture() );
 }
 
 uint8_t Context::getActiveTexture()
 {
-	return mCachedActiveTexture;
+	if( mActiveTextureStack.empty() ) {
+		GLint queriedInt;
+		glGetIntegerv( GL_ACTIVE_TEXTURE, &queriedInt );
+		mActiveTextureStack.push_back( queriedInt - GL_TEXTURE0 );
+	}
+
+	return mActiveTextureStack.back();
 }
 
 //////////////////////////////////////////////////////////////////
@@ -614,7 +632,8 @@ GLboolean Context::getBoolState( GLenum cap )
 		return cached->second.back();
 }
 
-bool Context::pushIntState( std::vector<GLint> &stack, GLint value )
+template<typename T>
+bool Context::pushStackState( std::vector<T> &stack, T value )
 {
 	bool needsToBeSet = true;
 	if( ( ! stack.empty() ) && ( stack.back() == value ) )
@@ -623,10 +642,11 @@ bool Context::pushIntState( std::vector<GLint> &stack, GLint value )
 	return needsToBeSet;
 }
 
-bool Context::popIntState( std::vector<GLint> &stack )
+template<typename T>
+bool Context::popStackState( std::vector<T> &stack )
 {
 	if( ! stack.empty() ) {
-		GLint prevValue = stack.back();
+		T prevValue = stack.back();
 		stack.pop_back();
 		if( ! stack.empty() )
 			return stack.back() != prevValue;
@@ -637,7 +657,8 @@ bool Context::popIntState( std::vector<GLint> &stack )
 		return true;
 }
 
-bool Context::setIntState( std::vector<GLint> &stack, GLint value )
+template<typename T>
+bool Context::setStackState( std::vector<T> &stack, T value )
 {
 	bool needsToBeSet = true;
 	if( ( ! stack.empty() ) && ( stack.back() == value ) )
@@ -649,7 +670,8 @@ bool Context::setIntState( std::vector<GLint> &stack, GLint value )
 	return needsToBeSet;
 }
 
-bool Context::getIntState( std::vector<GLint> &stack, GLint *result )
+template<typename T>
+bool Context::getStackState( std::vector<T> &stack, T *result )
 {
 	if( stack.empty() )
 		return false;
@@ -779,30 +801,30 @@ void Context::blendFunc( GLenum sfactor, GLenum dfactor )
 
 void Context::blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
 {
-	bool needsChange = setIntState( mBlendSrcRgbStack, srcRGB );
-	needsChange = setIntState( mBlendDstRgbStack, dstRGB ) || needsChange;
-	needsChange = setIntState( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
-	needsChange = setIntState( mBlendDstAlphaStack, dstAlpha ) || needsChange;
+	bool needsChange = setStackState<GLint>( mBlendSrcRgbStack, srcRGB );
+	needsChange = setStackState<GLint>( mBlendDstRgbStack, dstRGB ) || needsChange;
+	needsChange = setStackState<GLint>( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
+	needsChange = setStackState<GLint>( mBlendDstAlphaStack, dstAlpha ) || needsChange;
 	if( needsChange )
 		glBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
 }
 
 void Context::pushBlendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
 {
-	bool needsChange = pushIntState( mBlendSrcRgbStack, srcRGB );
-	needsChange = pushIntState( mBlendDstRgbStack, dstRGB ) || needsChange;
-	needsChange = pushIntState( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
-	needsChange = pushIntState( mBlendDstAlphaStack, dstAlpha ) || needsChange;
+	bool needsChange = pushStackState<GLint>( mBlendSrcRgbStack, srcRGB );
+	needsChange = pushStackState<GLint>( mBlendDstRgbStack, dstRGB ) || needsChange;
+	needsChange = pushStackState<GLint>( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
+	needsChange = pushStackState<GLint>( mBlendDstAlphaStack, dstAlpha ) || needsChange;
 	if( needsChange )
 		glBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
 }
 
 void Context::popBlendFuncSeparate()
 {
-	bool needsChange = popIntState( mBlendSrcRgbStack );
-	needsChange = popIntState( mBlendDstRgbStack ) || needsChange;
-	needsChange = popIntState( mBlendSrcAlphaStack ) || needsChange;
-	needsChange = popIntState( mBlendDstAlphaStack ) || needsChange;
+	bool needsChange = popStackState<GLint>( mBlendSrcRgbStack );
+	needsChange = popStackState<GLint>( mBlendDstRgbStack ) || needsChange;
+	needsChange = popStackState<GLint>( mBlendSrcAlphaStack ) || needsChange;
+	needsChange = popStackState<GLint>( mBlendDstAlphaStack ) || needsChange;
 	if( needsChange && ( ! mBlendSrcRgbStack.empty() ) && ( ! mBlendSrcAlphaStack.empty() ) && ( ! mBlendDstRgbStack.empty() ) && ( ! mBlendDstAlphaStack.empty() ) )
 		glBlendFuncSeparate( mBlendSrcRgbStack.back(), mBlendDstRgbStack.back(), mBlendSrcAlphaStack.back(), mBlendDstAlphaStack.back() );
 }

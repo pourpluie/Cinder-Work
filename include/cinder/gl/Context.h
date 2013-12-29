@@ -97,9 +97,13 @@ class Context {
 	//! No-op if texture wasn't bound to target, otherwise reflects the binding as 0 (in accordance with what GL has done)
 	void		textureDeleted( GLenum target, GLuint textureId );
 
-	//! Sets the active texture unit; expects values relative to 0, \em not GL_TEXTURE0
-	void		activeTexture( uint8_t textureUnit );
-	//! Returns the active texture unit with values relative to 0, \em not GL_TEXTURE0
+	//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
+	void		setActiveTexture( uint8_t textureUnit );
+	//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
+	void		pushActiveTexture( uint8_t textureUnit );
+	//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
+	void		popActiveTexture();	
+	//! Returns the active texture unit with values relative to \c 0, \em not GL_TEXTURE0
 	uint8_t		getActiveTexture();
 
 	void		bindFramebuffer( const FboRef &fbo );
@@ -172,13 +176,17 @@ class Context {
 
   protected:
 	//! Returns \c true if \a value is different from the previous top of the stack
-	bool		pushIntState( std::vector<GLint> &stack, GLint value );
+	template<typename T>
+	bool		pushStackState( std::vector<T> &stack, T value );
 	//! Returns \c true if the new top of \a stack is different from the previous top
-	bool		popIntState( std::vector<GLint> &stack );
+	template<typename T>
+	bool		popStackState( std::vector<T> &stack );
 	//! Returns \c true if \a value is different from the previous top of the stack
-	bool		setIntState( std::vector<GLint> &stack, GLint value );
+	template<typename T>
+	bool		setStackState( std::vector<T> &stack, T value );
 	//! Returns \c true if \a result is valid; will return \c false when \a stack was empty
-	bool		getIntState( std::vector<GLint> &stack, GLint *result );
+	template<typename T>
+	bool		getStackState( std::vector<T> &stack, T *result );
 
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
@@ -198,7 +206,7 @@ class Context {
 	
 	std::map<GLenum,std::vector<GLboolean>>	mBoolStateStack;
 	std::map<GLenum,std::vector<GLint>>		mTextureBindingStack;
-	GLint						mCachedActiveTexture;
+	std::vector<uint8_t>					mActiveTextureStack;
 	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
 	
 	VaoRef						mDefaultVao;
@@ -225,9 +233,6 @@ class Context {
 	friend class				EnvironmentCoreProfile;
 	friend class				EnvironmentCompatibilityProfile;
 	
-	friend class				Fog;
-	friend class				Light;
-	friend class				Material;
 	friend class				Texture;
 };
 
@@ -341,18 +346,16 @@ struct ActiveTextureScope : public boost::noncopyable
 	ActiveTextureScope( uint8_t textureUnit )
 		: mCtx( gl::context() )
 	{
-		mPrevValue = mCtx->getActiveTexture();
-		mCtx->activeTexture( textureUnit );
+		mCtx->pushActiveTexture( textureUnit );
 	}
 	
 	~ActiveTextureScope()
 	{
-		mCtx->activeTexture( mPrevValue );
+		mCtx->popActiveTexture();
 	}
 	
   private:
 	Context		*mCtx;
-	uint8_t		mPrevValue;
 };
 
 struct TextureBindScope : public boost::noncopyable
