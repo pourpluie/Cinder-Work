@@ -93,10 +93,12 @@ class Context {
 	void		bindGlslProg( const GlslProgRef &prog );
 	GlslProgRef	getGlslProg();
 
-	void		bindTexture( GLenum target, GLuint texture );
+	void		bindTexture( GLenum target, GLuint textureId );
+	void		pushTextureBinding( GLenum target, GLuint texture );
+	void		popTextureBinding( GLenum target );	
+	GLuint		getTextureBinding( GLenum target );
 	//! No-op if texture wasn't bound to target, otherwise reflects the binding as 0 (in accordance with what GL has done)
 	void		textureDeleted( GLenum target, GLuint textureId );
-	GLuint		getTextureBinding( GLenum target );
 
 	//! Sets the active texture unit; expects values relative to 0, \em not GL_TEXTURE0
 	void		activeTexture( uint8_t textureUnit );
@@ -197,8 +199,8 @@ class Context {
 	GLint						mCachedReadFramebuffer, mCachedDrawFramebuffer;
 #endif
 	
-	std::map<GLenum,std::vector<GLboolean>>	mStateStackBoolean;
-	std::map<GLenum,GLint>		mCachedTextureBinding;
+	std::map<GLenum,std::vector<GLboolean>>	mBoolStateStack;
+	std::map<GLenum,std::vector<GLint>>		mTextureBindingStack;
 	GLint						mCachedActiveTexture;
 	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
 	
@@ -361,26 +363,23 @@ struct TextureBindScope : public boost::noncopyable
 	TextureBindScope( GLenum target, GLuint textureId )
 		: mCtx( gl::context() ), mTarget( target )
 	{
-		mPrevValue = mCtx->getTextureBinding( mTarget );
-		mCtx->bindTexture( mTarget, textureId );
+		mCtx->pushTextureBinding( mTarget, textureId );
 	}
 
 	TextureBindScope( const TextureBaseRef &texture )
 		: mCtx( gl::context() ), mTarget( texture->getTarget() )
 	{
-		mPrevValue = mCtx->getTextureBinding( mTarget );
-		mCtx->bindTexture( mTarget, texture->getId() );
+		mCtx->pushTextureBinding( mTarget, texture->getId() );
 	}
 	
 	~TextureBindScope()
 	{
-		mCtx->bindTexture( mTarget, mPrevValue );
+		mCtx->popTextureBinding( mTarget );
 	}
 	
   private:
 	Context		*mCtx;
 	GLenum		mTarget;
-	GLuint		mPrevValue;
 };
 	
 struct ScissorScope : public boost::noncopyable

@@ -358,43 +358,78 @@ GlslProgRef Context::getGlslProg()
 
 //////////////////////////////////////////////////////////////////
 // TextureBinding
-void Context::bindTexture( GLenum target, GLuint texture )
+void Context::bindTexture( GLenum target, GLuint textureId )
 {
-	auto cachedIt = mCachedTextureBinding.find( target );
-	if( ( cachedIt == mCachedTextureBinding.end() ) || ( cachedIt->second != texture ) ) {
-		mCachedTextureBinding[target] = texture;
-		glBindTexture( target, texture );
+	auto cachedIt = mTextureBindingStack.find( target );
+	if( ( cachedIt == mTextureBindingStack.end() ) || ( cachedIt->second.empty() ) || ( cachedIt->second.back() != textureId ) ) {
+		if( cachedIt->second.empty() ) {
+			mTextureBindingStack[target] = vector<GLint>();
+			mTextureBindingStack[target].push_back( textureId );
+		}
+		else
+			mTextureBindingStack[target].back() = textureId;
+		glBindTexture( target, textureId );
 	}
+}
+
+void Context::pushTextureBinding( GLenum target, GLuint textureId )
+{
+	bool needsToBeSet = true;
+	auto cached = mTextureBindingStack.find( target );
+	if( ( cached != mTextureBindingStack.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == textureId ) )
+		needsToBeSet = false;
+	else if( cached == mTextureBindingStack.end() )
+		mTextureBindingStack[target] = vector<GLint>();
+	mTextureBindingStack[target].push_back( textureId );
+	if( needsToBeSet )
+		glBindTexture( target, textureId );
+}
+
+void Context::popTextureBinding( GLenum target )
+{
+	auto cached = mTextureBindingStack.find( target );
+	if( ( cached != mTextureBindingStack.end() ) && ( ! cached->second.empty() ) ) {
+		GLint prevValue = cached->second.back();
+		cached->second.pop_back();
+		if( ! cached->second.empty() ) {
+			if( cached->second.back() != prevValue ) {
+				glBindTexture( target, cached->second.back() );
+			}
+		}
+	}
+}
+
+GLuint Context::getTextureBinding( GLenum target )
+{
+	auto cachedIt = mTextureBindingStack.find( target );
+	if( (cachedIt == mTextureBindingStack.end()) || ( cachedIt->second.empty() ) || ( cachedIt->second.back() == -1 ) ) {
+		GLint queriedInt = -1;
+		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
+		if( targetBinding > 0 ) {
+			glGetIntegerv( targetBinding, &queriedInt );
+		}
+		else
+			return 0; // warning?
+		
+		if( cachedIt->second.empty() ) {
+			mTextureBindingStack[target] = vector<GLint>();
+			mTextureBindingStack[target].push_back( queriedInt );
+		}
+		else
+			mTextureBindingStack[target].back() = queriedInt;
+		return (GLuint)queriedInt;
+	}
+	else
+		return (GLuint)cachedIt->second.back();
 }
 
 void Context::textureDeleted( GLenum target, GLuint textureId )
 {
-	auto cachedIt = mCachedTextureBinding.find( target );
-	if( cachedIt != mCachedTextureBinding.end() && cachedIt->second == textureId ) {
+	auto cachedIt = mTextureBindingStack.find( target );
+	if( cachedIt != mTextureBindingStack.end() && ( ! cachedIt->second.empty() ) && ( cachedIt->second.back() != textureId ) ) {
 		// GL will have set the binding to 0 for target, so let's do the same
-		mCachedTextureBinding[target] = 0;
+		mTextureBindingStack[target].back() = 0;
 	}
-}
-
-GLenum Context::getTextureBinding( GLenum target )
-{
-	auto cachedIt = mCachedTextureBinding.find( target );
-	if( (cachedIt == mCachedTextureBinding.end()) || ( cachedIt->second == -1 ) ) {
-		GLint queriedInt = -1;
-		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
-		if( target > 0 ) {
-			glGetIntegerv( targetBinding, &queriedInt );
-		}
-		else {
-			return 0; // warning?
-		}
-		
-		mCachedTextureBinding[target] = queriedInt;
-		return (GLenum)queriedInt;
-	}
-	else
-		return (GLenum)cachedIt->second;
-
 }
 
 //////////////////////////////////////////////////////////////////
@@ -496,15 +531,15 @@ GLuint Context::getFramebufferBinding( GLenum target )
 void Context::setBoolState( GLenum cap, GLboolean value )
 {
 	bool needsToBeSet = true;
-	auto cached = mStateStackBoolean.find( cap );
-	if( ( cached != mStateStackBoolean.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
+	auto cached = mBoolStateStack.find( cap );
+	if( ( cached != mBoolStateStack.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
 		needsToBeSet = false;
-	if( cached == mStateStackBoolean.end() ) {
-		mStateStackBoolean[cap] = vector<GLboolean>();
-		mStateStackBoolean[cap].push_back( value );
+	if( cached == mBoolStateStack.end() ) {
+		mBoolStateStack[cap] = vector<GLboolean>();
+		mBoolStateStack[cap].push_back( value );
 	}
 	else
-		mStateStackBoolean[cap].back() = value;
+		mBoolStateStack[cap].back() = value;
 	if( needsToBeSet ) {
 		if( value )
 			glEnable( cap );
@@ -516,15 +551,15 @@ void Context::setBoolState( GLenum cap, GLboolean value )
 void Context::setBoolState( GLenum cap, GLboolean value, const std::function<void(GLboolean)> &setter )
 {
 	bool needsToBeSet = true;
-	auto cached = mStateStackBoolean.find( cap );
-	if( ( cached != mStateStackBoolean.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
+	auto cached = mBoolStateStack.find( cap );
+	if( ( cached != mBoolStateStack.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
 		needsToBeSet = false;
-	if( cached == mStateStackBoolean.end() ) {
-		mStateStackBoolean[cap] = vector<GLboolean>();
-		mStateStackBoolean[cap].push_back( value );
+	if( cached == mBoolStateStack.end() ) {
+		mBoolStateStack[cap] = vector<GLboolean>();
+		mBoolStateStack[cap].push_back( value );
 	}
 	else
-		mStateStackBoolean[cap].back() = value;
+		mBoolStateStack[cap].back() = value;
 	if( needsToBeSet )
 		setter( value );
 }
@@ -532,12 +567,12 @@ void Context::setBoolState( GLenum cap, GLboolean value, const std::function<voi
 void Context::pushBoolState( GLenum cap, GLboolean value )
 {
 	bool needsToBeSet = true;
-	auto cached = mStateStackBoolean.find( cap );
-	if( ( cached != mStateStackBoolean.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
+	auto cached = mBoolStateStack.find( cap );
+	if( ( cached != mBoolStateStack.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
 		needsToBeSet = false;
-	else if( cached == mStateStackBoolean.end() )
-		mStateStackBoolean[cap] = vector<GLboolean>();
-	mStateStackBoolean[cap].push_back( value );
+	else if( cached == mBoolStateStack.end() )
+		mBoolStateStack[cap] = vector<GLboolean>();
+	mBoolStateStack[cap].push_back( value );
 	if( needsToBeSet ) {
 		if( value )
 			glEnable( cap );
@@ -548,8 +583,8 @@ void Context::pushBoolState( GLenum cap, GLboolean value )
 
 void Context::popBoolState( GLenum cap )
 {
-	auto cached = mStateStackBoolean.find( cap );
-	if( ( cached != mStateStackBoolean.end() ) && ( ! cached->second.empty() ) ) {
+	auto cached = mBoolStateStack.find( cap );
+	if( ( cached != mBoolStateStack.end() ) && ( ! cached->second.empty() ) ) {
 		GLboolean prevValue = cached->second.back();
 		cached->second.pop_back();
 		if( ! cached->second.empty() ) {
@@ -570,12 +605,12 @@ void Context::enable( GLenum cap, GLboolean value )
 
 GLboolean Context::getBoolState( GLenum cap )
 {
-	auto cached = mStateStackBoolean.find( cap );
-	if( ( cached == mStateStackBoolean.end() ) || cached->second.empty() ) {
+	auto cached = mBoolStateStack.find( cap );
+	if( ( cached == mBoolStateStack.end() ) || cached->second.empty() ) {
 		GLboolean result = glIsEnabled( cap );
-		if( cached == mStateStackBoolean.end() )
-			mStateStackBoolean[cap] = vector<GLboolean>();
-		mStateStackBoolean[cap].push_back( result );
+		if( cached == mBoolStateStack.end() )
+			mBoolStateStack[cap] = vector<GLboolean>();
+		mBoolStateStack[cap].push_back( result );
 		return result;
 	}
 	else
@@ -668,11 +703,10 @@ return;
 //	assert( mCachedVao == queriedInt );
 
 	// assert the various texture bindings are correct
-	for( auto& cachedTextureBinding : mCachedTextureBinding ) {
+	for( auto& cachedTextureBinding : mTextureBindingStack ) {
 		GLenum target = cachedTextureBinding.first;
-		GLenum textureBindingConstant = Texture::getBindingConstantForTarget( target );
-		glGetIntegerv( textureBindingConstant, &queriedInt );
-		GLenum cachedTextureId = (GLenum)queriedInt;
+		glGetIntegerv( Texture::getBindingConstantForTarget( target ), &queriedInt );
+		GLenum cachedTextureId = cachedTextureBinding.second.back();
 		assert( queriedInt == cachedTextureId );
 	}
 }
