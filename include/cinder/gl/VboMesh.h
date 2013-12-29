@@ -11,6 +11,8 @@
 #include "cinder/gl/Vbo.h"
 #include "cinder/geomIo.h"
 
+#include <ostream>
+
 namespace cinder { namespace gl {
 	
 typedef std::shared_ptr<class VboMesh> VboMeshRef;
@@ -53,7 +55,10 @@ class VboMesh {
 	geom::SourceRef	createSource() const;
 	
 	//! Copies indices to \a dest. Requires \a dest to provide storage for getNumIndices() indices. Inefficient - primarily useful for debugging.
-	void		copyIndices( uint32_t *dest ) const;
+	void		downloadIndices( uint32_t *dest ) const;
+	
+	//! Echos all vertex data in range [\a startIndex, \a endIndex) to \a os. Inefficient - primarily useful for debugging.
+	void		echoVertexRange( std::ostream &os, size_t startIndex, size_t endIndex );
 #endif
 
   protected:

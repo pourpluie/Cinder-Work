@@ -196,7 +196,7 @@ geom::SourceRef	VboMesh::createSource() const
 	return VboMeshSource::create( this );
 }
 
-void VboMesh::copyIndices( uint32_t *dest ) const
+void VboMesh::downloadIndices( uint32_t *dest ) const
 {
 	if( (! mElements) || (getNumIndices() == 0) )
 		return;
@@ -216,7 +216,94 @@ void VboMesh::copyIndices( uint32_t *dest ) const
 		
 	mElements->unmap();
 }
-#endif // ! defined( CINDER_GL_ANGLE )
+
+void VboMesh::echoVertexRange( std::ostream &os, size_t startIndex, size_t endIndex )
+{
+	vector<string> attribSemanticNames;
+	vector<vector<string>> attribData;
+	vector<size_t> attribColLengths;
+	vector<string> attribColLeadingSpaceStrings;
+
+	startIndex = std::min<size_t>( startIndex, mNumVertices );
+	endIndex = std::min<size_t>( endIndex, mNumVertices );
+
+	// save the GL_ARRAY_BUFFER binding
+	auto prevBufferBinding = gl::context()->getBufferBinding( GL_ARRAY_BUFFER );
+
+	// iterate all the vertex array VBOs; map<geom::BufferLayout,VboRef>
+	for( const auto &vertArrayVbo : mVertexArrayVbos ) {
+		// map this VBO
+		const void *rawData = vertArrayVbo.second->map( GL_READ_ONLY );
+		// now iterate the attributes associated with this VBO
+		for( const auto &attribInfo : vertArrayVbo.first.getAttribs() ) {
+			attribSemanticNames.push_back( geom::attribToString( attribInfo.getAttrib() ) );
+			attribData.push_back( vector<string>() );
+			size_t stride = ( attribInfo.getStride() == 0 ) ? attribInfo.getDims() * sizeof(float) : attribInfo.getStride();
+			for( size_t v = startIndex; v < endIndex; ++v ) {
+				ostringstream ss;
+				const float *dataFloat = reinterpret_cast<const float*>( (const uint8_t*)rawData + attribInfo.getOffset() + v * stride );
+				for( uint8_t d = 0; d < attribInfo.getDims(); ++d ) {
+					ss << dataFloat[d];
+					if( d != attribInfo.getDims() - 1 )
+						ss << ",";
+				}
+				attribData.back().push_back( ss.str() );
+			}
+			
+			// now calculate the longest string in the column
+			attribColLengths.push_back( attribSemanticNames.back().length() + 3 );
+			for( auto &attribDataStr : attribData.back() ) {
+				attribColLengths.back() = std::max<size_t>( attribColLengths.back(), attribDataStr.length() + 2 );
+			}
+		}
+		
+		vertArrayVbo.second->unmap();
+	}
+
+	// print attrib semantic header
+	ostringstream ss;
+	for( size_t a = 0; a < attribSemanticNames.size(); ++a ) {
+		// character offset where we should be for this column
+		size_t colStartCharIndex = 0;
+		for( size_t sumA = 0; sumA < a; ++sumA )
+			colStartCharIndex += attribColLengths[sumA];
+		// offset relative to the previous
+		int numSpaces = std::max<int>( colStartCharIndex - ss.str().length(), 0 );
+		// center string
+		numSpaces += std::max<int>( (attribColLengths[a] - (attribSemanticNames[a].length()+2)) / 2, 0 );
+		for( size_t s = 0; s < numSpaces; s++ )
+			ss << " ";
+		ss << "<" << attribSemanticNames[a] << "> ";
+	}
+	os << ss.str();
+	os << std::endl;
+
+	// print data rows
+	for( size_t v = 0; v < ( endIndex - startIndex ); ++v ) {
+		ostringstream ss;
+		for( size_t a = 0; a < attribSemanticNames.size(); ++a ) {
+			// character offset where we should be for this column
+			size_t colStartCharIndex = 0;
+			for( size_t sumA = 0; sumA < a; ++sumA )
+				colStartCharIndex += attribColLengths[sumA];
+			// offset relative to the previous
+			int numSpaces = std::max<int>( colStartCharIndex - ss.str().length(), 0 );
+			// center string
+			numSpaces += std::max<int>( (attribColLengths[a] - attribData[a][v].length()) / 2, 0 );
+			for( size_t s = 0; s < numSpaces; s++ )
+				ss << " ";
+			ss << attribData[a][v];
+		}
+		os << ss.str();
+		os << std::endl;
+	}
+	os << std::endl;
+
+	// restore the GL_ARRAY_BUFFER binding
+	gl::context()->bindBuffer( GL_ARRAY_BUFFER, prevBufferBinding );
+}
+
+#endif // ! defined( CINDER_GLES )
 
 
 #if ! defined( CINDER_GLES )
@@ -258,7 +345,7 @@ void VboMeshSource::loadInto( geom::Target *target ) const
 		}
 		
 		std::unique_ptr<uint32_t> indices( new uint32_t[mVboMesh->getNumIndices()] );
-		mVboMesh->copyIndices( indices.get() );
+		mVboMesh->downloadIndices( indices.get() );
 		target->copyIndices( gl::toGeomPrimitive( mVboMesh->getGlPrimitive() ), indices.get(), mVboMesh->getNumIndices(), bytesPerIndex );
 	}
 }

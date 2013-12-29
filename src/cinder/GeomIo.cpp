@@ -876,7 +876,7 @@ void Circle::updateVertexCounts()
 		mNumSegments = mRequestedSegments;
 	
 	if( mNumSegments < 3 ) mNumSegments = 3;
-	mNumVertices = mNumSegments * 2;
+	mNumVertices = mNumSegments + 1 + 1;
 }
 
 void Circle::calculate() const
