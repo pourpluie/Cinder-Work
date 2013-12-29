@@ -909,9 +909,11 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	verts[3*2+0] = rect.getX1(); texCoords[3*2+0] = texture->getLeft();
 	verts[3*2+1] = rect.getY2(); texCoords[3*2+1] = texture->getBottom();
 	
-	VaoCacheRef vaoCache = VaoCache::create();
+//	VaoCacheRef vaoCache = VaoCache::create();
+	VaoRef vao = ctx->getDefaultVao();
+	VaoScope vaoScp( vao );
 	{
-		VaoScope vaoScp( vaoCache );
+//		VaoScope vaoScp( vaoCache );
 		VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(data) );
 		arrayVbo->bind();
 		arrayVbo->bufferData( sizeof(data), data, GL_DYNAMIC_DRAW );
@@ -928,9 +930,9 @@ void draw( const TextureRef &texture, const Rectf &rect )
 		}
 	}
 
-	VaoRef vao = ctx->getDefaultVao();
-	VaoScope vaoScp( vao );
-	vao->swap( vaoCache );
+//	VaoRef vao = ctx->getDefaultVao();
+//	VaoScope vaoScp( vao );
+//	vao->swap( vaoCache );
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
