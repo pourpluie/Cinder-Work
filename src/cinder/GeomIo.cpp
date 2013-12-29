@@ -143,7 +143,7 @@ void copyDataMultAddImpl( const float *srcData, size_t numElements, size_t dstSt
 
 } // anonymous namespace
 
-void GeomIo::copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData )
+void copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData )
 {
 	// we can get away with a memcpy
 	if( (srcDimensions == dstDimensions) && (dstStrideBytes == 0) ) {

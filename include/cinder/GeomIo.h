@@ -81,21 +81,16 @@ class BufferLayout {
 	std::vector<AttribInfo>		mAttribs;
 };
 
-class GeomIo {
-  public:
-	virtual Primitive	getPrimitive() const = 0;
-	
-	virtual uint8_t		getAttribDims( Attrib attr ) const = 0;
+void copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
 
-	static void	copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData );
-};
-
-class Source : public GeomIo {
+class Source {
   public:
 	virtual void	loadInto( Target *target ) const = 0;
-	
+
+	virtual Primitive	getPrimitive() const = 0;	
 	virtual size_t		getNumVertices() const = 0;
 	virtual size_t		getNumIndices() const { return 0; }
+	virtual uint8_t		getAttribDims( Attrib attr ) const = 0;	
 /*
 	//! Always copy indices; generate them when they don't exist. Copies getNumVertices() indices when indices don't exist.
 	void				forceCopyIndices( uint16_t *dest ) const;
@@ -121,8 +116,11 @@ class Source : public GeomIo {
 	
 };
 
-class Target : public GeomIo {
+class Target {
   public:
+  	virtual Primitive	getPrimitive() const = 0;
+	virtual uint8_t		getAttribDims( Attrib attr ) const = 0;	
+  
 	virtual void	copyAttrib( Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count ) = 0;
 	virtual void	copyIndices( Primitive primitive, const uint32_t *source, size_t numIndices, uint8_t requiredBytesPerIndex ) = 0;
 	
