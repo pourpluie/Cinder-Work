@@ -58,12 +58,12 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 
 	mImmediateMode = gl::VertBatch::create();
 	
-	GLint params[ 4 ];
+	GLint params[4];
 	glGetIntegerv( GL_VIEWPORT, params );
 	mViewport = std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) );
     
-    glGetIntegerv( GL_SCISSOR_BOX, params );
-    mScissor = std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) );
+	glGetIntegerv( GL_SCISSOR_BOX, params );
+	mScissorStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
     
     mModelViewStack.push_back( Matrix44f() );
 	mModelViewStack.back().setToIdentity();
@@ -196,8 +196,34 @@ void Context::setViewport( const std::pair<Vec2i, Vec2i> &viewport )
 // Scissor Test
 void Context::setScissor( const std::pair<Vec2i, Vec2i> &scissor )
 {
-	mScissor = scissor;
-	glScissor( mScissor.first.x, mScissor.first.y, mScissor.second.x, mScissor.second.y );
+	if( setStackState( mScissorStack, scissor ) )
+		glScissor( scissor.first.x, scissor.first.y, scissor.second.x, scissor.second.y );
+}
+
+void Context::pushScissor( const std::pair<Vec2i, Vec2i> &scissor )
+{
+	if( pushStackState( mScissorStack, scissor ) )
+		glScissor( scissor.first.x, scissor.first.y, scissor.second.x, scissor.second.y );
+}
+
+//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
+void Context::popScissor()
+{
+	if( mScissorStack.empty() || popStackState( mScissorStack ) ) {
+		auto scissor = getScissor();
+		glScissor( scissor.first.x, scissor.first.y, scissor.second.x, scissor.second.y );
+	}
+}
+
+std::pair<Vec2i, Vec2i> Context::getScissor()
+{
+	if( mScissorStack.empty() ) {
+		GLint params[4];
+		glGetIntegerv( GL_SCISSOR_BOX, params );
+		mScissorStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
+	}
+
+	return mScissorStack.back();
 }
 
 //////////////////////////////////////////////////////////////////
