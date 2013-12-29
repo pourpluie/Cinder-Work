@@ -82,7 +82,7 @@ class Renderbuffer {
 };
 
 //! Represents an OpenGL Framebuffer Object.
-class Fbo {
+class Fbo : public std::enable_shared_from_this<Fbo> {
   public:
 	struct Format;
 
@@ -115,7 +115,7 @@ class Fbo {
 	//! Unbinds the texture associated with an Fbo attachment
 	void			unbindTexture( int textureUnit = 0, GLenum attachment = GL_COLOR_ATTACHMENT0 );
 	//! Binds the Fbo as the currently active framebuffer, meaning it will receive the results of all subsequent rendering until it is unbound
-	void 			bindFramebuffer();
+	void 			bindFramebuffer( GLenum target = GL_FRAMEBUFFER );
 	//! Unbinds the Fbo as the currently active framebuffer, restoring the primary context as the target for all subsequent rendering
 	static void 	unbindFramebuffer();
 
@@ -242,7 +242,7 @@ class Fbo {
 		
 		std::map<GLenum,RenderbufferRef>	mAttachmentsBuffer;
 		std::map<GLenum,RenderbufferRef>	mAttachmentsMultisampleBuffer;
-		std::map<GLenum,TextureRef>			mAttachmentsTexture;		
+		std::map<GLenum,TextureRef>			mAttachmentsTexture;
 
 		friend class Fbo;
 	};

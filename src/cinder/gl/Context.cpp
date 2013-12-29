@@ -347,7 +347,7 @@ void Context::pushGlslProg( const GlslProgRef &prog )
 	mGlslProgStack.push_back( prog );
 	if( prog != prevGlsl ) {
 		if( prog )
-			glUseProgram( prog->getHandle() );
+			prog->bindImpl();
 		else
 			glUseProgram( 0 );
 	}
@@ -362,7 +362,7 @@ void Context::popGlslProg()
 		if( ! mGlslProgStack.empty() ) {
 			if( prevGlsl != mGlslProgStack.back() ) {
 				if( mGlslProgStack.back() )
-					glUseProgram( mGlslProgStack.back()->getHandle() );
+					mGlslProgStack.back()->bindImpl();
 				else
 					glUseProgram( 0 );
 			}
@@ -376,7 +376,7 @@ void Context::bindGlslProg( const GlslProgRef &prog )
 		if( ! mGlslProgStack.empty() )
 			mGlslProgStack.back() = prog;
 		if( prog )
-			glUseProgram( prog->getHandle() );
+			prog->bindImpl();
 		else
 			glUseProgram( 0 );
 	}

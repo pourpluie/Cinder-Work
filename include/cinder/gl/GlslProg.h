@@ -178,7 +178,8 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 
   protected:
 	GlslProg( const Format &format );
-	
+
+	void			bindImpl();
 	void			loadShader( Buffer shaderSourceBuffer, GLint shaderType );
 	void			loadShader( const char *shaderSource, GLint shaderType );
 	void			attachShaders();
@@ -204,6 +205,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	mutable bool							mAttribSemanticsCached;
 	mutable AttribSemanticMap				mAttribSemantics;
 	
+	friend class Context;
 	friend std::ostream& operator<<( std::ostream &lhs, const GlslProgRef &rhs );
 	friend std::ostream& operator<<( std::ostream &lhs, const GlslProg &rhs );
 };

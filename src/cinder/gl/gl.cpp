@@ -880,7 +880,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 		curBufferOffset += sizeof(colors);
 	}
 	
-	elementVbo->bufferData( sizeof(elements), elements, GL_DYNAMIC_DRAW );
+	elementVbo->bufferSubData( 0, sizeof(elements), elements );
 
 	//BufferScope arrayScope( arrayVbo );
 	//BufferScope elementScope( elementVbo );
@@ -919,7 +919,7 @@ void draw( const TextureRef &texture, const Rectf &rect )
 		VaoScope vaoScp( vaoCache );
 		VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(data) );
 		arrayVbo->bind();
-		arrayVbo->bufferData( sizeof(data), data, GL_DYNAMIC_DRAW );
+		arrayVbo->bufferSubData( 0, sizeof(data), data );
 
 		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 		if( posLoc >= 0 ) {
@@ -963,7 +963,7 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	VaoScope vaoScope( vao );
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(data) );
 	arrayVbo->bind();
-	arrayVbo->bufferData( sizeof(data), data, GL_DYNAMIC_DRAW );
+	arrayVbo->bufferSubData( 0, sizeof(data), data );
 	
 	gl::GlslProgRef shader = ctx->getGlslProg();
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
@@ -1050,7 +1050,7 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 		t += tDelta;
 	}
 
-	arrayVbo->bufferData( dataSizeBytes, data.get(), GL_DYNAMIC_DRAW );
+	arrayVbo->bufferSubData( 0, dataSizeBytes, data.get() );
 	
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_FAN, 0, numSegments + 2 );	

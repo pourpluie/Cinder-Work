@@ -560,26 +560,16 @@ void Fbo::markAsDirty()
 	if( mMultisampleFramebufferId )
 		mNeedsResolve = true;
 
-// TODO: this should test against any texture attachments
-	if( mFormat.mColorTextureFormat.hasMipmapping() ) {
-		mNeedsMipmapUpdate = true;
+	for( const auto &textureAttachment : mAttachmentsTexture ) {
+		if( textureAttachment.second->hasMipmapping() )
+			mNeedsMipmapUpdate = true;
 	}
 }
 
-void Fbo::bindFramebuffer()
+void Fbo::bindFramebuffer( GLenum target )
 {
-	auto ctx = context();
-	if( mMultisampleFramebufferId ) {
-		ctx->bindFramebuffer( GL_FRAMEBUFFER, mMultisampleFramebufferId );
-		mNeedsResolve = true;
-	}
-	else
-		ctx->bindFramebuffer( GL_FRAMEBUFFER, mId );
-
-// TODO: this should test against any texture attachments
-	if( mFormat.mColorTextureFormat.hasMipmapping() ) {
-		mNeedsMipmapUpdate = true;
-	}
+	// This in turn will call bindFramebufferImpl; indirection is so that the Context can update its cache of the active Fbo
+	gl::context()->bindFramebuffer( shared_from_this(), target );
 }
 
 void Fbo::unbindFramebuffer()

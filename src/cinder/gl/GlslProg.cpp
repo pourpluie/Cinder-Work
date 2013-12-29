@@ -278,7 +278,14 @@ void GlslProg::link()
 
 void GlslProg::bind() const
 {
+	// this will in turn call bindImpl; this is so that the context can update its reference to the active shader
 	gl::context()->bindGlslProg( std::const_pointer_cast<GlslProg>( shared_from_this() ) );
+}
+
+// This is called by the Context whenever a GlslProg is bound. The indirection is so that the Context can update its reference to the active shader
+void GlslProg::bindImpl()
+{
+	glUseProgram( mHandle );
 }
 
 std::string GlslProg::getShaderLog( GLuint handle ) const
