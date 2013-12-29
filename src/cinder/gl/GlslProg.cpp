@@ -227,10 +227,10 @@ GlslProg::UniformSemanticMap& GlslProg::getDefaultUniformNameToSemanticMap()
 {
 	static bool initialized = false;
 	if( ! initialized ) {
-		sDefaultUniformNameToSemanticMap["uModelView"] = UNIFORM_MODELVIEW;
-		sDefaultUniformNameToSemanticMap["uModelViewProjection"] = UNIFORM_MODELVIEWPROJECTION;
-		sDefaultUniformNameToSemanticMap["uProjection"] = UNIFORM_PROJECTION;
-		sDefaultUniformNameToSemanticMap["uNormalMatrix"] = UNIFORM_NORMAL_MATRIX;
+		sDefaultUniformNameToSemanticMap["ciModelView"] = UNIFORM_MODELVIEW;
+		sDefaultUniformNameToSemanticMap["ciModelViewProjection"] = UNIFORM_MODELVIEWPROJECTION;
+		sDefaultUniformNameToSemanticMap["ciProjection"] = UNIFORM_PROJECTION;
+		sDefaultUniformNameToSemanticMap["ciNormalMatrix"] = UNIFORM_NORMAL_MATRIX;
 		initialized = true;
 	}
 	
@@ -241,15 +241,15 @@ GlslProg::AttribSemanticMap& GlslProg::getDefaultAttribNameToSemanticMap()
 {
 	static bool initialized = false;
 	if( ! initialized ) {
-		sDefaultAttribNameToSemanticMap["vPosition"] = geom::Attrib::POSITION;
-		sDefaultAttribNameToSemanticMap["vNormal"] = geom::Attrib::NORMAL;
-		sDefaultAttribNameToSemanticMap["vTexCoord0"] = geom::Attrib::TEX_COORD_0;
-		sDefaultAttribNameToSemanticMap["vTexCoord1"] = geom::Attrib::TEX_COORD_1;
-		sDefaultAttribNameToSemanticMap["vTexCoord2"] = geom::Attrib::TEX_COORD_2;
-		sDefaultAttribNameToSemanticMap["vTexCoord3"] = geom::Attrib::TEX_COORD_3;						
-		sDefaultAttribNameToSemanticMap["vColor"] = geom::Attrib::COLOR;
-		sDefaultAttribNameToSemanticMap["vBoneIndex"] = geom::Attrib::BONE_INDEX;
-		sDefaultAttribNameToSemanticMap["vBoneWeight"] = geom::Attrib::BONE_WEIGHT;
+		sDefaultAttribNameToSemanticMap["ciPosition"] = geom::Attrib::POSITION;
+		sDefaultAttribNameToSemanticMap["ciNormal"] = geom::Attrib::NORMAL;
+		sDefaultAttribNameToSemanticMap["ciTexCoord0"] = geom::Attrib::TEX_COORD_0;
+		sDefaultAttribNameToSemanticMap["ciTexCoord1"] = geom::Attrib::TEX_COORD_1;
+		sDefaultAttribNameToSemanticMap["ciTexCoord2"] = geom::Attrib::TEX_COORD_2;
+		sDefaultAttribNameToSemanticMap["ciTexCoord3"] = geom::Attrib::TEX_COORD_3;						
+		sDefaultAttribNameToSemanticMap["ciColor"] = geom::Attrib::COLOR;
+		sDefaultAttribNameToSemanticMap["ciBoneIndex"] = geom::Attrib::BONE_INDEX;
+		sDefaultAttribNameToSemanticMap["ciBoneWeight"] = geom::Attrib::BONE_WEIGHT;
 		initialized = true;
 	}
 	
