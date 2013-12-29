@@ -148,10 +148,12 @@ void Context::pushVao( const VaoRef &vao )
 {
 	VaoRef prevVao = getVao();
 	mVaoStack.push_back( vao );
-	if( prevVao )
-		prevVao->unbindImpl( this );
-	if( vao )
-		vao->bindImpl( this );
+	if( prevVao != vao ) {
+		if( prevVao )
+			prevVao->unbindImpl( this );
+		if( vao )
+			vao->bindImpl( this );
+	}
 }
 
 void Context::popVao()
@@ -709,7 +711,6 @@ void Context::enableVertexAttribArray( GLuint index )
 	if( vao )
 		vao->enableVertexAttribArrayImpl( index );
 }
-
 
 void Context::disableVertexAttribArray( GLuint index )
 {

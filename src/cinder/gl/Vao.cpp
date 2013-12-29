@@ -278,6 +278,7 @@ void VaoCache::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, G
 void VaoCache::reflectBindBufferImpl( GLenum target, GLuint buffer )
 {
 	mLayout.bindBuffer( target, buffer );
+	glBindBuffer( target, buffer );
 }
 
 } }
