@@ -222,7 +222,7 @@ void viewport( int x, int y, int width, int height )
 
 void viewport( const Vec2i &position, const Vec2i &dimension )
 {
-	gl::context()->setViewport( std::pair<Vec2i, Vec2i>( position, dimension ) );
+	gl::context()->viewport( std::pair<Vec2i, Vec2i>( position, dimension ) );
 }
 
 std::pair<Vec2i, Vec2i> getScissor()

@@ -60,7 +60,7 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	
 	GLint params[4];
 	glGetIntegerv( GL_VIEWPORT, params );
-	mViewport = std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) );
+	mViewportStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
     
 	glGetIntegerv( GL_SCISSOR_BOX, params );
 	mScissorStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
@@ -195,11 +195,36 @@ VaoRef Context::getVao()
 
 //////////////////////////////////////////////////////////////////
 // Viewport
-	
-void Context::setViewport( const std::pair<Vec2i, Vec2i> &viewport )
+void Context::viewport( const std::pair<Vec2i, Vec2i> &viewport )
 {
-	mViewport = viewport;
-	glViewport( mViewport.first.x, mViewport.first.y, mViewport.second.x, mViewport.second.y );
+	if( setStackState( mViewportStack, viewport ) )
+		glViewport( viewport.first.x, viewport.first.y, viewport.second.x, viewport.second.y );
+}
+
+void Context::pushViewport( const std::pair<Vec2i, Vec2i> &viewport )
+{
+	if( pushStackState( mViewportStack, viewport ) )
+		glViewport( viewport.first.x, viewport.first.y, viewport.second.x, viewport.second.y );
+}
+
+//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
+void Context::popViewport()
+{
+	if( mViewportStack.empty() || popStackState( mViewportStack ) ) {
+		auto viewport = getViewport();
+		glViewport( viewport.first.x, viewport.first.y, viewport.second.x, viewport.second.y );
+	}
+}
+
+std::pair<Vec2i, Vec2i> Context::getViewport()
+{
+	if( mViewportStack.empty() ) {
+		GLint params[4];
+		glGetIntegerv( GL_VIEWPORT, params );
+		mViewportStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
+	}
+
+	return mViewportStack.back();
 }
     
 //////////////////////////////////////////////////////////////////
@@ -1018,10 +1043,10 @@ VaoRef Context::getDefaultVao()
 VboRef Context::getDefaultArrayVbo( size_t requiredSize )
 {
 	if( ! mDefaultArrayVbo ) {
-		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize );
+		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize, NULL, GL_DYNAMIC_DRAW );
 	}
 	else if( requiredSize > mDefaultArrayVbo->getSize() ) {
-		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize );
+		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize, NULL, GL_DYNAMIC_DRAW );
 	}
 	
 	return mDefaultArrayVbo;

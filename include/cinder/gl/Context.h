@@ -66,11 +66,15 @@ class Context {
 	void		popVao();
 	//! Returns the currently bound VAO
 	VaoRef		getVao();
-	
+
+	//! Analogous to glViewport(). Sets the viewport based on a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively
+	void					viewport( const std::pair<Vec2i, Vec2i> &viewport );
+	//! Pushes the viewport based on a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively
+	void					pushViewport( const std::pair<Vec2i, Vec2i> &viewport );
+	//! Pops the viewport
+	void					popViewport();
 	//! Returns a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively of the viewport
-	const std::pair<Vec2i, Vec2i>	getViewport() const { return mViewport; }
-	//! Sets the viewport based on a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively
-	void							setViewport( const std::pair<Vec2i, Vec2i> &viewport );
+	std::pair<Vec2i, Vec2i>	getViewport();
 
 	//! Sets the scissor box based on a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively	
 	void					setScissor( const std::pair<Vec2i, Vec2i> &scissor );
@@ -230,7 +234,7 @@ class Context {
   
 	std::shared_ptr<PlatformData>	mPlatformData;
 	
-	std::pair<Vec2i, Vec2i>		mViewport;
+	std::vector<std::pair<Vec2i,Vec2i>>		mViewportStack;
 	std::vector<std::pair<Vec2i,Vec2i>>		mScissorStack;
 
 	VaoRef						mImmVao; // Immediate-mode VAO
@@ -408,6 +412,29 @@ struct ScissorScope : public boost::noncopyable
 	{
 		mCtx->popBoolState( GL_SCISSOR_TEST );
 		mCtx->popScissor();
+	}
+	
+  private:
+	Context					*mCtx;
+};
+
+struct ViewportScope : public boost::noncopyable
+{
+	ViewportScope( const Vec2i &lowerLeftPostion, const Vec2i &dimension )
+		: mCtx( gl::context() )
+	{
+		mCtx->pushViewport( std::pair<Vec2i, Vec2i>( lowerLeftPostion, dimension ) ); 
+	}
+
+	ViewportScope( int lowerLeftX, int lowerLeftY, int width, int height )
+		: mCtx( gl::context() )
+	{
+		mCtx->pushViewport( std::pair<Vec2i, Vec2i>( Vec2i( lowerLeftX, lowerLeftY ), Vec2i( width, height ) ) );		
+	}
+	
+	~ViewportScope()
+	{
+		mCtx->popViewport();
 	}
 	
   private:
