@@ -40,8 +40,6 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	mColor( ColorAf::white() )
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	,mCachedFramebuffer( -1 )
-#else
-	,mCachedReadFramebuffer( -1 ), mCachedDrawFramebuffer( -1 )
 #endif
 #if ! defined( CINDER_GLES )
 	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL )
@@ -53,6 +51,8 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	mVaoStack.push_back( mDefaultVao );
 	mDefaultVao->setContext( this );
 	mDefaultVao->bindImpl( NULL );
+	mReadFramebufferStack.push_back( 0 );
+	mDrawFramebufferStack.push_back( 0 );	
 #endif
 	mActiveTextureStack.push_back( 0 );
 
@@ -504,22 +504,18 @@ void Context::bindFramebuffer( GLenum target, GLuint framebuffer )
 	}
 #else
 	if( target == GL_FRAMEBUFFER ) {
-		if( framebuffer != mCachedReadFramebuffer || framebuffer != mCachedDrawFramebuffer ) {
-			mCachedReadFramebuffer = mCachedDrawFramebuffer = framebuffer;
+		if( setStackState<GLint>( mReadFramebufferStack, framebuffer ) )
 			glBindFramebuffer( target, framebuffer );
-		}
+		if( setStackState<GLint>( mDrawFramebufferStack, framebuffer ) )
+			glBindFramebuffer( target, framebuffer );		
 	}
 	else if( target == GL_READ_FRAMEBUFFER ) {
-		if( framebuffer != mCachedReadFramebuffer ) {
-			mCachedReadFramebuffer = framebuffer;
+		if( setStackState<GLint>( mReadFramebufferStack, framebuffer ) )
 			glBindFramebuffer( target, framebuffer );
-		}
 	}
 	else if( target == GL_DRAW_FRAMEBUFFER ) {
-		if( framebuffer != mCachedDrawFramebuffer ) {
-			mCachedDrawFramebuffer = framebuffer;
-			glBindFramebuffer( target, framebuffer );
-		}
+		if( setStackState<GLint>( mDrawFramebufferStack, framebuffer ) )
+			glBindFramebuffer( target, framebuffer );		
 	}
 	else {
 		//throw gl::Exception( "Illegal target for Context::bindFramebuffer" );	
@@ -527,9 +523,10 @@ void Context::bindFramebuffer( GLenum target, GLuint framebuffer )
 #endif
 }
 
-void Context::bindFramebuffer( const FboRef &fbo )
+void Context::bindFramebuffer( const FboRef &fbo, GLenum target )
 {
-	bindFramebuffer( GL_FRAMEBUFFER, fbo->getId() );
+	bindFramebuffer( target, fbo->getId() );
+	fbo->markAsDirty();
 }
 
 void Context::unbindFramebuffer()
@@ -537,7 +534,47 @@ void Context::unbindFramebuffer()
 	bindFramebuffer( GL_FRAMEBUFFER, 0 );
 }
 
-GLuint Context::getFramebufferBinding( GLenum target )
+void Context::pushFramebuffer( const FboRef &fbo, GLenum target )
+{
+	pushFramebuffer( target, fbo->getId() );
+	fbo->markAsDirty();	
+}
+
+void Context::pushFramebuffer( GLenum target, GLuint framebuffer )
+{
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
+fix
+#else
+	if( target == GL_FRAMEBUFFER || target == GL_READ_FRAMEBUFFER ) {
+		if( pushStackState<GLint>( mReadFramebufferStack, framebuffer ) )
+			glBindFramebuffer( target, framebuffer );
+	}
+	if( target == GL_FRAMEBUFFER || target == GL_DRAW_FRAMEBUFFER ) {
+		if( pushStackState<GLint>( mDrawFramebufferStack, framebuffer ) )
+			glBindFramebuffer( target, framebuffer );	
+	}
+#endif
+}
+
+void Context::popFramebuffer( GLenum target )
+{
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
+fix
+#else
+	if( target == GL_FRAMEBUFFER || target == GL_READ_FRAMEBUFFER ) {
+		if( popStackState<GLint>( mReadFramebufferStack ) )
+			if( ! mReadFramebufferStack.empty() )
+				glBindFramebuffer( target, mReadFramebufferStack.back() );
+	}
+	if( target == GL_FRAMEBUFFER || target == GL_DRAW_FRAMEBUFFER ) {
+		if( popStackState<GLint>( mDrawFramebufferStack ) )
+			if( ! mDrawFramebufferStack.empty() )
+				glBindFramebuffer( target, mDrawFramebufferStack.back() );
+	}
+#endif
+}
+
+GLuint Context::getFramebuffer( GLenum target )
 {
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	if( target == GL_FRAMEBUFFER ) {
@@ -551,14 +588,20 @@ GLuint Context::getFramebufferBinding( GLenum target )
 	}
 #else
 	if( target == GL_READ_FRAMEBUFFER ) {
-		if( mCachedReadFramebuffer == -1 )
-			glGetIntegerv( GL_READ_FRAMEBUFFER_BINDING, &mCachedReadFramebuffer );
-		return (GLuint)mCachedReadFramebuffer;
+		if( mReadFramebufferStack.empty() ) {
+			GLint queriedInt;
+			glGetIntegerv( GL_READ_FRAMEBUFFER_BINDING, &queriedInt );
+			mReadFramebufferStack.push_back( queriedInt );
+		}
+		return (GLuint)mReadFramebufferStack.back();
 	}
 	else if( target == GL_DRAW_FRAMEBUFFER || target == GL_FRAMEBUFFER ) {
-		if( mCachedDrawFramebuffer == -1 )
-			glGetIntegerv( GL_DRAW_FRAMEBUFFER_BINDING, &mCachedDrawFramebuffer );
-		return (GLuint)mCachedDrawFramebuffer;
+		if( mDrawFramebufferStack.empty() ) {
+			GLint queriedInt;
+			glGetIntegerv( GL_DRAW_FRAMEBUFFER_BINDING, &queriedInt );
+			mDrawFramebufferStack.push_back( queriedInt );
+		}
+		return (GLuint)mDrawFramebufferStack.back();
 	}
 	else {
 		//throw gl::Exception( "Illegal target for getFramebufferBinding" );
@@ -1024,41 +1067,16 @@ BlendScope::~BlendScope()
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // FramebufferScope
-FramebufferScope::FramebufferScope()
-	: mCtx( gl::context() ), mTarget( GL_FRAMEBUFFER )
-{
-#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
-	mPrevFramebuffer = mCtx->getFramebufferBinding( GL_FRAMEBUFFER );
-#else
-	mPrevReadFramebuffer = mCtx->getFramebufferBinding( GL_READ_FRAMEBUFFER );
-	mPrevDrawFramebuffer = mCtx->getFramebufferBinding( GL_DRAW_FRAMEBUFFER );
-#endif
-}
-
 FramebufferScope::FramebufferScope( const FboRef &fbo, GLenum target )
 	: mCtx( gl::context() ), mTarget( target )
 {
-	saveState();
-	fbo->bindFramebuffer();
+	mCtx->pushFramebuffer( fbo, target );
 }
 
-FramebufferScope::FramebufferScope( GLenum target, GLuint framebuffer )
+FramebufferScope::FramebufferScope( GLenum target, GLuint framebufferId )
 	: mCtx( gl::context() ), mTarget( target )
 {
-	saveState();
-	mCtx->bindFramebuffer( target, framebuffer );
-}
-
-void FramebufferScope::saveState()
-{
-#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
-	mPrevFramebuffer = mCtx->getFramebufferBinding( GL_FRAMEBUFFER );
-#else
-	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
-		mPrevReadFramebuffer = mCtx->getFramebufferBinding( GL_READ_FRAMEBUFFER );
-	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_DRAW_FRAMEBUFFER )
-		mPrevDrawFramebuffer = mCtx->getFramebufferBinding( GL_DRAW_FRAMEBUFFER );
-#endif
+	mCtx->pushFramebuffer( target, framebufferId );
 }
 
 FramebufferScope::~FramebufferScope()
@@ -1067,9 +1085,9 @@ FramebufferScope::~FramebufferScope()
 	mCtx->bindFramebuffer( GL_FRAMEBUFFER, mPrevFramebuffer );
 #else
 	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
-		mCtx->bindFramebuffer( GL_READ_FRAMEBUFFER, mPrevReadFramebuffer );
+		mCtx->popFramebuffer( GL_READ_FRAMEBUFFER );
 	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_DRAW_FRAMEBUFFER )
-		mCtx->bindFramebuffer( GL_DRAW_FRAMEBUFFER, mPrevDrawFramebuffer );
+		mCtx->popFramebuffer( GL_DRAW_FRAMEBUFFER );
 #endif
 }
 

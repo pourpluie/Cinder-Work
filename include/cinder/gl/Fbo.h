@@ -127,6 +127,9 @@ class Fbo {
 	//! Returns the resolve FBO, which is the same value as getId() without multisampling
 	GLuint		getResolveId() const { return mId; }
 
+	//! Marks multisampling framebuffer and mipmaps as needing updates. Not generally necessary to call directly.
+	void		markAsDirty();
+
 #if ! defined( CINDER_GLES )
 	//! Copies to FBO \a dst from \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
 	void		blitTo( Fbo dst, const Area &srcArea, const Area &dstArea, GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT ) const;

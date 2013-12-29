@@ -81,6 +81,7 @@ class Context {
 	//! Returns a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively of the scissor box
 	std::pair<Vec2i, Vec2i>	getScissor();
 
+	//! Analogous to glBindBuffer()
 	void		bindBuffer( GLenum target, GLuint id );
 	void		pushBufferBinding( GLenum target, GLuint id );
 	void		popBufferBinding( GLenum target );
@@ -94,6 +95,7 @@ class Context {
 	void		bindGlslProg( const GlslProgRef &prog );
 	GlslProgRef	getGlslProg();
 
+	//! Analogous to glBindTexture()
 	void		bindTexture( GLenum target, GLuint textureId );
 	void		pushTextureBinding( GLenum target, GLuint texture );
 	void		popTextureBinding( GLenum target );	
@@ -110,11 +112,17 @@ class Context {
 	//! Returns the active texture unit with values relative to \c 0, \em not GL_TEXTURE0
 	uint8_t		getActiveTexture();
 
-	void		bindFramebuffer( const FboRef &fbo );
-	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
+	//! Analogous to glBindFramebuffer()
+	void		bindFramebuffer( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
+	//! Analogous to glBindFramebuffer(). Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
 	void		bindFramebuffer( GLenum target, GLuint framebuffer );
+	void		pushFramebuffer( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
+	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
+	void		pushFramebuffer( GLenum target, GLuint framebuffer = GL_FRAMEBUFFER );
+	void		popFramebuffer( GLuint framebuffer = GL_FRAMEBUFFER );
 	void		unbindFramebuffer();
-	GLuint		getFramebufferBinding( GLenum target );
+	//! Returns the ID of the framebuffer currently bound to \a target
+	GLuint		getFramebuffer( GLenum target = GL_FRAMEBUFFER );
 
 	void		setBoolState( GLenum cap, GLboolean value );
 	void		setBoolState( GLenum cap, GLboolean value, const std::function<void(GLboolean)> &setter );
@@ -205,7 +213,7 @@ class Context {
 #if defined( CINDER_GLES ) && (! defined( CINDER_COCOA_TOUCH ))
 	GLint						mCachedFramebuffer;
 #else
-	GLint						mCachedReadFramebuffer, mCachedDrawFramebuffer;
+	std::vector<GLint>			mReadFramebufferStack, mDrawFramebufferStack;
 #endif
 	
 	std::map<GLenum,std::vector<GLboolean>>	mBoolStateStack;
@@ -326,22 +334,14 @@ struct GlslProgScope : public boost::noncopyable
 
 struct FramebufferScope : public boost::noncopyable
 {
-	FramebufferScope(); // preserves but doesn't set
 	FramebufferScope( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
 	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
-	FramebufferScope( GLenum target, GLuint framebuffer );
+	FramebufferScope( GLenum target, GLuint framebufferId );
 	~FramebufferScope();
 	
   private:
-	void		saveState();
-
 	Context		*mCtx;
 	GLenum		mTarget;
-#if defined( CINDER_GLES ) && ( ! defined( CINDER_COCOA_TOUCH ) )
-	GLuint		mPrevFramebuffer;
-#else
-	GLuint		mPrevReadFramebuffer, mPrevDrawFramebuffer;
-#endif
 };
 
 struct ActiveTextureScope : public boost::noncopyable
