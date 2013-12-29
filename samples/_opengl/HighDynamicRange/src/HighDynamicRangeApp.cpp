@@ -64,8 +64,8 @@ void HighDynamicRangeApp::draw()
 {
 	gl::clear( Color( 0, 0, 0 ) );
 
-	gl::ShaderScope shader( mShader );
-	gl::TextureBindScope texBind( mHdrTexture );
+	gl::GlslProgScope shaderScp( mShader );
+	gl::TextureBindScope texBindScp( mHdrTexture );
 	mShader->uniform( "uExposure", mExposure );
 	gl::drawSolidRect( mHdrTexture->getBounds() );
 }
