@@ -427,21 +427,12 @@
 		00A06F881760EFAD00D8BE17 /* Fbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F721760EFAD00D8BE17 /* Fbo.cpp */; };
 		00A06F891760EFAD00D8BE17 /* Fbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F721760EFAD00D8BE17 /* Fbo.cpp */; };
 		00A06F8A1760EFAD00D8BE17 /* Fbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F721760EFAD00D8BE17 /* Fbo.cpp */; };
-		00A06F8B1760EFAD00D8BE17 /* Fog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F731760EFAD00D8BE17 /* Fog.cpp */; };
-		00A06F8C1760EFAD00D8BE17 /* Fog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F731760EFAD00D8BE17 /* Fog.cpp */; };
-		00A06F8D1760EFAD00D8BE17 /* Fog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F731760EFAD00D8BE17 /* Fog.cpp */; };
 		00A06F8E1760EFAD00D8BE17 /* gl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F741760EFAD00D8BE17 /* gl.cpp */; };
 		00A06F8F1760EFAD00D8BE17 /* gl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F741760EFAD00D8BE17 /* gl.cpp */; };
 		00A06F901760EFAD00D8BE17 /* gl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F741760EFAD00D8BE17 /* gl.cpp */; };
 		00A06F941760EFAD00D8BE17 /* GlslProg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F761760EFAD00D8BE17 /* GlslProg.cpp */; };
 		00A06F951760EFAD00D8BE17 /* GlslProg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F761760EFAD00D8BE17 /* GlslProg.cpp */; };
 		00A06F961760EFAD00D8BE17 /* GlslProg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F761760EFAD00D8BE17 /* GlslProg.cpp */; };
-		00A06F971760EFAD00D8BE17 /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F771760EFAD00D8BE17 /* Light.cpp */; };
-		00A06F981760EFAD00D8BE17 /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F771760EFAD00D8BE17 /* Light.cpp */; };
-		00A06F991760EFAD00D8BE17 /* Light.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F771760EFAD00D8BE17 /* Light.cpp */; };
-		00A06F9A1760EFAD00D8BE17 /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F781760EFAD00D8BE17 /* Material.cpp */; };
-		00A06F9B1760EFAD00D8BE17 /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F781760EFAD00D8BE17 /* Material.cpp */; };
-		00A06F9C1760EFAD00D8BE17 /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F781760EFAD00D8BE17 /* Material.cpp */; };
 		00A06F9D1760EFAD00D8BE17 /* Pbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F791760EFAD00D8BE17 /* Pbo.cpp */; };
 		00A06F9E1760EFAD00D8BE17 /* Pbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F791760EFAD00D8BE17 /* Pbo.cpp */; };
 		00A06F9F1760EFAD00D8BE17 /* Pbo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A06F791760EFAD00D8BE17 /* Pbo.cpp */; };
@@ -472,21 +463,12 @@
 		00A06FC81760EFC500D8BE17 /* Fbo.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB31760EFC500D8BE17 /* Fbo.h */; };
 		00A06FC91760EFC500D8BE17 /* Fbo.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB31760EFC500D8BE17 /* Fbo.h */; };
 		00A06FCA1760EFC500D8BE17 /* Fbo.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB31760EFC500D8BE17 /* Fbo.h */; };
-		00A06FCB1760EFC500D8BE17 /* Fog.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB41760EFC500D8BE17 /* Fog.h */; };
-		00A06FCC1760EFC500D8BE17 /* Fog.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB41760EFC500D8BE17 /* Fog.h */; };
-		00A06FCD1760EFC500D8BE17 /* Fog.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB41760EFC500D8BE17 /* Fog.h */; };
 		00A06FCE1760EFC500D8BE17 /* gl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB51760EFC500D8BE17 /* gl.h */; };
 		00A06FCF1760EFC500D8BE17 /* gl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB51760EFC500D8BE17 /* gl.h */; };
 		00A06FD01760EFC500D8BE17 /* gl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB51760EFC500D8BE17 /* gl.h */; };
 		00A06FD11760EFC500D8BE17 /* GlslProg.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB61760EFC500D8BE17 /* GlslProg.h */; };
 		00A06FD21760EFC500D8BE17 /* GlslProg.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB61760EFC500D8BE17 /* GlslProg.h */; };
 		00A06FD31760EFC500D8BE17 /* GlslProg.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB61760EFC500D8BE17 /* GlslProg.h */; };
-		00A06FD41760EFC500D8BE17 /* Light.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB71760EFC500D8BE17 /* Light.h */; };
-		00A06FD51760EFC500D8BE17 /* Light.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB71760EFC500D8BE17 /* Light.h */; };
-		00A06FD61760EFC500D8BE17 /* Light.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB71760EFC500D8BE17 /* Light.h */; };
-		00A06FD71760EFC500D8BE17 /* Material.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB81760EFC500D8BE17 /* Material.h */; };
-		00A06FD81760EFC500D8BE17 /* Material.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB81760EFC500D8BE17 /* Material.h */; };
-		00A06FD91760EFC500D8BE17 /* Material.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB81760EFC500D8BE17 /* Material.h */; };
 		00A06FDA1760EFC500D8BE17 /* Pbo.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB91760EFC500D8BE17 /* Pbo.h */; };
 		00A06FDB1760EFC500D8BE17 /* Pbo.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB91760EFC500D8BE17 /* Pbo.h */; };
 		00A06FDC1760EFC500D8BE17 /* Pbo.h in Headers */ = {isa = PBXBuildFile; fileRef = 00A06FB91760EFC500D8BE17 /* Pbo.h */; };
@@ -1023,11 +1005,8 @@
 		00A06F701760EFAD00D8BE17 /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Context.cpp; path = gl/Context.cpp; sourceTree = "<group>"; };
 		00A06F711760EFAD00D8BE17 /* Environment.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = Environment.cpp; path = gl/Environment.cpp; sourceTree = "<group>"; };
 		00A06F721760EFAD00D8BE17 /* Fbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fbo.cpp; path = gl/Fbo.cpp; sourceTree = "<group>"; };
-		00A06F731760EFAD00D8BE17 /* Fog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fog.cpp; path = gl/Fog.cpp; sourceTree = "<group>"; };
 		00A06F741760EFAD00D8BE17 /* gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gl.cpp; path = gl/gl.cpp; sourceTree = "<group>"; };
 		00A06F761760EFAD00D8BE17 /* GlslProg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GlslProg.cpp; path = gl/GlslProg.cpp; sourceTree = "<group>"; };
-		00A06F771760EFAD00D8BE17 /* Light.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Light.cpp; path = gl/Light.cpp; sourceTree = "<group>"; };
-		00A06F781760EFAD00D8BE17 /* Material.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Material.cpp; path = gl/Material.cpp; sourceTree = "<group>"; };
 		00A06F791760EFAD00D8BE17 /* Pbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pbo.cpp; path = gl/Pbo.cpp; sourceTree = "<group>"; };
 		00A06F7A1760EFAD00D8BE17 /* Shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shader.cpp; path = gl/Shader.cpp; sourceTree = "<group>"; };
 		00A06F7B1760EFAD00D8BE17 /* Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Texture.cpp; path = gl/Texture.cpp; sourceTree = "<group>"; };
@@ -1038,11 +1017,8 @@
 		00A06FB11760EFC500D8BE17 /* Context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Context.h; path = gl/Context.h; sourceTree = "<group>"; };
 		00A06FB21760EFC500D8BE17 /* Environment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Environment.h; path = gl/Environment.h; sourceTree = "<group>"; };
 		00A06FB31760EFC500D8BE17 /* Fbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fbo.h; path = gl/Fbo.h; sourceTree = "<group>"; };
-		00A06FB41760EFC500D8BE17 /* Fog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fog.h; path = gl/Fog.h; sourceTree = "<group>"; };
 		00A06FB51760EFC500D8BE17 /* gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl.h; path = gl/gl.h; sourceTree = "<group>"; };
 		00A06FB61760EFC500D8BE17 /* GlslProg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlslProg.h; path = gl/GlslProg.h; sourceTree = "<group>"; };
-		00A06FB71760EFC500D8BE17 /* Light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Light.h; path = gl/Light.h; sourceTree = "<group>"; };
-		00A06FB81760EFC500D8BE17 /* Material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Material.h; path = gl/Material.h; sourceTree = "<group>"; };
 		00A06FB91760EFC500D8BE17 /* Pbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Pbo.h; path = gl/Pbo.h; sourceTree = "<group>"; };
 		00A06FBA1760EFC500D8BE17 /* Shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Shader.h; path = gl/Shader.h; sourceTree = "<group>"; };
 		00A06FBB1760EFC500D8BE17 /* Texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Texture.h; path = gl/Texture.h; sourceTree = "<group>"; };
@@ -1676,11 +1652,8 @@
 				00A06FB11760EFC500D8BE17 /* Context.h */,
 				00A06FB21760EFC500D8BE17 /* Environment.h */,
 				00A06FB31760EFC500D8BE17 /* Fbo.h */,
-				00A06FB41760EFC500D8BE17 /* Fog.h */,
 				00A06FB51760EFC500D8BE17 /* gl.h */,
 				00A06FB61760EFC500D8BE17 /* GlslProg.h */,
-				00A06FB71760EFC500D8BE17 /* Light.h */,
-				00A06FB81760EFC500D8BE17 /* Material.h */,
 				00A06FB91760EFC500D8BE17 /* Pbo.h */,
 				00A06FBA1760EFC500D8BE17 /* Shader.h */,
 				00A06FBB1760EFC500D8BE17 /* Texture.h */,
@@ -1701,11 +1674,8 @@
 				0087344517B46F0C00BC2063 /* EnvironmentEs2.cpp */,
 				0087344817B46F9500BC2063 /* EnvironmentLegacy.cpp */,
 				00A06F721760EFAD00D8BE17 /* Fbo.cpp */,
-				00A06F731760EFAD00D8BE17 /* Fog.cpp */,
 				00A06F741760EFAD00D8BE17 /* gl.cpp */,
 				00A06F761760EFAD00D8BE17 /* GlslProg.cpp */,
-				00A06F771760EFAD00D8BE17 /* Light.cpp */,
-				00A06F781760EFAD00D8BE17 /* Material.cpp */,
 				00A06F791760EFAD00D8BE17 /* Pbo.cpp */,
 				00A06F7A1760EFAD00D8BE17 /* Shader.cpp */,
 				00A06F7B1760EFAD00D8BE17 /* Texture.cpp */,
@@ -1971,11 +1941,8 @@
 				00A06FC31760EFC500D8BE17 /* Context.h in Headers */,
 				00A06FC61760EFC500D8BE17 /* Environment.h in Headers */,
 				00A06FC91760EFC500D8BE17 /* Fbo.h in Headers */,
-				00A06FCC1760EFC500D8BE17 /* Fog.h in Headers */,
 				00A06FCF1760EFC500D8BE17 /* gl.h in Headers */,
 				00A06FD21760EFC500D8BE17 /* GlslProg.h in Headers */,
-				00A06FD51760EFC500D8BE17 /* Light.h in Headers */,
-				00A06FD81760EFC500D8BE17 /* Material.h in Headers */,
 				00A06FDB1760EFC500D8BE17 /* Pbo.h in Headers */,
 				00A06FDE1760EFC500D8BE17 /* Shader.h in Headers */,
 				00A06FE11760EFC500D8BE17 /* Texture.h in Headers */,
@@ -2113,11 +2080,8 @@
 				00A06FC41760EFC500D8BE17 /* Context.h in Headers */,
 				00A06FC71760EFC500D8BE17 /* Environment.h in Headers */,
 				00A06FCA1760EFC500D8BE17 /* Fbo.h in Headers */,
-				00A06FCD1760EFC500D8BE17 /* Fog.h in Headers */,
 				00A06FD01760EFC500D8BE17 /* gl.h in Headers */,
 				00A06FD31760EFC500D8BE17 /* GlslProg.h in Headers */,
-				00A06FD61760EFC500D8BE17 /* Light.h in Headers */,
-				00A06FD91760EFC500D8BE17 /* Material.h in Headers */,
 				00A06FDC1760EFC500D8BE17 /* Pbo.h in Headers */,
 				00A06FDF1760EFC500D8BE17 /* Shader.h in Headers */,
 				00A06FE21760EFC500D8BE17 /* Texture.h in Headers */,
@@ -2280,11 +2244,8 @@
 				00A06FC21760EFC500D8BE17 /* Context.h in Headers */,
 				00A06FC51760EFC500D8BE17 /* Environment.h in Headers */,
 				00A06FC81760EFC500D8BE17 /* Fbo.h in Headers */,
-				00A06FCB1760EFC500D8BE17 /* Fog.h in Headers */,
 				00A06FCE1760EFC500D8BE17 /* gl.h in Headers */,
 				00A06FD11760EFC500D8BE17 /* GlslProg.h in Headers */,
-				00A06FD41760EFC500D8BE17 /* Light.h in Headers */,
-				00A06FD71760EFC500D8BE17 /* Material.h in Headers */,
 				00A06FDA1760EFC500D8BE17 /* Pbo.h in Headers */,
 				00A06FDD1760EFC500D8BE17 /* Shader.h in Headers */,
 				00A06FE01760EFC500D8BE17 /* Texture.h in Headers */,
@@ -2485,11 +2446,8 @@
 				00A06F831760EFAD00D8BE17 /* Context.cpp in Sources */,
 				00A06F861760EFAD00D8BE17 /* Environment.cpp in Sources */,
 				00A06F891760EFAD00D8BE17 /* Fbo.cpp in Sources */,
-				00A06F8C1760EFAD00D8BE17 /* Fog.cpp in Sources */,
 				00A06F8F1760EFAD00D8BE17 /* gl.cpp in Sources */,
 				00A06F951760EFAD00D8BE17 /* GlslProg.cpp in Sources */,
-				00A06F981760EFAD00D8BE17 /* Light.cpp in Sources */,
-				00A06F9B1760EFAD00D8BE17 /* Material.cpp in Sources */,
 				00A06F9E1760EFAD00D8BE17 /* Pbo.cpp in Sources */,
 				00A06FA11760EFAD00D8BE17 /* Shader.cpp in Sources */,
 				00A06FA41760EFAD00D8BE17 /* Texture.cpp in Sources */,
@@ -2606,11 +2564,8 @@
 				00A06F841760EFAD00D8BE17 /* Context.cpp in Sources */,
 				00A06F871760EFAD00D8BE17 /* Environment.cpp in Sources */,
 				00A06F8A1760EFAD00D8BE17 /* Fbo.cpp in Sources */,
-				00A06F8D1760EFAD00D8BE17 /* Fog.cpp in Sources */,
 				00A06F901760EFAD00D8BE17 /* gl.cpp in Sources */,
 				00A06F961760EFAD00D8BE17 /* GlslProg.cpp in Sources */,
-				00A06F991760EFAD00D8BE17 /* Light.cpp in Sources */,
-				00A06F9C1760EFAD00D8BE17 /* Material.cpp in Sources */,
 				00A06F9F1760EFAD00D8BE17 /* Pbo.cpp in Sources */,
 				00A06FA21760EFAD00D8BE17 /* Shader.cpp in Sources */,
 				00A06FA51760EFAD00D8BE17 /* Texture.cpp in Sources */,
@@ -2742,11 +2697,8 @@
 				00A06F821760EFAD00D8BE17 /* Context.cpp in Sources */,
 				00A06F851760EFAD00D8BE17 /* Environment.cpp in Sources */,
 				00A06F881760EFAD00D8BE17 /* Fbo.cpp in Sources */,
-				00A06F8B1760EFAD00D8BE17 /* Fog.cpp in Sources */,
 				00A06F8E1760EFAD00D8BE17 /* gl.cpp in Sources */,
 				00A06F941760EFAD00D8BE17 /* GlslProg.cpp in Sources */,
-				00A06F971760EFAD00D8BE17 /* Light.cpp in Sources */,
-				00A06F9A1760EFAD00D8BE17 /* Material.cpp in Sources */,
 				00A06F9D1760EFAD00D8BE17 /* Pbo.cpp in Sources */,
 				00A06FA01760EFAD00D8BE17 /* Shader.cpp in Sources */,
 				00A06FA31760EFAD00D8BE17 /* Texture.cpp in Sources */,

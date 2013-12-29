@@ -5,9 +5,6 @@
 #include "cinder/Color.h"
 #include "cinder/Matrix44.h"
 #include "cinder/Vector.h"
-#include "cinder/gl/Fog.h"
-#include "cinder/gl/Light.h"
-#include "cinder/gl/Material.h"
 #include "cinder/gl/Shader.h"
 
 #include <boost/noncopyable.hpp>
