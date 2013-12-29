@@ -130,11 +130,8 @@ VboMesh::VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive,
 {
 }
 
-VaoRef VboMesh::buildVao( const GlslProgRef &shader )
+void VboMesh::buildVao( const GlslProgRef &shader )
 {
-	VaoRef result = Vao::create();
-	VaoScope vaoScope( result );
-	
 	auto ctx = gl::context();
 	
 	// iterate all the vertex array VBOs; map<geom::BufferLayout,VboRef>
@@ -154,8 +151,6 @@ VaoRef VboMesh::buildVao( const GlslProgRef &shader )
 	
 	if( mNumIndices > 0 )
 		mElements->bind();
-	
-	return result;
 }
 
 void VboMesh::drawImpl()

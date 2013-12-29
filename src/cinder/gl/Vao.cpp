@@ -108,25 +108,27 @@ void Vao::swap( const VaoCacheRef &vao )
 	swap( vao->getLayout() );
 }
 
-void Vao::swap( const Vao::Layout &layout )
+void Vao::swap( const Vao::Layout &newLayout )
 {
 	VaoScope vaoScope( shared_from_this() );
+
+	Vao::Layout originalLayout = mLayout;
 	
 	// gather all the array buffer bindings
 	set<GLuint> arrayBufferBindings;
-	for( const auto &attrib : layout.mVertexAttribs )
+	for( const auto &attrib : newLayout.mVertexAttribs )
 		arrayBufferBindings.insert( attrib.second.mArrayBufferBinding );
 
 	// iterate all the represented array buffer bindings, bind them, and call glVertexAttribPointer
 	for( auto &arrayBufferBinding : arrayBufferBindings ) {
 		mCtx->bindBuffer( GL_ARRAY_BUFFER, arrayBufferBinding );
 		// iterate all attributes to find the ones whose mArrayBufferBinding is 'arrayBufferBinding'
-		for( auto &attrib : layout.mVertexAttribs ) {
+		for( auto &attrib : newLayout.mVertexAttribs ) {
 			if( attrib.second.mArrayBufferBinding == arrayBufferBinding ) {
 				// does 'this' have an attribute for this location? 
-				if( mLayout.mVertexAttribs.find( attrib.first ) != mLayout.mVertexAttribs.end() ) {
+				if( originalLayout.mVertexAttribs.find( attrib.first ) != originalLayout.mVertexAttribs.end() ) {
 					// since we already have this attribute location, only enable/disable if layout's is different
-					if( mLayout.mVertexAttribs[attrib.first].mEnabled != attrib.second.mEnabled ) {
+					if( originalLayout.mVertexAttribs[attrib.first].mEnabled != attrib.second.mEnabled ) {
 						if( attrib.second.mEnabled )
 							enableVertexAttribArrayImpl( attrib.first );
 						else
@@ -137,24 +139,25 @@ void Vao::swap( const Vao::Layout &layout )
 					if( attrib.second.mEnabled )
 						enableVertexAttribArrayImpl( attrib.first );
 				}
-
+				// TODO: test for redundancy here (attrib is the same as what's already in originalLayout
 				vertexAttribPointerImpl( attrib.first, attrib.second.mSize, attrib.second.mType, attrib.second.mNormalized,
 							attrib.second.mStride, attrib.second.mPointer );
 			}
 		}
 	}
 
-	mCtx->bindBuffer( GL_ARRAY_BUFFER, mLayout.mArrayBufferBinding );
-	mCtx->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
-
-	// iterate all the vertex attribs in 'this' which are not in layout and disable them
-	for( auto &attrib : mLayout.mVertexAttribs ) {
-		if( attrib.second.mEnabled && ( layout.mVertexAttribs.find( attrib.first ) == layout.mVertexAttribs.end() ) )
+	// iterate all the vertex attribs in 'this' which are not enabled in layout and disable them
+	for( auto &attrib : originalLayout.mVertexAttribs ) {
+		auto existing = newLayout.mVertexAttribs.find( attrib.first );
+		if( attrib.second.mEnabled && ( ( existing == newLayout.mVertexAttribs.end() ) || (! existing->second.mEnabled) ) )
 			disableVertexAttribArrayImpl( attrib.first );
 	}
 
-	// finally, this->mLayout becomes 'layout'
-	mLayout = layout;
+	// finally, this->mLayout becomes 'newLayout'
+	mLayout = newLayout;
+
+	mCtx->bindBuffer( GL_ARRAY_BUFFER, mLayout.mArrayBufferBinding );
+	mCtx->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

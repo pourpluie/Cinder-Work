@@ -609,10 +609,15 @@ void draw( const VboMeshRef& mesh )
 	auto curShader = ctx->getGlslProg();
 	if( ! curShader )
 		return;
-
-	VaoScope vaoScope( mesh->buildVao( curShader ) );
+	
+	VaoCacheRef vaoCache = VaoCache::create();
+	ctx->pushVao( vaoCache );
+	mesh->buildVao( curShader );
+	ctx->bindVao( ctx->getDefaultVao() );
+	ctx->getDefaultVao()->swap( vaoCache );
 	ctx->setDefaultShaderVars();
 	mesh->drawImpl();
+	ctx->popVao();
 }
 
 void drawRange( const VboMeshRef& mesh, GLint start, GLsizei count )

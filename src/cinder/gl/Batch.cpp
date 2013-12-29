@@ -109,7 +109,9 @@ Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl )
 {
 	mVertexArrayVbos = vboMesh->getVertexArrayVbos();
 	mElements = vboMesh->getElementVbo();
-	mVao = vboMesh->buildVao( glsl );
+	mVao = Vao::create();
+	VaoScope vaoScp( mVao );
+	vboMesh->buildVao( glsl );
 	mPrimitive = vboMesh->getGlPrimitive();
 	mNumVertices = vboMesh->getNumVertices();
 	mNumIndices = vboMesh->getNumIndices();

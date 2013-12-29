@@ -25,8 +25,8 @@ class VboMesh {
 	static VboMeshRef	create( const geom::Source &source );
 	static VboMeshRef	create( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo = VboRef() );
 
-	//! Constructs a VAO that matches \a this to GlslProg \a shader
-	VaoRef		buildVao( const GlslProgRef &shader );
+	//! Constructs a VAO (in the currently bound VAO) that matches \a this to GlslProg \a shader
+	void		buildVao( const GlslProgRef &shader );
 	//! Issues a glDraw* call, but without binding a VAO or sending shader vars. Consider gl::draw( VboMeshRef ) instead
 	void		drawImpl();
 
