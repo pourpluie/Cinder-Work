@@ -501,11 +501,8 @@ void Fbo::resolveTextures() const
 #if defined( SUPPORTS_MULTISAMPLE ) && defined( CINDER_GLES )
 	// iOS-specific multisample resolution code
 	if( mMultisampleFramebufferId ) {
-		FramebufferScope fbScp;
-		auto ctx = context();
-		
-		ctx->bindFramebuffer( GL_DRAW_FRAMEBUFFER_APPLE, mId );
-		ctx->bindFramebuffer( GL_READ_FRAMEBUFFER_APPLE, mMultisampleFramebufferId );
+		FramebufferScope drawFbScp( GL_DRAW_FRAMEBUFFER_APPLE, mId );
+		FramebufferScope readFbScp( GL_READ_FRAMEBUFFER_APPLE, mMultisampleFramebufferId );
 		
 		glResolveMultisampleFramebufferAPPLE();
 	}

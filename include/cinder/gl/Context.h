@@ -211,7 +211,7 @@ class Context {
 	std::vector<GLint>					mBlendSrcAlphaStack, mBlendDstAlphaStack;
 
 #if defined( CINDER_GLES ) && (! defined( CINDER_COCOA_TOUCH ))
-	GLint						mCachedFramebuffer;
+	std::vector<GLint>			mFramebufferStack;
 #else
 	std::vector<GLint>			mReadFramebufferStack, mDrawFramebufferStack;
 #endif

@@ -553,7 +553,8 @@ void Context::pushFramebuffer( const FboRef &fbo, GLenum target )
 void Context::pushFramebuffer( GLenum target, GLuint framebuffer )
 {
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
-fix
+	if( pushStackState<GLint>( mFramebufferStack, framebuffer ) )
+		glBindFramebuffer( target, framebuffer );
 #else
 	if( target == GL_FRAMEBUFFER || target == GL_READ_FRAMEBUFFER ) {
 		if( pushStackState<GLint>( mReadFramebufferStack, framebuffer ) )
@@ -569,7 +570,9 @@ fix
 void Context::popFramebuffer( GLenum target )
 {
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
-fix
+	if( popStackState<GLint>( mFramebufferStack ) )
+		if( ! mFramebufferStack.empty() )
+			glBindFramebuffer( target, mFramebufferStack.back() );
 #else
 	if( target == GL_FRAMEBUFFER || target == GL_READ_FRAMEBUFFER ) {
 		if( popStackState<GLint>( mReadFramebufferStack ) )
@@ -587,15 +590,13 @@ fix
 GLuint Context::getFramebuffer( GLenum target )
 {
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
-	if( target == GL_FRAMEBUFFER ) {
-		if( mCachedFramebuffer == -1 )
-			glGetIntegerv( GL_FRAMEBUFFER_BINDING, &mCachedFramebuffer );
-		return (GLuint)mCachedFramebuffer;			
+	if( mFramebufferStack.empty() ) {
+		GLint queriedInt;
+		glGetIntegerv( GL_FRAMEBUFFER_BINDING, &queriedInt );
+		mFramebufferStack.push_back( queriedInt );
 	}
-	else {
-		//throw gl::Exception( "Illegal target for getFramebufferBinding" );
-		return 0; // 	
-	}
+	
+	return mFramebufferStack.back();
 #else
 	if( target == GL_READ_FRAMEBUFFER ) {
 		if( mReadFramebufferStack.empty() ) {
