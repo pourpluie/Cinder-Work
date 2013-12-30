@@ -3,6 +3,7 @@
 #include "cinder/gl/gl.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Batch.h"
+#include "cinder/gl/VboMesh.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -11,8 +12,6 @@ using namespace std;
 class Texture3dApp : public AppNative {
   public:
 	void setup();
-	void mouseDown( MouseEvent event );	
-	void update();
 	void draw();
 	
 	gl::Texture3dRef	mTex3d, mTex2dArray;
@@ -54,22 +53,14 @@ void Texture3dApp::setup()
 	mShader3d->uniform( "uTex0", 0 );
 	mShader2dArray = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader_2d_array.frag" ) );
 	mShader2dArray->uniform( "uTex0", 0 );
-	
+
+	// setup batches
 	mTex3dBatch = gl::Batch::create( geom::Rect().scale( Vec2f( 200, 200 ) ).position( Vec2f( 100, 100 ) ), mShader3d );
 	mTex2dArrayBatch = gl::Batch::create( geom::Rect().scale( Vec2f( 200, 200 ) ).position( Vec2f( 100, 300 ) ), mShader2dArray );
 }
 
-void Texture3dApp::mouseDown( MouseEvent event )
-{
-}
-
-void Texture3dApp::update()
-{
-}
-
 void Texture3dApp::draw()
 {
-	// clear out the window with black
 	gl::clear( Color( 0, 0, 0 ) ); 
 
 	mTex3d->bind();
