@@ -85,12 +85,13 @@ void copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, 
 
 class Source {
   public:
-	virtual void	loadInto( Target *target ) const = 0;
-
-	virtual Primitive	getPrimitive() const = 0;	
 	virtual size_t		getNumVertices() const = 0;
-	virtual size_t		getNumIndices() const { return 0; }
+	virtual size_t		getNumIndices() const = 0;
+	virtual Primitive	getPrimitive() const = 0;	
 	virtual uint8_t		getAttribDims( Attrib attr ) const = 0;	
+	
+	virtual void		loadInto( Target *target ) const = 0;
+	
 /*
 	//! Always copy indices; generate them when they don't exist. Copies getNumVertices() indices when indices don't exist.
 	void				forceCopyIndices( uint16_t *dest ) const;
@@ -147,6 +148,7 @@ class Rect : public Source {
 	Rect&		scale( float s ) { mScale = Vec2f( s, s ); return *this; }
   
 	virtual size_t		getNumVertices() const override { return 4; }
+	virtual size_t		getNumIndices() const override { return 0; }
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLE_STRIP; }
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
 	virtual void		loadInto( Target *target ) const override;
@@ -172,10 +174,10 @@ class Cube : public Source {
 	Cube&		normals( bool enable = true ) { mHasNormals = enable; return *this; }
   
 	virtual size_t		getNumVertices() const override { return 24; }
+	virtual size_t		getNumIndices() const override { return 36; }	
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }	
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual size_t		getNumIndices() const override { return 36; }
-	virtual void		loadInto( Target *target ) const override = 0;
+	virtual void		loadInto( Target *target ) const override;
 
   protected:	
 	bool		mHasColor;
@@ -199,11 +201,10 @@ class Teapot : public Source {
 	Teapot&		subdivision( int sub );
   
 	virtual size_t		getNumVertices() const override;
+	virtual size_t		getNumIndices() const override;
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
 	virtual void		loadInto( Target *target ) const override;
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-
-	virtual size_t		getNumIndices() const override;
 
   protected:
 	void			calculate() const;
@@ -246,11 +247,9 @@ class Circle : public Source {
   
 	void		loadInto( Target *target ) const;
 	virtual size_t		getNumVertices() const override;
-	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLE_FAN; }
-	
-	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-
 	virtual size_t		getNumIndices() const override { return 0; }
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLE_FAN; }
+	virtual uint8_t		getAttribDims( Attrib attr ) const override;
 
   private:
 	void	updateVertexCounts();
@@ -277,6 +276,7 @@ class SplineExtrusion : public Source {
 	SplineExtrusion&		normals() { mHasNormals = true; return *this; }
 	
 	virtual size_t		getNumVertices() const override;
+	virtual size_t		getNumIndices() const override;
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
 	
 	virtual bool		hasAttrib( Attrib attr ) const override;
@@ -284,7 +284,6 @@ class SplineExtrusion : public Source {
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
 	virtual void		copyAttrib( Attrib attr, uint8_t dims, size_t stride, float *dest ) const override;
 
-	virtual size_t		getNumIndices() const override;
 	virtual void		copyIndices( uint16_t *dest ) const override;
 	virtual void		copyIndices( uint32_t *dest ) const override;	
 

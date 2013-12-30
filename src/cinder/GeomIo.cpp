@@ -465,7 +465,11 @@ Rect::Rect()
 
 void Rect::loadInto( Target *target ) const
 {
-	target->copyAttrib( Attrib::POSITION, 2, 0, sPositions, 4 );
+	unique_ptr<Vec2f> positions( new Vec2f[4] );
+	for( size_t p = 0; p < 4; ++p )
+		positions.get()[p] = Vec2f( sPositions[p*2+0], sPositions[p*2+1] ) * mScale + mPos;
+
+	target->copyAttrib( Attrib::POSITION, 2, 0, positions.get()->ptr(), 4 );
 	if( mHasColor )
 		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 4 );
 	if( mHasTexCoord0 )
