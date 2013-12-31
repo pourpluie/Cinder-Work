@@ -61,7 +61,14 @@ void InstancedTeapotsApp::setup()
 	mesh->appendVbo( instanceDataLayout, mInstanceDataVbo );
 
 	// and finally, build our batch, mapping our CUSTOM_0 attribute to "vInstancePosition"
+#if ! defined( CINDER_MSW )
 	mBatch = gl::Batch::create( mesh, mGlsl, { { geom::Attrib::CUSTOM_0, "vInstancePosition" } } );
+#else
+	// unfortunately VC2012 doesn't support initializer lists yet
+	gl::Batch::AttributeMapping mapping;
+	mapping[geom::Attrib::CUSTOM_0] = "vInstancePosition";
+	mBatch = gl::Batch::create( mesh, mGlsl, mapping );
+#endif
 
 	gl::enableDepthWrite();
 	gl::enableDepthRead();
@@ -106,4 +113,9 @@ void InstancedTeapotsApp::draw()
 	mBatch->drawInstanced( NUM_INSTANCES_X * NUM_INSTANCES_Y );
 }
 
-CINDER_APP_NATIVE( InstancedTeapotsApp, RendererGl )
+#if defined( CINDER_MSW )
+auto options = RendererGl::Options().version( 3, 2 ); // instancing functions are technically only in GL 3.3
+#else
+auto options = RendererGl::Options(); // implemented as extensins in Mac OS 10.7+
+#endif
+CINDER_APP_NATIVE( InstancedTeapotsApp, RendererGl( options ) )
