@@ -68,7 +68,6 @@ class Batch {
   protected:
 	Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const AttributeMapping &attributeMapping );
 	Batch( const geom::Source &source, const gl::GlslProgRef &glsl );
-	Batch( const geom::SourceRef &source, const gl::GlslProgRef &glsl );
 
 	void	init( const geom::Source &source, const gl::GlslProgRef &glsl );
 	void	initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertLayoutVbos );

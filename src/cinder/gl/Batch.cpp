@@ -94,9 +94,14 @@ BatchRef Batch::create( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, 
 	return BatchRef( new Batch( vboMesh, glsl, attributeMapping ) );
 }
 
+BatchRef Batch::create( const geom::Source &source, const gl::GlslProgRef &glsl )
+{
+	return BatchRef( new Batch( source, glsl ) );
+}
+
 BatchRef Batch::create( const geom::SourceRef &sourceRef, const gl::GlslProgRef &glsl )
 {
-	return BatchRef( new Batch( sourceRef, glsl ) );
+	return BatchRef( new Batch( *sourceRef, glsl ) );
 }
 
 Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const AttributeMapping &attributeMapping )
@@ -119,11 +124,6 @@ Batch::Batch( const geom::Source &source, const gl::GlslProgRef &glsl )
 	init( source, mGlsl );
 }
 
-Batch::Batch( const geom::SourceRef &sourceRef, const gl::GlslProgRef &glsl )
-	: mGlsl( glsl )
-{
-	init( *sourceRef, mGlsl );
-}
 
 void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 {
