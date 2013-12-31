@@ -46,9 +46,12 @@ class VaoImplSoftware : public Vao {
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;
 
   protected:
-	
+	static size_t	sIdCounter;
+
 	friend class Context;
 };
+
+size_t VaoImplSoftware::sIdCounter = 0;
 
 // Called by Vao::create()
 VaoRef createVaoImplSoftware()
@@ -58,7 +61,7 @@ VaoRef createVaoImplSoftware()
 	
 VaoImplSoftware::VaoImplSoftware()
 {
-mId = 0;
+	mId = ++sIdCounter; // is this adequate? 4billion VAO allocations seems remote; the ID is not really necessary except for debugging
 }
 
 VaoImplSoftware::~VaoImplSoftware()
