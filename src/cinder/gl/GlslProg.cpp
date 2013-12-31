@@ -677,10 +677,6 @@ const GlslProg::AttribSemanticMap& GlslProg::getAttribSemantics() const
 			if( semantic != mAttribNameToSemanticMap.end() ) {
 				// found this semantic, add it mAttrSemantics
 				mAttribSemantics[semantic->first] = semantic->second;
-std::cout << semantic->first << "==" << (int)semantic->second;
-			}
-			else {
-std::cout << "No semantic for: " << semantic->first << std::endl;			
 			}
 		}
 	
@@ -736,14 +732,10 @@ std::ostream& operator<<( std::ostream &lhs, const GlslProg &rhs )
 	lhs << "ID: " << rhs.mHandle << std::endl;
 	lhs << " Uniforms: " << std::endl;
 	auto uniformTypes = rhs.getActiveUniformTypes();
-	for( auto &uni : rhs.mUniformLocs ) {
+	for( auto &uni : uniformTypes ) {
 		lhs << "  \"" << uni.first << "\":" << std::endl;
-		lhs << "    Loc: " << uni.second << std::endl;
-		auto typeIt = uniformTypes.find( uni.first );
-		if( typeIt != uniformTypes.end() )
-			lhs << "    Type: " << gl::typeToString( typeIt->second ) << std::endl;
-		else
-			lhs << "    Type: UNKNOWN" << std::endl;
+		lhs << "    Loc: " << rhs.getUniformLocation( uni.first ) << std::endl;
+		lhs << "    Type: " << gl::typeToString( uni.second ) << std::endl;
 		auto semIt = rhs.getUniformSemantics().find( uni.first );
 		if( semIt != rhs.getUniformSemantics().end() ) {
 			lhs << "    Semantic: <" << gl::uniformSemanticToString( semIt->second ) << ">" << std::endl;
@@ -752,14 +744,10 @@ std::ostream& operator<<( std::ostream &lhs, const GlslProg &rhs )
 
 	auto attribTypes = rhs.getActiveAttribTypes();
 	lhs << " Attributes: " << std::endl;
-	for( auto &attrib : rhs.mAttribLocs ) {
+	for( auto &attrib : attribTypes ) {
 		lhs << "  \"" << attrib.first << "\":" << std::endl;
-		lhs << "    Loc: " << attrib.second << std::endl;
-		auto typeIt = attribTypes.find( attrib.first );
-		if( typeIt != attribTypes.end() )
-			lhs << "    Type: " << gl::typeToString( typeIt->second ) << std::endl;
-		else
-			lhs << "    Type: UNKNOWN" << std::endl;
+		lhs << "    Loc: " << rhs.getAttribLocation( attrib.first ) << std::endl;
+		lhs << "    Type: " << gl::typeToString( attrib.second ) << std::endl;
 		auto semIt = rhs.getAttribSemantics().find( attrib.first );
 		if( semIt != rhs.getAttribSemantics().end() ) {
 			lhs << "    Semantic: <" << geom::attribToString( semIt->second ) << ">" << std::endl;
