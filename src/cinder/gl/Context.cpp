@@ -51,6 +51,12 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	mVaoStack.push_back( mDefaultVao );
 	mDefaultVao->setContext( this );
 	mDefaultVao->bindImpl( NULL );
+	
+	mBufferBindingStack[GL_ARRAY_BUFFER] = vector<int>();
+	mBufferBindingStack[GL_ARRAY_BUFFER].push_back( 0 );
+	mBufferBindingStack[GL_ELEMENT_ARRAY_BUFFER] = vector<int>();
+	mBufferBindingStack[GL_ELEMENT_ARRAY_BUFFER].push_back( 0 );
+	 
 	mReadFramebufferStack.push_back( 0 );
 	mDrawFramebufferStack.push_back( 0 );	
 #endif
@@ -276,6 +282,8 @@ void Context::bindBuffer( GLenum target, GLuint id )
 			VaoRef vao = getVao();
 			if( vao )
 				vao->reflectBindBufferImpl( target, id );
+			else
+				glBindBuffer( target, id );
 		}
 		else {
 			glBindBuffer( target, id );
@@ -294,8 +302,17 @@ void Context::pushBufferBinding( GLenum target, GLuint id )
 
 	mBufferBindingStack[target].push_back( id );
 	
-	if( existing != id )
-		glBindBuffer( target, id );
+	if( existing != id ) {
+		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
+			VaoRef vao = getVao();
+			if( vao )
+				vao->reflectBindBufferImpl( target, id );
+			else
+				glBindBuffer( target, id );
+		}
+		else
+			glBindBuffer( target, id );
+	}
 }
 
 void Context::popBufferBinding( GLenum target )
@@ -304,8 +321,17 @@ void Context::popBufferBinding( GLenum target )
 	auto cachedIt = mBufferBindingStack.find( target );
 	if( ( cachedIt != mBufferBindingStack.end() ) && ( ! cachedIt->second.empty() ) ) {
 		cachedIt->second.pop_back();
-		if( ( ! cachedIt->second.empty() ) && ( existing != cachedIt->second.back() ) )
-			glBindBuffer( target, cachedIt->second.back() );
+		if( ( ! cachedIt->second.empty() ) && ( existing != cachedIt->second.back() ) ) {
+			if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
+				VaoRef vao = getVao();
+				if( vao )
+					vao->reflectBindBufferImpl( target, cachedIt->second.back() );
+				else
+					glBindBuffer( target, cachedIt->second.back() );
+			}
+			else
+				glBindBuffer( target, cachedIt->second.back() );
+		}
 	}
 }
 
@@ -352,15 +378,15 @@ GLuint Context::getBufferBinding( GLenum target )
 		return (GLuint)cachedIt->second.back();
 }
 
-void Context::invalidateBufferBinding( GLenum target )
+void Context::reflectBufferBinding( GLenum target, GLuint id )
 {
 	// first time we've met this target; start an empty stack
 	if( mBufferBindingStack.find(target) == mBufferBindingStack.end() ) {
 		mBufferBindingStack[target] = vector<int>();
-		mBufferBindingStack[target].push_back( -1 );
+		mBufferBindingStack[target].push_back( id );
 	}
 	else if( ! mBufferBindingStack[target].empty() )
-		mBufferBindingStack[target].back() = -1;
+		mBufferBindingStack[target].back() = id;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -409,10 +435,10 @@ void Context::bindGlslProg( const GlslProgRef &prog )
 
 GlslProgRef Context::getGlslProg()
 {
-	if( ! mGlslProgStack.empty() )
-		return mGlslProgStack.back();
-	else
-		return GlslProgRef();
+	if( mGlslProgStack.empty() )
+		mGlslProgStack.push_back( GlslProgRef() );
+	
+	return mGlslProgStack.back();
 }
 
 //////////////////////////////////////////////////////////////////
@@ -998,28 +1024,28 @@ GlslProgRef	Context::getStockShader( const ShaderDef &shaderDef )
 
 void Context::setDefaultShaderVars()
 {
-	auto ctx = gl::context();
-	auto glslProg = ctx->getGlslProg();
+	const auto &ctx = gl::context();
+	const auto &glslProg = ctx->getGlslProg();
 	if( glslProg ) {
-		auto uniforms = glslProg->getUniformSemantics();
-		for( auto unifIt = uniforms.cbegin(); unifIt != uniforms.end(); ++unifIt ) {
-			switch( unifIt->second ) {
+		const auto &uniforms = glslProg->getUniformSemantics();
+		for( const auto &unifIt : uniforms ) {
+			switch( unifIt.second ) {
 				case UNIFORM_MODELVIEW:
-					glslProg->uniform( unifIt->first, gl::getModelView() ); break;
+					glslProg->uniform( unifIt.first, gl::getModelView() ); break;
 				case UNIFORM_MODELVIEWPROJECTION:
-					glslProg->uniform( unifIt->first, gl::getModelViewProjection() ); break;
+					glslProg->uniform( unifIt.first, gl::getModelViewProjection() ); break;
 				case UNIFORM_PROJECTION:
-					glslProg->uniform( unifIt->first, gl::getProjection() ); break;
+					glslProg->uniform( unifIt.first, gl::getProjection() ); break;
 				case UNIFORM_NORMAL_MATRIX:
-					glslProg->uniform( unifIt->first, gl::calcNormalMatrix() ); break;
+					glslProg->uniform( unifIt.first, gl::calcNormalMatrix() ); break;
 			}
 		}
 
-		auto attribs = glslProg->getAttribSemantics();
-		for( auto attribIt = attribs.begin(); attribIt != attribs.end(); ++attribIt ) {
-			switch( attribIt->second ) {
+		const auto &attribs = glslProg->getAttribSemantics();
+		for( const auto &attribIt : attribs ) {
+			switch( attribIt.second ) {
 				case geom::Attrib::COLOR: {
-					int loc = glslProg->getAttribLocation( attribIt->first );
+					int loc = glslProg->getAttribLocation( attribIt.first );
 					ColorA c = ctx->getCurrentColor();
 					gl::vertexAttrib4f( loc, c.r, c.g, c.b, c.a );
 				}

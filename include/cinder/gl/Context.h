@@ -91,13 +91,13 @@ class Context {
 	void		popBufferBinding( GLenum target );
 	//! Returns the value currently bound to \a target
 	GLuint		getBufferBinding( GLenum target );
-	//! Marks the Context's cache of the binding for \a target as invalid
-	void		invalidateBufferBinding( GLenum target );
+	//! Updates the binding stack without rebinding.
+	void		reflectBufferBinding( GLenum target, GLuint id );
 
-	void		pushGlslProg( const GlslProgRef &prog );
-	void		popGlslProg();
-	void		bindGlslProg( const GlslProgRef &prog );
-	GlslProgRef	getGlslProg();
+	void			pushGlslProg( const GlslProgRef &prog );
+	void			popGlslProg();
+	void			bindGlslProg( const GlslProgRef &prog );
+	GlslProgRef		getGlslProg();
 
 	//! Analogous to glBindTexture()
 	void		bindTexture( GLenum target, GLuint textureId );

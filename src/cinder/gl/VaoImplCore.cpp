@@ -77,8 +77,10 @@ void VaoImplCore::bindImpl( Context *context )
 	else
 		glBindVertexArrayAPPLE( mId );
 
-	if( context )
-		invalidateContext( context );
+	if( context ) {
+		context->reflectBufferBinding( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
+		mLayout.mCachedArrayBufferBinding = context->getBufferBinding( GL_ARRAY_BUFFER );
+	}
 }
 
 void VaoImplCore::unbindImpl( Context *context )
@@ -87,9 +89,6 @@ void VaoImplCore::unbindImpl( Context *context )
 		glBindVertexArray( 0 );
 	else
 		glBindVertexArrayAPPLE( 0 );
-
-	if( context )
-		invalidateContext( context );
 }
 
 void VaoImplCore::enableVertexAttribArrayImpl( GLuint index )

@@ -81,6 +81,11 @@ void VaoImplSoftware::disableVertexAttribArrayImpl( GLuint index )
 
 void VaoImplSoftware::bindImpl( Context *context )
 {
+	if( ! context )
+		return;
+	
+	auto oldBuffer = context->getBufferBinding( GL_ARRAY_BUFFER );
+
 	for( auto attribIt = mLayout.mVertexAttribs.begin(); attribIt != mLayout.mVertexAttribs.end(); ++attribIt ) {
 		if( attribIt->second.mEnabled ) {
 			glEnableVertexAttribArray( attribIt->first );
@@ -88,8 +93,9 @@ void VaoImplSoftware::bindImpl( Context *context )
 			glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
 		}
 	}
-	glBindBuffer( GL_ARRAY_BUFFER, mLayout.mArrayBufferBinding );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
+
+	context->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
+	context->bindBuffer( GL_ARRAY_BUFFER, oldBuffer );
 }
 
 void VaoImplSoftware::unbindImpl( Context *context )
@@ -99,9 +105,6 @@ void VaoImplSoftware::unbindImpl( Context *context )
 			glDisableVertexAttribArray( attribIt->first );
 		}
 	}
-	
-	if( context )
-		invalidateContext( context );
 }
 
 void VaoImplSoftware::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )

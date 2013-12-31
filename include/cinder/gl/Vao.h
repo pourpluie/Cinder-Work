@@ -86,7 +86,8 @@ class Vao : public std::enable_shared_from_this<Vao> {
 		//! Does not enable the vertex attrib
 		void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
 		
-		GLuint							mArrayBufferBinding, mElementArrayBufferBinding;
+		GLuint							mElementArrayBufferBinding;
+		GLuint							mCachedArrayBufferBinding; // this represent a cache of the Context's value, but VAOs do not record GL_ARRAY_BUFFER_BINDING
 		std::map<GLuint,VertexAttrib>	mVertexAttribs;
 
 		friend class Vao;
@@ -110,10 +111,6 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) = 0;
 	// Caches the currently bound buffer; called by Context when GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER changes
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) = 0;
-
-	// Causes Context to reflect any state cache invalidations due to binding/unbinding a VAO
-	static void		invalidateContext( class Context *context );
-
 
 	GLuint							mId;
 	Context							*mCtx;

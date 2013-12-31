@@ -838,59 +838,50 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	
 	size_t totalArrayBufferSize = 0;
 	if( hasPositions )
-		totalArrayBufferSize += sizeof(vertices);
+		totalArrayBufferSize += sizeof(float)*24*3;
 	if( hasNormals )
-		totalArrayBufferSize += sizeof(normals);
+		totalArrayBufferSize += sizeof(float)*24*3;
 	if( hasTextureCoords )
-		totalArrayBufferSize += sizeof(texs);
+		totalArrayBufferSize += sizeof(float)*24*2;
 	if( hasColors )
-		totalArrayBufferSize += sizeof(colors);
+		totalArrayBufferSize += 24*4;
 	
 	VaoRef vao = Vao::create();
-	VboRef arrayVbo = ctx->getDefaultArrayVbo( totalArrayBufferSize );
-	VboRef elementVbo = ctx->getDefaultElementVbo( sizeof(elements) );
+	VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( totalArrayBufferSize );
+	BufferScope vboScp( defaultArrayVbo );
+	VboRef elementVbo = ctx->getDefaultElementVbo( 6*6 );
 
 	VaoScope vaoScope( vao );
 	elementVbo->bind();
 	size_t curBufferOffset = 0;
 	if( hasPositions ) {
 		int loc = curShader->getAttribSemanticLocation( geom::Attrib::POSITION );
-		gl::bindBuffer( arrayVbo );
 		enableVertexAttribArray( loc );
 		vertexAttribPointer( loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
-		arrayVbo->bufferSubData( curBufferOffset, sizeof(vertices), vertices );
-		curBufferOffset += sizeof(vertices);
+		defaultArrayVbo->bufferSubData( curBufferOffset, sizeof(float)*24*3, vertices );
+		curBufferOffset += sizeof(float)*24*3;
 	}
 
 	if( hasTextureCoords ) {
 		int loc = curShader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
-		gl::bindBuffer( arrayVbo );
 		enableVertexAttribArray( loc );
 		vertexAttribPointer( loc, 2, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
-		arrayVbo->bufferSubData( curBufferOffset, sizeof(texs), texs );
-		curBufferOffset += sizeof(texs);
+		defaultArrayVbo->bufferSubData( curBufferOffset, sizeof(float)*24*2, texs );
+		curBufferOffset += sizeof(float)*24*2;
 	}
 
 	if( hasColors ) {
 		int loc = curShader->getAttribSemanticLocation( geom::Attrib::COLOR );
-		gl::bindBuffer( arrayVbo );
 		enableVertexAttribArray( loc );
 		vertexAttribPointer( loc, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)curBufferOffset );
-		arrayVbo->bufferSubData( curBufferOffset, sizeof(colors), colors );
-		curBufferOffset += sizeof(colors);
+		defaultArrayVbo->bufferSubData( curBufferOffset, 24*4, colors );
+		curBufferOffset += 24*4;
 	}
 	
-	elementVbo->bufferSubData( 0, sizeof(elements), elements );
+	elementVbo->bufferSubData( 0, 36, elements );
 
-	//BufferScope arrayScope( arrayVbo );
-	//BufferScope elementScope( elementVbo );
-	arrayVbo->bind();
-	elementVbo->bind();
 	ctx->setDefaultShaderVars();
 	ctx->drawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
-
-	arrayVbo->unbind();
-	elementVbo->unbind();
 }
 
 void draw( const TextureRef &texture, const Rectf &rect )
@@ -914,13 +905,12 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	verts[3*2+0] = rect.getX1(); texCoords[3*2+0] = texture->getLeft();
 	verts[3*2+1] = rect.getY2(); texCoords[3*2+1] = texture->getBottom();
 	
+	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
+	BufferScope vboScp( defaultVbo );
 	VaoCacheRef vaoCache = VaoCache::create();
 	{
 		VaoScope vaoScp( vaoCache );
-		VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(data) );
-		arrayVbo->bind();
-		arrayVbo->bufferSubData( 0, sizeof(data), data );
-
+		defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
 		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 		if( posLoc >= 0 ) {
 			enableVertexAttribArray( posLoc );
@@ -961,9 +951,9 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	
 	VaoRef vao = Vao::create();
 	VaoScope vaoScope( vao );
-	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(data) );
-	arrayVbo->bind();
-	arrayVbo->bufferSubData( 0, sizeof(data), data );
+	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
+	BufferScope bufferBindScp( defaultVbo );
+	defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
 	
 	gl::GlslProgRef shader = ctx->getGlslProg();
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
@@ -998,8 +988,8 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 	size_t numVertices = numSegments + 2;
 
 	size_t worstCaseSize = numVertices * sizeof(float) * ( 2 + 2 + 3 );
-	VboRef arrayVbo = ctx->getDefaultArrayVbo( worstCaseSize );
-	arrayVbo->bind();
+	VboRef defaultVbo = ctx->getDefaultArrayVbo( worstCaseSize );
+	BufferScope vboScp( defaultVbo );
 
 	size_t dataSizeBytes = 0;
 	
@@ -1050,7 +1040,7 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 		t += tDelta;
 	}
 
-	arrayVbo->bufferSubData( 0, dataSizeBytes, data.get() );
+	defaultVbo->bufferSubData( 0, dataSizeBytes, data.get() );
 	
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_FAN, 0, numSegments + 2 );	

@@ -34,6 +34,8 @@
 	
 	The full list is in Table 6.4 of the OpenGL 3.2 Core Profile spec,
 		http://www.opengl.org/registry/doc/glspec32.core.20090803.pdf
+	
+	Note that ARRAY_BUFFER_BINDING is NOT cached
 */
 
 #include "cinder/gl/Vao.h"
@@ -96,13 +98,6 @@ void Vao::unbind() const
 	mCtx->bindVao( nullptr );
 }
 
-void Vao::invalidateContext( Context *context )
-{
-	// binding a VAO invalidates other pieces of cached state
-	context->invalidateBufferBinding( GL_ARRAY_BUFFER );
-	context->invalidateBufferBinding( GL_ELEMENT_ARRAY_BUFFER );
-}
-
 void Vao::swap( const VaoCacheRef &vao )
 {
 	swap( vao->getLayout() );
@@ -113,6 +108,8 @@ void Vao::swap( const Vao::Layout &newLayout )
 	VaoScope vaoScope( shared_from_this() );
 
 	Vao::Layout originalLayout = mLayout;
+	
+	auto oldArrayBufferBinding = mCtx->getBufferBinding( GL_ARRAY_BUFFER );
 	
 	// gather all the array buffer bindings
 	set<GLuint> arrayBufferBindings;
@@ -156,21 +153,21 @@ void Vao::swap( const Vao::Layout &newLayout )
 	// finally, this->mLayout becomes 'newLayout'
 	mLayout = newLayout;
 
-	mCtx->bindBuffer( GL_ARRAY_BUFFER, mLayout.mArrayBufferBinding );
+	mCtx->bindBuffer( GL_ARRAY_BUFFER, oldArrayBufferBinding );
 	mCtx->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Vao::Layout
 Vao::Layout::Layout()
-	: mArrayBufferBinding( 0 ), mElementArrayBufferBinding( 0 )
+	: mElementArrayBufferBinding( 0 ), mCachedArrayBufferBinding( 0xFFFFFFFF )
 {
 }
 
 void Vao::Layout::bindBuffer( GLenum target, GLuint buffer )
 {
 	if( target == GL_ARRAY_BUFFER )
-		mArrayBufferBinding = buffer;
+		mCachedArrayBufferBinding = buffer;
 	else if( target == GL_ELEMENT_ARRAY_BUFFER )
 		mElementArrayBufferBinding = buffer;
 }
@@ -203,7 +200,8 @@ void Vao::Layout::vertexAttribPointer( GLuint index, GLint size, GLenum type, GL
 {
 	auto existing = mVertexAttribs.find( index );
 	bool enabled = ( existing != mVertexAttribs.end() ) && ( existing->second.mEnabled );
-	mVertexAttribs[index] = Vao::VertexAttrib( size, type, normalized, stride, pointer, mArrayBufferBinding );
+assert( mCachedArrayBufferBinding != 0 );
+	mVertexAttribs[index] = Vao::VertexAttrib( size, type, normalized, stride, pointer, mCachedArrayBufferBinding );
 	mVertexAttribs[index].mEnabled = enabled;
 }
 
@@ -223,7 +221,7 @@ std::ostream& operator<<( std::ostream &lhs, const Vao &rhs )
 
 std::ostream& operator<<( std::ostream &lhs, const Vao::Layout &rhs )
 {
-	lhs << "ARRAY_BUFFER_BINDING: " << rhs.mArrayBufferBinding << "  ELEMENT_ARRAY_BUFFER_BINDING: " << rhs.mElementArrayBufferBinding << std::endl;
+	lhs << "Cached ARRAY_BUFFER binding: " << rhs.mCachedArrayBufferBinding << "  ELEMENT_ARRAY_BUFFER_BINDING: " << rhs.mElementArrayBufferBinding << std::endl;
 	lhs << "{" << std::endl;
 	for( auto &attrib : rhs.mVertexAttribs ) {
 		lhs << " Loc: " << attrib.first << std::endl;
@@ -253,14 +251,14 @@ VaoCache::VaoCache()
 
 void VaoCache::bindImpl( class Context *context )
 {
-	if( context )
-		invalidateContext( context );
+	if( context ) {
+		context->reflectBufferBinding( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
+		mLayout.mCachedArrayBufferBinding = context->getBufferBinding( GL_ARRAY_BUFFER );
+	}
 }
 
 void VaoCache::unbindImpl( class Context *context )
 {
-	if( context )
-		invalidateContext( context );
 }
 
 void VaoCache::enableVertexAttribArrayImpl( GLuint index )
