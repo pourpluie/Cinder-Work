@@ -20,6 +20,8 @@ class BufferObj {
 #if ! defined( CINDER_GL_ANGLE )
 	//! Analogous to glMapBuffer(). \a access must be \c GL_READ_ONLY, \c GL_WRITE_ONLY, or \c GL_READ_WRITE. On iOS ES 2 only \c GL_WRITE_ONLY_OES is valid.
 	void*				map( GLenum access ) const;
+	//! Analogous to glMapBufferRange(). On iOS ES 2 only \c GL_WRITE_ONLY_OES is valid.
+	void*				mapBufferRange( GLintptr offset, GLsizeiptr length, GLbitfield access ) const;
 	void				unmap() const;
 #endif
 	
