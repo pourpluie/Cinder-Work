@@ -12,6 +12,7 @@
 #include "cinder/geomIo.h"
 
 #include <ostream>
+#include <vector>
 
 namespace cinder { namespace gl {
 	
@@ -25,9 +26,12 @@ class VboMesh {
 	static VboMeshRef	create( const geom::Source &source );
 	static VboMeshRef	create( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo = VboRef() );
 
-	//! Constructs a VAO (in the currently bound VAO) that matches \a this to GlslProg \a shader
-	void		buildVao( const GlslProgRef &shader );
-	//! Issues a glDraw* call, but without binding a VAO or sending shader vars. Consider gl::draw( VboMeshRef ) instead
+	//! Maps a geom::Attrib to a named attribute in the GlslProg
+	typedef std::map<geom::Attrib,std::string> AttributeMapping;
+	//! Constructs a VAO (in the currently bound VAO) that matches \a this to GlslProg \a shader, overriding the mapping of a geom::Attrib to a named attribute via the 'a attributeMapping std::map
+	void		buildVao( const GlslProgRef &shader, const AttributeMapping &attributeMapping = AttributeMapping() );
+
+	//! Issues a glDraw* call, but without binding a VAO or sending shader vars. Consider gl::draw( VboMeshRef ) instead. Knows whether to call glDrawArrays or glDrawElements
 	void		drawImpl();
 
 	//! Returns the number of vertices in the mesh
@@ -49,6 +53,8 @@ class VboMesh {
 	std::vector<VboRef>									getVertexArrayVbos();
 	//! Returns the vector of pairs of (BufferLayout,VboRef) for the vertex data of the mesh
 	const std::vector<std::pair<geom::BufferLayout,VboRef>>&	getVertexArrayLayoutVbos() const { return mVertexArrayVbos; }
+	//! Adds a new VBO (paired with its geom::BufferLayout) to the VboMesh
+	void												appendVbo( const geom::BufferLayout &layout, const VboRef &vbo );
 
 #if ! defined( CINDER_GLES )
 	//! Returns a geom::Source which references 'this'. Inefficient - primarily useful for debugging. The returned geom::SourceRef should not outlive 'this' (not a shared_ptr).

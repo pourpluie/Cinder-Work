@@ -884,13 +884,6 @@ void Context::printState( std::ostream &os ) const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Vertex Attributes
-void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
-{
-	VaoRef vao = getVao();
-	if( vao )
-		vao->vertexAttribPointerImpl( index, size, type, normalized, stride, pointer );
-}
-
 void Context::enableVertexAttribArray( GLuint index )
 {
 	VaoRef vao = getVao();
@@ -903,6 +896,20 @@ void Context::disableVertexAttribArray( GLuint index )
 	VaoRef vao = getVao();
 	if( vao )
 		vao->disableVertexAttribArrayImpl( index );
+}
+
+void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
+{
+	VaoRef vao = getVao();
+	if( vao )
+		vao->vertexAttribPointerImpl( index, size, type, normalized, stride, pointer );
+}
+
+void Context::vertexAttribDivisor( GLuint index, GLuint divisor )
+{
+	VaoRef vao = getVao();
+	if( vao )
+		vao->vertexAttribDivisorImpl( index, divisor );
 }
 
 void Context::vertexAttrib1f( GLuint index, float v0 )
@@ -994,7 +1001,7 @@ void Context::polygonMode( GLenum face, GLenum mode )
 	}
 }
 
-#endif // defined( CINDER_GLES )
+#endif // ! defined( CINDER_GLES )
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // draw*
@@ -1007,6 +1014,18 @@ void Context::drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoi
 {
 	glDrawElements( mode, count, type, indices );
 }
+
+#if ! defined( CINDER_GLES )
+void Context::drawArraysInstanced( GLenum mode, GLint first, GLsizei count, GLsizei primcount )
+{
+	glDrawArraysInstanced( mode, first, count, primcount );
+}
+
+void Context::drawElementsInstanced( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount )
+{
+	glDrawElementsInstanced( mode, count, type, indices, primcount );
+}
+#endif // ! defined( CINDER_GLES )
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Shaders

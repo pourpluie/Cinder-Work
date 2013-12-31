@@ -46,6 +46,7 @@ class VaoImplEs : public Vao {
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	disableVertexAttribArrayImpl( GLuint index );
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
+	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) override;
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;
 	
 	friend class Context;
@@ -99,6 +100,12 @@ void VaoImplEs::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, 
 	mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
 
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
+}
+
+void VaoImplEs::vertexAttribDivisorImpl( GLuint index, GLuint divisor )
+{
+	mLayout.vertexAttribDivisor( index, divisor );
+	// NO-OP - hardware instancing not supported in ES 2
 }
 
 void VaoImplEs::reflectBindBufferImpl( GLenum target, GLuint buffer )

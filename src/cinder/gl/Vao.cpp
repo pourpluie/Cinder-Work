@@ -122,23 +122,37 @@ void Vao::swap( const Vao::Layout &newLayout )
 		// iterate all attributes to find the ones whose mArrayBufferBinding is 'arrayBufferBinding'
 		for( auto &attrib : newLayout.mVertexAttribs ) {
 			if( attrib.second.mArrayBufferBinding == arrayBufferBinding ) {
-				// does 'this' have an attribute for this location? 
-				if( originalLayout.mVertexAttribs.find( attrib.first ) != originalLayout.mVertexAttribs.end() ) {
-					// since we already have this attribute location, only enable/disable if layout's is different
-					if( originalLayout.mVertexAttribs[attrib.first].mEnabled != attrib.second.mEnabled ) {
+				auto originalAttribIt = originalLayout.mVertexAttribs.find( attrib.first );
+				// does 'this' have an attribute for this location?
+				if( originalAttribIt != originalLayout.mVertexAttribs.end() ) {
+					// since we already have this attribute location, only enable/disable if newLayout's is different
+					if( originalAttribIt->second.mEnabled != attrib.second.mEnabled ) {
 						if( attrib.second.mEnabled )
 							enableVertexAttribArrayImpl( attrib.first );
 						else
 							disableVertexAttribArrayImpl( attrib.first );
 					}
+					// similarly, only call attribPointer if necessary
+					if( ( originalAttribIt->second.mSize != attrib.second.mSize ) || 
+						( originalAttribIt->second.mType != attrib.second.mType ) ||
+						( originalAttribIt->second.mNormalized != attrib.second.mNormalized ) ||
+						( originalAttribIt->second.mStride != attrib.second.mStride ) ||
+						( originalAttribIt->second.mPointer != attrib.second.mPointer ) )
+					{
+						vertexAttribPointerImpl( attrib.first, attrib.second.mSize, attrib.second.mType, attrib.second.mNormalized,
+							attrib.second.mStride, attrib.second.mPointer );
+					}
+					// and only call attribDivisor if necessary
+					if( originalAttribIt->second.mDivisor != attrib.second.mDivisor )
+						vertexAttribDivisorImpl( attrib.first, attrib.second.mDivisor );
 				}
-				else {
+				else { // no existing attribute at this location
 					if( attrib.second.mEnabled )
 						enableVertexAttribArrayImpl( attrib.first );
-				}
-				// TODO: test for redundancy here (attrib is the same as what's already in originalLayout
-				vertexAttribPointerImpl( attrib.first, attrib.second.mSize, attrib.second.mType, attrib.second.mNormalized,
+					vertexAttribPointerImpl( attrib.first, attrib.second.mSize, attrib.second.mType, attrib.second.mNormalized,
 							attrib.second.mStride, attrib.second.mPointer );
+					vertexAttribDivisorImpl( attrib.first, attrib.second.mDivisor );
+				}
 			}
 		}
 	}
@@ -200,9 +214,17 @@ void Vao::Layout::vertexAttribPointer( GLuint index, GLint size, GLenum type, GL
 {
 	auto existing = mVertexAttribs.find( index );
 	bool enabled = ( existing != mVertexAttribs.end() ) && ( existing->second.mEnabled );
-assert( mCachedArrayBufferBinding != 0 );
 	mVertexAttribs[index] = Vao::VertexAttrib( size, type, normalized, stride, pointer, mCachedArrayBufferBinding );
 	mVertexAttribs[index].mEnabled = enabled;
+}
+
+void Vao::Layout::vertexAttribDivisor( GLuint index, GLuint divisor )
+{
+	auto existing = mVertexAttribs.find( index );
+	if( existing == mVertexAttribs.end() )
+		mVertexAttribs[index] = Vao::VertexAttrib();
+
+	mVertexAttribs[index].mDivisor = divisor;
 }
 
 std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs )
@@ -232,6 +254,7 @@ std::ostream& operator<<( std::ostream &lhs, const Vao::Layout &rhs )
 		lhs << "         Stride: " << attrib.second.mStride << std::endl;
 		lhs << "        Pointer: " << attrib.second.mPointer << "(" << (size_t)attrib.second.mPointer << ")" << std::endl;
 		lhs << "   Array Buffer: " << attrib.second.mArrayBufferBinding << std::endl;
+		lhs << "        Divisor: " << attrib.second.mDivisor << std::endl;
 	}
 	lhs << "}";
 
@@ -274,6 +297,11 @@ void VaoCache::disableVertexAttribArrayImpl( GLuint index )
 void VaoCache::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
 	mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
+}
+
+void VaoCache::vertexAttribDivisorImpl( GLuint index, GLuint divisor )
+{
+	mLayout.vertexAttribDivisor( index, divisor );
 }
 
 void VaoCache::reflectBindBufferImpl( GLenum target, GLuint buffer )

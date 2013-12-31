@@ -43,6 +43,7 @@ class VaoImplSoftware : public Vao {
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	disableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
+	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) override;	
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;
 
   protected:
@@ -116,6 +117,16 @@ void VaoImplSoftware::vertexAttribPointerImpl( GLuint index, GLint size, GLenum 
 
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
 }
+
+void VaoImplSoftware::vertexAttribDivisorImpl( GLuint index, GLuint divisor )
+{
+	mLayout.vertexAttribDivisor( index, divisor );
+
+#if ! defined( CINDER_GLES )
+	glVertexAttribDivisor( index, divisor );
+#endif
+}
+
 
 void VaoImplSoftware::reflectBindBufferImpl( GLenum target, GLuint buffer )
 {

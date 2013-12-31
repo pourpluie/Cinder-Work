@@ -139,12 +139,14 @@ class Context {
 	void		printState( std::ostream &os ) const;
 
 	// Vertex Attributes
-	//! Analogous to glVertexAttribPointer()
-	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
 	//! Analogous to glEnableVertexAttribArray()
 	void		enableVertexAttribArray( GLuint index );
 	//! Analogous to glDisableVertexAttribArray()
 	void		disableVertexAttribArray( GLuint index );
+	//! Analogous to glVertexAttribPointer()
+	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+	//! Analogous to glVertexAttribDivisor()
+	void		vertexAttribDivisor( GLuint index, GLuint divisor );
 	//! Analogous to glVertexAttrib1f()
 	void		vertexAttrib1f( GLuint index, float v0 );
 	//! Analogous to glVertexAttrib2f()
@@ -171,8 +173,16 @@ class Context {
 	void		polygonMode( GLenum face, GLenum mode );
 #endif
 
+	//! Analogous to glDrawArrays()
 	void		drawArrays( GLenum mode, GLint first, GLsizei count );
+	//! Analogous to glDrawElements()
 	void		drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices );
+#if ! defined( CINDER_GLES )
+	//! Analogous to glDrawArraysInstanced()
+	void		drawArraysInstanced( GLenum mode, GLint first, GLsizei count, GLsizei primcount );
+	//! Analogous to glDrawElementsInstanced()
+	void		drawElementsInstanced( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount );
+#endif // ! defined( CINDER_GLES )
 
 	//! Returns the current active color, used in immediate-mode emulation and as UNIFORM_COLOR
 	const ColorAf&	getCurrentColor() const { return mColor; }

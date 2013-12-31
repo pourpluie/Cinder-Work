@@ -28,6 +28,9 @@
 #include "cinder/gl/Vao.h"
 #include "cinder/GeomIo.h"
 
+#include <map>
+#include <string>
+
 namespace cinder { namespace gl {
 
 typedef std::shared_ptr<class Batch>		BatchRef;
@@ -35,11 +38,18 @@ typedef std::shared_ptr<class VertBatch>	VertBatchRef;
 
 class Batch {
   public:
-	static BatchRef		create( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl );
+	//! Maps a geom::Attrib to a named attribute in the GlslProg
+	typedef std::map<geom::Attrib,std::string> AttributeMapping;
+
+	//! Builds a Batch from a VboMesh and a GlslProg. Attributes defined in \a attributeMapping override the default mapping
+	static BatchRef		create( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const AttributeMapping &attributeMapping = AttributeMapping() );
 	static BatchRef		create( const geom::Source &source, const gl::GlslProgRef &glsl );
 	static BatchRef		create( const geom::SourceRef &sourceRef, const gl::GlslProgRef &glsl );
 	
 	void			draw();
+#if ! defined( CINDER_GLES )
+	void			drawInstanced( GLsizei primcount );
+#endif
 	void			bind();
 
 	//! Returns OpenGL primitive type (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc)
@@ -56,7 +66,7 @@ class Batch {
 	const VaoRef&		getVao() const { return mVao; }
 
   protected:
-	Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl );
+	Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const AttributeMapping &attributeMapping );
 	Batch( const geom::Source &source, const gl::GlslProgRef &glsl );
 	Batch( const geom::SourceRef &source, const gl::GlslProgRef &glsl );
 

@@ -57,12 +57,14 @@ class Vao : public std::enable_shared_from_this<Vao> {
 
 	struct VertexAttrib {
 		VertexAttrib()
-			: mEnabled( false ), mSize( 0 ), mType( GL_FLOAT ), mNormalized( false ), mStride( 0 ), mPointer( 0 ), mArrayBufferBinding( 0 )
+			: mEnabled( false ), mSize( 0 ), mType( GL_FLOAT ), mNormalized( false ), mStride( 0 ), mPointer( 0 ), mArrayBufferBinding( 0 ), mDivisor( 0 )
 		{}
 		
-		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer, GLuint arrayBufferBinding )
-			: mEnabled( false ), mSize( size ), mType( type ), mNormalized( normalized ), mStride( stride ), mPointer( pointer ), mArrayBufferBinding( arrayBufferBinding )
+		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer, GLuint arrayBufferBinding, GLuint divisor = 0 )
+			: mEnabled( false ), mSize( size ), mType( type ), mNormalized( normalized ), mStride( stride ), mPointer( pointer ), mArrayBufferBinding( arrayBufferBinding ), mDivisor( divisor )
 		{}
+		
+		void		setDivisor( GLuint divisor ) { mDivisor = divisor; }
 		
 		bool			mEnabled;
 		GLint			mSize;
@@ -71,6 +73,7 @@ class Vao : public std::enable_shared_from_this<Vao> {
 		GLsizei			mStride;
 		const GLvoid*	mPointer;
 		GLuint			mArrayBufferBinding;
+		GLuint			mDivisor;
 	};
 
 	//! Represent a software-only mirror of the state a VAO records. Can be used directly for efficient swapping (primarily by the gl:: convenience functions)
@@ -83,8 +86,10 @@ class Vao : public std::enable_shared_from_this<Vao> {
 		void	enableVertexAttribArray( GLuint index );
 		//! The equivalent of glDisableVertexAttribArray( \a index )
 		void	disableVertexAttribArray( GLuint index );
-		//! Does not enable the vertex attrib
+		//! Sets the vertex attribute data
 		void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+		//! Sets the instancing divisor
+		void	vertexAttribDivisor( GLuint index, GLuint divisor );
 		
 		GLuint							mElementArrayBufferBinding;
 		GLuint							mCachedArrayBufferBinding; // this represent a cache of the Context's value, but VAOs do not record GL_ARRAY_BUFFER_BINDING
@@ -109,6 +114,8 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	virtual void	disableVertexAttribArrayImpl( GLuint index ) = 0;
 	// Analogous to glVertexAttribPointer(). Expects this to be the currently bound VAO; called by Context
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) = 0;
+	// Analogous to glVertexAttribDivisor(). Expects this to be the currently bound VAO; called by Context
+	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) = 0;
 	// Caches the currently bound buffer; called by Context when GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER changes
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) = 0;
 
@@ -138,6 +145,7 @@ class VaoCache : public Vao {
 	virtual void	disableVertexAttribArrayImpl( GLuint index ) override;
 	// Analogous to glVertexAttribPointer(). Expects this to be the currently bound VAO; called by Context
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
+	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) override;
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;
 };
 

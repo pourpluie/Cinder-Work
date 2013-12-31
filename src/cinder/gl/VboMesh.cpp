@@ -130,7 +130,7 @@ VboMesh::VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive,
 {
 }
 
-void VboMesh::buildVao( const GlslProgRef &shader )
+void VboMesh::buildVao( const GlslProgRef &shader, const AttributeMapping &attributeMapping )
 {
 	auto ctx = gl::context();
 	
@@ -140,11 +140,23 @@ void VboMesh::buildVao( const GlslProgRef &shader )
 		vertArrayVbo.second->bind();
 		// now iterate the attributes associated with this VBO
 		for( const auto &attribInfo : vertArrayVbo.first.getAttribs() ) {
-			// get the location of the attrib semantic in the shader if it's present
-			if( shader->hasAttribSemantic( attribInfo.getAttrib() ) ) {
-				int loc = shader->getAttribSemanticLocation( attribInfo.getAttrib() );
+			int loc = -1;
+			// first see if we have a mapping in 'attributeMapping'
+			auto attributeMappingIt = attributeMapping.find( attribInfo.getAttrib() );
+			if( attributeMappingIt != attributeMapping.end() ) {
+				loc = shader->getAttribLocation( attributeMappingIt->second );
+			}
+			// otherwise, try to get the location of the attrib semantic in the shader if it's present
+			else if( shader->hasAttribSemantic( attribInfo.getAttrib() ) ) {
+				loc = shader->getAttribSemanticLocation( attribInfo.getAttrib() );			
+			}
+			
+			// if either the shader's mapping or 'attributeMapping' has this semantic, add it to the VAO
+			if( loc != -1 ) {
 				ctx->enableVertexAttribArray( loc );
 				ctx->vertexAttribPointer( loc, attribInfo.getDims(), GL_FLOAT, GL_FALSE, attribInfo.getStride(), (const void*)attribInfo.getOffset() );
+				if( attribInfo.getInstanceDivisor() > 0 )
+					ctx->vertexAttribDivisor( loc, attribInfo.getInstanceDivisor() );
 			}
 		}
 	}
@@ -169,6 +181,11 @@ std::vector<VboRef>	VboMesh::getVertexArrayVbos()
 	}
 	
 	return result;
+}
+
+void VboMesh::appendVbo( const geom::BufferLayout &layout, const VboRef &vbo )
+{
+	mVertexArrayVbos.push_back( make_pair( layout, vbo ) );
 }
 
 uint8_t	VboMesh::getAttribDims( geom::Attrib attr ) const

@@ -89,14 +89,9 @@ void BatchGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *so
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Batch
-BatchRef Batch::create( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl )
+BatchRef Batch::create( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const AttributeMapping &attributeMapping )
 {
-	return BatchRef( new Batch( vboMesh, glsl ) );
-}
-
-BatchRef Batch::create( const geom::Source &source, const gl::GlslProgRef &glsl )
-{
-	return BatchRef( new Batch( source, glsl ) );
+	return BatchRef( new Batch( vboMesh, glsl, attributeMapping ) );
 }
 
 BatchRef Batch::create( const geom::SourceRef &sourceRef, const gl::GlslProgRef &glsl )
@@ -104,14 +99,14 @@ BatchRef Batch::create( const geom::SourceRef &sourceRef, const gl::GlslProgRef 
 	return BatchRef( new Batch( sourceRef, glsl ) );
 }
 
-Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl )
+Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const AttributeMapping &attributeMapping )
 	: mGlsl( glsl )
 {
 	mVertexArrayVbos = vboMesh->getVertexArrayVbos();
 	mElements = vboMesh->getElementVbo();
 	mVao = Vao::create();
 	VaoScope vaoScp( mVao );
-	vboMesh->buildVao( glsl );
+	vboMesh->buildVao( glsl, attributeMapping );
 	mPrimitive = vboMesh->getGlPrimitive();
 	mNumVertices = vboMesh->getNumVertices();
 	mNumIndices = vboMesh->getNumIndices();
@@ -197,6 +192,21 @@ void Batch::draw()
 	else
 		ctx->drawArrays( mPrimitive, 0, mNumVertices );
 }
+
+#if ! defined( CINDER_GLES )
+void Batch::drawInstanced( GLsizei primcount )
+{
+	auto ctx = gl::context();
+	
+	gl::GlslProgScope GlslProgScope( mGlsl );
+	gl::VaoScope vaoScope( mVao );
+	ctx->setDefaultShaderVars();
+	if( mNumIndices )
+		ctx->drawElementsInstanced( mPrimitive, mNumIndices, mIndexType, 0, primcount );
+	else
+		ctx->drawArraysInstanced( mPrimitive, 0, mNumVertices, primcount );
+}
+#endif
 
 void Batch::bind()
 {
