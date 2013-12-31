@@ -861,7 +861,13 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 		defaultArrayVbo->bufferSubData( curBufferOffset, sizeof(float)*24*3, vertices );
 		curBufferOffset += sizeof(float)*24*3;
 	}
-
+	if( hasNormals ) {
+		int loc = curShader->getAttribSemanticLocation( geom::Attrib::NORMAL );
+		enableVertexAttribArray( loc );
+		vertexAttribPointer( loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
+		defaultArrayVbo->bufferSubData( curBufferOffset, sizeof(float)*24*3, normals );
+		curBufferOffset += sizeof(float)*24*3;
+	}
 	if( hasTextureCoords ) {
 		int loc = curShader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 		enableVertexAttribArray( loc );
@@ -869,7 +875,6 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 		defaultArrayVbo->bufferSubData( curBufferOffset, sizeof(float)*24*2, texs );
 		curBufferOffset += sizeof(float)*24*2;
 	}
-
 	if( hasColors ) {
 		int loc = curShader->getAttribSemanticLocation( geom::Attrib::COLOR );
 		enableVertexAttribArray( loc );
@@ -1011,7 +1016,7 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 	int normalLoc = shader->getAttribSemanticLocation( geom::Attrib::NORMAL );
 	if( normalLoc >= 0 ) {
 		enableVertexAttribArray( normalLoc );
-		vertexAttribPointer( texLoc, 3, GL_FLOAT, GL_FALSE, 0, (void*)(dataSizeBytes) );
+		vertexAttribPointer( normalLoc, 3, GL_FLOAT, GL_FALSE, 0, (void*)(dataSizeBytes) );
 		normalsOffset = dataSizeBytes;
 		dataSizeBytes += numVertices * 3 * sizeof(float);
 	}
