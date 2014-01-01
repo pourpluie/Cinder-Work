@@ -32,12 +32,10 @@ void HighDynamicRangeApp::loadHdr( const fs::path &path )
 	if( ! HDRLoader::load( path.string().c_str(), result ) )
 		return;
 	
-	Surface32f s( result.cols, result.width, result.height, result.width * 3, SurfaceChannelOrder::RGB );
-	mExposure = 1.0f;
+	Surface32f s( result.cols, result.width, result.height, result.width * 3, SurfaceChannelOrder::RGB );	
+	mHdrTexture = gl::Texture::create( s, gl::Texture::Format().internalFormat( GL_RGB32F ) );
 	
-	gl::Texture::Format fmt;
-	fmt.setInternalFormat( GL_RGB32F );
-	mHdrTexture = gl::Texture::create( s, fmt );
+	mExposure = 1.0f;
 }
 
 void HighDynamicRangeApp::setup()
@@ -46,7 +44,6 @@ void HighDynamicRangeApp::setup()
 			
 	mShader = gl::GlslProg::create( gl::GlslProg::Format().vertex( loadAsset( "shader.vert" ) )
 																.fragment( loadAsset( "shader.frag" ) ) );
-	mExposure = 1.0f;	
 }
 
 void HighDynamicRangeApp::fileDrop( FileDropEvent event )
@@ -70,5 +67,4 @@ void HighDynamicRangeApp::draw()
 	gl::drawSolidRect( mHdrTexture->getBounds() );
 }
 
-//CINDER_APP_NATIVE( HighDynamicRangeApp, RendererGl( RendererGl::Options().coreProfile(false) ) )
 CINDER_APP_NATIVE( HighDynamicRangeApp, RendererGl( RendererGl::Options() ) )

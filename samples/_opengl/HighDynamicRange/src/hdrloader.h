@@ -18,4 +18,3 @@ class HDRLoader {
 public:
 	static bool load(const char *fileName, HDRLoaderResult &res);
 };
-
