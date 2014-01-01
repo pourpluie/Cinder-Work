@@ -541,7 +541,7 @@ uint8_t	Cube::getAttribDims( Attrib attr ) const
 		case Attrib::POSITION: return 3;
 		case Attrib::COLOR: return mHasColor ? 3 : 0;
 		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
-		case Attrib::NORMAL: return mHasNormals ? 2 : 0;;
+		case Attrib::NORMAL: return mHasNormals ? 2 : 0;
 		default:
 			return 0;
 	}	
@@ -553,11 +553,11 @@ void Cube::loadInto( Target *target ) const
 	if( mHasColor )
 		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 24 );
 	if( mHasTexCoord0 )
-		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sColors, 24 );
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sTexCoords, 24 );
 	if( mHasNormals )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 24 );
 	
-	target->copyIndices( Primitive::TRIANGLES, sIndices, 24, 1 );
+	target->copyIndices( Primitive::TRIANGLES, sIndices, 36, 1 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
