@@ -26,18 +26,19 @@ class RotatingCubeApp : public AppNative {
 
 void RotatingCubeApp::setup()
 {
-//	disableFrameRate();
 	mCam.lookAt( Vec3f( 3, 2, 4 ), Vec3f::zero() );
 	mCubeRotation.setToIdentity();
 	
-	mTexture = gl::Texture::create( loadImage( loadAsset( "texture.jpg" ) ) );
+	mTexture = gl::Texture::create( loadImage( loadAsset( "texture.jpg" ) ), 
+										gl::Texture::Format().mipmap().minFilter( GL_LINEAR_MIPMAP_LINEAR ) );
 
 #if defined( CINDER_GLES )
 	mGlsl = gl::GlslProg::create( loadAsset( "shader_es2.vert" ), loadAsset( "shader_es2.frag" ) );
 #else
 	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) );
 #endif
-	mBatch = gl::Batch::create( geom::Teapot().texCoords().normals().subdivision( 5 ), mGlsl );
+	mBatch = gl::Batch::create( geom::Cube().texCoords().normals(), mGlsl );
+//	mBatch = gl::Batch::create( geom::Teapot().texCoords().normals().subdivision( 5 ), mGlsl );
 
 	gl::enableDepthWrite();
 	gl::enableDepthRead();
@@ -70,6 +71,5 @@ void RotatingCubeApp::draw()
 		mBatch->draw();
 	gl::popMatrices();
 }
-
 
 CINDER_APP_NATIVE( RotatingCubeApp, RendererGl )

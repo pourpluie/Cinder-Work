@@ -6,8 +6,9 @@ uniform mat3	ciNormalMatrix;
 in vec4		ciPosition;
 in vec2		ciTexCoord0;
 in vec3		ciNormal;
-out highp vec2	TexCoord;
 in vec4		ciColor;
+
+out highp vec2	TexCoord;
 out lowp vec4	Color;
 out highp vec3	Normal;
 
