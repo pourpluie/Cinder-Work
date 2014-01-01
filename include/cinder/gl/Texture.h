@@ -11,10 +11,11 @@
 
 namespace cinder { namespace gl {
 
-typedef std::shared_ptr<class TextureBase>	TextureBaseRef;
-typedef std::shared_ptr<class Texture>		TextureRef;
-typedef std::shared_ptr<class Texture2d>	Texture2dRef;
-typedef std::shared_ptr<class Texture3d>	Texture3dRef;
+typedef std::shared_ptr<class TextureBase>		TextureBaseRef;
+typedef std::shared_ptr<class Texture>			TextureRef;
+typedef std::shared_ptr<class Texture2d>		Texture2dRef;
+typedef std::shared_ptr<class Texture3d>		Texture3dRef;
+typedef std::shared_ptr<class TextureCubeMap>	TextureCubeMapRef;
 
 class TextureBase {
   public:
@@ -365,8 +366,37 @@ class Texture3d : public TextureBase {
 };
 #endif
 
-typedef std::shared_ptr<class TextureCache> TextureCacheRef;
+class TextureCubeMap : public TextureBase
+{
+  public:
+  	struct Format : public TextureBase::Format {
+		//! Default constructor, sets the target to \c GL_TEXTURE_CUBE_MAP, wrap to \c GL_CLAMP, disables mipmapping, the internal format to "automatic"
+		Format() : TextureBase::Format() {}
+
+		//! Chaining functions for Format class.
+		Format& target( GLenum target ) { mTarget = target; return *this; }
+		Format& mipmap( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; return *this; }
+		//! Sets the maximum amount of anisotropic filtering. A value greater than 1.0 "enables" anisotropic filtering. Maximum of getMaxMaxAnisotropy();
+		Format& maxAnisotropy( float maxAnisotropy ) { mMaxAnisotropy = maxAnisotropy; return *this; }
+		Format& internalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; return *this; }
+		Format& wrap( GLenum wrap ) { mWrapS = mWrapT = mWrapR = wrap; return *this; }
+		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
+		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
+		Format& minFilter( GLenum minFilter ) { mMinFilter = minFilter; return *this; }
+		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
+		
+		friend TextureCubeMap;
+	};
+  
+	static TextureCubeMapRef	createFromHorizontalCross( const ImageSourceRef &imageSource );
+	static TextureCubeMapRef	createFromVerticalCross( const ImageSourceRef &imageSource );
 	
+  protected:
+	TextureCubeMap( 
+};
+
+typedef std::shared_ptr<class TextureCache> TextureCacheRef;
+
 class TextureCache
 {
   public:
