@@ -231,6 +231,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				OTHER_LDFLAGS = "$(CINDER_PATH)/lib/libcinder_d.a";
 				PRODUCT_NAME = VoronoiGpu;
+				SYMROOT = ./build;
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = YES;
 			};
@@ -255,6 +256,7 @@
 				OTHER_LDFLAGS = "$(CINDER_PATH)/lib/libcinder.a";
 				PRODUCT_NAME = VoronoiGpu;
 				STRIP_INSTALLED_PRODUCT = YES;
+				SYMROOT = ./build;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

@@ -5,6 +5,8 @@
 
 #include "VoronoiGpu.h"
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Context.h"
+#include "cinder/gl/Context.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/ip/Fill.h"
@@ -15,13 +17,14 @@ using namespace std;
 using namespace ci;
 
 const char *vertexShaderGlsl = 
-	"attribute vec2 vTexCoord0;\n"
-	"attribute vec4 vPosition;\n"
-	"uniform mat4 uModelViewProjection;\n"
+	"#version 120\n"
+	"attribute vec2 ciTexCoord0;\n"
+	"attribute vec4 ciPosition;\n"
+	"uniform mat4 ciModelViewProjection;\n"
 	"void main()\n"
 	"{\n"
-		"gl_Position = uModelViewProjection * vPosition;\n"
-		"gl_TexCoord[0].xy = vTexCoord0;\n"
+		"gl_Position = ciModelViewProjection * ciPosition;\n"
+		"gl_TexCoord[0].xy = ciTexCoord0;\n"
 	"}\n";
 
 const char *voronoiShaderGlsl =
@@ -57,6 +60,7 @@ const char *voronoiShaderGlsl =
 	"}\n";
 	
 const char *distanceShaderGlsl =
+	"#version 120\n"
 	"#extension GL_ARB_texture_rectangle: enable\n"
 	"uniform sampler2DRect tex0;\n"
 	"void main() {\n"
@@ -77,6 +81,7 @@ ci::Surface32f calcDiscreteVoronoiGpu( const std::vector<ci::Vec2i> &points, int
 {
 	static gl::GlslProgRef voronoiShader = gl::GlslProg::create( vertexShaderGlsl, voronoiShaderGlsl );
 	
+	gl::GlslProgScope shaderScp( voronoiShader );
 	// allocate the FBOs
 	gl::Fbo::Format format;
 	gl::Texture::Format colorTexFmt;
@@ -110,7 +115,6 @@ ci::Surface32f calcDiscreteVoronoiGpu( const std::vector<ci::Vec2i> &points, int
 	}
 	
 	fbo[curFbo]->unbindFramebuffer();
-	voronoiShader->unbind();
 
 	// now curFbo contains the last pass of the voronoi diagram
 	return Surface32f( *fbo[curFbo]->getTexture() );
@@ -142,7 +146,7 @@ ci::Channel32f calcDistanceMapGpu( const vector<Vec2i> &points, int width, int h
 	gl::draw( encodePoints( points, width, height ), Vec2f::zero() );
 
 	// ping-pong between the two FBOs
-	voronoiShader->bind();
+	gl::context()->pushGlslProg( voronoiShader );
 	voronoiShader->uniform( "tex0", 0 );
 	int curFbo = 0;
 	int numPasses = log2ceil( std::max( width, height ) );
@@ -161,11 +165,10 @@ ci::Channel32f calcDistanceMapGpu( const vector<Vec2i> &points, int width, int h
 	
 	fbo[(curFbo+1)%2]->bindFramebuffer();
 	auto tex = fbo[curFbo]->getTexture();
-	tex->enableAndBind();
+	tex->bind();
 	gl::drawSolidRect( fbo[0]->getBounds(), Rectf(fbo[0]->getBounds()) );
 	fbo[(curFbo+1)%2]->unbindFramebuffer();
-	tex->disable();
-	distanceShader->unbind();
+	gl::context()->popGlslProg();
 	
 	return Channel32f( *fbo[(curFbo+1)%2]->getTexture() );
 }
