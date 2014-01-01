@@ -11,8 +11,6 @@ using namespace std;
 class ImmediateModeApp : public AppNative {
   public:
 	void setup();
-	void mouseDown( MouseEvent event );	
-	void update();
 	void draw();
 };
 
@@ -21,22 +19,9 @@ void ImmediateModeApp::setup()
 	gl::bindStockShader( gl::ShaderDef().color() );
 }
 
-void ImmediateModeApp::mouseDown( MouseEvent event )
-{
-}
-
-void ImmediateModeApp::update()
-{
-}
-
 void ImmediateModeApp::draw()
 {
-	// clear out the window with black
-	gl::clear( Color( 0, 0, 0 ) );
-	
-	gl::setMatricesWindow( getWindowSize() );
-
-	gl::color( Colorf( 1.0, 0.5f, 0.25f ) );
+	gl::clear( Color( 0, 0, 0 ) );	
 
 	gl::VertBatch vb( GL_TRIANGLES );
 		vb.color( 1, 0, 0 );
@@ -48,9 +33,4 @@ void ImmediateModeApp::draw()
 	vb.draw();
 }
 
-#if 0
-auto options = RendererGl::Options().coreProfile( false );
-#else
-auto options = RendererGl::Options();
-#endif
-CINDER_APP_NATIVE( ImmediateModeApp, RendererGl( options ) )
+CINDER_APP_NATIVE( ImmediateModeApp, RendererGl )

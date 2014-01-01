@@ -117,19 +117,9 @@ void ObjLoaderApp::draw()
 	gl::enableDepthRead();
 	
 	gl::clear( Color( 0.0f, 0.1f, 0.2f ) );
-	gl::disable( GL_CULL_FACE );
 
 	gl::setMatrices( mMayaCam.getCamera() );
 
-/*	Sphere boundingSphere = Sphere::calculateBoundingSphere( mMesh->getVertices() );
-	glColor3f( 1.0f, 1.0f, 1.0f );
-	gl::disableDepthWrite();
-	mTexture->disable();
-	mShader.unbind();
-	gl::draw( boundingSphere, 30 );
-	gl::enableDepthWrite();
-*/
-//	mShader.bind();
 	gl::pushMatrices();
 		gl::rotate( mArcball.getQuat() );
 		mBatch->draw();

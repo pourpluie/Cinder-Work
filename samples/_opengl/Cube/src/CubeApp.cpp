@@ -38,6 +38,7 @@ void RotatingCubeApp::setup()
 	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) );
 #endif
 	mBatch = gl::Batch::create( geom::Cube().texCoords().normals(), mGlsl );
+//	mBatch = gl::Batch::create( geom::Cube().colors(), mGlsl ); // per-vertex (face) coloring
 //	mBatch = gl::Batch::create( geom::Teapot().texCoords().normals().subdivision( 5 ), mGlsl );
 
 	gl::enableDepthWrite();

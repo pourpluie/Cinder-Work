@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		001858651873563F00E2D5DD /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 001858641873563F00E2D5DD /* assets */; };
 		0091D8F90E81B9330029341E /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0091D8F80E81B9330029341E /* OpenGL.framework */; };
 		00B784B30FF439BC000DE1D7 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784AF0FF439BC000DE1D7 /* Accelerate.framework */; };
 		00B784B40FF439BC000DE1D7 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */; };
@@ -109,6 +108,7 @@
 		29B97314FDCFA39411CA2CEA /* InstancedTeapots */ = {
 			isa = PBXGroup;
 			children = (
+				001858641873563F00E2D5DD /* assets */,
 				01B97315FEAEA392516A2CEA /* Blocks */,
 				29B97315FDCFA39411CA2CEA /* Headers */,
 				080E96DDFE201D6D7F000001 /* Source */,
@@ -131,7 +131,6 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				001858641873563F00E2D5DD /* assets */,
 				34B6001223EB4C3FBC10D20D /* CinderApp.icns */,
 				4B52892E87C240A8B9619E35 /* Info.plist */,
 			);
@@ -200,7 +199,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				70BA56F3EEAC494F90B78478 /* CinderApp.icns in Resources */,
-				001858651873563F00E2D5DD /* assets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
