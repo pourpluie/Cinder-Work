@@ -162,9 +162,8 @@ std::string	EnvironmentLegacy::generateFragmentShader( const ShaderDef &shader )
 
 GlslProgRef	EnvironmentLegacy::buildShader( const ShaderDef &shader )
 {
-std::cout << "Compat shader vert:" << std::endl << generateVertexShader( shader ).c_str() << std::endl;
-std::cout << "Compat shader frag:" << std::endl << generateFragmentShader( shader ).c_str() << std::endl;
-
+//std::cout << "Compat shader vert:" << std::endl << generateVertexShader( shader ).c_str() << std::endl;
+//std::cout << "Compat shader frag:" << std::endl << generateFragmentShader( shader ).c_str() << std::endl;
 	return GlslProg::create( GlslProg::Format().vertex( generateVertexShader( shader ).c_str() )
 												.fragment( generateFragmentShader( shader ).c_str() )
 												.attribLocation( "ciPosition", 0 )

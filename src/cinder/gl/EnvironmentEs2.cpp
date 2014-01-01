@@ -144,8 +144,8 @@ std::string	EnvironmentEs2::generateFragmentShader( const ShaderDef &shader )
 
 GlslProgRef	EnvironmentEs2::buildShader( const ShaderDef &shader )
 {
-	std::cout << "ES 2 Shader Vert: " << generateVertexShader( shader ) << std::endl;
-	std::cout << "ES 2 Shader Frag: " << generateFragmentShader( shader ) << std::endl;	
+//std::cout << "ES 2 Shader Vert: " << generateVertexShader( shader ) << std::endl;
+//std::cout << "ES 2 Shader Frag: " << generateFragmentShader( shader ) << std::endl;	
 	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
 }
 
