@@ -33,6 +33,9 @@ class BufferObj {
 	
 	GLenum				getUsage() const;
 	void				setUsage( GLenum usage );
+
+	//! Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_ARRAY_BUFFER -> GL_ARRAY_BUFFER_BINDING. Returns 0 on failure.
+	static GLuint		getBindingConstantForTarget( GLenum target );
 	
   protected:
 	BufferObj( GLenum target );

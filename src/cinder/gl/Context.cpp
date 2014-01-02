@@ -271,38 +271,9 @@ std::pair<Vec2i, Vec2i> Context::getScissor()
 // Buffer
 void Context::bindBuffer( GLenum target, GLuint id )
 {
-	auto cachedIt = mBufferBindingStack.find( target );
-	if( (cachedIt == mBufferBindingStack.end()) || cachedIt->second.empty() || ( cachedIt->second.back() != id ) ) {
-		// first time we've met this target; start an empty stack
-		if( cachedIt == mBufferBindingStack.end() )
-			mBufferBindingStack[target] = vector<int>();
-		mBufferBindingStack[target].push_back( id );
-		// for these targets we need to alert the VAO
-		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
-			VaoRef vao = getVao();
-			if( vao )
-				vao->reflectBindBufferImpl( target, id );
-			else
-				glBindBuffer( target, id );
-		}
-		else {
-			glBindBuffer( target, id );
-		}
-	}
-}
-
-void Context::pushBufferBinding( GLenum target, GLuint id )
-{
-	auto cachedIt = mBufferBindingStack.find( target );
-	int existing = -1;
-	if( cachedIt == mBufferBindingStack.end() )
-		mBufferBindingStack[target] = vector<int>();
-	else if( ! cachedIt->second.empty() )
-		existing = cachedIt->second.back();
-
-	mBufferBindingStack[target].push_back( id );
-	
-	if( existing != id ) {
+	GLuint prevValue = getBufferBinding( target );
+	mBufferBindingStack[target].push_back( prevValue );
+	if( prevValue != id ) {
 		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
 			VaoRef vao = getVao();
 			if( vao )
@@ -315,63 +286,55 @@ void Context::pushBufferBinding( GLenum target, GLuint id )
 	}
 }
 
+void Context::pushBufferBinding( GLenum target, GLuint id )
+{
+	pushBufferBinding( target );
+	bindBuffer( target, id );
+}
+
+void Context::pushBufferBinding( GLenum target )
+{
+	GLuint curValue = getBufferBinding( target );
+	mBufferBindingStack[target].push_back( curValue );
+}
+
 void Context::popBufferBinding( GLenum target )
 {
-	GLuint existing = getBufferBinding( target );
+	GLuint prevValue = getBufferBinding( target );
 	auto cachedIt = mBufferBindingStack.find( target );
-	if( ( cachedIt != mBufferBindingStack.end() ) && ( ! cachedIt->second.empty() ) ) {
-		cachedIt->second.pop_back();
-		if( ( ! cachedIt->second.empty() ) && ( existing != cachedIt->second.back() ) ) {
-			if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
-				VaoRef vao = getVao();
-				if( vao )
-					vao->reflectBindBufferImpl( target, cachedIt->second.back() );
-				else
-					glBindBuffer( target, cachedIt->second.back() );
-			}
+	cachedIt->second.pop_back();
+	if( ! cachedIt->second.empty() && cachedIt->second.back() != prevValue ) {
+		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
+			VaoRef vao = getVao();
+			if( vao )
+				vao->reflectBindBufferImpl( target, cachedIt->second.back() );
 			else
 				glBindBuffer( target, cachedIt->second.back() );
 		}
+		else
+			glBindBuffer( target, cachedIt->second.back() );
 	}
 }
 
 GLuint Context::getBufferBinding( GLenum target )
 {
 	auto cachedIt = mBufferBindingStack.find( target );
-	if( (cachedIt == mBufferBindingStack.end()) || cachedIt->second.empty() || ( cachedIt->second.back() == -1 ) ) {
-		GLint queriedInt = -1;
-		switch( target ) {
-			case GL_ARRAY_BUFFER:
-				glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &queriedInt );
-			break;
-			case GL_ELEMENT_ARRAY_BUFFER:
-				glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
-			break;
-#if ! defined( CINDER_GLES )
-			case GL_PIXEL_PACK_BUFFER:
-				glGetIntegerv( GL_PIXEL_PACK_BUFFER_BINDING, &queriedInt );
-			break;
-			case GL_PIXEL_UNPACK_BUFFER:
-				glGetIntegerv( GL_PIXEL_UNPACK_BUFFER_BINDING, &queriedInt );
-			break;
-			case GL_TEXTURE_BUFFER:
-				glGetIntegerv( GL_TEXTURE_BINDING_BUFFER, &queriedInt );
-			break;
-			case GL_TRANSFORM_FEEDBACK_BUFFER:
-				glGetIntegerv( GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, &queriedInt );
-			break;
-			case GL_UNIFORM_BUFFER:
-				glGetIntegerv( GL_UNIFORM_BUFFER_BINDING, &queriedInt );
-			break;
-#endif
-			default:
-				; // warning?
+	if( (cachedIt == mBufferBindingStack.end()) || ( cachedIt->second.empty() ) || ( cachedIt->second.back() == -1 ) ) {
+		GLint queriedInt = 0;
+		GLenum targetBinding = BufferObj::getBindingConstantForTarget( target );
+		if( targetBinding > 0 ) {
+			glGetIntegerv( targetBinding, &queriedInt );
 		}
+		else
+			return 0; // warning?
 		
-		// first time we've met this target; start an empty stack
-		if( cachedIt == mBufferBindingStack.end() )
-			mBufferBindingStack[target] = vector<int>();
-		mBufferBindingStack[target].back() = queriedInt;
+		if( cachedIt->second.empty() ) { // bad - empty stack; push twice to allow for the pop later and not lead to an empty stack
+			mBufferBindingStack[target] = vector<GLint>();
+			mBufferBindingStack[target].push_back( queriedInt );
+			mBufferBindingStack[target].push_back( queriedInt );			
+		}
+		else
+			mBufferBindingStack[target].back() = queriedInt;
 		return (GLuint)queriedInt;
 	}
 	else
@@ -445,29 +408,22 @@ GlslProgRef Context::getGlslProg()
 // TextureBinding
 void Context::bindTexture( GLenum target, GLuint textureId )
 {
-	auto cachedIt = mTextureBindingStack.find( target );
-	if( ( cachedIt == mTextureBindingStack.end() ) || ( cachedIt->second.empty() ) || ( cachedIt->second.back() != textureId ) ) {
-		if( cachedIt->second.empty() ) {
-			mTextureBindingStack[target] = vector<GLint>();
-			mTextureBindingStack[target].push_back( textureId );
-		}
-		else
-			mTextureBindingStack[target].back() = textureId;
+	GLuint prevValue = getTextureBinding( target );
+	mTextureBindingStack[target].push_back( prevValue );
+	if( prevValue != textureId )
 		glBindTexture( target, textureId );
-	}
 }
 
 void Context::pushTextureBinding( GLenum target, GLuint textureId )
 {
-	bool needsToBeSet = true;
-	auto cached = mTextureBindingStack.find( target );
-	if( ( cached != mTextureBindingStack.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == textureId ) )
-		needsToBeSet = false;
-	else if( cached == mTextureBindingStack.end() )
-		mTextureBindingStack[target] = vector<GLint>();
-	mTextureBindingStack[target].push_back( textureId );
-	if( needsToBeSet )
-		glBindTexture( target, textureId );
+	pushTextureBinding( target );
+	bindTexture( target, textureId );
+}
+
+void Context::pushTextureBinding( GLenum target )
+{
+	GLuint curValue = getTextureBinding( target );
+	mTextureBindingStack[target].push_back( curValue );
 }
 
 void Context::popTextureBinding( GLenum target )
@@ -477,9 +433,8 @@ void Context::popTextureBinding( GLenum target )
 		GLint prevValue = cached->second.back();
 		cached->second.pop_back();
 		if( ! cached->second.empty() ) {
-			if( cached->second.back() != prevValue ) {
+			if( cached->second.back() != prevValue )
 				glBindTexture( target, cached->second.back() );
-			}
 		}
 	}
 }
@@ -488,7 +443,7 @@ GLuint Context::getTextureBinding( GLenum target )
 {
 	auto cachedIt = mTextureBindingStack.find( target );
 	if( (cachedIt == mTextureBindingStack.end()) || ( cachedIt->second.empty() ) || ( cachedIt->second.back() == -1 ) ) {
-		GLint queriedInt = -1;
+		GLint queriedInt = 0;
 		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
 		if( targetBinding > 0 ) {
 			glGetIntegerv( targetBinding, &queriedInt );
@@ -496,9 +451,10 @@ GLuint Context::getTextureBinding( GLenum target )
 		else
 			return 0; // warning?
 		
-		if( cachedIt->second.empty() ) {
+		if( cachedIt->second.empty() ) { // bad - empty stack; push twice to allow for the pop later and not lead to an empty stack
 			mTextureBindingStack[target] = vector<GLint>();
 			mTextureBindingStack[target].push_back( queriedInt );
+			mTextureBindingStack[target].push_back( queriedInt );			
 		}
 		else
 			mTextureBindingStack[target].back() = queriedInt;

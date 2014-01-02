@@ -107,5 +107,29 @@ void BufferObj::unbind() const
 {
 	context()->bindBuffer( mTarget, 0 );
 }
+
+GLuint BufferObj::getBindingConstantForTarget( GLenum target )
+{
+	switch( target ) {
+		case GL_ARRAY_BUFFER:
+			return GL_ARRAY_BUFFER_BINDING;
+		case GL_ELEMENT_ARRAY_BUFFER:
+			return GL_ELEMENT_ARRAY_BUFFER_BINDING;
+#if ! defined( CINDER_GLES )
+		case GL_PIXEL_PACK_BUFFER:
+			return GL_PIXEL_PACK_BUFFER_BINDING;
+		case GL_PIXEL_UNPACK_BUFFER:
+			return GL_PIXEL_UNPACK_BUFFER_BINDING;
+		case GL_TEXTURE_BUFFER:
+			return GL_TEXTURE_BINDING_BUFFER;
+		case GL_TRANSFORM_FEEDBACK_BUFFER:
+			return GL_TRANSFORM_FEEDBACK_BUFFER_BINDING;
+		case GL_UNIFORM_BUFFER:
+			return GL_UNIFORM_BUFFER_BINDING;
+#endif
+		default:
+			return 0;
+	}
+}
 	
-} }
+} } // namespace cinder::gl

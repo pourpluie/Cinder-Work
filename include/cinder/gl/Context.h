@@ -85,13 +85,17 @@ class Context {
 	//! Returns a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively of the scissor box
 	std::pair<Vec2i, Vec2i>	getScissor();
 
-	//! Analogous to glBindBuffer()
+	//! Analogous to glBindBuffer( \a target, \a id )
 	void		bindBuffer( GLenum target, GLuint id );
+	//! Pushes and binds buffer object \a id for the target \a target
 	void		pushBufferBinding( GLenum target, GLuint id );
+	//! Duplicates and binds buffer object for the target \a target
+	void		pushBufferBinding( GLenum target );
+	//! Pops the buffer binding for the target \a target
 	void		popBufferBinding( GLenum target );
-	//! Returns the value currently bound to \a target
+	//! Returns the current object binding for \a target. If not cached, queries the GL for the current value (and caches it).
 	GLuint		getBufferBinding( GLenum target );
-	//! Updates the binding stack without rebinding.
+	//! Updates the binding stack without rebinding. Not generally necessary to call directly.
 	void		reflectBufferBinding( GLenum target, GLuint id );
 
 	void			pushGlslProg( const GlslProgRef &prog );
@@ -99,12 +103,17 @@ class Context {
 	void			bindGlslProg( const GlslProgRef &prog );
 	GlslProgRef		getGlslProg();
 
-	//! Analogous to glBindTexture()
+	//! Analogous to glBindTexture( \a target, \a textureId )
 	void		bindTexture( GLenum target, GLuint textureId );
-	void		pushTextureBinding( GLenum target, GLuint texture );
+	//! Pushes and binds \a textureId for the target \a target
+	void		pushTextureBinding( GLenum target, GLuint textureId );
+	//! Duplicates and pushes the texture binding for the target \a target
+	void		pushTextureBinding( GLenum target );
+	//! Pops the texture binding for the target \a target
 	void		popTextureBinding( GLenum target );	
+	//! Returns the current texture binding for \a target. If not cached, queries the GL for the current value (and caches it).
 	GLuint		getTextureBinding( GLenum target );
-	//! No-op if texture wasn't bound to target, otherwise reflects the binding as 0 (in accordance with what GL has done)
+	//! No-op if texture wasn't bound to target, otherwise reflects the binding as 0 (in accordance with what GL has done automatically)
 	void		textureDeleted( GLenum target, GLuint textureId );
 
 	//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
