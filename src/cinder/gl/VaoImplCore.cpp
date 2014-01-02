@@ -119,6 +119,8 @@ void VaoImplCore::vertexAttribDivisorImpl( GLuint index, GLuint divisor )
 
 	if( glVertexAttribDivisor ) // not always available
 		glVertexAttribDivisor( index, divisor );
+	else if( glVertexAttribDivisorARB )
+		glVertexAttribDivisorARB( index, divisor );
 }
 
 void VaoImplCore::reflectBindBufferImpl( GLenum target, GLuint buffer )
