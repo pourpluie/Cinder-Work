@@ -147,10 +147,18 @@ Context* Context::getCurrent()
 void Context::bindVao( const VaoRef &vao )
 {
 	VaoRef prevVao = getVao();
+	if( setStackState( mVaoStack, vao ) ) {
+		if( prevVao )
+			prevVao->unbindImpl( this );
+		if( vao )
+			vao->bindImpl( this );	
+	}
+}
 
-	if( mVaoStack.empty() || (prevVao != vao) ) {
-		if( ! mVaoStack.empty() )
-			mVaoStack.back() = vao;
+void Context::pushVao( const VaoRef &vao )
+{
+	VaoRef prevVao = getVao();
+	if( pushStackState( mVaoStack, vao ) ) {
 		if( prevVao )
 			prevVao->unbindImpl( this );
 		if( vao )
@@ -158,16 +166,9 @@ void Context::bindVao( const VaoRef &vao )
 	}
 }
 
-void Context::pushVao( const VaoRef &vao )
+void Context::pushVao()
 {
-	VaoRef prevVao = getVao();
-	mVaoStack.push_back( vao );
-	if( prevVao != vao ) {
-		if( prevVao )
-			prevVao->unbindImpl( this );
-		if( vao )
-			vao->bindImpl( this );
-	}
+	mVaoStack.push_back( getVao() );
 }
 
 void Context::popVao()
@@ -213,7 +214,11 @@ void Context::pushViewport( const std::pair<Vec2i, Vec2i> &viewport )
 		glViewport( viewport.first.x, viewport.first.y, viewport.second.x, viewport.second.y );
 }
 
-//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
+void Context::pushViewport( const std::pair<Vec2i, Vec2i> &viewport )
+{
+	mViewportStack.push_back( getViewport() );
+}
+
 void Context::popViewport()
 {
 	if( mViewportStack.empty() || popStackState( mViewportStack ) ) {
@@ -227,6 +232,8 @@ std::pair<Vec2i, Vec2i> Context::getViewport()
 	if( mViewportStack.empty() ) {
 		GLint params[4];
 		glGetIntegerv( GL_VIEWPORT, params );
+		// push twice in anticipation of later pop
+		mViewportStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
 		mViewportStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
 	}
 
@@ -247,6 +254,11 @@ void Context::pushScissor( const std::pair<Vec2i, Vec2i> &scissor )
 		glScissor( scissor.first.x, scissor.first.y, scissor.second.x, scissor.second.y );
 }
 
+void Context::pushScissor()
+{
+	mScissorStack.push_back( getScissor() );
+}
+
 //! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
 void Context::popScissor()
 {
@@ -260,7 +272,9 @@ std::pair<Vec2i, Vec2i> Context::getScissor()
 {
 	if( mScissorStack.empty() ) {
 		GLint params[4];
-		glGetIntegerv( GL_SCISSOR_BOX, params );
+		glGetIntegerv( GL_SCISSOR_BOX, params ); 
+		// push twice in anticipation of later pop
+		mScissorStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
 		mScissorStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
 	}
 
@@ -721,6 +735,8 @@ GLboolean Context::getBoolState( GLenum cap )
 		return cached->second.back();
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Templated stack management routines
 template<typename T>
 bool Context::pushStackState( std::vector<T> &stack, T value )
 {
@@ -769,23 +785,6 @@ bool Context::getStackState( std::vector<T> &stack, T *result )
 		return true;
 	}
 }
-
-/*
-template<>
-GLint Context::getState<GLint>( GLenum cap )
-{
-	auto cached = mStateStackInt.find( cap );
-	if( ( cached == mStateStackInt.end() ) || cached->second.empty() ) {
-		GLint result;
-		glGetIntegerv( cap, &result );
-		if( cached->second.empty() )
-			cached->second = vector<GLint>();
-		mStateStackInt[cap].push_back( result );
-		return result;
-	}
-	else
-		return cached->second.back();
-}*/
 
 /////////////////////////////////////////////////////////////////////////////////////
 // This routine confirms that the ci::gl::Context's understanding of the world matches OpenGL's

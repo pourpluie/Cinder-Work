@@ -62,7 +62,11 @@ class Context {
 	
 	//! Binds a VAO. Consider using a VaoScope instead.
 	void		bindVao( const VaoRef &vao );
+	//! Pushes and binds the VAO \a vao
 	void		pushVao( const VaoRef &vao );
+	//! Duplicates and pushes the current VAO binding 
+	void		pushVao();
+	//! Pops the current VAO binding
 	void		popVao();
 	//! Returns the currently bound VAO
 	VaoRef		getVao();
@@ -71,6 +75,8 @@ class Context {
 	void					viewport( const std::pair<Vec2i, Vec2i> &viewport );
 	//! Pushes the viewport based on a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively
 	void					pushViewport( const std::pair<Vec2i, Vec2i> &viewport );
+	//! Duplicates and pushes the top of the Viewport stack
+	void					pushViewport();
 	//! Pops the viewport
 	void					popViewport();
 	//! Returns a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively of the viewport
@@ -80,6 +86,8 @@ class Context {
 	void					setScissor( const std::pair<Vec2i, Vec2i> &scissor );
 	//! Pushes the scissor box based on a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively	
 	void					pushScissor( const std::pair<Vec2i, Vec2i> &scissor );
+	//! Duplicates and pushes the top of the Scissor box stack
+	void					pushScissor();
 	//! Pushes the scissor box based on a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively	
 	void					popScissor();
 	//! Returns a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively of the scissor box
@@ -89,7 +97,7 @@ class Context {
 	void		bindBuffer( GLenum target, GLuint id );
 	//! Pushes and binds buffer object \a id for the target \a target
 	void		pushBufferBinding( GLenum target, GLuint id );
-	//! Duplicates and binds buffer object for the target \a target
+	//! Duplicates and pushes the buffer binding for the target \a target
 	void		pushBufferBinding( GLenum target );
 	//! Pops the buffer binding for the target \a target
 	void		popBufferBinding( GLenum target );
@@ -213,7 +221,7 @@ class Context {
 	//! Returns \c true if \a value is different from the previous top of the stack
 	template<typename T>
 	bool		pushStackState( std::vector<T> &stack, T value );
-	//! Returns \c true if the new top of \a stack is different from the previous top
+	//! Returns \c true if the new top of \a stack is different from the previous top, or the stack is empty
 	template<typename T>
 	bool		popStackState( std::vector<T> &stack );
 	//! Returns \c true if \a value is different from the previous top of the stack
