@@ -62,7 +62,7 @@ void FBOBasicApp::renderSceneToFbo()
 	gl::multModelView( mTorusRotation );
 	
 	// render an orange torus, with no textures
-	gl::ShaderScope shaderScp( gl::getStockShader( gl::ShaderDef().color() ) );
+	gl::GlslProgScope shaderScp( gl::getStockShader( gl::ShaderDef().color() ) );
 	gl::color( Color( 1.0f, 0.5f, 0.25f ) );
 //	gl::drawTorus( 1.4f, 0.3f, 32, 64 );
 	gl::drawCube( Vec3f::zero(), Vec3f( 2.2f, 2.2f, 2.2f ) );
@@ -97,7 +97,7 @@ void FBOBasicApp::draw()
 
 	// draw a cube textured with the FBO
 	{
-		gl::ShaderScope shaderScp( gl::getStockShader( gl::ShaderDef().texture() ) );
+		gl::GlslProgScope shaderScp( gl::getStockShader( gl::ShaderDef().texture() ) );
 		gl::drawCube( Vec3f::zero(), Vec3f( 2.2f, 2.2f, 2.2f ) );
 	}
 

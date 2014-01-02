@@ -66,33 +66,33 @@ std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )
 {
 	std::string s;
 	
-	s +=		"uniform mat4	uModelViewProjection;\n"
+	s +=		"uniform mat4	ciModelViewProjection;\n"
 				"\n"
-				"attribute vec4		vPosition;\n"
+				"attribute vec4		ciPosition;\n"
 				;
 			
 	if( shader.mTextureMapping ) {
-		s +=	"attribute vec2		vTexCoord0;\n"
+		s +=	"attribute vec2		ciTexCoord0;\n"
 				"varying highp vec2	TexCoord;\n"
 				;
 	}
 	if( shader.mColor ) {
-		s +=	"attribute vec4		vColor;\n"
+		s +=	"attribute vec4		ciColor;\n"
 				"varying vec4		Color;\n"
 				;
 	}
 
 	s +=		"void main( void )\n"
 				"{\n"
-				"	gl_Position	= uModelViewProjection * vPosition;\n"
+				"	gl_Position	= ciModelViewProjection * ciPosition;\n"
 				;
 				
 	if( shader.mTextureMapping ) {	
-		s +=	"	TexCoord = vTexCoord0;\n"
+		s +=	"	TexCoord = ciTexCoord0;\n"
 				;
 	}
 	if( shader.mColor ) {
-		s +=	"	Color = vColor;\n"
+		s +=	"	Color = ciColor;\n"
 				;
 	}
 	
@@ -144,8 +144,8 @@ std::string	EnvironmentEs2::generateFragmentShader( const ShaderDef &shader )
 
 GlslProgRef	EnvironmentEs2::buildShader( const ShaderDef &shader )
 {
-	std::cout << "ES 2 Shader Vert: " << generateVertexShader( shader ) << std::endl;
-	std::cout << "ES 2 Shader Frag: " << generateFragmentShader( shader ) << std::endl;	
+//std::cout << "ES 2 Shader Vert: " << generateVertexShader( shader ) << std::endl;
+//std::cout << "ES 2 Shader Frag: " << generateFragmentShader( shader ) << std::endl;	
 	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
 }
 

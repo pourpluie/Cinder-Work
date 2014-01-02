@@ -504,25 +504,25 @@ void TriMesh::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const 
 
 	switch( attr ) {
 		case geom::Attrib::POSITION:
-			copyData( dims, srcData, numVertices, mPositionsDims, 0, mPositions.data() );
+			geom::copyData( dims, srcData, numVertices, mPositionsDims, 0, mPositions.data() );
 		break;
 		case geom::Attrib::COLOR:
-			copyData( dims, srcData, numVertices, mColorsDims, 0, mColors.data() );
+			geom::copyData( dims, srcData, numVertices, mColorsDims, 0, mColors.data() );
 		break;
 		case geom::Attrib::TEX_COORD_0:
-			copyData( dims, srcData, numVertices, mTexCoords0Dims, 0, mTexCoords0.data() );
+			geom::copyData( dims, srcData, numVertices, mTexCoords0Dims, 0, mTexCoords0.data() );
 		break;
 		case geom::Attrib::TEX_COORD_1:
-			copyData( dims, srcData, numVertices, mTexCoords1Dims, 0, mTexCoords1.data() );
+			geom::copyData( dims, srcData, numVertices, mTexCoords1Dims, 0, mTexCoords1.data() );
 		break;
 		case geom::Attrib::TEX_COORD_2:
-			copyData( dims, srcData, numVertices, mTexCoords2Dims, 0, mTexCoords2.data() );
+			geom::copyData( dims, srcData, numVertices, mTexCoords2Dims, 0, mTexCoords2.data() );
 		break;
 		case geom::Attrib::TEX_COORD_3:
-			copyData( dims, srcData, numVertices, mTexCoords3Dims, 0, mTexCoords3.data() );
+			geom::copyData( dims, srcData, numVertices, mTexCoords3Dims, 0, mTexCoords3.data() );
 		break;
 		case geom::Attrib::NORMAL:
-			copyData( dims, srcData, numVertices, 3, 0, (float*)mNormals.data() );
+			geom::copyData( dims, srcData, numVertices, 3, 0, (float*)mNormals.data() );
 		break;
 		default:
 			throw geom::ExcMissingAttrib();

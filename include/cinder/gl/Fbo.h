@@ -82,7 +82,7 @@ class Renderbuffer {
 };
 
 //! Represents an OpenGL Framebuffer Object.
-class Fbo {
+class Fbo : public std::enable_shared_from_this<Fbo> {
   public:
 	struct Format;
 
@@ -115,7 +115,7 @@ class Fbo {
 	//! Unbinds the texture associated with an Fbo attachment
 	void			unbindTexture( int textureUnit = 0, GLenum attachment = GL_COLOR_ATTACHMENT0 );
 	//! Binds the Fbo as the currently active framebuffer, meaning it will receive the results of all subsequent rendering until it is unbound
-	void 			bindFramebuffer();
+	void 			bindFramebuffer( GLenum target = GL_FRAMEBUFFER );
 	//! Unbinds the Fbo as the currently active framebuffer, restoring the primary context as the target for all subsequent rendering
 	static void 	unbindFramebuffer();
 
@@ -126,6 +126,9 @@ class Fbo {
 	GLuint		getMultisampleId() const { return mMultisampleFramebufferId; }
 	//! Returns the resolve FBO, which is the same value as getId() without multisampling
 	GLuint		getResolveId() const { return mId; }
+
+	//! Marks multisampling framebuffer and mipmaps as needing updates. Not generally necessary to call directly.
+	void		markAsDirty();
 
 #if ! defined( CINDER_GLES )
 	//! Copies to FBO \a dst from \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
@@ -239,7 +242,7 @@ class Fbo {
 		
 		std::map<GLenum,RenderbufferRef>	mAttachmentsBuffer;
 		std::map<GLenum,RenderbufferRef>	mAttachmentsMultisampleBuffer;
-		std::map<GLenum,TextureRef>			mAttachmentsTexture;		
+		std::map<GLenum,TextureRef>			mAttachmentsTexture;
 
 		friend class Fbo;
 	};

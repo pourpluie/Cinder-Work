@@ -607,10 +607,10 @@ uint8_t	ObjWriteTarget::getAttribDims( geom::Attrib attr ) const
 
 void ObjWriteTarget::writeData( const std::string &typeSpecifier, uint8_t dims, size_t strideBytes, const float *srcData, size_t count )
 {
-	const float *data = srcData;
 	if( strideBytes == 0 )
 		strideBytes = sizeof(float) * dims;
 	for( size_t v = 0; v < count; ++v ) {
+		const float *data = (const float*)(((const uint8_t*)srcData) + v * strideBytes);
 		ostringstream os;
 		os << typeSpecifier << " ";
 		for( uint8_t d = 0; d < dims; ++d ) {
@@ -619,15 +619,27 @@ void ObjWriteTarget::writeData( const std::string &typeSpecifier, uint8_t dims, 
 			else os << ' ';
 		}
 		mStream->writeData( os.str().c_str(), os.str().length() );
-		data = (const float*)(((const uint8_t*)srcData) + strideBytes);
 	}
 }
 
 void ObjWriteTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideBytes, const float *srcData, size_t count )
 {
 	switch( attr ) {
-		case geom::Attrib::POSITION:
-			writeData( "v", dims, strideBytes, srcData, count );
+		case geom::Attrib::POSITION: {
+			if( dims == 2 ) { // we need to convert to 3d
+				if( strideBytes == 0 )
+					strideBytes = sizeof(float) * 2;
+				unique_ptr<float> tempData( new float[count * 3] );
+				for( int i = 0; i < count; ++i ) {
+					tempData.get()[i*3+0] = ((const float*)(((const uint8_t*)srcData) + i*strideBytes))[0];
+					tempData.get()[i*3+1] = ((const float*)(((const uint8_t*)srcData) + i*strideBytes))[1];
+					tempData.get()[i*3+2] = 0;
+				}
+				writeData( "v", 3, 0, tempData.get(), count );
+			}
+			else
+				writeData( "v", dims, strideBytes, srcData, count );
+		}
 		break;
 		case geom::Attrib::TEX_COORD_0:
 			if( mIncludeTexCoords ) {
@@ -641,6 +653,8 @@ void ObjWriteTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideB
 				mHasNormals = true;
 			}
 		break;
+		default:
+		break;
 	}
 }
 
@@ -650,11 +664,11 @@ void ObjWriteTarget::copyIndices( geom::Primitive primitive, const uint32_t *sou
 		ostringstream os;
 		os << "f ";
 		if( mHasNormals && mHasTexCoords ) {
-			os << source[i]+1 << "/" << source[i+0]+1 << "/" << source[i+0]+1 << " ";
+			os << source[i+0]+1 << "/" << source[i+0]+1 << "/" << source[i+0]+1 << " ";
 			os << source[i+1]+1 << "/" << source[i+1]+1 << "/" << source[i+1]+1 << " ";
 			os << source[i+2]+1 << "/" << source[i+2]+1 << "/" << source[i+2]+1 << " ";
 		}
-		else if ( mHasNormals ) {
+		else if( mHasNormals ) {
 			os << source[i+0]+1 << "//" << source[i+0]+1 << " ";
 			os << source[i+1]+1 << "//" << source[i+1]+1 << " ";
 			os << source[i+2]+1 << "//" << source[i+2]+1 << " ";

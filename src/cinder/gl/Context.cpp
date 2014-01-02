@@ -1,10 +1,7 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Environment.h"
-#include "cinder/gl/fog.h"
 #include "cinder/gl/GlslProg.h"
-#include "cinder/gl/Light.h"
-#include "cinder/gl/Material.h"
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
@@ -40,11 +37,9 @@ namespace cinder { namespace gl {
 
 Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	: mPlatformData( platformData ),
-	mColor( ColorAf::white() ), mCachedActiveTexture( 0 )
+	mColor( ColorAf::white() )
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	,mCachedFramebuffer( -1 )
-#else
-	,mCachedReadFramebuffer( -1 ), mCachedDrawFramebuffer( -1 )
 #endif
 #if ! defined( CINDER_GLES )
 	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL )
@@ -52,24 +47,45 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 {
 	// setup default VAO
 #if ! defined( CINDER_GLES )
-	mCachedVao = mDefaultVao = Vao::create();
+	mDefaultVao = Vao::create();
+	mVaoStack.push_back( mDefaultVao );
+	mDefaultVao->setContext( this );
 	mDefaultVao->bindImpl( NULL );
+	
+	mBufferBindingStack[GL_ARRAY_BUFFER] = vector<int>();
+	mBufferBindingStack[GL_ARRAY_BUFFER].push_back( 0 );
+	mBufferBindingStack[GL_ELEMENT_ARRAY_BUFFER] = vector<int>();
+	mBufferBindingStack[GL_ELEMENT_ARRAY_BUFFER].push_back( 0 );
+	 
+	mReadFramebufferStack.push_back( 0 );
+	mDrawFramebufferStack.push_back( 0 );	
 #endif
+	mActiveTextureStack.push_back( 0 );
 
 	mImmediateMode = gl::VertBatch::create();
 	
-	GLint params[ 4 ];
+	GLint params[4];
 	glGetIntegerv( GL_VIEWPORT, params );
-	mViewport = std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) );
+	mViewportStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
     
-    glGetIntegerv( GL_SCISSOR_BOX, params );
-    mScissor = std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) );
+	glGetIntegerv( GL_SCISSOR_BOX, params );
+	mScissorStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
+
+	GLint queriedInt;
+	glGetIntegerv( GL_BLEND_SRC_RGB, &queriedInt );
+	mBlendSrcRgbStack.push_back( queriedInt );
+	glGetIntegerv( GL_BLEND_DST_RGB, &queriedInt );
+	mBlendDstRgbStack.push_back( queriedInt );
+	glGetIntegerv( GL_BLEND_SRC_ALPHA, &queriedInt );
+	mBlendSrcAlphaStack.push_back( queriedInt );
+	glGetIntegerv( GL_BLEND_DST_ALPHA, &queriedInt );
+	mBlendDstAlphaStack.push_back( queriedInt );
     
-	
     mModelViewStack.push_back( Matrix44f() );
 	mModelViewStack.back().setToIdentity();
 	mProjectionStack.push_back( Matrix44f() );
 	mProjectionStack.back().setToIdentity();
+	mGlslProgStack.push_back( GlslProgRef() );
 }
 
 Context::~Context()
@@ -128,61 +144,201 @@ Context* Context::getCurrent()
 
 //////////////////////////////////////////////////////////////////
 // VAO
-void Context::vaoBind( const VaoRef &vao )
+void Context::bindVao( const VaoRef &vao )
 {
-	if( mCachedVao != vao ) {
-		if( mCachedVao )
-			mCachedVao->unbindImpl( this );
-		if( vao ) {
+	VaoRef prevVao = getVao();
+
+	if( mVaoStack.empty() || (prevVao != vao) ) {
+		if( ! mVaoStack.empty() )
+			mVaoStack.back() = vao;
+		if( prevVao )
+			prevVao->unbindImpl( this );
+		if( vao )
 			vao->bindImpl( this );
-		}
-		
-		mCachedVao = vao;
 	}
 }
 
-VaoRef Context::vaoGet()
+void Context::pushVao( const VaoRef &vao )
 {
-	return mCachedVao;
+	VaoRef prevVao = getVao();
+	mVaoStack.push_back( vao );
+	if( prevVao != vao ) {
+		if( prevVao )
+			prevVao->unbindImpl( this );
+		if( vao )
+			vao->bindImpl( this );
+	}
+}
+
+void Context::popVao()
+{
+	VaoRef prevVao = getVao();
+
+	if( ! mVaoStack.empty() ) {
+		mVaoStack.pop_back();
+		if( ! mVaoStack.empty() ) {
+			if( prevVao != mVaoStack.back() ) {
+				if( prevVao )
+					prevVao->unbindImpl( this );
+				if( mVaoStack.back() )
+					mVaoStack.back()->bindImpl( this );
+			}
+		}
+		else {
+			if( prevVao )
+				prevVao->unbindImpl( this );
+		}
+	}
+}
+
+VaoRef Context::getVao()
+{
+	if( ! mVaoStack.empty() )
+		return mVaoStack.back();
+	else
+		return VaoRef();
 }
 
 //////////////////////////////////////////////////////////////////
 // Viewport
-	
-void Context::setViewport( const std::pair<Vec2i, Vec2i> &viewport )
+void Context::viewport( const std::pair<Vec2i, Vec2i> &viewport )
 {
-	mViewport = viewport;
-	glViewport( mViewport.first.x, mViewport.first.y, mViewport.second.x, mViewport.second.y );
+	if( setStackState( mViewportStack, viewport ) )
+		glViewport( viewport.first.x, viewport.first.y, viewport.second.x, viewport.second.y );
+}
+
+void Context::pushViewport( const std::pair<Vec2i, Vec2i> &viewport )
+{
+	if( pushStackState( mViewportStack, viewport ) )
+		glViewport( viewport.first.x, viewport.first.y, viewport.second.x, viewport.second.y );
+}
+
+//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
+void Context::popViewport()
+{
+	if( mViewportStack.empty() || popStackState( mViewportStack ) ) {
+		auto viewport = getViewport();
+		glViewport( viewport.first.x, viewport.first.y, viewport.second.x, viewport.second.y );
+	}
+}
+
+std::pair<Vec2i, Vec2i> Context::getViewport()
+{
+	if( mViewportStack.empty() ) {
+		GLint params[4];
+		glGetIntegerv( GL_VIEWPORT, params );
+		mViewportStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
+	}
+
+	return mViewportStack.back();
 }
     
 //////////////////////////////////////////////////////////////////
 // Scissor Test
 void Context::setScissor( const std::pair<Vec2i, Vec2i> &scissor )
 {
-	mScissor = scissor;
-	glScissor( mScissor.first.x, mScissor.first.y, mScissor.second.x, mScissor.second.y );
+	if( setStackState( mScissorStack, scissor ) )
+		glScissor( scissor.first.x, scissor.first.y, scissor.second.x, scissor.second.y );
+}
+
+void Context::pushScissor( const std::pair<Vec2i, Vec2i> &scissor )
+{
+	if( pushStackState( mScissorStack, scissor ) )
+		glScissor( scissor.first.x, scissor.first.y, scissor.second.x, scissor.second.y );
+}
+
+//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
+void Context::popScissor()
+{
+	if( mScissorStack.empty() || popStackState( mScissorStack ) ) {
+		auto scissor = getScissor();
+		glScissor( scissor.first.x, scissor.first.y, scissor.second.x, scissor.second.y );
+	}
+}
+
+std::pair<Vec2i, Vec2i> Context::getScissor()
+{
+	if( mScissorStack.empty() ) {
+		GLint params[4];
+		glGetIntegerv( GL_SCISSOR_BOX, params );
+		mScissorStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
+	}
+
+	return mScissorStack.back();
 }
 
 //////////////////////////////////////////////////////////////////
 // Buffer
 void Context::bindBuffer( GLenum target, GLuint id )
 {
-	if( mCachedBuffer[target] != id ) {
-		mCachedBuffer[target] = id;
-		glBindBuffer( target, id );
+	auto cachedIt = mBufferBindingStack.find( target );
+	if( (cachedIt == mBufferBindingStack.end()) || cachedIt->second.empty() || ( cachedIt->second.back() != id ) ) {
+		// first time we've met this target; start an empty stack
+		if( cachedIt == mBufferBindingStack.end() )
+			mBufferBindingStack[target] = vector<int>();
+		mBufferBindingStack[target].push_back( id );
+		// for these targets we need to alert the VAO
 		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
-			VaoRef vao = vaoGet();
-			if( vao ) {
-				vao->reflectBindBuffer( target, id );
+			VaoRef vao = getVao();
+			if( vao )
+				vao->reflectBindBufferImpl( target, id );
+			else
+				glBindBuffer( target, id );
+		}
+		else {
+			glBindBuffer( target, id );
+		}
+	}
+}
+
+void Context::pushBufferBinding( GLenum target, GLuint id )
+{
+	auto cachedIt = mBufferBindingStack.find( target );
+	int existing = -1;
+	if( cachedIt == mBufferBindingStack.end() )
+		mBufferBindingStack[target] = vector<int>();
+	else if( ! cachedIt->second.empty() )
+		existing = cachedIt->second.back();
+
+	mBufferBindingStack[target].push_back( id );
+	
+	if( existing != id ) {
+		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
+			VaoRef vao = getVao();
+			if( vao )
+				vao->reflectBindBufferImpl( target, id );
+			else
+				glBindBuffer( target, id );
+		}
+		else
+			glBindBuffer( target, id );
+	}
+}
+
+void Context::popBufferBinding( GLenum target )
+{
+	GLuint existing = getBufferBinding( target );
+	auto cachedIt = mBufferBindingStack.find( target );
+	if( ( cachedIt != mBufferBindingStack.end() ) && ( ! cachedIt->second.empty() ) ) {
+		cachedIt->second.pop_back();
+		if( ( ! cachedIt->second.empty() ) && ( existing != cachedIt->second.back() ) ) {
+			if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
+				VaoRef vao = getVao();
+				if( vao )
+					vao->reflectBindBufferImpl( target, cachedIt->second.back() );
+				else
+					glBindBuffer( target, cachedIt->second.back() );
 			}
+			else
+				glBindBuffer( target, cachedIt->second.back() );
 		}
 	}
 }
 
 GLuint Context::getBufferBinding( GLenum target )
 {
-	auto cachedIt = mCachedBuffer.find( target );
-	if( (cachedIt == mCachedBuffer.end()) || ( cachedIt->second == -1 ) ) {
+	auto cachedIt = mBufferBindingStack.find( target );
+	if( (cachedIt == mBufferBindingStack.end()) || cachedIt->second.empty() || ( cachedIt->second.back() == -1 ) ) {
 		GLint queriedInt = -1;
 		switch( target ) {
 			case GL_ARRAY_BUFFER:
@@ -191,100 +347,206 @@ GLuint Context::getBufferBinding( GLenum target )
 			case GL_ELEMENT_ARRAY_BUFFER:
 				glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
 			break;
+#if ! defined( CINDER_GLES )
+			case GL_PIXEL_PACK_BUFFER:
+				glGetIntegerv( GL_PIXEL_PACK_BUFFER_BINDING, &queriedInt );
+			break;
+			case GL_PIXEL_UNPACK_BUFFER:
+				glGetIntegerv( GL_PIXEL_UNPACK_BUFFER_BINDING, &queriedInt );
+			break;
+			case GL_TEXTURE_BUFFER:
+				glGetIntegerv( GL_TEXTURE_BINDING_BUFFER, &queriedInt );
+			break;
+			case GL_TRANSFORM_FEEDBACK_BUFFER:
+				glGetIntegerv( GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, &queriedInt );
+			break;
+			case GL_UNIFORM_BUFFER:
+				glGetIntegerv( GL_UNIFORM_BUFFER_BINDING, &queriedInt );
+			break;
+#endif
 			default:
 				; // warning?
 		}
 		
-		mCachedBuffer[target] = queriedInt;
+		// first time we've met this target; start an empty stack
+		if( cachedIt == mBufferBindingStack.end() )
+			mBufferBindingStack[target] = vector<int>();
+		mBufferBindingStack[target].back() = queriedInt;
 		return (GLuint)queriedInt;
 	}
 	else
-		return (GLuint)cachedIt->second;
+		return (GLuint)cachedIt->second.back();
 }
 
-void Context::invalidateBufferBinding( GLenum target )
+void Context::reflectBufferBinding( GLenum target, GLuint id )
 {
-	mCachedBuffer[target] = -1;
+	// first time we've met this target; start an empty stack
+	if( mBufferBindingStack.find(target) == mBufferBindingStack.end() ) {
+		mBufferBindingStack[target] = vector<int>();
+		mBufferBindingStack[target].push_back( id );
+	}
+	else if( ! mBufferBindingStack[target].empty() )
+		mBufferBindingStack[target].back() = id;
 }
 
 //////////////////////////////////////////////////////////////////
 // Shader
-void Context::bindShader( const GlslProgRef &prog )
+void Context::pushGlslProg( const GlslProgRef &prog )
 {
-	if( mCachedGlslProg != prog ) {
-		mCachedGlslProg = prog;
+	GlslProgRef prevGlsl = getGlslProg();
+
+	mGlslProgStack.push_back( prog );
+	if( prog != prevGlsl ) {
 		if( prog )
-			glUseProgram( prog->getHandle() );
+			prog->bindImpl();
 		else
 			glUseProgram( 0 );
 	}
 }
 
-void Context::unbindShader()
+void Context::popGlslProg()
 {
-	mCachedGlslProg = GlslProgRef();
-	glUseProgram( 0 );
+	GlslProgRef prevGlsl = getGlslProg();
+
+	if( ! mGlslProgStack.empty() ) {
+		mGlslProgStack.pop_back();
+		if( ! mGlslProgStack.empty() ) {
+			if( prevGlsl != mGlslProgStack.back() ) {
+				if( mGlslProgStack.back() )
+					mGlslProgStack.back()->bindImpl();
+				else
+					glUseProgram( 0 );
+			}
+		}
+	}
 }
 
-GlslProgRef Context::getCurrentShader()
+void Context::bindGlslProg( const GlslProgRef &prog )
 {
-	return mCachedGlslProg;
+	if( mGlslProgStack.empty() || (mGlslProgStack.back() != prog) ) {
+		if( ! mGlslProgStack.empty() )
+			mGlslProgStack.back() = prog;
+		if( prog )
+			prog->bindImpl();
+		else
+			glUseProgram( 0 );
+	}
+}
+
+GlslProgRef Context::getGlslProg()
+{
+	if( mGlslProgStack.empty() )
+		mGlslProgStack.push_back( GlslProgRef() );
+	
+	return mGlslProgStack.back();
 }
 
 //////////////////////////////////////////////////////////////////
 // TextureBinding
-void Context::bindTexture( GLenum target, GLuint texture )
+void Context::bindTexture( GLenum target, GLuint textureId )
 {
-	auto cachedIt = mCachedTextureBinding.find( target );
-	if( ( cachedIt == mCachedTextureBinding.end() ) || ( cachedIt->second != texture ) ) {
-		mCachedTextureBinding[target] = texture;
-		glBindTexture( target, texture );
+	auto cachedIt = mTextureBindingStack.find( target );
+	if( ( cachedIt == mTextureBindingStack.end() ) || ( cachedIt->second.empty() ) || ( cachedIt->second.back() != textureId ) ) {
+		if( cachedIt->second.empty() ) {
+			mTextureBindingStack[target] = vector<GLint>();
+			mTextureBindingStack[target].push_back( textureId );
+		}
+		else
+			mTextureBindingStack[target].back() = textureId;
+		glBindTexture( target, textureId );
 	}
+}
+
+void Context::pushTextureBinding( GLenum target, GLuint textureId )
+{
+	bool needsToBeSet = true;
+	auto cached = mTextureBindingStack.find( target );
+	if( ( cached != mTextureBindingStack.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == textureId ) )
+		needsToBeSet = false;
+	else if( cached == mTextureBindingStack.end() )
+		mTextureBindingStack[target] = vector<GLint>();
+	mTextureBindingStack[target].push_back( textureId );
+	if( needsToBeSet )
+		glBindTexture( target, textureId );
+}
+
+void Context::popTextureBinding( GLenum target )
+{
+	auto cached = mTextureBindingStack.find( target );
+	if( ( cached != mTextureBindingStack.end() ) && ( ! cached->second.empty() ) ) {
+		GLint prevValue = cached->second.back();
+		cached->second.pop_back();
+		if( ! cached->second.empty() ) {
+			if( cached->second.back() != prevValue ) {
+				glBindTexture( target, cached->second.back() );
+			}
+		}
+	}
+}
+
+GLuint Context::getTextureBinding( GLenum target )
+{
+	auto cachedIt = mTextureBindingStack.find( target );
+	if( (cachedIt == mTextureBindingStack.end()) || ( cachedIt->second.empty() ) || ( cachedIt->second.back() == -1 ) ) {
+		GLint queriedInt = -1;
+		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
+		if( targetBinding > 0 ) {
+			glGetIntegerv( targetBinding, &queriedInt );
+		}
+		else
+			return 0; // warning?
+		
+		if( cachedIt->second.empty() ) {
+			mTextureBindingStack[target] = vector<GLint>();
+			mTextureBindingStack[target].push_back( queriedInt );
+		}
+		else
+			mTextureBindingStack[target].back() = queriedInt;
+		return (GLuint)queriedInt;
+	}
+	else
+		return (GLuint)cachedIt->second.back();
 }
 
 void Context::textureDeleted( GLenum target, GLuint textureId )
 {
-	auto cachedIt = mCachedTextureBinding.find( target );
-	if( cachedIt != mCachedTextureBinding.end() && cachedIt->second == textureId ) {
+	auto cachedIt = mTextureBindingStack.find( target );
+	if( cachedIt != mTextureBindingStack.end() && ( ! cachedIt->second.empty() ) && ( cachedIt->second.back() != textureId ) ) {
 		// GL will have set the binding to 0 for target, so let's do the same
-		mCachedTextureBinding[target] = 0;
+		mTextureBindingStack[target].back() = 0;
 	}
-}
-
-GLenum Context::getTextureBinding( GLenum target )
-{
-	auto cachedIt = mCachedTextureBinding.find( target );
-	if( (cachedIt == mCachedTextureBinding.end()) || ( cachedIt->second == -1 ) ) {
-		GLint queriedInt = -1;
-		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
-		if( target > 0 ) {
-			glGetIntegerv( targetBinding, &queriedInt );
-		}
-		else {
-			return 0; // warning?
-		}
-		
-		mCachedTextureBinding[target] = queriedInt;
-		return (GLenum)queriedInt;
-	}
-	else
-		return (GLenum)cachedIt->second;
-
 }
 
 //////////////////////////////////////////////////////////////////
 // ActiveTexture
-void Context::activeTexture( uint8_t textureUnit )
+void Context::setActiveTexture( uint8_t textureUnit )
 {
-	if( mCachedActiveTexture != textureUnit ) {
-		mCachedActiveTexture = textureUnit;
+	if( setStackState<uint8_t>( mActiveTextureStack, textureUnit ) )
 		glActiveTexture( GL_TEXTURE0 + textureUnit );
-	}
+}
+
+void Context::pushActiveTexture( uint8_t textureUnit )
+{
+	if( pushStackState<uint8_t>( mActiveTextureStack, textureUnit ) )
+		glActiveTexture( GL_TEXTURE0 + textureUnit );
+}
+
+//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
+void Context::popActiveTexture()
+{
+	if( mActiveTextureStack.empty() || popStackState<uint8_t>( mActiveTextureStack ) )
+		glActiveTexture( GL_TEXTURE0 + getActiveTexture() );
 }
 
 uint8_t Context::getActiveTexture()
 {
-	return mCachedActiveTexture;
+	if( mActiveTextureStack.empty() ) {
+		GLint queriedInt;
+		glGetIntegerv( GL_ACTIVE_TEXTURE, &queriedInt );
+		mActiveTextureStack.push_back( queriedInt - GL_TEXTURE0 );
+	}
+
+	return mActiveTextureStack.back();
 }
 
 //////////////////////////////////////////////////////////////////
@@ -303,22 +565,18 @@ void Context::bindFramebuffer( GLenum target, GLuint framebuffer )
 	}
 #else
 	if( target == GL_FRAMEBUFFER ) {
-		if( framebuffer != mCachedReadFramebuffer || framebuffer != mCachedDrawFramebuffer ) {
-			mCachedReadFramebuffer = mCachedDrawFramebuffer = framebuffer;
+		if( setStackState<GLint>( mReadFramebufferStack, framebuffer ) )
 			glBindFramebuffer( target, framebuffer );
-		}
+		if( setStackState<GLint>( mDrawFramebufferStack, framebuffer ) )
+			glBindFramebuffer( target, framebuffer );		
 	}
 	else if( target == GL_READ_FRAMEBUFFER ) {
-		if( framebuffer != mCachedReadFramebuffer ) {
-			mCachedReadFramebuffer = framebuffer;
+		if( setStackState<GLint>( mReadFramebufferStack, framebuffer ) )
 			glBindFramebuffer( target, framebuffer );
-		}
 	}
 	else if( target == GL_DRAW_FRAMEBUFFER ) {
-		if( framebuffer != mCachedDrawFramebuffer ) {
-			mCachedDrawFramebuffer = framebuffer;
-			glBindFramebuffer( target, framebuffer );
-		}
+		if( setStackState<GLint>( mDrawFramebufferStack, framebuffer ) )
+			glBindFramebuffer( target, framebuffer );		
 	}
 	else {
 		//throw gl::Exception( "Illegal target for Context::bindFramebuffer" );	
@@ -326,9 +584,10 @@ void Context::bindFramebuffer( GLenum target, GLuint framebuffer )
 #endif
 }
 
-void Context::bindFramebuffer( const FboRef &fbo )
+void Context::bindFramebuffer( const FboRef &fbo, GLenum target )
 {
-	bindFramebuffer( GL_FRAMEBUFFER, fbo->getId() );
+	bindFramebuffer( target, fbo->getId() );
+	fbo->markAsDirty();
 }
 
 void Context::unbindFramebuffer()
@@ -336,28 +595,75 @@ void Context::unbindFramebuffer()
 	bindFramebuffer( GL_FRAMEBUFFER, 0 );
 }
 
-GLuint Context::getFramebufferBinding( GLenum target )
+void Context::pushFramebuffer( const FboRef &fbo, GLenum target )
+{
+	pushFramebuffer( target, fbo->getId() );
+	fbo->markAsDirty();	
+}
+
+void Context::pushFramebuffer( GLenum target, GLuint framebuffer )
 {
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
-	if( target == GL_FRAMEBUFFER ) {
-		if( mCachedFramebuffer == -1 )
-			glGetIntegerv( GL_FRAMEBUFFER_BINDING, &mCachedFramebuffer );
-		return (GLuint)mCachedFramebuffer;			
+	if( pushStackState<GLint>( mFramebufferStack, framebuffer ) )
+		glBindFramebuffer( target, framebuffer );
+#else
+	if( target == GL_FRAMEBUFFER || target == GL_READ_FRAMEBUFFER ) {
+		if( pushStackState<GLint>( mReadFramebufferStack, framebuffer ) )
+			glBindFramebuffer( target, framebuffer );
 	}
-	else {
-		//throw gl::Exception( "Illegal target for getFramebufferBinding" );
-		return 0; // 	
+	if( target == GL_FRAMEBUFFER || target == GL_DRAW_FRAMEBUFFER ) {
+		if( pushStackState<GLint>( mDrawFramebufferStack, framebuffer ) )
+			glBindFramebuffer( target, framebuffer );	
 	}
+#endif
+}
+
+void Context::popFramebuffer( GLenum target )
+{
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
+	if( popStackState<GLint>( mFramebufferStack ) )
+		if( ! mFramebufferStack.empty() )
+			glBindFramebuffer( target, mFramebufferStack.back() );
+#else
+	if( target == GL_FRAMEBUFFER || target == GL_READ_FRAMEBUFFER ) {
+		if( popStackState<GLint>( mReadFramebufferStack ) )
+			if( ! mReadFramebufferStack.empty() )
+				glBindFramebuffer( target, mReadFramebufferStack.back() );
+	}
+	if( target == GL_FRAMEBUFFER || target == GL_DRAW_FRAMEBUFFER ) {
+		if( popStackState<GLint>( mDrawFramebufferStack ) )
+			if( ! mDrawFramebufferStack.empty() )
+				glBindFramebuffer( target, mDrawFramebufferStack.back() );
+	}
+#endif
+}
+
+GLuint Context::getFramebuffer( GLenum target )
+{
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
+	if( mFramebufferStack.empty() ) {
+		GLint queriedInt;
+		glGetIntegerv( GL_FRAMEBUFFER_BINDING, &queriedInt );
+		mFramebufferStack.push_back( queriedInt );
+	}
+	
+	return mFramebufferStack.back();
 #else
 	if( target == GL_READ_FRAMEBUFFER ) {
-		if( mCachedReadFramebuffer == -1 )
-			glGetIntegerv( GL_READ_FRAMEBUFFER_BINDING, &mCachedReadFramebuffer );
-		return (GLuint)mCachedReadFramebuffer;
+		if( mReadFramebufferStack.empty() ) {
+			GLint queriedInt;
+			glGetIntegerv( GL_READ_FRAMEBUFFER_BINDING, &queriedInt );
+			mReadFramebufferStack.push_back( queriedInt );
+		}
+		return (GLuint)mReadFramebufferStack.back();
 	}
 	else if( target == GL_DRAW_FRAMEBUFFER || target == GL_FRAMEBUFFER ) {
-		if( mCachedDrawFramebuffer == -1 )
-			glGetIntegerv( GL_DRAW_FRAMEBUFFER_BINDING, &mCachedDrawFramebuffer );
-		return (GLuint)mCachedDrawFramebuffer;
+		if( mDrawFramebufferStack.empty() ) {
+			GLint queriedInt;
+			glGetIntegerv( GL_DRAW_FRAMEBUFFER_BINDING, &queriedInt );
+			mDrawFramebufferStack.push_back( queriedInt );
+		}
+		return (GLuint)mDrawFramebufferStack.back();
 	}
 	else {
 		//throw gl::Exception( "Illegal target for getFramebufferBinding" );
@@ -368,12 +674,19 @@ GLuint Context::getFramebufferBinding( GLenum target )
 
 //////////////////////////////////////////////////////////////////
 // States
-template<>
-void Context::stateSet<GLboolean>( GLenum cap, GLboolean value )
+void Context::setBoolState( GLenum cap, GLboolean value )
 {
-	auto cached = mCachedStateBoolean.find( cap );
-	if( cached == mCachedStateBoolean.end() || cached->second != value ) {
-		mCachedStateBoolean[cap] = value;
+	bool needsToBeSet = true;
+	auto cached = mBoolStateStack.find( cap );
+	if( ( cached != mBoolStateStack.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
+		needsToBeSet = false;
+	if( cached == mBoolStateStack.end() ) {
+		mBoolStateStack[cap] = vector<GLboolean>();
+		mBoolStateStack[cap].push_back( value );
+	}
+	else
+		mBoolStateStack[cap].back() = value;
+	if( needsToBeSet ) {
 		if( value )
 			glEnable( cap );
 		else
@@ -381,37 +694,142 @@ void Context::stateSet<GLboolean>( GLenum cap, GLboolean value )
 	}	
 }
 
+void Context::setBoolState( GLenum cap, GLboolean value, const std::function<void(GLboolean)> &setter )
+{
+	bool needsToBeSet = true;
+	auto cached = mBoolStateStack.find( cap );
+	if( ( cached != mBoolStateStack.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
+		needsToBeSet = false;
+	if( cached == mBoolStateStack.end() ) {
+		mBoolStateStack[cap] = vector<GLboolean>();
+		mBoolStateStack[cap].push_back( value );
+	}
+	else
+		mBoolStateStack[cap].back() = value;
+	if( needsToBeSet )
+		setter( value );
+}
+
+void Context::pushBoolState( GLenum cap, GLboolean value )
+{
+	bool needsToBeSet = true;
+	auto cached = mBoolStateStack.find( cap );
+	if( ( cached != mBoolStateStack.end() ) && ( ! cached->second.empty() ) && ( cached->second.back() == value ) )
+		needsToBeSet = false;
+	else if( cached == mBoolStateStack.end() ) {
+		mBoolStateStack[cap] = vector<GLboolean>();
+		mBoolStateStack[cap].push_back( glIsEnabled( cap ) );
+	}
+	mBoolStateStack[cap].push_back( value );
+	if( needsToBeSet ) {
+		if( value )
+			glEnable( cap );
+		else
+			glDisable( cap );
+	}	
+}
+
+void Context::popBoolState( GLenum cap )
+{
+	auto cached = mBoolStateStack.find( cap );
+	if( ( cached != mBoolStateStack.end() ) && ( ! cached->second.empty() ) ) {
+		GLboolean prevValue = cached->second.back();
+		cached->second.pop_back();
+		if( ! cached->second.empty() ) {
+			if( cached->second.back() != prevValue ) {
+				if( cached->second.back() )
+					glEnable( cap );
+				else
+					glDisable( cap );
+			}
+		}
+	}
+}
+
 void Context::enable( GLenum cap, GLboolean value )
 {
-	stateSet<GLboolean>( cap, value );
+	setBoolState( cap, value );
 }
 
-template<>
-GLboolean Context::stateGet<GLboolean>( GLenum cap )
+GLboolean Context::getBoolState( GLenum cap )
 {
-	auto cached = mCachedStateBoolean.find( cap );
-	if( cached == mCachedStateBoolean.end() ) {
+	auto cached = mBoolStateStack.find( cap );
+	if( ( cached == mBoolStateStack.end() ) || cached->second.empty() ) {
 		GLboolean result = glIsEnabled( cap );
-		mCachedStateBoolean[cap] = result;
+		if( cached == mBoolStateStack.end() )
+			mBoolStateStack[cap] = vector<GLboolean>();
+		mBoolStateStack[cap].push_back( result );
 		return result;
 	}
 	else
-		return cached->second;
+		return cached->second.back();
 }
 
-template<>
-GLint Context::stateGet<GLint>( GLenum pname )
+template<typename T>
+bool Context::pushStackState( std::vector<T> &stack, T value )
 {
-	auto cached = mCachedStateInt.find( pname );
-	if( cached == mCachedStateInt.end() ) {
+	bool needsToBeSet = true;
+	if( ( ! stack.empty() ) && ( stack.back() == value ) )
+		needsToBeSet = false;
+	stack.push_back( value );
+	return needsToBeSet;
+}
+
+template<typename T>
+bool Context::popStackState( std::vector<T> &stack )
+{
+	if( ! stack.empty() ) {
+		T prevValue = stack.back();
+		stack.pop_back();
+		if( ! stack.empty() )
+			return stack.back() != prevValue;
+		else
+			return true;
+	}
+	else
+		return true;
+}
+
+template<typename T>
+bool Context::setStackState( std::vector<T> &stack, T value )
+{
+	bool needsToBeSet = true;
+	if( ( ! stack.empty() ) && ( stack.back() == value ) )
+		needsToBeSet = false;
+	else if( stack.empty() )
+		stack.push_back( value );
+	else
+		stack.back() = value;
+	return needsToBeSet;
+}
+
+template<typename T>
+bool Context::getStackState( std::vector<T> &stack, T *result )
+{
+	if( stack.empty() )
+		return false;
+	else {
+		*result = stack.back();
+		return true;
+	}
+}
+
+/*
+template<>
+GLint Context::getState<GLint>( GLenum cap )
+{
+	auto cached = mStateStackInt.find( cap );
+	if( ( cached == mStateStackInt.end() ) || cached->second.empty() ) {
 		GLint result;
-		glGetIntegerv( pname, &result );
-		mCachedStateInt[pname] = result;
+		glGetIntegerv( cap, &result );
+		if( cached->second.empty() )
+			cached->second = vector<GLint>();
+		mStateStackInt[cap].push_back( result );
 		return result;
 	}
 	else
-		return cached->second;
-}
+		return cached->second.back();
+}*/
 
 /////////////////////////////////////////////////////////////////////////////////////
 // This routine confirms that the ci::gl::Context's understanding of the world matches OpenGL's
@@ -422,11 +840,11 @@ return;
 
 	// assert cached GL_ARRAY_BUFFER is correct
 	glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &queriedInt );
-	assert( mCachedBuffer[GL_ARRAY_BUFFER] == queriedInt );
+	assert( getBufferBinding( GL_ARRAY_BUFFER ) == queriedInt );
 
 	// assert cached GL_ELEMENT_ARRAY_BUFFER is correct
 	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
-	assert( mCachedBuffer[GL_ELEMENT_ARRAY_BUFFER] == queriedInt );
+	assert( getBufferBinding( GL_ELEMENT_ARRAY_BUFFER ) == queriedInt );
 
 	// assert cached (VAO) GL_VERTEX_ARRAY_BINDING is correct
 #if defined( CINDER_GLES )
@@ -437,11 +855,10 @@ return;
 //	assert( mCachedVao == queriedInt );
 
 	// assert the various texture bindings are correct
-	for( auto& cachedTextureBinding : mCachedTextureBinding ) {
+	for( auto& cachedTextureBinding : mTextureBindingStack ) {
 		GLenum target = cachedTextureBinding.first;
-		GLenum textureBindingConstant = Texture::getBindingConstantForTarget( target );
-		glGetIntegerv( textureBindingConstant, &queriedInt );
-		GLenum cachedTextureId = (GLenum)queriedInt;
+		glGetIntegerv( Texture::getBindingConstantForTarget( target ), &queriedInt );
+		GLenum cachedTextureId = cachedTextureBinding.second.back();
 		assert( queriedInt == cachedTextureId );
 	}
 }
@@ -467,18 +884,32 @@ void Context::printState( std::ostream &os ) const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Vertex Attributes
+void Context::enableVertexAttribArray( GLuint index )
+{
+	VaoRef vao = getVao();
+	if( vao )
+		vao->enableVertexAttribArrayImpl( index );
+}
+
+void Context::disableVertexAttribArray( GLuint index )
+{
+	VaoRef vao = getVao();
+	if( vao )
+		vao->disableVertexAttribArrayImpl( index );
+}
+
 void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-	VaoRef vao = vaoGet();
+	VaoRef vao = getVao();
 	if( vao )
 		vao->vertexAttribPointerImpl( index, size, type, normalized, stride, pointer );
 }
 
-void Context::enableVertexAttribArray( GLuint index )
+void Context::vertexAttribDivisor( GLuint index, GLuint divisor )
 {
-	VaoRef vao = vaoGet();
+	VaoRef vao = getVao();
 	if( vao )
-		vao->enableVertexAttribArrayImpl( index );
+		vao->vertexAttribDivisorImpl( index, divisor );
 }
 
 void Context::vertexAttrib1f( GLuint index, float v0 )
@@ -510,27 +941,39 @@ void Context::blendFunc( GLenum sfactor, GLenum dfactor )
 
 void Context::blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
 {
-	if( ( mCachedStateInt[GL_BLEND_SRC_RGB] != srcRGB ) ||
-		( mCachedStateInt[GL_BLEND_DST_RGB] != dstRGB ) ||
-		( mCachedStateInt[GL_BLEND_SRC_ALPHA] != srcAlpha ) ||
-		( mCachedStateInt[GL_BLEND_DST_ALPHA] != dstAlpha ) )
-	{
+	bool needsChange = setStackState<GLint>( mBlendSrcRgbStack, srcRGB );
+	needsChange = setStackState<GLint>( mBlendDstRgbStack, dstRGB ) || needsChange;
+	needsChange = setStackState<GLint>( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
+	needsChange = setStackState<GLint>( mBlendDstAlphaStack, dstAlpha ) || needsChange;
+	if( needsChange )
 		glBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
-		mCachedStateInt[GL_BLEND_SRC_RGB] = srcRGB;
-		mCachedStateInt[GL_BLEND_DST_RGB] = dstRGB;
-		mCachedStateInt[GL_BLEND_SRC_ALPHA] = srcAlpha;
-		mCachedStateInt[GL_BLEND_DST_ALPHA] = dstAlpha;
-	}
+}
+
+void Context::pushBlendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
+{
+	bool needsChange = pushStackState<GLint>( mBlendSrcRgbStack, srcRGB );
+	needsChange = pushStackState<GLint>( mBlendDstRgbStack, dstRGB ) || needsChange;
+	needsChange = pushStackState<GLint>( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
+	needsChange = pushStackState<GLint>( mBlendDstAlphaStack, dstAlpha ) || needsChange;
+	if( needsChange )
+		glBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
+}
+
+void Context::popBlendFuncSeparate()
+{
+	bool needsChange = popStackState<GLint>( mBlendSrcRgbStack );
+	needsChange = popStackState<GLint>( mBlendDstRgbStack ) || needsChange;
+	needsChange = popStackState<GLint>( mBlendSrcAlphaStack ) || needsChange;
+	needsChange = popStackState<GLint>( mBlendDstAlphaStack ) || needsChange;
+	if( needsChange && ( ! mBlendSrcRgbStack.empty() ) && ( ! mBlendSrcAlphaStack.empty() ) && ( ! mBlendDstRgbStack.empty() ) && ( ! mBlendDstAlphaStack.empty() ) )
+		glBlendFuncSeparate( mBlendSrcRgbStack.back(), mBlendDstRgbStack.back(), mBlendSrcAlphaStack.back(), mBlendDstAlphaStack.back() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // DepthMask
 void Context::depthMask( GLboolean enable )
 {
-	if( mCachedStateBoolean[GL_DEPTH_WRITEMASK] != enable ) {
-		mCachedStateBoolean[GL_DEPTH_WRITEMASK] = enable;
-		glDepthMask( enable );
-	}
+	setBoolState( GL_DEPTH_WRITEMASK, enable, glDepthMask );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -558,7 +1001,7 @@ void Context::polygonMode( GLenum face, GLenum mode )
 	}
 }
 
-#endif // defined( CINDER_GLES )
+#endif // ! defined( CINDER_GLES )
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // draw*
@@ -571,6 +1014,18 @@ void Context::drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoi
 {
 	glDrawElements( mode, count, type, indices );
 }
+
+#if ! defined( CINDER_GLES )
+void Context::drawArraysInstanced( GLenum mode, GLint first, GLsizei count, GLsizei primcount )
+{
+	glDrawArraysInstanced( mode, first, count, primcount );
+}
+
+void Context::drawElementsInstanced( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount )
+{
+	glDrawElementsInstanced( mode, count, type, indices, primcount );
+}
+#endif // ! defined( CINDER_GLES )
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Shaders
@@ -588,28 +1043,28 @@ GlslProgRef	Context::getStockShader( const ShaderDef &shaderDef )
 
 void Context::setDefaultShaderVars()
 {
-	auto ctx = gl::context();
-	auto glslProg = ctx->getCurrentShader();
+	const auto &ctx = gl::context();
+	const auto &glslProg = ctx->getGlslProg();
 	if( glslProg ) {
-		auto uniforms = glslProg->getUniformSemantics();
-		for( auto unifIt = uniforms.cbegin(); unifIt != uniforms.end(); ++unifIt ) {
-			switch( unifIt->second ) {
+		const auto &uniforms = glslProg->getUniformSemantics();
+		for( const auto &unifIt : uniforms ) {
+			switch( unifIt.second ) {
 				case UNIFORM_MODELVIEW:
-					glslProg->uniform( unifIt->first, gl::getModelView() ); break;
+					glslProg->uniform( unifIt.first, gl::getModelView() ); break;
 				case UNIFORM_MODELVIEWPROJECTION:
-					glslProg->uniform( unifIt->first, gl::getModelViewProjection() ); break;
+					glslProg->uniform( unifIt.first, gl::getModelViewProjection() ); break;
 				case UNIFORM_PROJECTION:
-					glslProg->uniform( unifIt->first, gl::getProjection() ); break;
+					glslProg->uniform( unifIt.first, gl::getProjection() ); break;
 				case UNIFORM_NORMAL_MATRIX:
-					glslProg->uniform( unifIt->first, gl::calcNormalMatrix() ); break;
+					glslProg->uniform( unifIt.first, gl::calcNormalMatrix() ); break;
 			}
 		}
 
-		auto attribs = glslProg->getAttribSemantics();
-		for( auto attribIt = attribs.begin(); attribIt != attribs.end(); ++attribIt ) {
-			switch( attribIt->second ) {
+		const auto &attribs = glslProg->getAttribSemantics();
+		for( const auto &attribIt : attribs ) {
+			switch( attribIt.second ) {
 				case geom::Attrib::COLOR: {
-					int loc = glslProg->getAttribLocation( attribIt->first );
+					int loc = glslProg->getAttribLocation( attribIt.first );
 					ColorA c = ctx->getCurrentColor();
 					gl::vertexAttrib4f( loc, c.r, c.g, c.b, c.a );
 				}
@@ -621,13 +1076,22 @@ void Context::setDefaultShaderVars()
 	}
 }
 
+VaoRef Context::getDefaultVao()
+{
+	if( ! mDefaultVao ) {
+		mDefaultVao = Vao::create();
+	}
+
+	return mDefaultVao;
+}
+
 VboRef Context::getDefaultArrayVbo( size_t requiredSize )
 {
 	if( ! mDefaultArrayVbo ) {
-		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize );
+		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize, NULL, GL_DYNAMIC_DRAW );
 	}
 	else if( requiredSize > mDefaultArrayVbo->getSize() ) {
-		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize );
+		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize, NULL, GL_DYNAMIC_DRAW );
 	}
 	
 	return mDefaultArrayVbo;
@@ -650,8 +1114,7 @@ VboRef Context::getDefaultElementVbo( size_t requiredSize )
 BufferScope::BufferScope( const BufferObjRef &bufferObj )
 	: mCtx( gl::context() ), mTarget( bufferObj->getTarget() )
 {
-	mPrevId = mCtx->getBufferBinding( mTarget );
-	mCtx->bindBuffer( mTarget, bufferObj->getId() );
+	mCtx->pushBufferBinding( mTarget, bufferObj->getId() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -659,80 +1122,44 @@ BufferScope::BufferScope( const BufferObjRef &bufferObj )
 BlendScope::BlendScope( GLboolean enable )
 	: mCtx( gl::context() ), mSaveFactors( false )
 {
-	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
-	mCtx->stateSet( GL_BLEND, enable );
+	mCtx->pushBoolState( GL_BLEND, enable );
 }
 
 //! Parallels glBlendFunc(), implicitly enables blending
 BlendScope::BlendScope( GLenum sfactor, GLenum dfactor )
 	: mCtx( gl::context() ), mSaveFactors( true )
 {
-	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
-	mPrevSrcRgb = mCtx->stateGet<GLint>( GL_BLEND_SRC_RGB );
-	mPrevDstRgb = mCtx->stateGet<GLint>( GL_BLEND_DST_RGB );
-	mPrevSrcAlpha = mCtx->stateGet<GLint>( GL_BLEND_SRC_ALPHA );
-	mPrevDstAlpha = mCtx->stateGet<GLint>( GL_BLEND_DST_ALPHA );
-	mCtx->stateSet<GLboolean>( GL_BLEND, GL_TRUE );
-	mCtx->blendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
+	mCtx->pushBoolState( GL_BLEND, GL_TRUE );
+	mCtx->pushBlendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
 }
 
 //! Parallels glBlendFuncSeparate(), implicitly enables blending
 BlendScope::BlendScope( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
 	: mCtx( gl::context() ), mSaveFactors( true )
 {
-	mPrevBlend = mCtx->stateGet<GLboolean>( GL_BLEND );
-	mPrevSrcRgb = mCtx->stateGet<GLint>( GL_BLEND_SRC_RGB );
-	mPrevDstRgb = mCtx->stateGet<GLint>( GL_BLEND_DST_RGB );
-	mPrevSrcAlpha = mCtx->stateGet<GLint>( GL_BLEND_SRC_ALPHA );
-	mPrevDstAlpha = mCtx->stateGet<GLint>( GL_BLEND_DST_ALPHA );
-	mCtx->stateSet<GLboolean>( GL_BLEND, GL_TRUE );
-	mCtx->blendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
+	mCtx->pushBoolState( GL_BLEND, GL_TRUE );
+	mCtx->pushBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
 }
 
 BlendScope::~BlendScope()
 {
-	mCtx->stateSet( GL_BLEND, mPrevBlend );
+	mCtx->popBoolState( GL_BLEND );
 	if( mSaveFactors )
-		mCtx->blendFuncSeparate( mPrevSrcRgb, mPrevDstRgb, mPrevSrcAlpha, mPrevDstAlpha );
+		mCtx->popBlendFuncSeparate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // FramebufferScope
-FramebufferScope::FramebufferScope()
-	: mCtx( gl::context() ), mTarget( GL_FRAMEBUFFER )
-{
-#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
-	mPrevFramebuffer = mCtx->getFramebufferBinding( GL_FRAMEBUFFER );
-#else
-	mPrevReadFramebuffer = mCtx->getFramebufferBinding( GL_READ_FRAMEBUFFER );
-	mPrevDrawFramebuffer = mCtx->getFramebufferBinding( GL_DRAW_FRAMEBUFFER );
-#endif
-}
-
 FramebufferScope::FramebufferScope( const FboRef &fbo, GLenum target )
 	: mCtx( gl::context() ), mTarget( target )
 {
-	saveState();
-	fbo->bindFramebuffer();
+	mCtx->pushFramebuffer( fbo, target );
 }
 
-FramebufferScope::FramebufferScope( GLenum target, GLuint framebuffer )
+FramebufferScope::FramebufferScope( GLenum target, GLuint framebufferId )
 	: mCtx( gl::context() ), mTarget( target )
 {
-	saveState();
-	mCtx->bindFramebuffer( target, framebuffer );
-}
-
-void FramebufferScope::saveState()
-{
-#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
-	mPrevFramebuffer = mCtx->getFramebufferBinding( GL_FRAMEBUFFER );
-#else
-	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
-		mPrevReadFramebuffer = mCtx->getFramebufferBinding( GL_READ_FRAMEBUFFER );
-	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_DRAW_FRAMEBUFFER )
-		mPrevDrawFramebuffer = mCtx->getFramebufferBinding( GL_DRAW_FRAMEBUFFER );
-#endif
+	mCtx->pushFramebuffer( target, framebufferId );
 }
 
 FramebufferScope::~FramebufferScope()
@@ -741,9 +1168,9 @@ FramebufferScope::~FramebufferScope()
 	mCtx->bindFramebuffer( GL_FRAMEBUFFER, mPrevFramebuffer );
 #else
 	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
-		mCtx->bindFramebuffer( GL_READ_FRAMEBUFFER, mPrevReadFramebuffer );
+		mCtx->popFramebuffer( GL_READ_FRAMEBUFFER );
 	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_DRAW_FRAMEBUFFER )
-		mCtx->bindFramebuffer( GL_DRAW_FRAMEBUFFER, mPrevDrawFramebuffer );
+		mCtx->popFramebuffer( GL_DRAW_FRAMEBUFFER );
 #endif
 }
 

@@ -70,32 +70,32 @@ std::string	EnvironmentCore::generateVertexShader( const ShaderDef &shader )
 	
 	s +=		"#version 150\n"
 				"\n"
-				"uniform mat4	uModelViewProjection;\n"
+				"uniform mat4	ciModelViewProjection;\n"
 				"\n"
-				"in vec4		vPosition;\n"
+				"in vec4		ciPosition;\n"
 				;
 	
 	if( shader.mTextureMapping ) {
-		s +=	"in vec2		vTexCoord0;\n"
+		s +=	"in vec2		ciTexCoord0;\n"
 				"out highp vec2	TexCoord;\n"
 				;
 	}
 	if( shader.mColor ) {
-		s +=	"in vec4		vColor;\n"
+		s +=	"in vec4		ciColor;\n"
 				"out lowp vec4	Color;\n"
 				;
 	}
 
 	s +=		"void main( void )\n"
 				"{\n"
-				"	gl_Position	= uModelViewProjection * vPosition;\n"
+				"	gl_Position	= ciModelViewProjection * ciPosition;\n"
 				;
 	if( shader.mColor ) {
-		s +=	"	Color = vColor;\n"
+		s +=	"	Color = ciColor;\n"
 				;
 	}
 	if( shader.mTextureMapping ) {	
-		s +=	"	TexCoord	= vTexCoord0;\n"
+		s +=	"	TexCoord	= ciTexCoord0;\n"
 				;
 	}
 	
@@ -152,11 +152,11 @@ std::string	EnvironmentCore::generateFragmentShader( const ShaderDef &shader )
 
 GlslProgRef	EnvironmentCore::buildShader( const ShaderDef &shader )
 {
-std::cout << "Core shader vert:" << std::endl << generateVertexShader( shader ).c_str() << std::endl;
-std::cout << "Core shader frag:" << std::endl << generateFragmentShader( shader ).c_str() << std::endl;
+//std::cout << "Core shader vert:" << std::endl << generateVertexShader( shader ).c_str() << std::endl;
+//std::cout << "Core shader frag:" << std::endl << generateFragmentShader( shader ).c_str() << std::endl;
 	return GlslProg::create( GlslProg::Format().vertex( generateVertexShader( shader ).c_str() )
 												.fragment( generateFragmentShader( shader ).c_str() )
-												.attribLocation( "vPosition", 0 )
+												.attribLocation( "ciPosition", 0 )
 												);
 }
 

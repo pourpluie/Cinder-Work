@@ -41,8 +41,11 @@ class VaoImplCore : public Vao {
 	virtual void	bindImpl( class Context *context ) override;
 	virtual void	unbindImpl( class Context *context ) override;
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
+	virtual void	disableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
-	
+	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) override;
+	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;	
+
 	friend class Context;
 };
 
@@ -75,8 +78,10 @@ void VaoImplCore::bindImpl( Context *context )
 	else
 		glBindVertexArrayAPPLE( mId );
 
-	if( context )
-		invalidateContext( context );
+	if( context ) {
+		context->reflectBufferBinding( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
+		mLayout.mCachedArrayBufferBinding = context->getBufferBinding( GL_ARRAY_BUFFER );
+	}
 }
 
 void VaoImplCore::unbindImpl( Context *context )
@@ -85,19 +90,42 @@ void VaoImplCore::unbindImpl( Context *context )
 		glBindVertexArray( 0 );
 	else
 		glBindVertexArrayAPPLE( 0 );
-
-	if( context )
-		invalidateContext( context );
 }
 
 void VaoImplCore::enableVertexAttribArrayImpl( GLuint index )
 {
+	mLayout.enableVertexAttribArray( index );
+
 	glEnableVertexAttribArray( index );
+}
+
+void VaoImplCore::disableVertexAttribArrayImpl( GLuint index )
+{
+	mLayout.disableVertexAttribArray( index );
+
+	glDisableVertexAttribArray( index );
 }
 
 void VaoImplCore::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
+	mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
+
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
+}
+
+void VaoImplCore::vertexAttribDivisorImpl( GLuint index, GLuint divisor )
+{
+	mLayout.vertexAttribDivisor( index, divisor );
+
+	if( glVertexAttribDivisor ) // not always available
+		glVertexAttribDivisor( index, divisor );
+}
+
+void VaoImplCore::reflectBindBufferImpl( GLenum target, GLuint buffer )
+{
+	mLayout.bindBuffer( target, buffer );
+
+	glBindBuffer( target, buffer );
 }
 
 } }

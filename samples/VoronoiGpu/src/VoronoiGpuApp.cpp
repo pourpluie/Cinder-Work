@@ -83,7 +83,6 @@ void VoronoiGpuApp::draw()
 	gl::color( Color( 1, 1, 1 ) );
 	if( mTexture ) {
 		gl::draw( mTexture, toPoints( mTexture->getBounds() ) );
-		mTexture->disable();
 	}
 
 	gl::bindStockShader( gl::ShaderDef().color() );
@@ -98,5 +97,5 @@ void VoronoiGpuApp::draw()
 	gl::disableAlphaBlending();
 }
 
-// This line tells Cinder to actually create the application
-CINDER_APP_BASIC( VoronoiGpuApp, RendererGl )
+// This app runs in compatibility profile due to the shaders
+CINDER_APP_BASIC( VoronoiGpuApp, RendererGl( RendererGl::Options().coreProfile( false ) ) )

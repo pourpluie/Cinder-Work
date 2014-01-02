@@ -258,12 +258,6 @@
     <ClCompile Include="..\src\cinder\gl\GlslProg.cpp">
       <Filter>Source Files\gl</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\gl\Light.cpp">
-      <Filter>Source Files\gl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cinder\gl\Material.cpp">
-      <Filter>Source Files\gl</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cinder\gl\Texture.cpp">
       <Filter>Source Files\gl</Filter>
     </ClCompile>
@@ -484,9 +478,6 @@
       <Filter>Source Files\gl</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cinder\gl\Environment.cpp">
-      <Filter>Source Files\gl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cinder\gl\Fog.cpp">
       <Filter>Source Files\gl</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cinder\gl\Pbo.cpp">
@@ -1058,19 +1049,10 @@
     <ClInclude Include="..\include\cinder\gl\Fbo.h">
       <Filter>Header Files\gl</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cinder\gl\Fog.h">
-      <Filter>Header Files\gl</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cinder\gl\gl.h">
       <Filter>Header Files\gl</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cinder\gl\GlslProg.h">
-      <Filter>Header Files\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\cinder\gl\Light.h">
-      <Filter>Header Files\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\cinder\gl\Material.h">
       <Filter>Header Files\gl</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cinder\gl\Pbo.h">

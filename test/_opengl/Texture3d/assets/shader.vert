@@ -1,10 +1,10 @@
 #version 150
 
-uniform mat4	uModelViewProjection;
+uniform mat4	ciModelViewProjection;
 
-in vec4		vPosition;
+in vec4		ciPosition;
 
 void main( void )
 {
-	gl_Position	= uModelViewProjection * vPosition;
+	gl_Position	= ciModelViewProjection * ciPosition;
 }

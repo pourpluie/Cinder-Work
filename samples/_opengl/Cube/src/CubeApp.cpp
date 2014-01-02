@@ -3,7 +3,9 @@
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Batch.h"
 #include "cinder/gl/VboMesh.h"
+#include "cinder/ObjLoader.h"
 #include "cinder/ImageIo.h"
+#include "cinder/Utilities.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -17,34 +19,27 @@ class RotatingCubeApp : public AppNative {
 	
 	CameraPersp			mCam;
 	Matrix44f			mCubeRotation;
-	gl::BatchRef		mCubeBatch;
+	gl::BatchRef		mBatch;
 	gl::TextureRef		mTexture;
 	gl::GlslProgRef		mGlsl;
-	
-	gl::VboMeshRef		mTeapotMesh;
 };
 
 void RotatingCubeApp::setup()
 {
-//	disableFrameRate();
 	mCam.lookAt( Vec3f( 3, 2, 4 ), Vec3f::zero() );
 	mCubeRotation.setToIdentity();
 	
-	mTexture = gl::Texture::create( loadImage( loadAsset( "texture.jpg" ) ) );
+	mTexture = gl::Texture::create( loadImage( loadAsset( "texture.jpg" ) ), 
+										gl::Texture::Format().mipmap().minFilter( GL_LINEAR_MIPMAP_LINEAR ) );
 
 #if defined( CINDER_GLES )
 	mGlsl = gl::GlslProg::create( loadAsset( "shader_es2.vert" ), loadAsset( "shader_es2.frag" ) );
 #else
 	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) );
 #endif
-//mGlsl = gl::getStockShader( gl::ShaderDef().texture() );
-	//mCubeBatch = gl::Batch::create( geo::Rect(), mGlsl );
-//	mCubeBatch = gl::Batch::create( geo::Cube(), mGlsl );
-//	mCubeBatch = gl::Batch::create( geom::Teapot().subdivision( 6 ).scale( 0.5f ), mGlsl );
-
-	//mTeapotMesh = gl::VboMesh::create( geom::Teapot().texCoords().normals().subdivision( 5 ) );
-	mTeapotMesh = gl::VboMesh::create( geom::Circle().segments( 12 ).radius( 2 ).texCoords().normals() );
-	mCubeBatch = gl::Batch::create( mTeapotMesh, mGlsl );
+	mBatch = gl::Batch::create( geom::Cube().texCoords().normals(), mGlsl );
+//	mBatch = gl::Batch::create( geom::Cube().colors(), mGlsl ); // per-vertex (face) coloring
+//	mBatch = gl::Batch::create( geom::Teapot().texCoords().normals().subdivision( 5 ), mGlsl );
 
 	gl::enableDepthWrite();
 	gl::enableDepthRead();
@@ -74,10 +69,8 @@ void RotatingCubeApp::draw()
 	mTexture->bind();
 	gl::pushMatrices();
 		gl::multModelView( mCubeRotation );
-		mCubeBatch->draw();
-//		gl::draw( mTeapotMesh );
+		mBatch->draw();
 	gl::popMatrices();
 }
-
 
 CINDER_APP_NATIVE( RotatingCubeApp, RendererGl )

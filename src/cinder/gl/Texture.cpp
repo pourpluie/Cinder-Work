@@ -45,12 +45,12 @@ class ImageTargetGLTexture : public ImageTarget {
 /////////////////////////////////////////////////////////////////////////////////
 // TextureBase
 TextureBase::TextureBase()
-	: mTarget( 0 ), mTextureId( 0 ), mInternalFormat( -1 ), mDoNotDispose( false )
+	: mTarget( 0 ), mTextureId( 0 ), mInternalFormat( -1 ), mDoNotDispose( false ), mMipmapping( false )
 {
 }
 
 TextureBase::TextureBase( GLenum target, GLuint textureId, GLint internalFormat )
-	: mTarget( target ), mTextureId( textureId ), mInternalFormat( internalFormat ), mDoNotDispose( false )
+	: mTarget( target ), mTextureId( textureId ), mInternalFormat( internalFormat ), mDoNotDispose( false ), mMipmapping( false )
 {
 }
 
@@ -77,6 +77,8 @@ void TextureBase::initParams( const Format &format )
 	
 	if( format.mMaxAnisotropy > 1.0f )
 		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mMaxAnisotropy );
+
+	mMipmapping = format.mMipmapping;
 }
 
 GLint TextureBase::getInternalFormat() const

@@ -41,12 +41,18 @@ class VaoImplSoftware : public Vao {
 	virtual void	bindImpl( Context *context ) override;
 	virtual void	unbindImpl( Context *context ) override;
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
+	virtual void	disableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
-	
+	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) override;	
+	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;
+
   protected:
-	
+	static size_t	sIdCounter;
+
 	friend class Context;
 };
+
+size_t VaoImplSoftware::sIdCounter = 0;
 
 // Called by Vao::create()
 VaoRef createVaoImplSoftware()
@@ -56,7 +62,7 @@ VaoRef createVaoImplSoftware()
 	
 VaoImplSoftware::VaoImplSoftware()
 {
-mId = 0;
+	mId = ++sIdCounter; // is this adequate? 4billion VAO allocations seems remote; the ID is not really necessary except for debugging
 }
 
 VaoImplSoftware::~VaoImplSoftware()
@@ -65,58 +71,68 @@ VaoImplSoftware::~VaoImplSoftware()
 
 void VaoImplSoftware::enableVertexAttribArrayImpl( GLuint index )
 {
-	auto existing = mVertexAttribs.find( index );
-	if( existing != mVertexAttribs.end() ) {
-		existing->second.mEnabled = true;
-	}
-	else {
-		mVertexAttribs[index] = VertexAttrib();
-	}
+	mLayout.enableVertexAttribArray( index );
 	
 	glEnableVertexAttribArray( index );
 }
 
+void VaoImplSoftware::disableVertexAttribArrayImpl( GLuint index )
+{
+	mLayout.disableVertexAttribArray( index );
+
+	glDisableVertexAttribArray( index );
+}
+
 void VaoImplSoftware::bindImpl( Context *context )
 {
-	for( auto attribIt = mVertexAttribs.begin(); attribIt != mVertexAttribs.end(); ++attribIt ) {
+	if( ! context )
+		return;
+	
+	auto oldBuffer = context->getBufferBinding( GL_ARRAY_BUFFER );
+
+	for( auto attribIt = mLayout.mVertexAttribs.begin(); attribIt != mLayout.mVertexAttribs.end(); ++attribIt ) {
 		if( attribIt->second.mEnabled ) {
 			glEnableVertexAttribArray( attribIt->first );
 			glBindBuffer( GL_ARRAY_BUFFER, attribIt->second.mArrayBufferBinding );
 			glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
 		}
 	}
-	glBindBuffer( GL_ARRAY_BUFFER, mArrayBufferBinding );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mElementArrayBufferBinding );
+
+	context->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
+	context->bindBuffer( GL_ARRAY_BUFFER, oldBuffer );
 }
 
 void VaoImplSoftware::unbindImpl( Context *context )
 {
-	for( auto attribIt = mVertexAttribs.begin(); attribIt != mVertexAttribs.end(); ++attribIt ) {
+	for( auto attribIt = mLayout.mVertexAttribs.begin(); attribIt != mLayout.mVertexAttribs.end(); ++attribIt ) {
 		if( attribIt->second.mEnabled ) {
 			glDisableVertexAttribArray( attribIt->first );
 		}
-	}	
-	
-	if( context )
-		invalidateContext( context );
+	}
 }
 
 void VaoImplSoftware::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-	auto existing = mVertexAttribs.find( index );
-	if( existing != mVertexAttribs.end() ) {
-		existing->second.mSize = size;
-		existing->second.mType = type;
-		existing->second.mNormalized = normalized;
-		existing->second.mStride = stride;
-		existing->second.mPointer = pointer;
-		existing->second.mArrayBufferBinding = mArrayBufferBinding;
-	}
-	else {
-		mVertexAttribs[index] = VertexAttrib( size, type, normalized, stride, pointer, mArrayBufferBinding );
-	}
-	
+	mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
+
 	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
+}
+
+void VaoImplSoftware::vertexAttribDivisorImpl( GLuint index, GLuint divisor )
+{
+	mLayout.vertexAttribDivisor( index, divisor );
+
+#if ! defined( CINDER_GLES )
+	glVertexAttribDivisor( index, divisor );
+#endif
+}
+
+
+void VaoImplSoftware::reflectBindBufferImpl( GLenum target, GLuint buffer )
+{
+	mLayout.bindBuffer( target, buffer );
+
+	glBindBuffer( target, buffer );
 }
 
 } }

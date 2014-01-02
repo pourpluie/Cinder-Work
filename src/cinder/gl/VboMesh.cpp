@@ -1,14 +1,32 @@
-/*
- * NOT FINISHED
- */
-
 #include "cinder/gl/VboMesh.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Context.h"
 
+using namespace std;
+
 namespace cinder { namespace gl {
 
-using namespace std;
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// VboMeshGeomSource
+#if ! defined( CINDER_GLES )
+class VboMeshSource : public geom::Source {
+  public:
+	static std::shared_ptr<VboMeshSource>	create( const gl::VboMesh *vboMesh );
+	
+	virtual void	loadInto( geom::Target *target ) const override;
+	
+	virtual size_t			getNumVertices() const override;
+	virtual size_t			getNumIndices() const override;
+	virtual geom::Primitive	getPrimitive() const override;
+	
+	virtual uint8_t			getAttribDims( geom::Attrib attr ) const override;
+	
+  protected:
+	VboMeshSource( const gl::VboMesh *vboMesh );
+  
+	const gl::VboMesh		*mVboMesh;
+};
+#endif // ! defined( CINDER_GLES )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // VboMeshGeomTarget
@@ -47,7 +65,7 @@ void VboMeshGeomTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stri
 //	mMesh->copyAttrib( attr, dims, strideBytes, srcData, count );
 	if( mBufferLayout.hasAttrib( attr ) ) {
 		geom::BufferLayout::AttribInfo attrInfo = mBufferLayout.getAttribInfo( attr );
-		copyData( dims, srcData, count, attrInfo.getDims(), attrInfo.getStride(), reinterpret_cast<float*>( mData + attrInfo.getOffset() ) ); 
+		geom::copyData( dims, srcData, count, attrInfo.getDims(), attrInfo.getStride(), reinterpret_cast<float*>( mData + attrInfo.getOffset() ) ); 
 	}
 }
 
@@ -112,11 +130,8 @@ VboMesh::VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive,
 {
 }
 
-VaoRef VboMesh::buildVao( const GlslProgRef &shader )
+void VboMesh::buildVao( const GlslProgRef &shader, const AttributeMapping &attributeMapping )
 {
-	VaoRef result = Vao::create();
-	VaoScope vaoScope( result );
-	
 	auto ctx = gl::context();
 	
 	// iterate all the vertex array VBOs; map<geom::BufferLayout,VboRef>
@@ -125,19 +140,29 @@ VaoRef VboMesh::buildVao( const GlslProgRef &shader )
 		vertArrayVbo.second->bind();
 		// now iterate the attributes associated with this VBO
 		for( const auto &attribInfo : vertArrayVbo.first.getAttribs() ) {
-			// get the location of the attrib semantic in the shader if it's present
-			if( shader->hasAttribSemantic( attribInfo.getAttrib() ) ) {
-				int loc = shader->getAttribSemanticLocation( attribInfo.getAttrib() );
+			int loc = -1;
+			// first see if we have a mapping in 'attributeMapping'
+			auto attributeMappingIt = attributeMapping.find( attribInfo.getAttrib() );
+			if( attributeMappingIt != attributeMapping.end() ) {
+				loc = shader->getAttribLocation( attributeMappingIt->second );
+			}
+			// otherwise, try to get the location of the attrib semantic in the shader if it's present
+			else if( shader->hasAttribSemantic( attribInfo.getAttrib() ) ) {
+				loc = shader->getAttribSemanticLocation( attribInfo.getAttrib() );			
+			}
+			
+			// if either the shader's mapping or 'attributeMapping' has this semantic, add it to the VAO
+			if( loc != -1 ) {
 				ctx->enableVertexAttribArray( loc );
 				ctx->vertexAttribPointer( loc, attribInfo.getDims(), GL_FLOAT, GL_FALSE, attribInfo.getStride(), (const void*)attribInfo.getOffset() );
+				if( attribInfo.getInstanceDivisor() > 0 )
+					ctx->vertexAttribDivisor( loc, attribInfo.getInstanceDivisor() );
 			}
 		}
 	}
 	
 	if( mNumIndices > 0 )
 		mElements->bind();
-	
-	return result;
 }
 
 void VboMesh::drawImpl()
@@ -158,303 +183,205 @@ std::vector<VboRef>	VboMesh::getVertexArrayVbos()
 	return result;
 }
 
-/*	{
-		// PREPARE VAO
-		mVao = Vao::create();
-		VaoScope vaoScope( mVao );
-
-	}*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#if 0
-
-/////////////////////////////////////////////////////////////////
-VboMesh::Layout::Layout()
-: mAttrColor( Vao::ATTRIB_COLOR ), mAttrNormal( Vao::ATTRIB_NORMAL ),
-mAttrPosition( Vao::ATTRIB_POSITION ), mAttrTexCoord( Vao::ATTRIB_TEXCOORD ),
-mUsageColor( NONE ), mUsageIndex( NONE ), mUsageNormal( NONE ),
-mUsagePosition( NONE ), mUsageTexCoord( NONE )
+void VboMesh::appendVbo( const geom::BufferLayout &layout, const VboRef &vbo )
 {
+	mVertexArrayVbos.push_back( make_pair( layout, vbo ) );
 }
 
-GLuint VboMesh::Layout::getColorAttribLocation() const
+uint8_t	VboMesh::getAttribDims( geom::Attrib attr ) const
 {
-	return mAttrColor;
-}
-
-GLuint VboMesh::Layout::getNormalAttribLocation() const
-{
-	return mAttrNormal;
-}
-
-GLuint VboMesh::Layout::getPositionAttribLocation() const
-{
-	return mAttrPosition;
-}
-
-GLuint VboMesh::Layout::getTexCoordAttribLocation() const
-{
-	return mAttrTexCoord;
-}
-
-void VboMesh::Layout::setColorAttribLocation( GLuint index )
-{
-	mAttrColor = index;
-}
-
-void VboMesh::Layout::setNormalAttribLocation( GLuint index )
-{
-	mAttrNormal = index;
-}
-
-void VboMesh::Layout::setPositionAttribLocation( GLuint index )
-{
-	mAttrPosition = index;
-}
-
-void VboMesh::Layout::setTexCoordAttribLocation( GLuint index )
-{
-	mAttrTexCoord = index;
-}
-	
-VboMesh::Layout::Usage VboMesh::Layout::getColorUsage() const
-{
-	return mUsageColor;
-}
-
-void VboMesh::Layout::setColorUsage( VboMesh::Layout::Usage u )
-{
-	mUsageColor = u;
-}
-
-VboMesh::Layout::Usage VboMesh::Layout::getNormalUsage() const
-{
-	return mUsageNormal;
-}
-
-void VboMesh::Layout::setNormalUsage( VboMesh::Layout::Usage u )
-{
-	mUsageNormal = u;
-}
-
-VboMesh::Layout::Usage VboMesh::Layout::getPositionUsage() const
-{
-	return mUsagePosition;
-}
-
-void VboMesh::Layout::setPositionUsage( VboMesh::Layout::Usage u )
-{
-	mUsagePosition = u;
-}
-
-VboMesh::Layout::Usage VboMesh::Layout::getTexCoordUsage() const
-{
-	return mUsageTexCoord;
-}
-	
-void VboMesh::Layout::setTexCoordUsage( VboMesh::Layout::Usage u )
-{
-	mUsageTexCoord = u;
-}
-	
-VboMesh::Layout::Usage VboMesh::Layout::getIndexUsage() const
-{
-	return mUsageIndex;
-}
-
-void VboMesh::Layout::setIndexUsage( VboMesh::Layout::Usage u )
-{
-	mUsageIndex = u;
-}
-
-/////////////////////////////////////////////////////////////////
-
-VboMeshRef VboMesh::create( size_t numIndices, size_t numVertices, const VboMesh::Layout& layout, GLenum mode )
-{
-	return VboMeshRef( new VboMesh( numIndices, numVertices, layout, mode ) );
-}
-	
-VboMeshRef VboMesh::create( size_t numVertices, const VboMesh::Layout& layout, GLenum mode )
-{
-	return VboMeshRef( new VboMesh( numVertices, layout, mode ) );
-}
-	
-VboMeshRef VboMesh::create( const TriMesh& mesh, const VboMesh::Layout& layout )
-{
-	return VboMeshRef( new VboMesh( mesh, layout ) );
-}
-
-VboMesh::VboMesh( size_t numVertices, const VboMesh::Layout& layout, GLenum glPrimitive )
-: mLayout( layout ), mGlPrimitive( glPrimitive ), mNumIndices( 0 ), mNumVertices( numVertices )
-{
-}
-
-VboMesh::VboMesh( size_t numIndices, size_t numVertices, const VboMesh::Layout& layout, GLenum glPrimitive )
-: mLayout( layout ), mGlPrimitive( glPrimitive ), mNumIndices( numIndices ), mNumVertices( numVertices )
-{
-}
-
-VboMesh::VboMesh( const TriMesh& mesh, const VboMesh::Layout& layout )
-: mLayout( layout ), mGlPrimitive( GL_TRIANGLES ), mNumIndices( mesh.getNumIndices() ),
-mNumVertices( mesh.getNumVertices() )
-{
-	if ( mesh.hasColorsRGBA() && mLayout.getColorUsage() == Layout::Usage::NONE ) {
-		mLayout.setColorUsage( Layout::Usage::STATIC );
-	}
-	if ( mesh.hasNormals() && mLayout.getNormalUsage() == Layout::Usage::NONE ) {
-		mLayout.setNormalUsage( Layout::Usage::STATIC );
-	}
-	if ( !mesh.getVertices().empty() && mLayout.getPositionUsage() == Layout::Usage::NONE ) {
-		mLayout.setPositionUsage( Layout::Usage::STATIC );
-	}
-	if ( mesh.hasTexCoords() && mLayout.getTexCoordUsage() == Layout::Usage::NONE ) {
-		mLayout.setTexCoordUsage( Layout::Usage::STATIC );
-	}
-	mLayout.setIndexUsage( Layout::Usage::STATIC );
-	
-	if ( mVboIndices ) {
-		GLuint count	= sizeof( uint32_t ) * mNumIndices;
-		GLenum usage	= mLayout.getIndexUsage() == Layout::Usage::STATIC ? GL_STATIC_DRAW : GL_STREAM_DRAW;
-		mVboIndices->bufferData( count, &mesh.getIndices()[ 0 ], usage );
-	}
-}
-
-/*void VboMesh::bind() const
-{
-	mVao->bind();
-	if ( mVboIndices ) {
-		mVboIndices->bind();
-	}
-	if ( mVboVerticesDynamic ) {
-		mVboVerticesDynamic->bind();
-	}
-	if ( mVboVerticesStatic ) {
-		mVboVerticesStatic->bind();
-	}
-}*/
-
-void VboMesh::unbind() const
-{
-	if ( mVboVerticesStatic ) {
-		mVboVerticesStatic->unbind();
-	}
-	if ( mVboVerticesDynamic ) {
-		mVboVerticesDynamic->unbind();
-	}
-	if ( mVboIndices ) {
-		mVboIndices->unbind();
-	}
-	mVao->unbind();
-}
-	
-void VboMesh::initializeBuffers()
-{
-	mVao = Vao::create();
-	
-	if ( mNumIndices > 0 ) {
-		mVboIndices = Vbo::create( GL_ELEMENT_ARRAY_BUFFER );
-	}
-	
-	if ( mNumVertices > 0 ) {
-		bool hasDynamic	= mLayout.getColorUsage() == Layout::Usage::DYNAMIC || mLayout.getNormalUsage() == Layout::Usage::DYNAMIC ||
-			mLayout.getPositionUsage() == Layout::Usage::DYNAMIC || mLayout.getTexCoordUsage() == Layout::Usage::DYNAMIC;
-		bool hasStatic	= mLayout.getColorUsage() == Layout::Usage::STATIC || mLayout.getNormalUsage() == Layout::Usage::STATIC ||
-			mLayout.getPositionUsage() == Layout::Usage::STATIC || mLayout.getTexCoordUsage() == Layout::Usage::STATIC;
-		
-		if ( hasDynamic ) {
-			mVboVerticesDynamic = Vbo::create( GL_ARRAY_BUFFER );
-			
-			size_t offset = 0;
-			if ( mLayout.getColorUsage() == Layout::Usage::DYNAMIC ) {
-				// TODO add attribute to VAO
-				offset += 4;
-			}
-			if ( mLayout.getNormalUsage() == Layout::Usage::DYNAMIC ) {
-				// TODO add attribute to VAO
-				offset += 3;
-			}
-			if ( mLayout.getPositionUsage() == Layout::Usage::DYNAMIC ) {
-				// TODO add attribute to VAO
-				offset += 3;
-			}
-			if ( mLayout.getTexCoordUsage() == Layout::Usage::DYNAMIC ) {
-				// TODO add attribute to VAO
-				offset += 4;
-			}
-			
-			GLuint stride = offset * sizeof( GL_FLOAT ) * mNumVertices;
-			mVboVerticesDynamic->bufferData( stride, 0, GL_STREAM_DRAW );
-		}
-		
-		if ( hasStatic ) {
-			mVboVerticesStatic = Vbo::create( GL_ARRAY_BUFFER );
-			
-			size_t offset = 0;
-			if ( mLayout.getColorUsage() == Layout::Usage::STATIC ) {
-				// TODO add attribute to VAO
-				offset += 4 * mNumVertices;
-			}
-			if ( mLayout.getNormalUsage() == Layout::Usage::STATIC ) {
-				// TODO add attribute to VAO
-				offset += 3 * mNumVertices;
-			}
-			if ( mLayout.getPositionUsage() == Layout::Usage::STATIC ) {
-				// TODO add attribute to VAO
-				offset += 3 * mNumVertices;
-			}
-			if ( mLayout.getTexCoordUsage() == Layout::Usage::STATIC ) {
-				// TODO add attribute to VAO
-				offset += 4 * mNumVertices;
-			}
-			
-			GLuint stride = offset * sizeof( GL_FLOAT );
-			mVboVerticesStatic->bufferData( stride, 0, GL_STATIC_DRAW );
+	for( const auto &vertArrayVbo : mVertexArrayVbos ) {
+		// now iterate the attributes associated with this VBO
+		for( const auto &attribInfo : vertArrayVbo.first.getAttribs() ) {
+			if( attribInfo.getAttrib() == attr )
+				return attribInfo.getDims();
 		}
 	}
-}
 	
-void VboMesh::bufferIndices( const vector<GLuint>& indices )
-{
+	// not found
+	return 0;
 }
 
-void VboMesh::bufferColors( const vector<ColorAf>& colors )
+#if ! defined( CINDER_GLES )
+geom::SourceRef	VboMesh::createSource() const
 {
+	return VboMeshSource::create( this );
 }
 
-void VboMesh::bufferNormals( const vector<Vec3f>& normals )
+void VboMesh::downloadIndices( uint32_t *dest ) const
 {
-}
+	if( (! mElements) || (getNumIndices() == 0) )
+		return;
 
-void VboMesh::bufferPositions( const vector<Vec3f>& positions )
-{
-}
-
-void VboMesh::bufferTexCoords( const vector<Vec2f>& texCoords )
-{
-}
-	
-void VboMesh::bufferTexCoords( const vector<Vec3f>& texCoords )
-{
-}
-	
-void VboMesh::bufferTexCoords( const vector<Vec4f>& texCoords )
-{
-}
-
+#if defined( CINDER_GLES )
+	const void *data = mElements->map( GL_READ_ONLY_OES );
+#else
+	const void *data = mElements->map( GL_READ_ONLY );
 #endif
+	if( mGlPrimitive == GL_UNSIGNED_SHORT ) {
+		const uint16_t *source = reinterpret_cast<const uint16_t*>( data );
+		for( size_t e = 0; e < getNumIndices(); ++e )
+			dest[e] = source[e];
+	}
+	else
+		memcpy( dest, data, getNumIndices() * sizeof(uint32_t) );
+		
+	mElements->unmap();
+}
 
-} }
+void VboMesh::echoVertexRange( std::ostream &os, size_t startIndex, size_t endIndex )
+{
+	vector<string> attribSemanticNames;
+	vector<vector<string>> attribData;
+	vector<size_t> attribColLengths;
+	vector<string> attribColLeadingSpaceStrings;
+
+	startIndex = std::min<size_t>( startIndex, mNumVertices );
+	endIndex = std::min<size_t>( endIndex, mNumVertices );
+
+	// save the GL_ARRAY_BUFFER binding
+	auto prevBufferBinding = gl::context()->getBufferBinding( GL_ARRAY_BUFFER );
+
+	// iterate all the vertex array VBOs; map<geom::BufferLayout,VboRef>
+	for( const auto &vertArrayVbo : mVertexArrayVbos ) {
+		// map this VBO
+		const void *rawData = vertArrayVbo.second->map( GL_READ_ONLY );
+		// now iterate the attributes associated with this VBO
+		for( const auto &attribInfo : vertArrayVbo.first.getAttribs() ) {
+			attribSemanticNames.push_back( geom::attribToString( attribInfo.getAttrib() ) );
+			attribData.push_back( vector<string>() );
+			size_t stride = ( attribInfo.getStride() == 0 ) ? attribInfo.getDims() * sizeof(float) : attribInfo.getStride();
+			for( size_t v = startIndex; v < endIndex; ++v ) {
+				ostringstream ss;
+				const float *dataFloat = reinterpret_cast<const float*>( (const uint8_t*)rawData + attribInfo.getOffset() + v * stride );
+				for( uint8_t d = 0; d < attribInfo.getDims(); ++d ) {
+					ss << dataFloat[d];
+					if( d != attribInfo.getDims() - 1 )
+						ss << ",";
+				}
+				attribData.back().push_back( ss.str() );
+			}
+			
+			// now calculate the longest string in the column
+			attribColLengths.push_back( attribSemanticNames.back().length() + 3 );
+			for( auto &attribDataStr : attribData.back() ) {
+				attribColLengths.back() = std::max<size_t>( attribColLengths.back(), attribDataStr.length() + 2 );
+			}
+		}
+		
+		vertArrayVbo.second->unmap();
+	}
+
+	// print attrib semantic header
+	ostringstream ss;
+	for( size_t a = 0; a < attribSemanticNames.size(); ++a ) {
+		// character offset where we should be for this column
+		size_t colStartCharIndex = 0;
+		for( size_t sumA = 0; sumA < a; ++sumA )
+			colStartCharIndex += attribColLengths[sumA];
+		// offset relative to the previous
+		int numSpaces = std::max<int>( colStartCharIndex - ss.str().length(), 0 );
+		// center string
+		numSpaces += std::max<int>( (attribColLengths[a] - (attribSemanticNames[a].length()+2)) / 2, 0 );
+		for( size_t s = 0; s < numSpaces; s++ )
+			ss << " ";
+		ss << "<" << attribSemanticNames[a] << "> ";
+	}
+	os << ss.str();
+	os << std::endl;
+
+	// print data rows
+	for( size_t v = 0; v < ( endIndex - startIndex ); ++v ) {
+		ostringstream ss;
+		for( size_t a = 0; a < attribSemanticNames.size(); ++a ) {
+			// character offset where we should be for this column
+			size_t colStartCharIndex = 0;
+			for( size_t sumA = 0; sumA < a; ++sumA )
+				colStartCharIndex += attribColLengths[sumA];
+			// offset relative to the previous
+			int numSpaces = std::max<int>( colStartCharIndex - ss.str().length(), 0 );
+			// center string
+			numSpaces += std::max<int>( (attribColLengths[a] - attribData[a][v].length()) / 2, 0 );
+			for( size_t s = 0; s < numSpaces; s++ )
+				ss << " ";
+			ss << attribData[a][v];
+		}
+		os << ss.str();
+		os << std::endl;
+	}
+	os << std::endl;
+
+	// restore the GL_ARRAY_BUFFER binding
+	gl::context()->bindBuffer( GL_ARRAY_BUFFER, prevBufferBinding );
+}
+
+#endif // ! defined( CINDER_GLES )
+
+
+#if ! defined( CINDER_GLES )
+
+VboMeshSource::VboMeshSource( const gl::VboMesh *vboMesh )
+	: mVboMesh( vboMesh )
+{
+}
+
+std::shared_ptr<VboMeshSource> VboMeshSource::create( const gl::VboMesh *vboMesh )
+{
+	return std::shared_ptr<VboMeshSource>( new VboMeshSource( vboMesh ) );
+}
+
+void VboMeshSource::loadInto( geom::Target *target ) const
+{
+	// iterate all the vertex array VBOs; map<geom::BufferLayout,VboRef>
+	for( const auto &vertArrayVbo : mVboMesh->getVertexArrayLayoutVbos() ) {
+		// map this VBO
+		const void *rawData = vertArrayVbo.second->map( GL_READ_ONLY );
+		// now iterate the attributes associated with this VBO
+		for( const auto &attribInfo : vertArrayVbo.first.getAttribs() ) {
+			target->copyAttrib( attribInfo.getAttrib(), attribInfo.getDims(), attribInfo.getStride(), (const float*)((const uint8_t*)rawData + attribInfo.getOffset()), getNumVertices() );
+		}
+		
+		vertArrayVbo.second->unmap();
+	}
+	
+	// copy index data if it's present
+	if( mVboMesh->getNumIndices() ) {
+		uint8_t bytesPerIndex;
+		switch( mVboMesh->getIndexDataType() ) {
+			case GL_UNSIGNED_SHORT:
+				bytesPerIndex = 2;
+			break;
+			case GL_UNSIGNED_INT:
+				bytesPerIndex = 4;
+			break;
+		}
+		
+		std::unique_ptr<uint32_t> indices( new uint32_t[mVboMesh->getNumIndices()] );
+		mVboMesh->downloadIndices( indices.get() );
+		target->copyIndices( gl::toGeomPrimitive( mVboMesh->getGlPrimitive() ), indices.get(), mVboMesh->getNumIndices(), bytesPerIndex );
+	}
+}
+
+size_t VboMeshSource::getNumVertices() const
+{
+	return mVboMesh->getNumVertices();
+}
+
+size_t VboMeshSource::getNumIndices() const
+{
+	return mVboMesh->getNumIndices();
+}
+
+geom::Primitive VboMeshSource::getPrimitive() const
+{
+	return gl::toGeomPrimitive( mVboMesh->getGlPrimitive() );
+}
+
+uint8_t VboMeshSource::getAttribDims( geom::Attrib attr ) const
+{
+	return mVboMesh->getAttribDims( attr );
+}
+
+#endif // ! defined( CINDER_GLES )
+
+} } // namespace cinder::gl

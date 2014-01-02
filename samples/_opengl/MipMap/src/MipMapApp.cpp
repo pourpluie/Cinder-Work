@@ -8,10 +8,12 @@
 #include "cinder/ip/Resize.h"
 #include "cinder/Camera.h"
 #include "cinder/Surface.h"
+#include "cinder/ImageIo.h"
 
 #include "Resources.h"
 
 #include <vector>
+#include <memory>
 
 using namespace ci;
 using namespace ci::app;
@@ -137,23 +139,23 @@ void TextureMipmappingApp::setup()
 	// getting max Anisotropic maximum sampling available on the graphics card above 1
 	mMaxAnisoFilterAmount = gl::Texture::getMaxMaxAnisotropy() - 1.0f;
 	
-	mLeftControl = make_shared<FilterControl>( Rectf( widthFraction - 50, heightFraction * 1, widthFraction + 50, heightFraction * 1 + 30 ),
+	mLeftControl = shared_ptr<FilterControl>( new FilterControl( Rectf( widthFraction - 50, heightFraction * 1, widthFraction + 50, heightFraction * 1 + 30 ),
 													Rectf( widthFraction - 50, heightFraction * 2, widthFraction + 50, heightFraction * 2 + 30 ),
 													Rectf( widthFraction - 50, heightFraction * 3, widthFraction + 50, heightFraction * 3 + 30 ),
 													Rectf( widthFraction - 50, heightFraction * 3, widthFraction + 50, heightFraction * 3 + 30 ),
 								  /* scissor */		Vec2i( 0, 0 ) /* position */, Vec2i( getWindowWidth() / 2, getWindowHeight() ) /* dimension */,
 													gl::Texture::create( loadImage( loadResource( MIN_FILTER_LIN_LIN ) ) ),
 													gl::Texture::create( loadImage( loadResource( GL_GEN ) ) ),
-													mMaxAnisoFilterAmount );
+													mMaxAnisoFilterAmount ) );
 	
-	mRightControl = make_shared<FilterControl>( Rectf( widthFraction * 5 - 50, heightFraction * 1, widthFraction * 5 + 50, heightFraction * 1 + 30 ),
+	mRightControl = shared_ptr<FilterControl>( new FilterControl( Rectf( widthFraction * 5 - 50, heightFraction * 1, widthFraction * 5 + 50, heightFraction * 1 + 30 ),
 													 Rectf( widthFraction * 5 - 50, heightFraction * 2, widthFraction * 5 + 50, heightFraction * 2 + 30 ),
 													 Rectf( widthFraction * 5 - 50, heightFraction * 3, widthFraction * 5 + 50, heightFraction * 3 + 30 ),
 													 Rectf( widthFraction * 5 - 50, heightFraction * 3, widthFraction * 5 + 50, heightFraction * 3 + 30 ),
 								  /* scissor */		 Vec2i( getWindowWidth() / 2, 0 ) /* position */, Vec2i( getWindowWidth() / 2, getWindowHeight() ) /* dimension */,
 													 gl::Texture::create( loadImage( loadResource( MIN_FILTER_NEA_NEA ) ) ),
 													 gl::Texture::create( loadImage( loadResource( GL_GEN ) ) ),
-													 mMaxAnisoFilterAmount );
+													 mMaxAnisoFilterAmount ) );
 	
 	
 	

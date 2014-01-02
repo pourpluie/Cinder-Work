@@ -23,35 +23,48 @@
 #pragma once
 
 #include "cinder/gl/gl.h"
+#include "cinder/gl/BufferObj.h"
 #include <memory>
 #include <vector>
 #include <map>
 
+#include <ostream>
+
 namespace cinder { namespace gl {
 
 typedef std::shared_ptr<class Vao> VaoRef;
+class VaoCache;
+typedef std::shared_ptr<VaoCache> VaoCacheRef;
 
 class Vao : public std::enable_shared_from_this<Vao> {
   public:
+	struct Layout;
+	
 	static VaoRef		create();
 	virtual ~Vao() {}
 	
 	void	bind();
 	void	unbind() const;
 
-	GLuint	getId() const { return mId; }
-	
-  protected:
-	Vao();
+	GLuint			getId() const { return mId; }
+	const Layout&	getLayout() const { return mLayout; }
+
+	//! This is meant to allow efficient replacement of a VAO without allocating a new Vao
+	void	swap( const VaoCacheRef &cache );
+
+	//! This is meant to allow efficient replacement of a VAO without allocating a new Vao
+	void	swap( const Layout &layout );
 
 	struct VertexAttrib {
 		VertexAttrib()
-			: mEnabled( true ), mSize( 0 ), mType( GL_FLOAT ), mNormalized( false ), mStride( 0 ), mPointer( 0 ), mArrayBufferBinding( 0 )
+			: mEnabled( false ), mSize( 0 ), mType( GL_FLOAT ), mNormalized( false ), mStride( 0 ), mPointer( 0 ), mArrayBufferBinding( 0 ), mDivisor( 0 )
 		{}
 		
-		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer, GLuint arrayBufferBinding )
-			: mEnabled( false ), mSize( size ), mType( type ), mNormalized( normalized ), mStride( stride ), mPointer( pointer ), mArrayBufferBinding( arrayBufferBinding )
+		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer, GLuint arrayBufferBinding, GLuint divisor = 0 )
+			: mEnabled( false ), mSize( size ), mType( type ), mNormalized( normalized ), mStride( stride ), mPointer( pointer ), mArrayBufferBinding( arrayBufferBinding ), mDivisor( divisor )
 		{}
+		
+		void		setDivisor( GLuint divisor ) { mDivisor = divisor; }
 		
 		bool			mEnabled;
 		GLint			mSize;
@@ -60,8 +73,36 @@ class Vao : public std::enable_shared_from_this<Vao> {
 		GLsizei			mStride;
 		const GLvoid*	mPointer;
 		GLuint			mArrayBufferBinding;
+		GLuint			mDivisor;
 	};
 
+	//! Represent a software-only mirror of the state a VAO records. Can be used directly for efficient swapping (primarily by the gl:: convenience functions)
+	struct Layout {
+		Layout();
+		
+		//! The equivalent of glBindBuffer( \a target, \a binding )
+		void	bindBuffer( GLenum target, GLuint buffer );
+		//! The equivalent of glEnableVertexAttribArray( \a index )
+		void	enableVertexAttribArray( GLuint index );
+		//! The equivalent of glDisableVertexAttribArray( \a index )
+		void	disableVertexAttribArray( GLuint index );
+		//! Sets the vertex attribute data
+		void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+		//! Sets the instancing divisor
+		void	vertexAttribDivisor( GLuint index, GLuint divisor );
+		
+		GLuint							mElementArrayBufferBinding;
+		GLuint							mCachedArrayBufferBinding; // this represent a cache of the Context's value, but VAOs do not record GL_ARRAY_BUFFER_BINDING
+		std::map<GLuint,VertexAttrib>	mVertexAttribs;
+
+		friend class Vao;
+	};
+	
+  protected:
+	Vao();
+
+	//! only necessary when VAO is created without
+	void setContext( Context *context );
 
 	// Does the actual work of binding the VAO; called by Context
 	virtual void	bindImpl( class Context *context ) = 0;
@@ -69,21 +110,50 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	virtual void	unbindImpl( class Context *context ) = 0;
 	// Analogous to glEnableVertexAttribArray(). Expects this to be the currently bound VAO; called by Context
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) = 0;
+	// Analogous to glDisableVertexAttribArray(). Expects this to be the currently bound VAO; called by Context
+	virtual void	disableVertexAttribArrayImpl( GLuint index ) = 0;
 	// Analogous to glVertexAttribPointer(). Expects this to be the currently bound VAO; called by Context
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) = 0;
+	// Analogous to glVertexAttribDivisor(). Expects this to be the currently bound VAO; called by Context
+	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) = 0;
 	// Caches the currently bound buffer; called by Context when GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER changes
-	void			reflectBindBuffer( GLenum target, GLuint buffer );
+	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) = 0;
 
-	// Causes Context to reflect any state cache invalidations due to binding/unbinding a VAO
-	static void		invalidateContext( class Context *context );
-
-
-	
 	GLuint							mId;
-	GLuint							mArrayBufferBinding, mElementArrayBufferBinding;
-	std::map<GLuint,VertexAttrib>	mVertexAttribs;
+	Context							*mCtx;
+	Layout							mLayout;
 
-	friend class Context;
+	friend Context;
+	friend std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs );
+	friend std::ostream& operator<<( std::ostream &lhs, const Vao &rhs );
 };
+
+class VaoCache : public Vao {
+  public:
+	static VaoCacheRef	create();
+
+  protected:
+	VaoCache();
+
+	// Does the actual work of binding the VAO; called by Context
+	virtual void	bindImpl( class Context *context ) override;
+	// Does the actual work of unbinding the VAO; called by Context
+	virtual void	unbindImpl( class Context *context ) override;
+	// Analogous to glEnableVertexAttribArray(). Expects this to be the currently bound VAO; called by Context
+	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
+	// Analogous to glDisableVertexAttribArray(). Expects this to be the currently bound VAO; called by Context
+	virtual void	disableVertexAttribArrayImpl( GLuint index ) override;
+	// Analogous to glVertexAttribPointer(). Expects this to be the currently bound VAO; called by Context
+	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
+	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) override;
+	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;
+};
+
+// Convenience method for dumping VAO contents to a std::ostream
+std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs );
+// Convenience method for dumping VAO contents to a std::ostream
+std::ostream& operator<<( std::ostream &lhs, const Vao &rhs );
+// Convenience method for dumping Vao::Layout contents to a std::ostream
+std::ostream& operator<<( std::ostream &lhs, const Vao::Layout &rhs );
 	
 } }

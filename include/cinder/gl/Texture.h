@@ -50,8 +50,10 @@ class TextureBase {
 	/** Sets the filtering behavior when a texture is displayed at a higher resolution than its native resolution.
 	 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR **/
 	void			setMagFilter( GLenum magFilter );
-	/** Sets the anisotropic filtering amount **/
+	//! Sets the anisotropic filtering amount. A value greater than 1.0 "enables" anisotropic filtering. Maximum of getMaxMaxAnisotropy();
 	void			setMaxAnisotropy( GLfloat maxAnisotropy );
+	//! Returns whether the Texture has Mipmapping enabled
+	bool			hasMipmapping() const { return mMipmapping; }
 	
 	//! Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_TEXTURE_2D -> GL_TEXTURE_BINDING_2D. Returns 0 on failure.
 	static GLenum	getBindingConstantForTarget( GLenum target );
@@ -63,7 +65,7 @@ class TextureBase {
 	static bool		dataFormatHasColor( GLint dataFormat );
 	//! calculate the size of mipMap for the corresponding level
 	static Vec2i	calcMipLevelSize( int level, GLint width, GLint height );
-	/** Gets the maximum anisotropic filtering maximum allowed by the extension **/
+	//! Returns the maximum anisotropic filtering maximum allowed by the hardware
 	static GLfloat	getMaxMaxAnisotropy();
 	
 
@@ -108,7 +110,7 @@ class TextureBase {
 		/** Sets the filtering behavior when a texture is displayed at a higher resolution than its native resolution. Default is \c GL_LINEAR
 		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
 		void	setMagFilter( GLenum magFilter ) { mMagFilter = magFilter; }
-		//! Sets the anisotropic filter amount
+		//! Sets the anisotropic filter amount. A value greater than 1.0 "enables" anisotropic filtering. Maximum of getMaxMaxAnisotropy();
 		void    setMaxAnisotropy( GLfloat maxAnisotropy ) { mMaxAnisotropy = maxAnisotropy; }
 		
 		//! Returns the texture's target
@@ -171,6 +173,7 @@ class TextureBase {
   	GLenum			mTarget;
 	GLuint			mTextureId;
 	mutable GLint	mInternalFormat;
+	bool			mMipmapping;
 	bool			mDoNotDispose;	
 };
 	
@@ -183,6 +186,7 @@ class Texture : public TextureBase {
 		//! Chaining functions for Format class.
 		Format& target( GLenum target ) { mTarget = target; return *this; }
 		Format& mipmap( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; return *this; }
+		//! Sets the maximum amount of anisotropic filtering. A value greater than 1.0 "enables" anisotropic filtering. Maximum of getMaxMaxAnisotropy();
 		Format& maxAnisotropy( float maxAnisotropy ) { mMaxAnisotropy = maxAnisotropy; return *this; }
 		Format& internalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; return *this; }
 		Format& wrap( GLenum wrap ) { mWrapS = mWrapT = mWrapR = wrap; return *this; }
@@ -319,6 +323,7 @@ class Texture3d : public TextureBase {
 		//! Sets the target, defaults to \c GL_TEXTURE_3D, also supports \c GL_TEXTURE_2D_ARRAY
 		Format& target( GLenum target ) { mTarget = target; return *this; }
 		Format& mipmap( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; return *this; }
+		//! Sets the maximum amount of anisotropic filtering. A value greater than 1.0 "enables" anisotropic filtering. Maximum of getMaxMaxAnisotropy();
 		Format& maxAnisotropy( float maxAnisotropy ) { mMaxAnisotropy = maxAnisotropy; return *this; }
 		Format& internalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; return *this; }
 		Format& wrap( GLenum wrap ) { mWrapS = mWrapT = mWrapR = wrap; return *this; }

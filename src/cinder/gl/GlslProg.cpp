@@ -227,10 +227,10 @@ GlslProg::UniformSemanticMap& GlslProg::getDefaultUniformNameToSemanticMap()
 {
 	static bool initialized = false;
 	if( ! initialized ) {
-		sDefaultUniformNameToSemanticMap["uModelView"] = UNIFORM_MODELVIEW;
-		sDefaultUniformNameToSemanticMap["uModelViewProjection"] = UNIFORM_MODELVIEWPROJECTION;
-		sDefaultUniformNameToSemanticMap["uProjection"] = UNIFORM_PROJECTION;
-		sDefaultUniformNameToSemanticMap["uNormalMatrix"] = UNIFORM_NORMAL_MATRIX;
+		sDefaultUniformNameToSemanticMap["ciModelView"] = UNIFORM_MODELVIEW;
+		sDefaultUniformNameToSemanticMap["ciModelViewProjection"] = UNIFORM_MODELVIEWPROJECTION;
+		sDefaultUniformNameToSemanticMap["ciProjection"] = UNIFORM_PROJECTION;
+		sDefaultUniformNameToSemanticMap["ciNormalMatrix"] = UNIFORM_NORMAL_MATRIX;
 		initialized = true;
 	}
 	
@@ -241,15 +241,15 @@ GlslProg::AttribSemanticMap& GlslProg::getDefaultAttribNameToSemanticMap()
 {
 	static bool initialized = false;
 	if( ! initialized ) {
-		sDefaultAttribNameToSemanticMap["vPosition"] = geom::Attrib::POSITION;
-		sDefaultAttribNameToSemanticMap["vNormal"] = geom::Attrib::NORMAL;
-		sDefaultAttribNameToSemanticMap["vTexCoord0"] = geom::Attrib::TEX_COORD_0;
-		sDefaultAttribNameToSemanticMap["vTexCoord1"] = geom::Attrib::TEX_COORD_1;
-		sDefaultAttribNameToSemanticMap["vTexCoord2"] = geom::Attrib::TEX_COORD_2;
-		sDefaultAttribNameToSemanticMap["vTexCoord3"] = geom::Attrib::TEX_COORD_3;						
-		sDefaultAttribNameToSemanticMap["vColor"] = geom::Attrib::COLOR;
-		sDefaultAttribNameToSemanticMap["vBoneIndex"] = geom::Attrib::BONE_INDEX;
-		sDefaultAttribNameToSemanticMap["vBoneWeight"] = geom::Attrib::BONE_WEIGHT;
+		sDefaultAttribNameToSemanticMap["ciPosition"] = geom::Attrib::POSITION;
+		sDefaultAttribNameToSemanticMap["ciNormal"] = geom::Attrib::NORMAL;
+		sDefaultAttribNameToSemanticMap["ciTexCoord0"] = geom::Attrib::TEX_COORD_0;
+		sDefaultAttribNameToSemanticMap["ciTexCoord1"] = geom::Attrib::TEX_COORD_1;
+		sDefaultAttribNameToSemanticMap["ciTexCoord2"] = geom::Attrib::TEX_COORD_2;
+		sDefaultAttribNameToSemanticMap["ciTexCoord3"] = geom::Attrib::TEX_COORD_3;						
+		sDefaultAttribNameToSemanticMap["ciColor"] = geom::Attrib::COLOR;
+		sDefaultAttribNameToSemanticMap["ciBoneIndex"] = geom::Attrib::BONE_INDEX;
+		sDefaultAttribNameToSemanticMap["ciBoneWeight"] = geom::Attrib::BONE_WEIGHT;
 		initialized = true;
 	}
 	
@@ -278,12 +278,14 @@ void GlslProg::link()
 
 void GlslProg::bind() const
 {
-	gl::context()->bindShader( std::const_pointer_cast<GlslProg>( shared_from_this() ) );
+	// this will in turn call bindImpl; this is so that the context can update its reference to the active shader
+	gl::context()->bindGlslProg( std::const_pointer_cast<GlslProg>( shared_from_this() ) );
 }
 
-void GlslProg::unbind()
+// This is called by the Context whenever a GlslProg is bound. The indirection is so that the Context can update its reference to the active shader
+void GlslProg::bindImpl()
 {
-	gl::context()->unbindShader();
+	glUseProgram( mHandle );
 }
 
 std::string GlslProg::getShaderLog( GLuint handle ) const
@@ -308,13 +310,13 @@ std::string GlslProg::getShaderLog( GLuint handle ) const
 // int
 void GlslProg::uniform( int location, int data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform1i( location, data );
 }
 
 void GlslProg::uniform( const std::string &name, int data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );
@@ -324,13 +326,13 @@ void GlslProg::uniform( const std::string &name, int data ) const
 // Vec2i
 void GlslProg::uniform( int location, const Vec2i &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform2i( location, data.x, data.y );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2i &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -340,13 +342,13 @@ void GlslProg::uniform( const std::string &name, const Vec2i &data ) const
 // int *, count
 void GlslProg::uniform( int location, const int *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform1iv( location, count, data );
 }
 
 void GlslProg::uniform( const std::string &name, const int *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -356,13 +358,13 @@ void GlslProg::uniform( const std::string &name, const int *data, int count ) co
 // Vec2i *, count
 void GlslProg::uniform( int location, const Vec2i *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform2iv( location, count, &data[0].x );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2i *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -372,13 +374,13 @@ void GlslProg::uniform( const std::string &name, const Vec2i *data, int count ) 
 // float
 void GlslProg::uniform( int location, float data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform1f( location, data );
 }
 
 void GlslProg::uniform( const std::string &name, float data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -388,13 +390,13 @@ void GlslProg::uniform( const std::string &name, float data ) const
 // Vec2f
 void GlslProg::uniform( int location, const Vec2f &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform2f( location, data.x, data.y );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2f &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -404,13 +406,13 @@ void GlslProg::uniform( const std::string &name, const Vec2f &data ) const
 // Vec3f
 void GlslProg::uniform( int location, const Vec3f &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform3f( location, data.x, data.y, data.z );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec3f &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -420,13 +422,13 @@ void GlslProg::uniform( const std::string &name, const Vec3f &data ) const
 // Vec4f
 void GlslProg::uniform( int location, const Vec4f &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform4f( location, data.x, data.y, data.z, data.w );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec4f &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -436,13 +438,13 @@ void GlslProg::uniform( const std::string &name, const Vec4f &data ) const
 // Matrix33f
 void GlslProg::uniform( int location, const Matrix33f &data, bool transpose ) const
 {
-    ShaderScope shaderBind( shared_from_this() );
+    GlslProgScope shaderBind( shared_from_this() );
     glUniformMatrix3fv( location, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
 }
 
 void GlslProg::uniform( const std::string &name, const Matrix33f &data, bool transpose ) const
 {
-    ShaderScope shaderBind( shared_from_this() );
+    GlslProgScope shaderBind( shared_from_this() );
     GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -452,13 +454,13 @@ void GlslProg::uniform( const std::string &name, const Matrix33f &data, bool tra
 // Matrix44f
 void GlslProg::uniform( int location, const Matrix44f &data, bool transpose ) const
 {
-    ShaderScope shaderBind( shared_from_this() );
+    GlslProgScope shaderBind( shared_from_this() );
     glUniformMatrix4fv( location, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
 }
 
 void GlslProg::uniform( const std::string &name, const Matrix44f &data, bool transpose ) const
 {
-    ShaderScope shaderBind( shared_from_this() );
+    GlslProgScope shaderBind( shared_from_this() );
     GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -468,13 +470,13 @@ void GlslProg::uniform( const std::string &name, const Matrix44f &data, bool tra
 // Color
 void GlslProg::uniform( int location, const Color &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform3f( location, data.r, data.g, data.b );
 }
 
 void GlslProg::uniform( const std::string &name, const Color &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -484,13 +486,13 @@ void GlslProg::uniform( const std::string &name, const Color &data ) const
 // ColorA
 void GlslProg::uniform( int location, const ColorA &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform4f( location, data.r, data.g, data.b, data.a );
 }
 
 void GlslProg::uniform( const std::string &name, const ColorA &data ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -500,13 +502,13 @@ void GlslProg::uniform( const std::string &name, const ColorA &data ) const
 // float*, count
 void GlslProg::uniform( int location, const float *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform1fv( location, count, data );
 }
 
 void GlslProg::uniform( const std::string &name, const float *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -516,13 +518,13 @@ void GlslProg::uniform( const std::string &name, const float *data, int count ) 
 // Vec2f*, count
 void GlslProg::uniform( int location, const Vec2f *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform2fv( location, count, &data[0].x );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec2f *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -532,13 +534,13 @@ void GlslProg::uniform( const std::string &name, const Vec2f *data, int count ) 
 // Vec3f*, count
 void GlslProg::uniform( int location, const Vec3f *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform3fv( location, count, &data[0].x );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec3f *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -548,13 +550,13 @@ void GlslProg::uniform( const std::string &name, const Vec3f *data, int count ) 
 // Vec4f*, count
 void GlslProg::uniform( int location, const Vec4f *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	glUniform4fv( location, count, &data[0].x );
 }
 
 void GlslProg::uniform( const std::string &name, const Vec4f *data, int count ) const
 {
-	ShaderScope shaderBind( shared_from_this() );
+	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -564,13 +566,13 @@ void GlslProg::uniform( const std::string &name, const Vec4f *data, int count ) 
 // Matrix33f*, count
 void GlslProg::uniform( int location, const Matrix33f *data, int count, bool transpose ) const
 {
-    ShaderScope shaderBind( shared_from_this() );
+    GlslProgScope shaderBind( shared_from_this() );
     glUniformMatrix3fv( location, count, ( transpose ) ? GL_TRUE : GL_FALSE, &data->m[0] );
 }
 
 void GlslProg::uniform( const std::string &name, const Matrix33f *data, int count, bool transpose ) const
 {
-    ShaderScope shaderBind( shared_from_this() );
+    GlslProgScope shaderBind( shared_from_this() );
     GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -580,13 +582,13 @@ void GlslProg::uniform( const std::string &name, const Matrix33f *data, int coun
 // Matrix44f*, count
 void GlslProg::uniform( int location, const Matrix44f *data, int count, bool transpose ) const
 {
-    ShaderScope shaderBind( shared_from_this() );
+    GlslProgScope shaderBind( shared_from_this() );
     glUniformMatrix4fv( location, count, ( transpose ) ? GL_TRUE : GL_FALSE, &data->m[0] );
 }
 
 void GlslProg::uniform( const std::string &name, const Matrix44f *data, int count, bool transpose ) const
 {
-    ShaderScope shaderBind( shared_from_this() );
+    GlslProgScope shaderBind( shared_from_this() );
     GLint loc = getUniformLocation( name );
 	if( loc == -1 )
 		throw GlslUnknownUniform( name );	
@@ -675,10 +677,6 @@ const GlslProg::AttribSemanticMap& GlslProg::getAttribSemantics() const
 			if( semantic != mAttribNameToSemanticMap.end() ) {
 				// found this semantic, add it mAttrSemantics
 				mAttribSemantics[semantic->first] = semantic->second;
-std::cout << semantic->first << "==" << (int)semantic->second;
-			}
-			else {
-std::cout << "No semantic for: " << semantic->first << std::endl;			
 			}
 		}
 	
@@ -721,6 +719,42 @@ GLint GlslProg::getAttribLocation( const std::string &name ) const
 	}
 	else
 		return existing->second;
+}
+
+std::ostream& operator<<( std::ostream &lhs, const GlslProgRef &rhs )
+{
+	lhs << *rhs;
+	return lhs;
+}
+
+std::ostream& operator<<( std::ostream &lhs, const GlslProg &rhs )
+{
+	lhs << "ID: " << rhs.mHandle << std::endl;
+	lhs << " Uniforms: " << std::endl;
+	auto uniformTypes = rhs.getActiveUniformTypes();
+	for( auto &uni : uniformTypes ) {
+		lhs << "  \"" << uni.first << "\":" << std::endl;
+		lhs << "    Loc: " << rhs.getUniformLocation( uni.first ) << std::endl;
+		lhs << "    Type: " << gl::typeToString( uni.second ) << std::endl;
+		auto semIt = rhs.getUniformSemantics().find( uni.first );
+		if( semIt != rhs.getUniformSemantics().end() ) {
+			lhs << "    Semantic: <" << gl::uniformSemanticToString( semIt->second ) << ">" << std::endl;
+		}
+	}
+
+	auto attribTypes = rhs.getActiveAttribTypes();
+	lhs << " Attributes: " << std::endl;
+	for( auto &attrib : attribTypes ) {
+		lhs << "  \"" << attrib.first << "\":" << std::endl;
+		lhs << "    Loc: " << rhs.getAttribLocation( attrib.first ) << std::endl;
+		lhs << "    Type: " << gl::typeToString( attrib.second ) << std::endl;
+		auto semIt = rhs.getAttribSemantics().find( attrib.first );
+		if( semIt != rhs.getAttribSemantics().end() ) {
+			lhs << "    Semantic: <" << geom::attribToString( semIt->second ) << ">" << std::endl;
+		}
+	}	
+
+	return lhs;
 }
 
 //////////////////////////////////////////////////////////////////////////

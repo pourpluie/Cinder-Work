@@ -28,6 +28,20 @@ using namespace std;
 
 namespace cinder { namespace geom {
 
+std::string sAttribNames[(int)Attrib::NUM_ATTRIBS] = {
+	"POSITION", "COLOR", "TEX_COORD_0", "TEX_COORD_1", "TEX_COORD_2", "TEX_COORD_3",
+	"NORMAL", "TANGENT", "BITANGET", "BONE_INDEX", "BONE_WEIGHT",
+	"CUSTOM_0", "CUSTOM_1", "CUSTOM_2", "CUSTOM_3", "CUSTOM_4", "CUSTOM_5", "CUSTOM_6", "CUSTOM_7", "CUSTOM_8", "CUSTOM_9"
+};
+
+std::string attribToString( Attrib attrib )
+{
+	if( attrib < Attrib::NUM_ATTRIBS )
+		return sAttribNames[(int)attrib];
+	else
+		return "";
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // BufferLayout
 BufferLayout::AttribInfo BufferLayout::getAttribInfo( Attrib attrib ) const
@@ -130,7 +144,7 @@ void copyDataMultAddImpl( const float *srcData, size_t numElements, size_t dstSt
 
 } // anonymous namespace
 
-void GeomIo::copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData )
+void copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData )
 {
 	// we can get away with a memcpy
 	if( (srcDimensions == dstDimensions) && (dstStrideBytes == 0) ) {
@@ -452,7 +466,11 @@ Rect::Rect()
 
 void Rect::loadInto( Target *target ) const
 {
-	target->copyAttrib( Attrib::POSITION, 2, 0, sPositions, 4 );
+	unique_ptr<Vec2f> positions( new Vec2f[4] );
+	for( size_t p = 0; p < 4; ++p )
+		positions.get()[p] = Vec2f( sPositions[p*2+0], sPositions[p*2+1] ) * mScale + mPos;
+
+	target->copyAttrib( Attrib::POSITION, 2, 0, positions.get()->ptr(), 4 );
 	if( mHasColor )
 		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 4 );
 	if( mHasTexCoord0 )
@@ -523,7 +541,7 @@ uint8_t	Cube::getAttribDims( Attrib attr ) const
 		case Attrib::POSITION: return 3;
 		case Attrib::COLOR: return mHasColor ? 3 : 0;
 		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
-		case Attrib::NORMAL: return mHasNormals ? 2 : 0;;
+		case Attrib::NORMAL: return mHasNormals ? 2 : 0;
 		default:
 			return 0;
 	}	
@@ -535,11 +553,11 @@ void Cube::loadInto( Target *target ) const
 	if( mHasColor )
 		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 24 );
 	if( mHasTexCoord0 )
-		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sColors, 24 );
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sTexCoords, 24 );
 	if( mHasNormals )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 24 );
 	
-	target->copyIndices( Primitive::TRIANGLES, sIndices, 24, 1 );
+	target->copyIndices( Primitive::TRIANGLES, sIndices, 36, 1 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -594,20 +612,18 @@ Teapot::Teapot()
 	: mSubdivision( 4 )
 {
 	mHasTexCoord0 = mHasNormals = false;
-	mNumVertices = calcNumVertices( mSubdivision );
+	updateVertexCounts();
 }
 
 Teapot&	Teapot::subdivision( int sub )
 {
 	mSubdivision = sub;
-	mNumVertices = calcNumVertices( mSubdivision );
+	updateVertexCounts();
 	return *this;
 }
 
 size_t Teapot::getNumVertices() const
 {
-	calculate();
-	
 	return mNumVertices;
 }
 
@@ -620,12 +636,12 @@ void Teapot::loadInto( Target *target ) const
 		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, (const float*)mTexCoords.get(), mNumVertices );
 	if( mHasNormals )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, (const float*)mNormals.get(), mNumVertices );
+
+	target->copyIndices( Primitive::TRIANGLES, mIndices.get(), mNumIndices, 4 );
 }
 
 size_t Teapot::getNumIndices() const
 {
-	calculate();
-	
 	return mNumIndices;
 }
 
@@ -640,15 +656,17 @@ uint8_t	Teapot::getAttribDims( Attrib attr ) const
 	}
 }
 
-size_t Teapot::calcNumVertices( int subdivision )
+void Teapot::updateVertexCounts() const
 {
-	return 32 * (subdivision + 1) * (subdivision + 1);
+	int numFaces = mSubdivision * mSubdivision * 32;
+	mNumIndices = numFaces * 6;
+	mNumVertices = 32 * (mSubdivision + 1) * (mSubdivision + 1);
 }
 
 void Teapot::calculate() const
 {
-	int numFaces = mSubdivision * mSubdivision * 32;
-	mNumIndices = numFaces * 6;
+	updateVertexCounts();
+
 	mPositions = unique_ptr<float>( new float[mNumVertices * 3] );
 	mTexCoords = unique_ptr<float>( new float[mNumVertices * 2] );	
 	mNormals = unique_ptr<float>( new float[mNumVertices * 3] );
@@ -659,34 +677,31 @@ void Teapot::calculate() const
 
 void Teapot::generatePatches( float *v, float *n, float *tc, uint32_t *el, int grid )
 {
-	float *B = new float[4*(grid+1)];  // Pre-computed Bernstein basis functions
-	float *dB = new float[4*(grid+1)]; // Pre-computed derivitives of basis functions
+	unique_ptr<float> B( new float[4*(grid+1)] );  // Pre-computed Bernstein basis functions
+	unique_ptr<float> dB( new float[4*(grid+1)] ); // Pre-computed derivitives of basis functions
 	int idx = 0, elIndex = 0, tcIndex = 0;
 
 	// Pre-compute the basis functions  (Bernstein polynomials)
 	// and their derivatives
-	computeBasisFunctions( B, dB, grid );
+	computeBasisFunctions( B.get(), dB.get(), grid );
 
 	// Build each patch
 	// The rim
-	buildPatchReflect( 0, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 0, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
 	// The body
-	buildPatchReflect( 1, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
-	buildPatchReflect( 2, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 1, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 2, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
 	// The lid
-	buildPatchReflect( 3, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
-	buildPatchReflect( 4, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 3, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 4, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
 	// The bottom
-	buildPatchReflect( 5, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
+	buildPatchReflect( 5, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, true, true );
 	// The handle
-	buildPatchReflect( 6, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
-	buildPatchReflect( 7, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
+	buildPatchReflect( 6, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
+	buildPatchReflect( 7, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
 	// The spout
-	buildPatchReflect( 8, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
-	buildPatchReflect( 9, B, dB, v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
-
-	delete [] B;
-	delete [] dB;
+	buildPatchReflect( 8, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
+	buildPatchReflect( 9, B.get(), dB.get(), v, n, tc, el, idx, elIndex, tcIndex, grid, false, true );
 }
 
 void Teapot::buildPatchReflect( int patchNum, float *B, float *dB, float *v, float *n, float *tc, unsigned int *el,
@@ -768,19 +783,19 @@ void Teapot::getPatch( int patchNum, Vec3f patch[][4], bool reverseV )
 {
 	for( int u = 0; u < 4; u++) {          // Loop in u direction
 		for( int v = 0; v < 4; v++ ) {     // Loop in v direction
-		if( reverseV ) {
-			patch[u][v] = Vec3f(
-				sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][0],
-				sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][1],
-				sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][2]
-			);
-		}
-		else {
-			patch[u][v] = Vec3f(
-				sCurveData[sPatchIndices[patchNum][u*4+v]][0],
-				sCurveData[sPatchIndices[patchNum][u*4+v]][1],
-				sCurveData[sPatchIndices[patchNum][u*4+v]][2]
-			);
+			if( reverseV ) {
+				patch[u][v] = Vec3f(
+					sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][0],
+					sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][1],
+					sCurveData[sPatchIndices[patchNum][u*4+(3-v)]][2]
+				);
+			}
+			else {
+				patch[u][v] = Vec3f(
+					sCurveData[sPatchIndices[patchNum][u*4+v]][0],
+					sCurveData[sPatchIndices[patchNum][u*4+v]][1],
+					sCurveData[sPatchIndices[patchNum][u*4+v]][2]
+				);
 			}
 		}
 	}
@@ -837,34 +852,36 @@ Vec3f Teapot::evaluateNormal( int gridU, int gridV, const float *B, const float 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Circle
 Circle::Circle()
-	: mNumSegments( -1 ), mCenter( 0, 0 ), mRadius( 1.0f )
+	: mRequestedSegments( -1 ), mCenter( 0, 0 ), mRadius( 1.0f )
 {
-	mHasTexCoord0 = mHasNormals = false;
-	mNumVertices = 3;
+	mHasTexCoord0 = mHasNormals = true;
+	updateVertexCounts();
 }
 
 Circle&	Circle::segments( int segments )
 {
-	mNumSegments = segments;
-	mNumVertices = calcNumVertices( mNumSegments, mRadius );
+	mRequestedSegments = segments;
+	updateVertexCounts();
 	return *this;
 }
 
 Circle&	Circle::radius( float radius )
 {
 	mRadius = radius;
-	mNumVertices = calcNumVertices( mNumSegments, mRadius );
+	updateVertexCounts();
 	return *this;
 }
 
 // If numSegments<0, calculate based on radius
-size_t Circle::calcNumVertices( int numSegments, float radius )
+void Circle::updateVertexCounts()
 {
-	if( numSegments <= 0 )
-		numSegments = (int)math<double>::floor( radius * M_PI * 2 );
+	if( mRequestedSegments <= 0 )
+		mNumSegments = (int)math<double>::floor( mRadius * M_PI * 2 );
+	else
+		mNumSegments = mRequestedSegments;
 	
-	if( numSegments < 3 ) numSegments = 3;
-	return numSegments * 2;
+	if( mNumSegments < 3 ) mNumSegments = 3;
+	mNumVertices = mNumSegments + 1 + 1;
 }
 
 void Circle::calculate() const
