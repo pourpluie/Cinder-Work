@@ -32,17 +32,14 @@ class TextureBase {
 	//!	Unbinds the Texture currently bound in the Texture's target
 	void			unbind( uint8_t textureUnit = 0 ) const;
 
-	//! Sets the wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE.
+	//! Sets the wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_REPEAT.
 	void			setWrap( GLenum wrapS, GLenum wrapT ) { setWrapS( wrapS ); setWrapT( wrapT ); }
-	/** \brief Sets the horizontal wrapping behavior when a texture coordinate falls outside the range of [0,1].
-	 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
+	//! Sets the horizontal wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT and \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_REPEAT.
 	void			setWrapS( GLenum wrapS );
-	/** \brief Sets the vertical wrapping behavior when a texture coordinate falls outside the range of [0,1].
-	 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
+	//! Sets the vertical wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_REPEAT.
 	void			setWrapT( GLenum wrapT );
-	/** \brief Sets the depth wrapping behavior when a texture coordinate falls outside the range of [0,1].
-	 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
 #if ! defined( CINDER_GLES )
+	//! Sets the depth wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_REPEAT.
 	void			setWrapR( GLenum wrapR );
 #endif	
 	/** \brief Sets the filtering behavior when a texture is displayed at a lower resolution than its native resolution.
@@ -92,17 +89,14 @@ class TextureBase {
 			
 		void	setPixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; }
 		
-		//! Sets the wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP
+		//! Sets the wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_REPEAT.
 		void	setWrap( GLenum wrapS, GLenum wrapT ) { setWrapS( wrapS ); setWrapT( wrapT ); }
-		/** \brief Sets the horizontal wrapping behavior when a texture coordinate falls outside the range of [0,1].
-		 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP_TO_EDGE **/
+		//! Sets the horizontal wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_REPEAT.
 		void	setWrapS( GLenum wrapS ) { mWrapS = wrapS; }
-		/** \brief Sets the vertical wrapping behavior when a texture coordinate falls outside the range of [0,1].
-		 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP_TO_EDGE. **/
+		//! Sets the vertical wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_REPEAT.
 		void	setWrapT( GLenum wrapT ) { mWrapT = wrapT; }
-		/** \brief Sets the depth wrapping behavior when a texture coordinate falls outside the range of [0,1].
-		 Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP_TO_EDGE. **/
 #if ! defined( CINDER_GLES )
+		//! Sets the depth wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_REPEAT.
 		void	setWrapR( GLenum wrapR ) { mWrapR = wrapR; }
 #endif
 		/** \brief Sets the filtering behavior when a texture is displayed at a lower resolution than its native resolution. Default is \c GL_LINEAR
@@ -370,8 +364,8 @@ class TextureCubeMap : public TextureBase
 {
   public:
   	struct Format : public TextureBase::Format {
-		//! Default constructor, sets the target to \c GL_TEXTURE_CUBE_MAP, wrap to \c GL_CLAMP, disables mipmapping, the internal format to "automatic"
-		Format() : TextureBase::Format() {}
+		//! Default constructor, sets the target to \c GL_TEXTURE_CUBE_MAP, wrap to \c GL_CLAMP_TO_EDGE, disables mipmapping, the internal format to "automatic"
+		Format();
 
 		//! Chaining functions for Format class.
 		Format& target( GLenum target ) { mTarget = target; return *this; }
@@ -382,17 +376,19 @@ class TextureCubeMap : public TextureBase
 		Format& wrap( GLenum wrap ) { mWrapS = mWrapT = mWrapR = wrap; return *this; }
 		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
 		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
+#if ! defined( CINDER_GLES )
+		Format& wrapR( GLenum wrapR ) { mWrapR = wrapR; return *this; }		
+#endif // ! defined( CINDER_GLES )
 		Format& minFilter( GLenum minFilter ) { mMinFilter = minFilter; return *this; }
 		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
 		
 		friend TextureCubeMap;
 	};
   
-	static TextureCubeMapRef	createFromHorizontalCross( const ImageSourceRef &imageSource );
-	static TextureCubeMapRef	createFromVerticalCross( const ImageSourceRef &imageSource );
+	static TextureCubeMapRef	createHorizontalCross( const ImageSourceRef &imageSource, const Format &format = Format() );
 	
   protected:
-	TextureCubeMap( 
+	TextureCubeMap( const Surface8u images[6], const Format &format );
 };
 
 typedef std::shared_ptr<class TextureCache> TextureCacheRef;

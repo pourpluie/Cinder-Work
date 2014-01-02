@@ -252,9 +252,9 @@ GLfloat TextureBase::getMaxMaxAnisotropy()
 TextureBase::Format::Format()
 {
 	mTarget = GL_TEXTURE_2D;
-	mWrapS = GL_CLAMP_TO_EDGE;
-	mWrapT = GL_CLAMP_TO_EDGE;
-	mWrapR = GL_CLAMP_TO_EDGE;
+	mWrapS = GL_REPEAT;
+	mWrapT = GL_REPEAT;
+	mWrapR = GL_REPEAT;
 	mMinFilter = GL_LINEAR;
 	mMagFilter = GL_LINEAR;
 	mMipmapping = false;
@@ -1051,6 +1051,63 @@ void Texture3d::update( const Surface &surface, int depth, int mipLevel )
 }
 
 #endif // ! defined( CINDER_GLES )
+
+/////////////////////////////////////////////////////////////////////////////////
+// TextureCubeMap
+TextureCubeMap::Format::Format()
+	: TextureBase::Format()
+{
+	mWrapS = GL_CLAMP_TO_EDGE;
+	mWrapT = GL_CLAMP_TO_EDGE;
+#if ! defined( CINDER_GLES )
+	mWrapR = GL_CLAMP_TO_EDGE;
+#endif // ! defined( CINDER_GLES )
+}
+
+TextureCubeMapRef TextureCubeMap::createHorizontalCross( const ImageSourceRef &imageSource, const Format &format )
+{
+	Vec2i faceSize( imageSource->getWidth() / 4, imageSource->getHeight() / 3 );
+	Area faceArea( 0, 0, faceSize.x, faceSize.y );
+	
+	Surface8u masterSurface( imageSource, SurfaceConstraintsDefault() );
+	
+	// allocate the individual face's Surfaces, ensuring rowbytes == faceSize.x * 3 through default SurfaceConstraints
+	Surface8u images[6];
+	for( uint8_t f = 0; f < 6; ++f )
+		images[f] = Surface8u( faceSize.x, faceSize.y, masterSurface.hasAlpha(), SurfaceConstraints() );
+
+	// copy out each individual face
+	
+	// GL_TEXTURE_CUBE_MAP_NEGATIVE_X
+	images[0].copyFrom( masterSurface, faceArea + Vec2i( faceSize.x * 0, faceSize.y * 1 ), -Vec2i( faceSize.x * 0, faceSize.y * 1 ) );
+	// GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
+	images[1].copyFrom( masterSurface, faceArea + Vec2i( faceSize.x * 1, faceSize.y * 0 ), -Vec2i( faceSize.x * 1, faceSize.y * 0 ) );
+	// GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+	images[2].copyFrom( masterSurface, faceArea + Vec2i( faceSize.x * 1, faceSize.y * 1 ), -Vec2i( faceSize.x * 1, faceSize.y * 1 ) );
+	// GL_TEXTURE_CUBE_MAP_POSITIVE_X
+	images[3].copyFrom( masterSurface, faceArea + Vec2i( faceSize.x * 2, faceSize.y * 1 ), -Vec2i( faceSize.x * 2, faceSize.y * 1 ) );
+	// GL_TEXTURE_CUBE_MAP_POSITIVE_Y
+	images[4].copyFrom( masterSurface, faceArea + Vec2i( faceSize.x * 1, faceSize.y * 0 ), -Vec2i( faceSize.x * 1, faceSize.y * 0 ) );
+	// GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+	images[5].copyFrom( masterSurface, faceArea + Vec2i( faceSize.x * 3, faceSize.y * 1 ), -Vec2i( faceSize.x * 3, faceSize.y * 1 ) );
+	
+	return TextureCubeMapRef( new TextureCubeMap( images, format ) );
+}
+
+TextureCubeMap::TextureCubeMap( const Surface8u images[6], const Format &format )
+{
+	glGenTextures( 1, &mTextureId );
+	TextureBindScope tbs( GL_TEXTURE_CUBE_MAP, mTextureId );
+	TextureBase::initParams( format );
+
+	GLint internalFormat = format.getInternalFormat();
+	if( internalFormat == -1 )
+		internalFormat = ( images[0].hasAlpha() ) ? GL_RGBA : GL_RGB;
+
+	for( GLenum target = 0; target < 6; ++target ) {
+		glTexImage2D( GL_TEXTURE_CUBE_MAP_NEGATIVE_X + target, 0, internalFormat, images[target].getWidth(), images[target].getHeight(), 0, ( images[target].hasAlpha() ) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, images[target].getData() );
+	}
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 // ImageTargetGLTexture
