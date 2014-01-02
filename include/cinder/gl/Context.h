@@ -106,9 +106,15 @@ class Context {
 	//! Updates the binding stack without rebinding. Not generally necessary to call directly.
 	void		reflectBufferBinding( GLenum target, GLuint id );
 
-	void			pushGlslProg( const GlslProgRef &prog );
-	void			popGlslProg();
+	//! Binds GLSL program \a prog. Analogous to glUseProgram()
 	void			bindGlslProg( const GlslProgRef &prog );
+	//! Pushes and binds GLSL program \a prog.
+	void			pushGlslProg( const GlslProgRef &prog );
+	//! Duplicates and pushes the top of the GlslProg stack.
+	void			pushGlslProg();
+	//! Pops the GlslProg stack
+	void			popGlslProg();
+	//! Returns the currently bound GlslProg
 	GlslProgRef		getGlslProg();
 
 	//! Analogous to glBindTexture( \a target, \a textureId )

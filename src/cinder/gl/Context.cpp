@@ -214,7 +214,7 @@ void Context::pushViewport( const std::pair<Vec2i, Vec2i> &viewport )
 		glViewport( viewport.first.x, viewport.first.y, viewport.second.x, viewport.second.y );
 }
 
-void Context::pushViewport( const std::pair<Vec2i, Vec2i> &viewport )
+void Context::pushViewport()
 {
 	mViewportStack.push_back( getViewport() );
 }
@@ -233,8 +233,8 @@ std::pair<Vec2i, Vec2i> Context::getViewport()
 		GLint params[4];
 		glGetIntegerv( GL_VIEWPORT, params );
 		// push twice in anticipation of later pop
-		mViewportStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
-		mViewportStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[ 0 ], params[ 1 ] ), Vec2i( params[ 2 ], params[ 3 ] ) ) );
+		mViewportStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[0], params[1] ), Vec2i( params[2], params[3] ) ) );
+		mViewportStack.push_back( std::pair<Vec2i, Vec2i>( Vec2i( params[0], params[1] ), Vec2i( params[2], params[3] ) ) );
 	}
 
 	return mViewportStack.back();
@@ -379,6 +379,10 @@ void Context::pushGlslProg( const GlslProgRef &prog )
 		else
 			glUseProgram( 0 );
 	}
+}
+
+void Context::pushGlslProg()
+{
 }
 
 void Context::popGlslProg()
