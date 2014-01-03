@@ -383,6 +383,7 @@ void Context::pushGlslProg( const GlslProgRef &prog )
 
 void Context::pushGlslProg()
 {
+	mGlslProgStack.push_back( getGlslProg() );
 }
 
 void Context::popGlslProg()
