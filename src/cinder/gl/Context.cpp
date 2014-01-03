@@ -772,6 +772,115 @@ GLboolean Context::getBoolState( GLenum cap )
 		return cached->second.back();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// BlendFunc
+void Context::blendFunc( GLenum sfactor, GLenum dfactor )
+{
+	blendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
+}
+
+void Context::blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
+{
+	bool needsChange = setStackState<GLint>( mBlendSrcRgbStack, srcRGB );
+	needsChange = setStackState<GLint>( mBlendDstRgbStack, dstRGB ) || needsChange;
+	needsChange = setStackState<GLint>( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
+	needsChange = setStackState<GLint>( mBlendDstAlphaStack, dstAlpha ) || needsChange;
+	if( needsChange )
+		glBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
+}
+
+void Context::pushBlendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
+{
+	bool needsChange = pushStackState<GLint>( mBlendSrcRgbStack, srcRGB );
+	needsChange = pushStackState<GLint>( mBlendDstRgbStack, dstRGB ) || needsChange;
+	needsChange = pushStackState<GLint>( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
+	needsChange = pushStackState<GLint>( mBlendDstAlphaStack, dstAlpha ) || needsChange;
+	if( needsChange )
+		glBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
+}
+
+void Context::pushBlendFuncSeparate()
+{
+	GLenum resultSrcRGB, resultDstRGB, resultSrcAlpha, resultDstAlpha;
+	getBlendFuncSeparate( &resultSrcRGB, &resultDstRGB, &resultSrcAlpha, &resultDstAlpha );
+
+	mBlendSrcRgbStack.push_back( resultSrcRGB );
+	mBlendDstRgbStack.push_back( resultDstRGB );
+	mBlendSrcAlphaStack.push_back( resultSrcAlpha );
+	mBlendDstAlphaStack.push_back( resultDstAlpha );
+}
+
+void Context::popBlendFuncSeparate()
+{
+	bool needsChange = popStackState<GLint>( mBlendSrcRgbStack );
+	needsChange = popStackState<GLint>( mBlendDstRgbStack ) || needsChange;
+	needsChange = popStackState<GLint>( mBlendSrcAlphaStack ) || needsChange;
+	needsChange = popStackState<GLint>( mBlendDstAlphaStack ) || needsChange;
+	if( needsChange && ( ! mBlendSrcRgbStack.empty() ) && ( ! mBlendSrcAlphaStack.empty() ) && ( ! mBlendDstRgbStack.empty() ) && ( ! mBlendDstAlphaStack.empty() ) )
+		glBlendFuncSeparate( mBlendSrcRgbStack.back(), mBlendDstRgbStack.back(), mBlendSrcAlphaStack.back(), mBlendDstAlphaStack.back() );
+}
+
+void Context::getBlendFuncSeparate( GLenum *resultSrcRGB, GLenum *resultDstRGB, GLenum *resultSrcAlpha, GLenum *resultDstAlpha )
+{
+	// push twice on empty to accommodate inevitable push later
+	GLint queriedInt;
+	if( mBlendSrcRgbStack.empty() ) {
+		glGetIntegerv( GL_BLEND_SRC_RGB, &queriedInt );
+		mBlendSrcRgbStack.push_back( queriedInt ); mBlendSrcRgbStack.push_back( queriedInt );
+	}
+	if( mBlendDstRgbStack.empty() ) {
+		glGetIntegerv( GL_BLEND_DST_RGB, &queriedInt );
+		mBlendDstRgbStack.push_back( queriedInt ); mBlendDstRgbStack.push_back( queriedInt );
+	}
+	if( mBlendSrcAlphaStack.empty() ) {
+		glGetIntegerv( GL_BLEND_SRC_ALPHA, &queriedInt );
+		mBlendSrcAlphaStack.push_back( queriedInt ); mBlendSrcAlphaStack.push_back( queriedInt );
+	}
+	if( mBlendDstAlphaStack.empty() ) {
+		glGetIntegerv( GL_BLEND_DST_ALPHA, &queriedInt );
+		mBlendDstAlphaStack.push_back( queriedInt ); mBlendDstAlphaStack.push_back( queriedInt );
+	}
+	
+	*resultSrcRGB = mBlendSrcRgbStack.back();
+	*resultDstRGB = mBlendDstRgbStack.back();
+	*resultSrcAlpha = mBlendSrcAlphaStack.back();
+	*resultDstAlpha = mBlendDstAlphaStack.back();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// DepthMask
+void Context::depthMask( GLboolean enable )
+{
+	setBoolState( GL_DEPTH_WRITEMASK, enable, glDepthMask );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// PolygonMode
+#if ! defined( CINDER_GLES )
+void Context::polygonMode( GLenum face, GLenum mode )
+{
+	if( face == GL_FRONT_AND_BACK ) {
+		if( mCachedFrontPolygonMode != mode || mCachedBackPolygonMode != mode ) {
+			mCachedFrontPolygonMode = mCachedBackPolygonMode = mode;
+			glPolygonMode( GL_FRONT_AND_BACK, mode );
+		}
+	}
+	else if( face == GL_FRONT ) {
+		if( mCachedFrontPolygonMode != mode ) {
+			mCachedFrontPolygonMode = mode;
+			glPolygonMode( GL_FRONT, mode );
+		}
+	}
+	else if( face == GL_BACK ) {
+		if( mCachedBackPolygonMode != mode ) {
+			mCachedBackPolygonMode = mode;
+			glPolygonMode( GL_BACK, mode );
+		}		
+	}
+}
+
+#endif // ! defined( CINDER_GLES )
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Templated stack management routines
 template<typename T>
@@ -923,77 +1032,6 @@ void Context::vertexAttrib4f( GLuint index, float v0, float v1, float v2, float 
 {
 	glVertexAttrib4f( index, v0, v1, v2, v3 );
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Context::blendFunc( GLenum sfactor, GLenum dfactor )
-{
-	blendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
-}
-
-void Context::blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
-{
-	bool needsChange = setStackState<GLint>( mBlendSrcRgbStack, srcRGB );
-	needsChange = setStackState<GLint>( mBlendDstRgbStack, dstRGB ) || needsChange;
-	needsChange = setStackState<GLint>( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
-	needsChange = setStackState<GLint>( mBlendDstAlphaStack, dstAlpha ) || needsChange;
-	if( needsChange )
-		glBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
-}
-
-void Context::pushBlendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
-{
-	bool needsChange = pushStackState<GLint>( mBlendSrcRgbStack, srcRGB );
-	needsChange = pushStackState<GLint>( mBlendDstRgbStack, dstRGB ) || needsChange;
-	needsChange = pushStackState<GLint>( mBlendSrcAlphaStack, srcAlpha ) || needsChange;
-	needsChange = pushStackState<GLint>( mBlendDstAlphaStack, dstAlpha ) || needsChange;
-	if( needsChange )
-		glBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
-}
-
-void Context::popBlendFuncSeparate()
-{
-	bool needsChange = popStackState<GLint>( mBlendSrcRgbStack );
-	needsChange = popStackState<GLint>( mBlendDstRgbStack ) || needsChange;
-	needsChange = popStackState<GLint>( mBlendSrcAlphaStack ) || needsChange;
-	needsChange = popStackState<GLint>( mBlendDstAlphaStack ) || needsChange;
-	if( needsChange && ( ! mBlendSrcRgbStack.empty() ) && ( ! mBlendSrcAlphaStack.empty() ) && ( ! mBlendDstRgbStack.empty() ) && ( ! mBlendDstAlphaStack.empty() ) )
-		glBlendFuncSeparate( mBlendSrcRgbStack.back(), mBlendDstRgbStack.back(), mBlendSrcAlphaStack.back(), mBlendDstAlphaStack.back() );
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// DepthMask
-void Context::depthMask( GLboolean enable )
-{
-	setBoolState( GL_DEPTH_WRITEMASK, enable, glDepthMask );
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// PolygonMode
-#if ! defined( CINDER_GLES )
-void Context::polygonMode( GLenum face, GLenum mode )
-{
-	if( face == GL_FRONT_AND_BACK ) {
-		if( mCachedFrontPolygonMode != mode || mCachedBackPolygonMode != mode ) {
-			mCachedFrontPolygonMode = mCachedBackPolygonMode = mode;
-			glPolygonMode( GL_FRONT_AND_BACK, mode );
-		}
-	}
-	else if( face == GL_FRONT ) {
-		if( mCachedFrontPolygonMode != mode ) {
-			mCachedFrontPolygonMode = mode;
-			glPolygonMode( GL_FRONT, mode );
-		}
-	}
-	else if( face == GL_BACK ) {
-		if( mCachedBackPolygonMode != mode ) {
-			mCachedBackPolygonMode = mode;
-			glPolygonMode( GL_BACK, mode );
-		}		
-	}
-}
-
-#endif // ! defined( CINDER_GLES )
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // draw*

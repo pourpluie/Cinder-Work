@@ -158,13 +158,41 @@ class Context {
 	//! Returns the ID of the framebuffer currently bound to \a target
 	GLuint		getFramebuffer( GLenum target = GL_FRAMEBUFFER );
 
+	//! Analogous to glEnable() or glDisable(). Enables or disables OpenGL capability \a cap
 	void		setBoolState( GLenum cap, GLboolean value );
-	void		setBoolState( GLenum cap, GLboolean value, const std::function<void(GLboolean)> &setter );
+	//! Pushes and sets the state stack for OpenGL capability \a cap to \a value.
 	void		pushBoolState( GLenum cap, GLboolean value );
+	//! Duplicates and pushes the state stack for OpenGL capability \a cap
 	void		pushBoolState( GLenum cap );
+	//! Pops the state stack for OpenGL capability \a cap
 	void		popBoolState( GLenum cap );
+	//! Synonym for setBoolState(). Enables or disables OpenGL capability \a cap.
 	void		enable( GLenum cap, GLboolean value = true );
+	//! Analogous to glIsEnabled(). Returns whether a given OpenGL capability is enabled or not
 	GLboolean	getBoolState( GLenum cap );
+	//! Enables or disables OpenGL capability \a cap. Calls \a setter rather than glEnable or glDisable. Not generally necessary to call directly.
+	void		setBoolState( GLenum cap, GLboolean value, const std::function<void(GLboolean)> &setter );
+
+	//! Analogous glBlendFunc(). Consider using a BlendScope instead.
+	void		blendFunc( GLenum sfactor, GLenum dfactor );
+	//! Analogous to glBlendFuncSeparate(). Consider using a BlendScope instead.
+	void		blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
+	//! Analogous to glBlendFuncSeparate, but pushes values rather than replaces them
+	void		pushBlendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
+	//! Duplicates and pushes the glBlendFunc state stack.
+	void		pushBlendFuncSeparate();
+	//! Analogous to glBlendFuncSeparate, but pushes values rather than replaces them
+	void		popBlendFuncSeparate();
+	//! Returns the current values for glBendFuncs
+	void		getBlendFuncSeparate( GLenum *resultSrcRGB, GLenum *resultDstRGB, GLenum *resultSrcAlpha, GLenum *resultDstAlpha );
+
+	//! Analogous to glDepthMask()
+	void		depthMask( GLboolean enable );
+
+#if ! defined( CINDER_GLES )
+	//! Parallels glPolygonMode()
+	void		polygonMode( GLenum face, GLenum mode );
+#endif
 	
 	void		sanityCheck();
 	void		printState( std::ostream &os ) const;
@@ -186,23 +214,6 @@ class Context {
 	void		vertexAttrib3f( GLuint index, float v0, float v1, float v2 );
 	//! Analogous to glVertexAttrib4f()
 	void		vertexAttrib4f( GLuint index, float v0, float v1, float v2, float v3 );
-
-	//! Analogous glBlendFunc(). Consider using a BlendScope instead.
-	void		blendFunc( GLenum sfactor, GLenum dfactor );
-	//! Analogous to glBlendFuncSeparate(). Consider using a BlendScope instead.
-	void		blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
-	//! Analogous to glBlendFuncSeparate, but pushes values rather than replaces them
-	void		pushBlendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
-	//! Analogous to glBlendFuncSeparate, but pushes values rather than replaces them
-	void		popBlendFuncSeparate();
-
-	//! Analogous to glDepthMask()
-	void		depthMask( GLboolean enable );
-
-#if ! defined( CINDER_GLES )
-	//! Parallels glPolygonMode()
-	void		polygonMode( GLenum face, GLenum mode );
-#endif
 
 	//! Analogous to glDrawArrays()
 	void		drawArrays( GLenum mode, GLint first, GLsizei count );
