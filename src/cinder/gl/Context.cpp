@@ -342,7 +342,7 @@ GLuint Context::getBufferBinding( GLenum target )
 		else
 			return 0; // warning?
 		
-		if( cachedIt->second.empty() ) { // bad - empty stack; push twice to allow for the pop later and not lead to an empty stack
+		if( mBufferBindingStack[target].empty() ) { // bad - empty stack; push twice to allow for the pop later and not lead to an empty stack
 			mBufferBindingStack[target] = vector<GLint>();
 			mBufferBindingStack[target].push_back( queriedInt );
 			mBufferBindingStack[target].push_back( queriedInt );			
@@ -469,7 +469,7 @@ GLuint Context::getTextureBinding( GLenum target )
 		else
 			return 0; // warning?
 		
-		if( cachedIt->second.empty() ) { // bad - empty stack; push twice to allow for the pop later and not lead to an empty stack
+		if( mTextureBindingStack[target].empty() ) { // bad - empty stack; push twice to allow for the pop later and not lead to an empty stack
 			mTextureBindingStack[target] = vector<GLint>();
 			mTextureBindingStack[target].push_back( queriedInt );
 			mTextureBindingStack[target].push_back( queriedInt );			
