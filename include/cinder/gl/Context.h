@@ -132,8 +132,10 @@ class Context {
 
 	//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
 	void		setActiveTexture( uint8_t textureUnit );
-	//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
+	//! Pushes and sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
 	void		pushActiveTexture( uint8_t textureUnit );
+	//! Duplicates and pushes the active texture unit
+	void		pushActiveTexture();
 	//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
 	void		popActiveTexture();	
 	//! Returns the active texture unit with values relative to \c 0, \em not GL_TEXTURE0
@@ -143,10 +145,15 @@ class Context {
 	void		bindFramebuffer( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
 	//! Analogous to glBindFramebuffer(). Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
 	void		bindFramebuffer( GLenum target, GLuint framebuffer );
+	//! Pushes and sets the active framebuffer.
 	void		pushFramebuffer( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
-	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
+	//! Pushes and sets the active framebuffer. Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
 	void		pushFramebuffer( GLenum target, GLuint framebuffer = GL_FRAMEBUFFER );
+	//! Duplicates and pushes the active framebuffer.
+	void		pushFramebuffer( GLenum target = GL_FRAMEBUFFER );
+	//! Pops the active framebuffer
 	void		popFramebuffer( GLuint framebuffer = GL_FRAMEBUFFER );
+	//! Unbinds the current FBO (binding the default (screen) framebuffer)
 	void		unbindFramebuffer();
 	//! Returns the ID of the framebuffer currently bound to \a target
 	GLuint		getFramebuffer( GLenum target = GL_FRAMEBUFFER );
@@ -154,6 +161,7 @@ class Context {
 	void		setBoolState( GLenum cap, GLboolean value );
 	void		setBoolState( GLenum cap, GLboolean value, const std::function<void(GLboolean)> &setter );
 	void		pushBoolState( GLenum cap, GLboolean value );
+	void		pushBoolState( GLenum cap );
 	void		popBoolState( GLenum cap );
 	void		enable( GLenum cap, GLboolean value = true );
 	GLboolean	getBoolState( GLenum cap );

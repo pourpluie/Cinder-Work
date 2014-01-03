@@ -505,6 +505,11 @@ void Context::pushActiveTexture( uint8_t textureUnit )
 		glActiveTexture( GL_TEXTURE0 + textureUnit );
 }
 
+void Context::pushActiveTexture()
+{
+	pushStackState<uint8_t>( mActiveTextureStack, getActiveTexture() );
+}
+
 //! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
 void Context::popActiveTexture()
 {
@@ -517,6 +522,8 @@ uint8_t Context::getActiveTexture()
 	if( mActiveTextureStack.empty() ) {
 		GLint queriedInt;
 		glGetIntegerv( GL_ACTIVE_TEXTURE, &queriedInt );
+		// push twice to account for inevitable pop to follow
+		mActiveTextureStack.push_back( queriedInt - GL_TEXTURE0 );
 		mActiveTextureStack.push_back( queriedInt - GL_TEXTURE0 );
 	}
 
@@ -592,6 +599,20 @@ void Context::pushFramebuffer( GLenum target, GLuint framebuffer )
 #endif
 }
 
+void Context::pushFramebuffer( GLenum target )
+{
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
+	pushStackState<GLint>( mFramebufferStack, getFramebuffer( target ) );
+#else
+	if( target == GL_FRAMEBUFFER || target == GL_READ_FRAMEBUFFER ) {
+		pushStackState<GLint>( mReadFramebufferStack, getFramebuffer( GL_READ_FRAMEBUFFER ) );
+	}
+	if( target == GL_FRAMEBUFFER || target == GL_DRAW_FRAMEBUFFER ) {
+		pushStackState<GLint>( mDrawFramebufferStack, getFramebuffer( GL_DRAW_FRAMEBUFFER ) );
+	}
+#endif
+}
+
 void Context::popFramebuffer( GLenum target )
 {
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
@@ -619,6 +640,7 @@ GLuint Context::getFramebuffer( GLenum target )
 		GLint queriedInt;
 		glGetIntegerv( GL_FRAMEBUFFER_BINDING, &queriedInt );
 		mFramebufferStack.push_back( queriedInt );
+		mFramebufferStack.push_back( queriedInt );		
 	}
 	
 	return mFramebufferStack.back();
@@ -627,6 +649,8 @@ GLuint Context::getFramebuffer( GLenum target )
 		if( mReadFramebufferStack.empty() ) {
 			GLint queriedInt;
 			glGetIntegerv( GL_READ_FRAMEBUFFER_BINDING, &queriedInt );
+			// push twice for pop to follow
+			mReadFramebufferStack.push_back( queriedInt );
 			mReadFramebufferStack.push_back( queriedInt );
 		}
 		return (GLuint)mReadFramebufferStack.back();
@@ -635,6 +659,7 @@ GLuint Context::getFramebuffer( GLenum target )
 		if( mDrawFramebufferStack.empty() ) {
 			GLint queriedInt;
 			glGetIntegerv( GL_DRAW_FRAMEBUFFER_BINDING, &queriedInt );
+			mDrawFramebufferStack.push_back( queriedInt );
 			mDrawFramebufferStack.push_back( queriedInt );
 		}
 		return (GLuint)mDrawFramebufferStack.back();
@@ -703,6 +728,12 @@ void Context::pushBoolState( GLenum cap, GLboolean value )
 	}	
 }
 
+void Context::pushBoolState( GLenum cap )
+{
+	bool existingVal = getBoolState( cap );
+	mBoolStateStack[cap].push_back( existingVal );
+}
+
 void Context::popBoolState( GLenum cap )
 {
 	auto cached = mBoolStateStack.find( cap );
@@ -732,6 +763,8 @@ GLboolean Context::getBoolState( GLenum cap )
 		GLboolean result = glIsEnabled( cap );
 		if( cached == mBoolStateStack.end() )
 			mBoolStateStack[cap] = vector<GLboolean>();
+		// push twice to accommodate later pop
+		mBoolStateStack[cap].push_back( result );
 		mBoolStateStack[cap].push_back( result );
 		return result;
 	}
