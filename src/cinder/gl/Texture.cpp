@@ -1093,10 +1093,6 @@ TextureCubeMapRef TextureCubeMap::createHorizontalCross( const ImageSourceRef &i
 	images[4].copyFrom( masterSurface, faceArea + Vec2i( faceSize.x * 1, faceSize.y * 1 ), -Vec2i( faceSize.x * 1, faceSize.y * 1 ) );
 	// GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
 	images[5].copyFrom( masterSurface, faceArea + Vec2i( faceSize.x * 3, faceSize.y * 1 ), -Vec2i( faceSize.x * 3, faceSize.y * 1 ) );
-
-	// flip NEGATIVE_Y
-	ip::flipVertical( &images[3] );
-
 		
 	return TextureCubeMapRef( new TextureCubeMap( images, format ) );
 }
@@ -1104,11 +1100,8 @@ TextureCubeMapRef TextureCubeMap::createHorizontalCross( const ImageSourceRef &i
 TextureCubeMapRef TextureCubeMap::create( const ImageSourceRef images[6], const Format &format )
 {
 	Surface8u surfaces[6];
-	for( size_t i = 0; i < 6; ++i ) {
+	for( size_t i = 0; i < 6; ++i )
 		surfaces[i] = Surface8u( images[i] );
-		if( i == 3 ) 	// flip NEGATIVE_Y
-;//			ip::flipVertical( &surfaces[i] );
-	}
 	
 	return TextureCubeMapRef( new TextureCubeMap( surfaces, format ) );
 }
