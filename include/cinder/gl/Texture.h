@@ -386,9 +386,13 @@ class TextureCubeMap : public TextureBase
 	};
   
 	static TextureCubeMapRef	createHorizontalCross( const ImageSourceRef &imageSource, const Format &format = Format() );
+	//! Expects images ordered { +X, -X, +Y, -Y, +Z, -Z }
+	static TextureCubeMapRef	create( const ImageSourceRef images[6], const Format &format = Format() );
 	
   protected:
 	TextureCubeMap( const Surface8u images[6], const Format &format );
+	
+	GLint		mWidth, mHeight;
 };
 
 typedef std::shared_ptr<class TextureCache> TextureCacheRef;
