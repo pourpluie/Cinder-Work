@@ -286,8 +286,8 @@ std::pair<Vec2i, Vec2i> Context::getScissor()
 void Context::bindBuffer( GLenum target, GLuint id )
 {
 	GLuint prevValue = getBufferBinding( target );
-	mBufferBindingStack[target].push_back( prevValue );
 	if( prevValue != id ) {
+		mBufferBindingStack[target].back() = id;
 		if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
 			VaoRef vao = getVao();
 			if( vao )
@@ -428,9 +428,10 @@ GlslProgRef Context::getGlslProg()
 void Context::bindTexture( GLenum target, GLuint textureId )
 {
 	GLuint prevValue = getTextureBinding( target );
-	mTextureBindingStack[target].push_back( prevValue );
-	if( prevValue != textureId )
+	if( prevValue != textureId ) {
+		mTextureBindingStack[target].back() = textureId;
 		glBindTexture( target, textureId );
+	}
 }
 
 void Context::pushTextureBinding( GLenum target, GLuint textureId )
