@@ -271,6 +271,39 @@ class Circle : public Source {
 	mutable std::unique_ptr<Vec3f>		mNormals;	
 };
 
+class Sphere : public Source {
+  public:
+	Sphere();
+
+	Sphere&		texCoords() { mHasTexCoord0 = true; return *this; }
+	Sphere&		normals() { mHasNormals = true; return *this; }
+	Sphere&		center( const Vec3f &center ) { mCenter = center; return *this; }
+	Sphere&		radius( float radius ) { mRadius = radius; return *this; }
+	Sphere&		segments( int segments ) { mNumSegments = segments; return *this; }
+
+	virtual size_t		getNumVertices() const override;
+	virtual size_t		getNumIndices() const override;
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
+	virtual uint8_t		getAttribDims( Attrib attr ) const override;
+	virtual void		loadInto( Target *target ) const override;
+	
+  private:
+	void		calculate() const;
+	void		calculateImplUV( size_t segments, size_t rings ) const;
+
+	bool		mHasTexCoord0;
+	bool		mHasNormals;
+	Vec3f		mCenter;
+	float		mRadius;
+	int			mNumSegments;
+
+	mutable bool						mCalculationsCached;
+	mutable std::vector<Vec3f>			mVertices;
+	mutable std::vector<Vec2f>			mTexCoords;
+	mutable std::vector<Vec3f>			mNormals;
+	mutable std::vector<uint32_t>		mIndices;
+};
+
 #if 0
 class SplineExtrusion : public Source {
   public:

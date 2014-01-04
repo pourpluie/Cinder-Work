@@ -941,6 +941,110 @@ uint8_t	Circle::getAttribDims( Attrib attr ) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
+// Sphere
+
+Sphere::Sphere()
+	: mNumSegments( -1 ), mCenter( 0, 0, 0 ), mRadius( 1.0f ), mCalculationsCached( false ), mHasTexCoord0( false ), mHasNormals( false )
+{
+}
+
+void Sphere::calculate() const
+{
+	if( mCalculationsCached )
+		return;
+
+	int numSegments = mNumSegments;
+	if( numSegments <= 0 )
+		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_PI * 2 ) );
+
+	calculateImplUV( numSegments, numSegments );
+	mCalculationsCached = true;
+}
+	
+void Sphere::calculateImplUV( size_t segments, size_t rings ) const
+{
+	mVertices.resize( segments * rings );
+	mNormals.resize( segments * rings );
+	mTexCoords.resize( segments * rings );
+	mIndices.resize( segments * rings * 6 );
+
+	float ringIncr = 1.0f / (float)( rings - 1 );
+	float segIncr = 1.0f / (float)( segments - 1 );
+	float radius = mRadius;
+
+	auto vertIt = mVertices.begin();
+	auto normIt = mNormals.begin();
+	auto texIt = mTexCoords.begin();
+	for( size_t r = 0; r < rings; r++ ) {
+		for( size_t s = 0; s < segments; s++ ) {
+			float x = math<float>::cos( 2 * M_PI * s * segIncr ) * math<float>::sin( M_PI * r * ringIncr );
+			float y = math<float>::sin( -M_PI / 2 + M_PI * r * ringIncr );
+			float z = math<float>::sin( 2 * M_PI * s * segIncr ) * math<float>::sin( M_PI * r * ringIncr );
+
+			vertIt->set( x * radius, y * radius, z * radius );
+			++vertIt;
+
+			if( mHasNormals ) {
+				normIt->set( x, y, z );
+				++normIt;
+			}
+			if( mHasTexCoord0 ) {
+				texIt->set( s * segIncr, r * ringIncr );
+				++texIt;
+			}
+		}
+	}
+
+	auto indexIt = mIndices.begin();
+	for( size_t r = 0; r < rings - 1; r++ ) {
+		for( size_t s = 0; s < segments - 1 ; s++ ) {
+			*indexIt++ = r * segments + s;
+			*indexIt++ = r * segments + ( s + 1 );
+			*indexIt++ = ( r + 1 ) * segments + ( s + 1 );
+
+			*indexIt++ = ( r + 1 ) * segments + ( s + 1 );
+			*indexIt++ = ( r + 1 ) * segments + s;
+			*indexIt++ = r * segments + s;
+		}
+	}
+}
+
+size_t Sphere::getNumVertices() const
+{
+	calculate();
+	return mVertices.size();
+}
+
+size_t Sphere::getNumIndices() const
+{
+	calculate();
+	return mIndices.size();
+}
+
+uint8_t Sphere::getAttribDims( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION: return 3;
+		case Attrib::TEX_COORD_0: return 2;
+		case Attrib::NORMAL: return 3;
+		default:
+			return 0;
+	}
+}
+
+void Sphere::loadInto( Target *target ) const
+{
+	calculate();
+	target->copyAttrib( Attrib::POSITION, 3, 0, mVertices.data()->ptr(), mVertices.size() );
+	if( mHasTexCoord0 )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
+	if( mHasNormals )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
+
+	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );	
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
 // SplineExtrusion
 #if 0
 SplineExtrusion::SplineExtrusion( const std::function<Vec3f(float)> &pathCurve, int pathSegments, float radius, int radiusSegments )
