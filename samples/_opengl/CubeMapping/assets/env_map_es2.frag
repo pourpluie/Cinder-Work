@@ -1,13 +1,11 @@
-precision highp float;
+uniform samplerCube uCubeMapTex;
 
-varying lowp vec4		Color;
-varying highp vec3		Normal;
+varying highp vec3 NormalWorldSpace;
+varying highp vec3 EyeDirWorldSpace;
 
-uniform sampler2D uTex0;
-varying highp vec2	TexCoord;
 void main( void )
 {
-	vec3 normal = normalize( -Normal );
-	float diffuse = max( dot( normal, vec3( 0, 0, -1 ) ), 0.0 );
-	gl_FragColor = texture2D( uTex0, TexCoord.st ) * Color * diffuse;
+	// reflect the eye vector about the surface normal (all in world space)
+	highp vec3 reflectedEyeWorldSpace = reflect( EyeDirWorldSpace, normalize(NormalWorldSpace) );
+	gl_FragColor = textureCube( uCubeMapTex, reflectedEyeWorldSpace );
 }

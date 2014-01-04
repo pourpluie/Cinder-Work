@@ -1,18 +1,22 @@
+uniform mat4	ciModelView;
 uniform mat4	ciModelViewProjection;
 uniform mat3	ciNormalMatrix;
 
+uniform mat4	uViewMatrix;
+uniform mat4	uInverseViewMatrix;
+
 attribute vec4		ciPosition;
-attribute vec2		ciTexCoord0;
 attribute vec3		ciNormal;
-varying highp vec2	TexCoord;
-attribute vec4		ciColor;
-varying lowp vec4	Color;
-varying highp vec3	Normal;
+
+varying highp vec3	NormalWorldSpace;
+varying highp vec3  EyeDirWorldSpace;
 
 void main( void )
 {
-	gl_Position	= ciModelViewProjection * ciPosition;
-	Color 		= ciColor;
-	TexCoord	= ciTexCoord0;
-	Normal		= ciNormalMatrix * ciNormal;
+	vec4 positionViewSpace = ciModelView * ciPosition;
+	vec4 eyeDirViewSpace = positionViewSpace - vec4( 0, 0, 0, 1 ); // eye is always at 0,0,0 in view space
+	EyeDirWorldSpace = vec3( uInverseViewMatrix * eyeDirViewSpace );
+	vec3 normalViewSpace = ciNormalMatrix * ciNormal;
+	NormalWorldSpace = normalize( vec3( vec4( normalViewSpace, 0 ) * uViewMatrix ) );
+	gl_Position = ciModelViewProjection * ciPosition;
 }

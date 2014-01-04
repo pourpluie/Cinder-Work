@@ -17,36 +17,31 @@ class CubeMappingApp : public AppNative {
 	void draw();
 	
 	gl::TextureCubeMapRef	mCubeMap;
-	gl::GlslProgRef			mEnvMapGlsl;
-	gl::BatchRef			mTeapotBatch;
+	gl::BatchRef			mTeapotBatch, mSkyBoxBatch;
 	Matrix44f				mObjectRotation;
 	CameraPersp				mCam;
 };
+
+const int SKY_BOX_SIZE = 500;
 
 void CubeMappingApp::setup()
 {
 	mCubeMap = gl::TextureCubeMap::createHorizontalCross( loadImage( loadAsset( "env_map.jpg" ) ) );
 
-/*	ImageSourceRef images[6] = { loadImage( loadAsset( "posx.jpg" ) ), loadImage( loadAsset( "negx.jpg" ) ),
-							loadImage( loadAsset( "posy.jpg" ) ), loadImage( loadAsset( "negy.jpg" ) ),
-							loadImage( loadAsset( "posz.jpg" ) ), loadImage( loadAsset( "negz.jpg" ) ) };
-	ImageSourceRef images[6] = { loadImage( loadAsset( "night_posx.png" ) ), loadImage( loadAsset( "night_negx.png" ) ),
-							loadImage( loadAsset( "night_negy.png" ) ), loadImage( loadAsset( "night_posy.png" ) ),
-							loadImage( loadAsset( "night_posz.png" ) ), loadImage( loadAsset( "night_negz.png" ) ) };
-
-	mCubeMap = gl::TextureCubeMap::create( images );*/
-
 #if defined( CINDER_GLES )
-	mEnvMapGlsl = gl::GlslProg::create( loadAsset( "env_map_es2.vert" ), loadAsset( "env_map_es2.frag" ) );
+	auto envMapGlsl = gl::GlslProg::create( loadAsset( "env_map_es2.vert" ), loadAsset( "env_map_es2.frag" ) );
+	auto skyBoxGlsl = gl::GlslProg::create( loadAsset( "sky_box_es2.vert" ), loadAsset( "sky_box_es2.frag" ) );
 #else
-	mEnvMapGlsl = gl::GlslProg::create( loadAsset( "env_map.vert" ), loadAsset( "env_map.frag" ) );
+	auto envMapGlsl = gl::GlslProg::create( loadAsset( "env_map.vert" ), loadAsset( "env_map.frag" ) );
+	auto skyBoxGlsl = gl::GlslProg::create( loadAsset( "sky_box.vert" ), loadAsset( "sky_box.frag" ) );
 #endif
 
-//	mTeapotBatch = gl::Batch::create( geom::Teapot().normals().subdivision( 5 ), mEnvMapGlsl );
-	mTeapotBatch = gl::Batch::create( geom::Sphere().normals().segments( 30 ).radius( 3 ), mEnvMapGlsl );
-	mEnvMapGlsl->uniform( "uCubeMapTex", 0 );
+	mTeapotBatch = gl::Batch::create( geom::Teapot().normals().subdivision( 7 ), envMapGlsl );
+	mTeapotBatch->getGlslProg()->uniform( "uCubeMapTex", 0 );
 
-	mCam.lookAt( Vec3f( 3, 2, 4 ), Vec3f::zero() );
+	mSkyBoxBatch = gl::Batch::create( geom::Cube(), skyBoxGlsl );
+	mSkyBoxBatch->getGlslProg()->uniform( "uCubeMapTex", 0 );
+	
 	mObjectRotation.setToIdentity();
 
 	gl::enableDepthRead();
@@ -60,7 +55,11 @@ void CubeMappingApp::resize()
 
 void CubeMappingApp::update()
 {
-	mObjectRotation.rotate( Vec3f( 0.0, 1.0, 0.0 ).normalized(), 0.01f );
+	// move the camera semi-randomly around based on time
+	mCam.lookAt( Vec3f( 8 * sin( getElapsedSeconds() / 1 + 10 ), 7 * sin( getElapsedSeconds() / 2 ), 8 * cos( getElapsedSeconds() / 4 + 11 ) ), Vec3f::zero() );
+	
+	// rotate the object (teapot) a bit each frame
+	mObjectRotation.rotate( Vec3f( 0.1, 1.0, 0.1 ).normalized(), 0.04f );
 }
 
 void CubeMappingApp::draw()
@@ -71,8 +70,16 @@ void CubeMappingApp::draw()
 	mCubeMap->bind();
 	gl::pushMatrices();
 		gl::multModelView( mObjectRotation );
+		mTeapotBatch->getGlslProg()->uniform( "uViewMatrix", mCam.getModelViewMatrix() );
+		mTeapotBatch->getGlslProg()->uniform( "uInverseViewMatrix", mCam.getInverseModelViewMatrix() );
 		mTeapotBatch->draw();
 	gl::popMatrices();
+	
+	// draw sky box
+	gl::pushMatrices();
+		gl::scale( SKY_BOX_SIZE, SKY_BOX_SIZE, SKY_BOX_SIZE );
+		mSkyBoxBatch->draw();
+	gl::popMatrices();		
 }
 
 CINDER_APP_NATIVE( CubeMappingApp, RendererGl )
