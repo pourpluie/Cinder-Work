@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		008DEB3F1875368100995CE4 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 008DEB3E1875368100995CE4 /* assets */; };
 		0091D8F90E81B9330029341E /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0091D8F80E81B9330029341E /* OpenGL.framework */; };
 		00B784B30FF439BC000DE1D7 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784AF0FF439BC000DE1D7 /* Accelerate.framework */; };
 		00B784B40FF439BC000DE1D7 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */; };
@@ -200,7 +199,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				64AD1C2E605A4FE99C0D8314 /* CinderApp.icns in Resources */,
-				008DEB3F1875368100995CE4 /* assets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
