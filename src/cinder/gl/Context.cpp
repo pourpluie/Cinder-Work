@@ -548,10 +548,10 @@ void Context::bindFramebuffer( GLenum target, GLuint framebuffer )
 	}
 #else
 	if( target == GL_FRAMEBUFFER ) {
-		if( setStackState<GLint>( mReadFramebufferStack, framebuffer ) )
-			glBindFramebuffer( target, framebuffer );
-		if( setStackState<GLint>( mDrawFramebufferStack, framebuffer ) )
-			glBindFramebuffer( target, framebuffer );		
+		bool readRequiresBind = setStackState<GLint>( mReadFramebufferStack, framebuffer );
+		bool drawRequiresBind = setStackState<GLint>( mDrawFramebufferStack, framebuffer );
+		if( readRequiresBind || drawRequiresBind )
+			glBindFramebuffer( GL_FRAMEBUFFER, framebuffer );
 	}
 	else if( target == GL_READ_FRAMEBUFFER ) {
 		if( setStackState<GLint>( mReadFramebufferStack, framebuffer ) )
@@ -592,11 +592,11 @@ void Context::pushFramebuffer( GLenum target, GLuint framebuffer )
 #else
 	if( target == GL_FRAMEBUFFER || target == GL_READ_FRAMEBUFFER ) {
 		if( pushStackState<GLint>( mReadFramebufferStack, framebuffer ) )
-			glBindFramebuffer( target, framebuffer );
+			glBindFramebuffer( GL_READ_FRAMEBUFFER, framebuffer );
 	}
 	if( target == GL_FRAMEBUFFER || target == GL_DRAW_FRAMEBUFFER ) {
 		if( pushStackState<GLint>( mDrawFramebufferStack, framebuffer ) )
-			glBindFramebuffer( target, framebuffer );	
+			glBindFramebuffer( GL_DRAW_FRAMEBUFFER, framebuffer );	
 	}
 #endif
 }
