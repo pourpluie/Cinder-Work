@@ -40,6 +40,8 @@ namespace cinder { namespace gl {
 	
 typedef std::shared_ptr<class GlslProg> GlslProgRef;
 
+#define GLSL(VERSION,CODE) "#version " #VERSION "\n" #CODE
+
 class GlslProg : public std::enable_shared_from_this<GlslProg> {
   public:
 	struct Format {
