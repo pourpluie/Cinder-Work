@@ -33,6 +33,9 @@ GlslProg::AttribSemanticMap		GlslProg::sDefaultAttribNameToSemanticMap;
 //////////////////////////////////////////////////////////////////////////
 // GlslProg::Format
 GlslProg::Format::Format()
+#if ! defined( CINDER_GLES )
+	: mTransformFormat( -1 )
+#endif
 {
 	mAttribSemanticLocMap[geom::Attrib::POSITION] = 0;
 }
@@ -219,6 +222,16 @@ GlslProg::GlslProg( const Format &format )
 	// finally, bind all location-specified attributes to their respective locations
 	for( auto &attribLoc : attribLocations )
 		glBindAttribLocation( mHandle, attribLoc.second, attribLoc.first.c_str() );
+	
+#if ! defined( CINDER_GLES )
+	if( !format.getVaryings().empty() && format.getTransformFormat() > 0 ) {
+		const GLchar *varyings[format.getVaryings().size()];
+		for( int i = 0; i < format.getVaryings().size(); ++i ) {
+			varyings[i] = format.getVaryings()[i].c_str();
+		}
+		glTransformFeedbackVaryings( mHandle, format.getVaryings().size(), varyings, format.getTransformFormat() );
+	}
+#endif
 	
 	link();
 }
