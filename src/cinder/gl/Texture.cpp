@@ -253,9 +253,9 @@ GLfloat TextureBase::getMaxMaxAnisotropy()
 TextureBase::Format::Format()
 {
 	mTarget = GL_TEXTURE_2D;
-	mWrapS = GL_REPEAT;
-	mWrapT = GL_REPEAT;
-	mWrapR = GL_REPEAT;
+	mWrapS = GL_CLAMP_TO_EDGE;
+	mWrapT = GL_CLAMP_TO_EDGE;
+	mWrapR = GL_CLAMP_TO_EDGE;
 	mMinFilter = GL_LINEAR;
 	mMagFilter = GL_LINEAR;
 	mMipmapping = false;

@@ -40,15 +40,14 @@ void MotionBlurFboApp::setup()
 	mCubeRotation.setToIdentity();
 	
 	mBatch = gl::Batch::create( geom::Cube().colors(), gl::getStockShader( gl::ShaderDef().color() ) );
+	
+	mFbo = gl::Fbo::create( toPixels( getWindowWidth() ), toPixels( getWindowHeight() ) );
 
 #if defined( CINDER_GLES )
-	mFbo = gl::Fbo::create( toPixels( getWindowWidth() ), toPixels( getWindowHeight() ), gl::Fbo::Format()
-		.colorTexture( gl::Texture::Format().wrap( GL_CLAMP_TO_EDGE ) ) );
 	mAccumFbo = gl::Fbo::create( toPixels( getWindowWidth() ), toPixels( getWindowHeight() ),
 		gl::Fbo::Format().colorTexture( gl::Texture::Format().pixelDataType( GL_HALF_FLOAT_OES ).internalFormat( GL_RGB ).
 		pixelDataFormat( GL_RGB ).renderTexture().wrap( GL_CLAMP_TO_EDGE ) ).disableDepth() );
 #else
-	mFbo = gl::Fbo::create( getWindowWidth(), getWindowHeight() );
 	mAccumFbo = gl::Fbo::create( getWindowWidth(), getWindowHeight(),
 		gl::Fbo::Format().colorTexture( gl::Texture::Format().internalFormat( GL_RGB16F ) ).disableDepth() );
 #endif
