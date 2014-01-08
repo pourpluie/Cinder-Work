@@ -77,8 +77,6 @@ class TextureBase {
 		
 		//! Enables or disables mipmapping. Default is disabled.
 		void	enableMipmapping( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; }
-		void	enableRenderTexture( bool renderTexture = true ) { mRenderTexture = renderTexture; }
-		void	enableDepthTexture( bool depthTexture = true ) { mDepthTexture = depthTexture; }
 			
 		//! Sets the Texture's internal format. A value of -1 implies selecting the best format for the context.
 		void	setInternalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; }
@@ -137,10 +135,6 @@ class TextureBase {
 		GLenum	getMagFilter() const { return mMagFilter; }
 		//! Returns the texture anisotropic filtering amount
 		GLfloat getMaxAnisotropy() const { return mMaxAnisotropy; }
-		//! Returns whether the texture is a renderTexture.
-		bool	isRenderTexture() const { return mRenderTexture; }
-		//! Returns whether the texture is a depthTexture.
-		bool	isDepthTexture() const { return mDepthTexture; }
 		
 	protected:
 		Format();
@@ -151,10 +145,8 @@ class TextureBase {
 		bool			mMipmapping;
 		GLfloat         mMaxAnisotropy;
 		GLint			mInternalFormat;
-		GLenum			mPixelDataFormat;
+		GLint			mPixelDataFormat;
 		GLenum			mPixelDataType;
-		bool			mRenderTexture;
-		bool			mDepthTexture;
 		
 		friend class TextureBase;
 	};
@@ -163,7 +155,7 @@ class TextureBase {
 	TextureBase();
 	TextureBase( GLenum target, GLuint textureId, GLint internalFormat );
 	
-	void			initParams( const Format &format );
+	void			initParams( Format &format, GLint defaultInternalFormat );
 	
   	GLenum			mTarget;
 	GLuint			mTextureId;
@@ -192,10 +184,10 @@ class Texture : public TextureBase {
 #endif
 		Format& minFilter( GLenum minFilter ) { mMinFilter = minFilter; return *this; }
 		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
+		//! Corresponds to the 'format' parameter of glTexImage*(). Defaults to match the internalFormat
 		Format& pixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; return *this; }
+		//! Corresponds to the 'type' parameter of glTexImage*(). Defaults to \c GL_UNSIGNED_BYTE
 		Format& pixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; return *this; }
-		Format& depthTexture( bool depthTexture = true ) { mDepthTexture = depthTexture; return *this; }
-		Format& renderTexture( bool renderTexture = true ) { mRenderTexture = renderTexture; return *this; }
 		
 		friend Texture;
 	};
@@ -295,10 +287,9 @@ class Texture : public TextureBase {
 
   protected:
 	
-	void	init( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format );
-	void	init( const float *data, GLint dataFormat, const Format &format );
-	void	init( ImageSourceRef imageSource, const Format &format );
-	void	init( const Format &format );
+	void	initData( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format );
+	void	initData( const float *data, GLint dataFormat, const Format &format );
+	void	initData( ImageSourceRef imageSource, const Format &format );
 	
 	mutable GLint	mWidth, mHeight, mCleanWidth, mCleanHeight;
 	float			mMaxU, mMaxV;
@@ -331,8 +322,6 @@ class Texture3d : public TextureBase {
 		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
 		Format& pixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; return *this; }
 		Format& pixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; return *this; }
-		Format& depthTexture( bool depthTexture = true ) { mDepthTexture = depthTexture; return *this; }
-		Format& renderTexture( bool renderTexture = true ) { mRenderTexture = renderTexture; return *this; }
 		
 		friend Texture3d;
 	};
@@ -390,7 +379,7 @@ class TextureCubeMap : public TextureBase
 	static TextureCubeMapRef	create( const ImageSourceRef images[6], const Format &format = Format() );
 	
   protected:
-	TextureCubeMap( const Surface8u images[6], const Format &format );
+	TextureCubeMap( const Surface8u images[6], Format format );
 	
 	GLint		mWidth, mHeight;
 };

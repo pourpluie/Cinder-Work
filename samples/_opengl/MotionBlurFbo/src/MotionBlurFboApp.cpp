@@ -45,8 +45,8 @@ void MotionBlurFboApp::setup()
 
 #if defined( CINDER_GLES )
 	mAccumFbo = gl::Fbo::create( toPixels( getWindowWidth() ), toPixels( getWindowHeight() ),
-		gl::Fbo::Format().colorTexture( gl::Texture::Format().pixelDataType( GL_HALF_FLOAT_OES ).internalFormat( GL_RGB ).
-		pixelDataFormat( GL_RGB ).renderTexture().wrap( GL_CLAMP_TO_EDGE ) ).disableDepth() );
+		gl::Fbo::Format().colorTexture( gl::Texture::Format().pixelDataType( GL_HALF_FLOAT_OES )
+													.internalFormat( GL_RGB ) ).disableDepth() );
 #else
 	mAccumFbo = gl::Fbo::create( getWindowWidth(), getWindowHeight(),
 		gl::Fbo::Format().colorTexture( gl::Texture::Format().internalFormat( GL_RGB16F ) ).disableDepth() );
