@@ -56,6 +56,7 @@ void TestContext::bindBufferBase( GLenum target, int index, VboRef vbo )
 				}
 				else {
 					mDefaultXfo = gl::Xfo::create( true );
+					mDefaultXfo->bind();
 					mDefaultXfo->setIndex( index, vbo );
 				}
 				mCachedXfo = mDefaultXfo;
@@ -71,7 +72,6 @@ void TestContext::bindBufferBase( GLenum target, int index, VboRef vbo )
 		}
 		break;
 	}
-	
 }
 	
 void TestContext::beginTransformFeedback( GLenum primitiveMode )

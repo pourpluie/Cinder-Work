@@ -26,7 +26,7 @@ extern XfoRef createXfoImplSoftware();
 
 XfoRef Xfo::create( bool software )
 {
-	if( !glBindTransformFeedback && software ) {
+	if( software ) {
 		cout << "in baseXfo making software" << endl;
 		return createXfoImplSoftware();
 	}

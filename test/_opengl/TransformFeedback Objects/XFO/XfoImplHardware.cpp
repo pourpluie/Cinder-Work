@@ -58,9 +58,7 @@ void XfoImplHardware::setIndex( int index, VboRef vbo )
 		glBindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, index, vbo->getId() );
 	}
 	else {
-		if( exists->second != vbo ) {
-			throw "Another Vbo already exists in this spot";
-		}
+		
 	}
 }
 	

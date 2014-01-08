@@ -58,6 +58,7 @@ void XfoImplSoftware::setIndex( int index, VboRef vbo )
 		}
 	}
 	if( changed && mAlreadyBound ) {
+		std::cout << "Index has been changed and therefore I'm binding it again" << std::endl;
 		glBindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, index, vbo->getId() );
 	}
 }
