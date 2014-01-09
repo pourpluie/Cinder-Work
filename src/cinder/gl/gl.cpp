@@ -1051,6 +1051,16 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 	ctx->drawArrays( GL_TRIANGLE_FAN, 0, numSegments + 2 );	
 }
 
+void drawSphere( const Vec3f &center, float radius, int segments )
+{
+	auto ctx = gl::context();
+	auto glslProg = ctx->getGlslProg();
+	if( ! glslProg )
+		return;
+	auto batch = gl::Batch::create( geom::Sphere().center( center ).radius( radius ).segments( segments ), glslProg );
+	batch->draw();
+}
+
 void draw( const TextureRef &texture, const Vec2f &v )
 {
 	if( ! texture )

@@ -202,7 +202,8 @@ void drawRange( const VboMeshRef& mesh, GLint start = 0, GLsizei count = 0 );
 void drawCube( const Vec3f &center, const Vec3f &size );
 //! Renders a solid cube centered at \a center of size \a size. Each face is assigned a unique color.
 void drawColorCube( const Vec3f &center, const Vec3f &size );
-void drawTorus( float outerRadius, float innerRadius, int longitudeSegments, int latitudeSegments );
+//! Renders a solid sphere at \a center of radius \a radius, subdivided on both longitude and latitude into \a segments.
+void drawSphere( const Vec3f &center, float radius, int segments );
 
 void drawSolidRect( const Rectf &r );
 void drawSolidRect( const Rectf &r, const Rectf &texcoords );
