@@ -9,6 +9,8 @@
 
 #include "Earth.h"
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Batch.h"
+#include "cinder/gl/Context.h"
 #include "cinder/Rand.h"
 
 using namespace ci;
@@ -18,7 +20,7 @@ Earth::Earth()
 {
 }
 
-Earth::Earth( ci::gl::Texture aTexDiffuse, ci::gl::Texture aTexNormal, ci::gl::Texture aTexMask )
+Earth::Earth( const ci::gl::TextureRef &aTexDiffuse, const ci::gl::TextureRef &aTexNormal, const ci::gl::TextureRef &aTexMask )
 {
 	mLoc			= Vec3f::zero();
 	mRadius			= 250.0f;
@@ -93,11 +95,12 @@ void Earth::repelLocTips()
 
 void Earth::draw()
 {
-	mTexDiffuse.bind( 0 );
-	mTexNormal.bind( 1 );
-	mTexMask.bind( 2 );
+	mTexDiffuse->bind( 0 );
+	mTexNormal->bind( 1 );
+	mTexMask->bind( 2 );
 	
 	gl::drawSphere( mLoc, mRadius, 64 );
+gl::context()->sanityCheck();
 }
 
 
@@ -112,70 +115,40 @@ void Earth::drawQuakes()
 
 void Earth::drawQuakeLabelsOnBillboard( const Vec3f &sRight, const Vec3f &sUp )
 {
-	Vec3f right;
-	Vec3f up;
-	float perLeft, perRight;
-	
-	glBegin( GL_QUADS );
-	
+	gl::GlslProgRef shader = gl::getStockShader( gl::ShaderDef().texture( GL_TEXTURE_2D ).color() );
+	gl::GlslProgScope GlslProgScope( shader );
+
+	shader->uniform( "uTex0", 0 );
+
 	for( list<Quake>::iterator it = mQuakes.begin(); it != mQuakes.end(); ++it ) {
-		it->mLabel.bind();
-		
-		float mag = (it->mMag);
-		
-		if( mag >= mMinMagToRender ){
-			
-			
-			float x = it->mLocTip.x;
-			float y = it->mLocTip.y;
-			float z = it->mLocTip.z;
-			
-			float w = it->mLabel.getWidth() * 0.5f;
-			float h = it->mLabel.getHeight() * 0.5f;
-			
-			// perLeft and Right is a partially implemented solution for getting the text
-			// to move based on the rotation of the Earth. Will get back to it shortly.
-			perLeft		= -1.0f;
-			perRight	= 1.0f;
-			right	= sRight * w;
-			up		= sUp * h;
-			
-			glTexCoord2f( 0, 1 );
-			glVertex3f( x + right.x * perLeft + up.x * perLeft,		y + right.y * perLeft + up.y * perLeft,		z + right.z * perLeft + up.z * perLeft );
-			glTexCoord2f( 1, 1 );
-			glVertex3f( x + right.x * perRight + up.x * perLeft,	y + right.y * perRight + up.y * perLeft,	z + right.z * perRight + up.z * perLeft );
-			glTexCoord2f( 1, 0 );
-			glVertex3f( x + right.x * perRight + up.x * perRight,	y + right.y * perRight + up.y * perRight,	z + right.z * perRight + up.z * perRight );
-			glTexCoord2f( 0, 0 );
-			glVertex3f( x + right.x * perLeft + up.x * perRight,	y + right.y * perLeft + up.y * perRight,	z + right.z * perLeft + up.z * perRight );
-			
-		}
+		gl::TextureBindScope texBindScope( it->mLabel );
+
+		float w = it->mLabel->getWidth() * 0.25f;
+		float h = it->mLabel->getHeight() * 0.25f;
+
+		gl::drawBillboard( it->mLocTip, Vec2f( w, h ), 0, sRight, sUp );
 	}
-	
-	glEnd();
 }
-
-
 
 void Earth::drawQuakeLabelsOnSphere( const Vec3f eyeNormal, const float eyeDist )
 {
+	gl::GlslProgRef shader = gl::getStockShader( gl::ShaderDef().texture( GL_TEXTURE_2D ).color() );
+	gl::GlslProgScope GlslProgScope( shader );
+	shader->uniform( "uTex0", 0 );
+
 	float distMulti = eyeDist * 0.001f;
-	for( list<Quake>::iterator it = mQuakes.begin(); it != mQuakes.end(); ++it ) {
-		it->mLabel.bind();
-		
+	for( list<Quake>::iterator it = mQuakes.begin(); it != mQuakes.end(); ++it ) {		
 		float mag = (it->mMag);
-		
 		if( mag >= mMinMagToRender ){
-			float x = it->mLocTip.x;
-			float y = it->mLocTip.y;
-			float z = it->mLocTip.z;
+			it->mLabel->bind();
+		
 			float dp = it->mLoc.dot( eyeNormal ) - 0.85;
 			
 			if( dp <= 0.0f )
 				dp = 0.0f;
 				
-			float w = it->mLabel.getWidth() * dp * distMulti;
-			float h = it->mLabel.getHeight() * dp * distMulti;
+			float w = it->mLabel->getWidth() * dp * distMulti * 3;
+			float h = it->mLabel->getHeight() * dp * distMulti * 3;
 			
 			Vec3f dir = mLoc - it->mLoc;
 			dir.normalize();
@@ -183,22 +156,10 @@ void Earth::drawQuakeLabelsOnSphere( const Vec3f eyeNormal, const float eyeDist 
 			Vec3f perp2 = perp1.cross( dir );
 			perp1		= perp2.cross( dir );
 
-			
-			glBegin( GL_QUADS );
-			glTexCoord2f( 0, 1 );
-			glVertex3f( x + perp1.x * w - perp2.x * h,		y + perp1.y * w - perp2.y * h,		z + perp1.z * w - perp2.z * h );
-			glTexCoord2f( 1, 1 );
-			glVertex3f( x - perp1.x * w - perp2.x * h,		y - perp1.y * w - perp2.y * h,		z - perp1.z * w - perp2.z * h );
-			glTexCoord2f( 1, 0 );
-			glVertex3f( x - perp1.x * w + perp2.x * h,		y - perp1.y * w + perp2.y * h,		z - perp1.z * w + perp2.z * h );
-			glTexCoord2f( 0, 0 );
-			glVertex3f( x + perp1.x * w + perp2.x * h,		y + perp1.y * w + perp2.y * h,		z + perp1.z * w + perp2.z * h );
-			glEnd();
+			gl::drawBillboard( it->mLocTip, Vec2f( w, h ), 0, -perp1, perp2 );
 		}
 	}
 }
-
-
 
 void Earth::drawQuakeVectors()
 {
@@ -220,7 +181,7 @@ void Earth::drawQuakeVectors()
 			float largeRadius = mag;
 			float smallRadius = 0.1f;
 			
-			glBegin( GL_TRIANGLE_STRIP );
+			gl::VertBatch vb( GL_TRIANGLE_STRIP );
 			for( int i=0; i<radialSubdivisions; i++ ){
 				float angle = ( (float)i/(radialSubdivisions-1.0f) - 0.5f ) * 6.283185f;
 				float cosa  = cos( angle );
@@ -232,68 +193,22 @@ void Earth::drawQuakeVectors()
 				
 				loc		= ( it->mLocTip ) + locOffset * smallRadius;
 			
-				glTexCoord2f( 0.0f, 1.0f );
-				glVertex3f( loc.x, loc.y, loc.z );
-				glNormal3f( it->mLoc.x, it->mLoc.y, it->mLoc.z );
+				vb.texCoord( 0.0f, 1.0f );
+				vb.vertex( loc.x, loc.y, loc.z );
+				vb.normal( it->mLoc.x, it->mLoc.y, it->mLoc.z );
 				
 				
 				loc		= ( it->mLoc * mRadius ) + locOffset * largeRadius;
 				
-				glTexCoord2f( 0.0f, 0.0f );
-				glVertex3f( loc.x, loc.y, loc.z );
-				glNormal3f( normFinal.x, normFinal.y, normFinal.z );
-				
-				
+				vb.texCoord( 0.0f, 0.0f );
+				vb.vertex( loc.x, loc.y, loc.z );
+				vb.normal( normFinal.x, normFinal.y, normFinal.z );
 			}
-			glEnd();
+			
+			vb.draw();
 		}
 	}
 }
-
-/*
-void Earth::drawQuakeVectors()
-{
-	float radialSubdivisions = 64.0f;
-	Vec3f loc;
-	Vec3f norm;
-	
-	for( list<Quake>::iterator it = mQuakes.begin(); it != mQuakes.end(); ++it ) {
-		float mag = (it->mMag );
-		
-		if( mag >= mMinMagToRender ){
-			Vec3f dir = mLoc - it->mLoc;
-			dir.normalize();
-			Vec3f perp1 = dir.cross( Vec3f::yAxis() );
-			Vec3f perp2 = perp1.cross( dir );
-			perp1		= perp2.cross( dir );
-			
-			float largeRadius = mag * mag * 0.35f + 5.0f;
-			float smallRadius = 0.1f;
-			
-			glBegin( GL_TRIANGLE_FAN );
-			
-			glVertex3f( it->mLocTip.x, it->mLocTip.y, it->mLocTip.z );
-			glNormal3f( it->mLoc.x, it->mLoc.y, it->mLoc.z );
-				
-			for( int i=0; i<radialSubdivisions; i++ ){
-				float angle = ( (float)i/(radialSubdivisions-1.0f) ) * 6.28f;
-				float cosa  = cos( angle );
-				float sina  = sin( angle );
-				Vec3f locOffset = ( perp1 * cosa + perp2 * sina );
-				
-				norm	= perp1 * -sina + perp2 * cosa;
-				loc		= ( it->mLoc * mRadius ) + locOffset * largeRadius;
-				
-				glVertex3f( loc.x, loc.y, loc.z );
-				glNormal3f( norm.y * dir.z - dir.y * norm.z, norm.z * dir.x - dir.z * norm.x, norm.z * dir.y - dir.x * norm.y );
-			}
-			glEnd();
-		}
-
-	}
-}
-*/
-
 
 void Earth::addQuake( float aLat, float aLong, float aMag, std::string aTitle )
 {

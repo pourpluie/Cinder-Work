@@ -53,7 +53,7 @@ Quake::Quake( float aLat, float aLong, float aMag, string aTitle )
 	}
 	
 
-	mLabel = gl::Texture( layout.render( true ) );
+	mLabel = gl::Texture::create( layout.render( true ) );
 	
 	setLoc();
 }
