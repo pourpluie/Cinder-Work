@@ -366,6 +366,28 @@ void Context::reflectBufferBinding( GLenum target, GLuint id )
 		mBufferBindingStack[target].back() = id;
 }
 
+void Context::bufferDeleted( GLenum target, GLuint id )
+{
+	// if 'id' was bound to 'target', mark 'target's binding as 0
+	auto existingIt = mBufferBindingStack.find( target );
+	if( existingIt != mBufferBindingStack.end() ) {
+		if( mBufferBindingStack[target].back() == id )
+			mBufferBindingStack[target].back() = 0;
+	}
+	else
+		mBufferBindingStack[target].push_back( 0 );
+}
+
+void Context::invalidateBufferBindingCache( GLenum target )
+{
+	if( mBufferBindingStack.find(target) == mBufferBindingStack.end() ) {
+		mBufferBindingStack[target] = vector<int>();
+		mBufferBindingStack[target].push_back( -1 );
+	}
+	else if( ! mBufferBindingStack[target].empty() )
+		mBufferBindingStack[target].back() = -1;
+}
+
 //////////////////////////////////////////////////////////////////
 // Shader
 void Context::pushGlslProg( const GlslProgRef &prog )
@@ -938,7 +960,6 @@ bool Context::getStackState( std::vector<T> &stack, T *result )
 // This routine confirms that the ci::gl::Context's understanding of the world matches OpenGL's
 void Context::sanityCheck()
 {
-return;
 	GLint queriedInt;
 
 	// assert cached GL_ARRAY_BUFFER is correct
@@ -957,13 +978,19 @@ return;
 #endif
 //	assert( mCachedVao == queriedInt );
 
+	VaoRef vao = getVao();
+	if( vao ) {
+		assert( getBufferBinding( GL_ARRAY_BUFFER ) == vao->getLayout().mCachedArrayBufferBinding );
+		assert( getBufferBinding( GL_ELEMENT_ARRAY_BUFFER ) == vao->getLayout().mElementArrayBufferBinding );		
+	}
+
 	// assert the various texture bindings are correct
-	for( auto& cachedTextureBinding : mTextureBindingStack ) {
+/*	for( auto& cachedTextureBinding : mTextureBindingStack ) {
 		GLenum target = cachedTextureBinding.first;
 		glGetIntegerv( Texture::getBindingConstantForTarget( target ), &queriedInt );
 		GLenum cachedTextureId = cachedTextureBinding.second.back();
 		assert( queriedInt == cachedTextureId );
-	}
+	}*/
 }
 
 void Context::printState( std::ostream &os ) const

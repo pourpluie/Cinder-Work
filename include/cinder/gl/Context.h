@@ -105,6 +105,10 @@ class Context {
 	GLuint		getBufferBinding( GLenum target );
 	//! Updates the binding stack without rebinding. Not generally necessary to call directly.
 	void		reflectBufferBinding( GLenum target, GLuint id );
+	//! No-op if \a id wasn't bound to \a target, otherwise reflects the binding as 0 (in accordance with what GL has done automatically)
+	void		bufferDeleted( GLenum target, GLuint id );
+	//! Marks the cache of \a target's buffer binding as invalid. Typically called when a VAO is unbound, against GL_ELEMENT_ARRAY_BUFFER.
+	void		invalidateBufferBindingCache( GLenum target );
 
 	//! Binds GLSL program \a prog. Analogous to glUseProgram()
 	void			bindGlslProg( const GlslProgRef &prog );

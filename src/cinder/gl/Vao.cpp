@@ -81,6 +81,10 @@ Vao::Vao()
 {
 }
 
+Vao::~Vao()
+{
+}
+
 void Vao::setContext( Context *context )
 {
 	mCtx = context;
@@ -174,7 +178,7 @@ void Vao::swap( const Vao::Layout &newLayout )
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Vao::Layout
 Vao::Layout::Layout()
-	: mElementArrayBufferBinding( 0 ), mCachedArrayBufferBinding( 0xFFFFFFFF )
+	: mElementArrayBufferBinding( 0 ), mCachedArrayBufferBinding( 0 )
 {
 }
 
