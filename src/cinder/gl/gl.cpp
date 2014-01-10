@@ -1072,13 +1072,13 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 	float cosA = math<float>::cos( rotationRadians );
 	
 	verts[0] = pos + bbRight * ( -0.5f * scale.x * cosA - 0.5f * sinA * scale.y ) + bbUp * ( -0.5f * scale.x * sinA + 0.5f * cosA * scale.y );
-	texCoordsOut[0*2+1] = texCoords.getY1(); texCoordsOut[0*2+0] = texCoords.getX2();
+	texCoordsOut[0*2+0] = texCoords.getX1(); texCoordsOut[0*2+1] = texCoords.getY1();
 	verts[1] = pos + bbRight * ( -0.5f * scale.x * cosA - -0.5f * sinA * scale.y ) + bbUp * ( -0.5f * scale.x * sinA + -0.5f * cosA * scale.y );
-	texCoordsOut[1*2+0] = texCoords.getX1(); texCoordsOut[1*2+1] = texCoords.getY1();
+	texCoordsOut[1*2+0] = texCoords.getX1(); texCoordsOut[1*2+1] = texCoords.getY2();
 	verts[2] = pos + bbRight * ( 0.5f * scale.x * cosA - 0.5f * sinA * scale.y ) + bbUp * ( 0.5f * scale.x * sinA + 0.5f * cosA * scale.y );
-	texCoordsOut[2*2+0] = texCoords.getX2(); texCoordsOut[2*2+1] = texCoords.getY2();
+	texCoordsOut[2*2+0] = texCoords.getX2(); texCoordsOut[2*2+1] = texCoords.getY1();
 	verts[3] = pos + bbRight * ( 0.5f * scale.x * cosA - -0.5f * sinA * scale.y ) + bbUp * ( 0.5f * scale.x * sinA + -0.5f * cosA * scale.y );
-	texCoordsOut[3*2+0] = texCoords.getX1(); texCoordsOut[3*2+1] = texCoords.getY2();
+	texCoordsOut[3*2+0] = texCoords.getX2(); texCoordsOut[3*2+1] = texCoords.getY2();
 	
 	VaoRef vao = Vao::create();
 	VaoScope vaoScope( vao );
@@ -1090,7 +1090,7 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
-		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+		vertexAttribPointer( posLoc, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 );
 	}
 	int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 	if( texLoc >= 0 ) {
