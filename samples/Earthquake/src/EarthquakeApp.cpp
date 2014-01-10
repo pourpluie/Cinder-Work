@@ -1,4 +1,4 @@
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/AppNative.h"
 #include "cinder/app/RendererGl.h"
 #include "Earth.h"
 #include "POV.h"
@@ -26,10 +26,11 @@ using std::istringstream;
 using std::stringstream;
 
 
-class EarthquakeApp : public AppBasic {
+class EarthquakeApp : public AppNative {
  public:
 	void prepareSettings( Settings *settings );
 	void keyDown( KeyEvent event );
+	void mouseDrag( MouseEvent event );
 	void mouseMove( MouseEvent event );
 	void mouseWheel( MouseEvent event );
 	void parseEarthquakes( const string &url );
@@ -70,9 +71,8 @@ void EarthquakeApp::prepareSettings( Settings *settings )
 	settings->setFrameRate( 60.0f );
 	settings->setResizable( true );
 	settings->setFullScreen( false );
+	settings->enableMultiTouch( false );
 }
-
-
 
 void EarthquakeApp::setup()
 {
@@ -85,10 +85,13 @@ void EarthquakeApp::setup()
 
 	mStars						= gl::Texture::create( loadImage( loadResource( RES_STARS_PNG ) ) );
 
-	
+#if defined( CINDER_GLES )	
+	mEarthShader = gl::GlslProg::create( loadResource( "passThru_vert_es2.glsl" ), loadResource( "earth_frag_es2.glsl" ) );
+	mQuakeShader = gl::GlslProg::create( loadResource( "quake_vert_es2.glsl" ), loadResource( "quake_frag_es2.glsl" ) );
+#else
 	mEarthShader = gl::GlslProg::create( loadResource( RES_PASSTHRU_VERT ), loadResource( RES_EARTH_FRAG ) );
-std::cout << mEarthShader << std::endl;
 	mQuakeShader = gl::GlslProg::create( loadResource( RES_QUAKE_VERT ), loadResource( RES_QUAKE_FRAG ) );
+#endif
 
 	
 	mCounter		= 0.0f;
@@ -158,6 +161,10 @@ void EarthquakeApp::mouseWheel( MouseEvent event )
 	mPov.adjustDist( event.getWheelIncrement() * -2.0f );
 }
 
+void EarthquakeApp::mouseDrag( MouseEvent event )
+{
+	mouseMove( event );
+}
 
 void EarthquakeApp::mouseMove( MouseEvent event )
 {
@@ -177,7 +184,6 @@ void EarthquakeApp::mouseMove( MouseEvent event )
 
 void EarthquakeApp::update()
 {
-gl::context()->sanityCheck();
 	mPov.update();
 	mPov.mCam.getBillboardVectors( &sBillboardRight, &sBillboardUp );
 	
@@ -249,4 +255,4 @@ void EarthquakeApp::parseEarthquakes( const string &url )
 }
 
 
-CINDER_APP_BASIC( EarthquakeApp, RendererGl )
+CINDER_APP_NATIVE( EarthquakeApp, RendererGl )

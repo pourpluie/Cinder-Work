@@ -100,7 +100,6 @@ void Earth::draw()
 	mTexMask->bind( 2 );
 	
 	gl::drawSphere( mLoc, mRadius, 64 );
-gl::context()->sanityCheck();
 }
 
 
