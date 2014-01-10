@@ -989,7 +989,7 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 				++normIt;
 			}
 			if( mHasTexCoord0 ) {
-				texIt->set( s * segIncr, r * ringIncr );
+				texIt->set( s * segIncr, 1.0f - r * ringIncr );
 				++texIt;
 			}
 		}
