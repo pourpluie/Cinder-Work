@@ -204,7 +204,10 @@ void drawCube( const Vec3f &center, const Vec3f &size );
 void drawColorCube( const Vec3f &center, const Vec3f &size );
 //! Renders a solid sphere at \a center of radius \a radius, subdivided on both longitude and latitude into \a segments.
 void drawSphere( const Vec3f &center, float radius, int segments );
+//! Draws a textured quad of size \a scale that is aligned with the vectors \a bbRight and \a bbUp at \a pos, rotated by \a rotationRadians around the vector orthogonal to \a bbRight and \a bbUp.
+void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians, const Vec3f &bbRight, const Vec3f &bbUp, const Rectf &texCoords = Rectf( 0, 0, 1, 1 ) );
 
+//! Draws \a texture on the XY-plane
 void drawSolidRect( const Rectf &r );
 void drawSolidRect( const Rectf &r, const Rectf &texcoords );
 void drawSolidCircle( const Vec2f &center, float radius, int numSegments = -1 );

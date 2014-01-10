@@ -1057,8 +1057,49 @@ void drawSphere( const Vec3f &center, float radius, int segments )
 	auto glslProg = ctx->getGlslProg();
 	if( ! glslProg )
 		return;
-	auto batch = gl::Batch::create( geom::Sphere().center( center ).radius( radius ).segments( segments ), glslProg );
+	auto batch = gl::Batch::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).normals().texCoords(), glslProg );
 	batch->draw();
+}
+
+void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians, const Vec3f &bbRight, const Vec3f &bbUp, const Rectf &texCoords )
+{
+	auto ctx = context();
+	GLfloat data[12+8]; // both verts and texCoords
+	Vec3f *verts = (Vec3f*)data;
+	float *texCoordsOut = data + 12;
+
+	float sinA = math<float>::sin( rotationRadians );
+	float cosA = math<float>::cos( rotationRadians );
+	
+	verts[0] = pos + bbRight * ( -0.5f * scale.x * cosA - 0.5f * sinA * scale.y ) + bbUp * ( -0.5f * scale.x * sinA + 0.5f * cosA * scale.y );
+	texCoordsOut[0*2+1] = texCoords.getY1(); texCoordsOut[0*2+0] = texCoords.getX2();
+	verts[1] = pos + bbRight * ( -0.5f * scale.x * cosA - -0.5f * sinA * scale.y ) + bbUp * ( -0.5f * scale.x * sinA + -0.5f * cosA * scale.y );
+	texCoordsOut[1*2+0] = texCoords.getX1(); texCoordsOut[1*2+1] = texCoords.getY1();
+	verts[2] = pos + bbRight * ( 0.5f * scale.x * cosA - 0.5f * sinA * scale.y ) + bbUp * ( 0.5f * scale.x * sinA + 0.5f * cosA * scale.y );
+	texCoordsOut[2*2+0] = texCoords.getX2(); texCoordsOut[2*2+1] = texCoords.getY2();
+	verts[3] = pos + bbRight * ( 0.5f * scale.x * cosA - -0.5f * sinA * scale.y ) + bbUp * ( 0.5f * scale.x * sinA + -0.5f * cosA * scale.y );
+	texCoordsOut[3*2+0] = texCoords.getX1(); texCoordsOut[3*2+1] = texCoords.getY2();
+	
+	VaoRef vao = Vao::create();
+	VaoScope vaoScope( vao );
+	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*20 );
+	BufferScope bufferBindScp( defaultVbo );
+	defaultVbo->bufferSubData( 0, sizeof(float)*20, data );
+	
+	gl::GlslProgRef shader = ctx->getGlslProg();
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( posLoc >= 0 ) {
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+	}
+	int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
+	if( texLoc >= 0 ) {
+		enableVertexAttribArray( texLoc );
+		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*12) );
+	}
+	
+	ctx->setDefaultShaderVars();
+	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
 
 void draw( const TextureRef &texture, const Vec2f &v )
