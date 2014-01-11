@@ -156,10 +156,11 @@ void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 
 void Batch::initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertLayoutVbos )
 {
+	auto ctx = gl::context();
+	ctx->pushBufferBinding( GL_ARRAY_BUFFER );
+
 	mVao = Vao::create();
 	VaoScope vaoScope( mVao );
-	
-	auto ctx = gl::context();
 	
 	// iterate all the vertex array VBOs
 	for( const auto &vertArrayVbo : vertLayoutVbos ) {
@@ -178,6 +179,8 @@ void Batch::initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &ve
 	
 	if( mNumIndices > 0 )
 		mElements->bind();
+
+	ctx->popBufferBinding( GL_ARRAY_BUFFER );
 }
 
 void Batch::draw()

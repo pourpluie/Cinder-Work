@@ -23,6 +23,16 @@ ShaderDef& ShaderDef::texture( const TextureRef &texture )
 	return *this;
 }
 
+ShaderDef& ShaderDef::texture( GLenum target )
+{
+	mTextureMapping = true;
+#if ! defined( CINDER_GLES )
+	if( target == GL_TEXTURE_RECTANGLE_ARB )
+		mTextureMappingRectangleArb = true;
+#endif
+	return *this;
+}
+
 ShaderDef& ShaderDef::color()
 {
 	mColor = true;

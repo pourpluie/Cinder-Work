@@ -109,6 +109,8 @@ void VaoImplSoftware::unbindImpl( Context *context )
 			glDisableVertexAttribArray( attribIt->first );
 		}
 	}
+	
+	mCtx->invalidateBufferBindingCache( GL_ELEMENT_ARRAY_BUFFER );
 }
 
 void VaoImplSoftware::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )

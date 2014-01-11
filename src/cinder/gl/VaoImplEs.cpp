@@ -74,11 +74,18 @@ VaoImplEs::~VaoImplEs()
 void VaoImplEs::bindImpl( Context *context )
 {
 	glBindVertexArrayOES( mId );
+
+	if( context ) {
+		context->reflectBufferBinding( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
+		mLayout.mCachedArrayBufferBinding = context->getBufferBinding( GL_ARRAY_BUFFER );
+	}
 }
 
 void VaoImplEs::unbindImpl( Context *context )
 {
 	glBindVertexArrayOES( 0 );
+	
+	mCtx->invalidateBufferBindingCache( GL_ELEMENT_ARRAY_BUFFER );
 }
 
 void VaoImplEs::enableVertexAttribArrayImpl( GLuint index )

@@ -90,6 +90,8 @@ void VaoImplCore::unbindImpl( Context *context )
 		glBindVertexArray( 0 );
 	else
 		glBindVertexArrayAPPLE( 0 );
+	
+	mCtx->invalidateBufferBindingCache( GL_ELEMENT_ARRAY_BUFFER );
 }
 
 void VaoImplCore::enableVertexAttribArrayImpl( GLuint index )

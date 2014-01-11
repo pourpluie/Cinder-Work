@@ -27,6 +27,8 @@ BufferObj::BufferObj( GLenum target, GLsizeiptr allocationSize, const void *data
 BufferObj::~BufferObj()
 {
 	glDeleteBuffers( 1, &mId );
+	
+	gl::context()->bufferDeleted( mTarget, mId );
 }
 
 void BufferObj::bind() const

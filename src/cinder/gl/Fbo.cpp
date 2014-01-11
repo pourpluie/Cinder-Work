@@ -158,17 +158,17 @@ GLint Fbo::Format::getDefaultDepthInternalFormat()
 Texture::Format	Fbo::Format::getDefaultColorTextureFormat( bool alpha )
 {
 	if( alpha )
-		return Texture::Format().renderTexture().internalFormat( GL_RGBA ).pixelDataFormat( GL_RGBA ).pixelDataType( GL_UNSIGNED_BYTE );
+		return Texture::Format().internalFormat( GL_RGBA ).pixelDataFormat( GL_RGBA ).pixelDataType( GL_UNSIGNED_BYTE );
 	else
-		return Texture::Format().renderTexture().internalFormat( GL_RGB ).pixelDataFormat( GL_RGB ).pixelDataType( GL_UNSIGNED_BYTE );
+		return Texture::Format().internalFormat( GL_RGB ).pixelDataFormat( GL_RGB ).pixelDataType( GL_UNSIGNED_BYTE );
 }
 
 Texture::Format	Fbo::Format::getDefaultDepthTextureFormat()
 {
 #if defined( CINDER_GLES )
-	return Texture::Format().depthTexture().internalFormat( GL_DEPTH_COMPONENT ).pixelDataFormat( GL_DEPTH_COMPONENT ).pixelDataType( GL_UNSIGNED_SHORT );
+	return Texture::Format().internalFormat( GL_DEPTH_COMPONENT ).pixelDataFormat( GL_DEPTH_COMPONENT ).pixelDataType( GL_UNSIGNED_SHORT );
 #else
-	return Texture::Format().depthTexture().internalFormat( GL_DEPTH_COMPONENT24 ).pixelDataFormat( GL_DEPTH_COMPONENT ).pixelDataType( GL_FLOAT );
+	return Texture::Format().internalFormat( GL_DEPTH_COMPONENT24 ).pixelDataFormat( GL_DEPTH_COMPONENT ).pixelDataType( GL_FLOAT );
 #endif
 }
 
@@ -323,7 +323,6 @@ void Fbo::initFormatAttachments()
 			Texture::Format textureFormat = mFormat.mDepthTextureFormat;
 			textureFormat.setInternalFormat( stencilInternalFormat );
 			textureFormat.setPixelDataType( stencilPixelDataType );
-			textureFormat.depthTexture();
 #if defined( CINDER_GLES )
 			textureFormat.setPixelDataFormat( GL_DEPTH_STENCIL_OES );
 #else

@@ -11,6 +11,7 @@ class ShaderDef {
 
 	ShaderDef&		color();	
 	ShaderDef&		texture( const TextureRef &tex = TextureRef() );
+	ShaderDef&		texture( GLenum target );
 
 	bool operator<( const ShaderDef &rhs ) const;
 	
