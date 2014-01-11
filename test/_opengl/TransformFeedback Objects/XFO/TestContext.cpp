@@ -7,6 +7,7 @@
 //
 
 #include "TestContext.h"
+#include "cinder/gl/Vbo.h"
 
 namespace cinder { namespace gl {
 	
@@ -40,11 +41,12 @@ XfoRef TestContext::xfoGet()
 	return mCachedXfo;
 }
 
-void TestContext::bindBufferBase( GLenum target, int index, VboRef vbo )
+void TestContext::bindBufferBase( GLenum target, int index, BufferObjRef buffer )
 {
 	std::cout << "in bindbufferbase and mCachedXfo: " << mCachedXfo << std::endl;
 	switch (target) {
 		case GL_TRANSFORM_FEEDBACK_BUFFER: {
+			VboRef vbo = std::static_pointer_cast<Vbo>( buffer );
 			if( mCachedXfo ) {
 				std::cout << "about to setIndex for cachedXfo: " << mCachedXfo << std::endl;
 				mCachedXfo->setIndex( index, vbo );
@@ -124,9 +126,9 @@ void endTransformFeedback()
 	
 
 	
-void bindBufferBase( GLenum target, int index, VboRef vbo )
+void bindBufferBase( GLenum target, int index, BufferObjRef buffer )
 {
-	TestContext::testContext()->bindBufferBase( target, index, vbo );
+	TestContext::testContext()->bindBufferBase( target, index, buffer );
 }
 	
 }

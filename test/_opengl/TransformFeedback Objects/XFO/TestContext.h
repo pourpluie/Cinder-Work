@@ -21,7 +21,7 @@ public:
 	~TestContext() {}
 	
 	void xfoBind( XfoRef xfo );
-	void bindBufferBase( GLenum target, int index, VboRef vbo );
+	void bindBufferBase( GLenum target, int index, BufferObjRef buffer );
 	
 	void beginTransformFeedback( GLenum primitiveMode );
 	void pauseTransformFeedback();
@@ -53,7 +53,7 @@ private:
 	
 static TestContextRef testContextOverall;
 
-void bindBufferBase( GLenum target, int index, VboRef vbo );
+void bindBufferBase( GLenum target, int index, BufferObjRef buffer );
 	
 void beginTransformFeedback( GLenum primitiveMode );
 void endTransformFeedback();
