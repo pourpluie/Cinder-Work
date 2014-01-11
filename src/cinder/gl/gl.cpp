@@ -610,11 +610,10 @@ void draw( const VboMeshRef& mesh )
 	if( ! curShader )
 		return;
 	
-	VaoCacheRef vaoCache = VaoCache::create();
-	ctx->pushVao( vaoCache );
+	ctx->pushVao();
+	ctx->getDefaultVao()->freshBindPre();
 	mesh->buildVao( curShader );
-	ctx->bindVao( ctx->getDefaultVao() );
-	ctx->getDefaultVao()->swap( vaoCache );
+	ctx->getDefaultVao()->freshBindPost();
 	ctx->setDefaultShaderVars();
 	mesh->drawImpl();
 	ctx->popVao();
@@ -912,9 +911,8 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
 	BufferScope vboScp( defaultVbo );
-	VaoCacheRef vaoCache = VaoCache::create();
-	{
-		VaoScope vaoScp( vaoCache );
+	ctx->pushVao();
+	ctx->getDefaultVao()->freshBindPre();
 		defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
 		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 		if( posLoc >= 0 ) {
@@ -926,12 +924,11 @@ void draw( const TextureRef &texture, const Rectf &rect )
 			enableVertexAttribArray( texLoc );	
 			vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 		}
-	}
-
-	VaoScope vaoScp( ctx->getDefaultVao() );
-	ctx->getDefaultVao()->swap( vaoCache );
+	ctx->getDefaultVao()->freshBindPost();
+	
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+	ctx->popVao();
 }
 
 void drawSolidRect( const Rectf& r )
@@ -1057,8 +1054,19 @@ void drawSphere( const Vec3f &center, float radius, int segments )
 	auto glslProg = ctx->getGlslProg();
 	if( ! glslProg )
 		return;
-	auto batch = gl::Batch::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).normals().texCoords(), glslProg );
-	batch->draw();
+	//auto batch = gl::Batch::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).normals().texCoords(), glslProg );
+	//batch->draw();
+	
+	
+	ctx->pushVao();
+	ctx->getDefaultVao()->freshBindPre();
+	gl::VboMeshRef mesh = gl::VboMesh::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).normals().texCoords() );
+	mesh->buildVao( glslProg );
+	ctx->getDefaultVao()->freshBindPost();	
+	ctx->setDefaultShaderVars();
+ctx->sanityCheck();
+	mesh->drawImpl();
+	ctx->popVao();
 }
 
 void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians, const Vec3f &bbRight, const Vec3f &bbUp, const Rectf &texCoords )

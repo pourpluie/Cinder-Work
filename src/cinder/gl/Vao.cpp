@@ -102,77 +102,24 @@ void Vao::unbind() const
 	mCtx->bindVao( nullptr );
 }
 
-void Vao::swap( const VaoCacheRef &vao )
+void Vao::freshBindPre()
 {
-	swap( vao->getLayout() );
+	mFreshBindPrevious = mLayout;
+	bind();
+	// a fresh VAO would 
+	mCtx->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 }
 
-void Vao::swap( const Vao::Layout &newLayout )
+void Vao::freshBindPost()
 {
-	VaoScope vaoScope( shared_from_this() );
-
-	Vao::Layout originalLayout = mLayout;
-	
-	auto oldArrayBufferBinding = mCtx->getBufferBinding( GL_ARRAY_BUFFER );
-	
-	// gather all the array buffer bindings
-	set<GLuint> arrayBufferBindings;
-	for( const auto &attrib : newLayout.mVertexAttribs )
-		arrayBufferBindings.insert( attrib.second.mArrayBufferBinding );
-
-	// iterate all the represented array buffer bindings, bind them, and call glVertexAttribPointer
-	for( auto &arrayBufferBinding : arrayBufferBindings ) {
-		mCtx->bindBuffer( GL_ARRAY_BUFFER, arrayBufferBinding );
-		// iterate all attributes to find the ones whose mArrayBufferBinding is 'arrayBufferBinding'
-		for( auto &attrib : newLayout.mVertexAttribs ) {
-			if( attrib.second.mArrayBufferBinding == arrayBufferBinding ) {
-				auto originalAttribIt = originalLayout.mVertexAttribs.find( attrib.first );
-				// does 'this' have an attribute for this location?
-				if( originalAttribIt != originalLayout.mVertexAttribs.end() ) {
-					// since we already have this attribute location, only enable/disable if newLayout's is different
-					if( originalAttribIt->second.mEnabled != attrib.second.mEnabled ) {
-						if( attrib.second.mEnabled )
-							enableVertexAttribArrayImpl( attrib.first );
-						else
-							disableVertexAttribArrayImpl( attrib.first );
-					}
-					// similarly, only call attribPointer if necessary
-					if( ( originalAttribIt->second.mSize != attrib.second.mSize ) || 
-						( originalAttribIt->second.mType != attrib.second.mType ) ||
-						( originalAttribIt->second.mNormalized != attrib.second.mNormalized ) ||
-						( originalAttribIt->second.mStride != attrib.second.mStride ) ||
-						( originalAttribIt->second.mPointer != attrib.second.mPointer ) )
-					{
-						vertexAttribPointerImpl( attrib.first, attrib.second.mSize, attrib.second.mType, attrib.second.mNormalized,
-							attrib.second.mStride, attrib.second.mPointer );
-					}
-					// and only call attribDivisor if necessary
-					if( originalAttribIt->second.mDivisor != attrib.second.mDivisor )
-						vertexAttribDivisorImpl( attrib.first, attrib.second.mDivisor );
-				}
-				else { // no existing attribute at this location
-					if( attrib.second.mEnabled )
-						enableVertexAttribArrayImpl( attrib.first );
-					vertexAttribPointerImpl( attrib.first, attrib.second.mSize, attrib.second.mType, attrib.second.mNormalized,
-							attrib.second.mStride, attrib.second.mPointer );
-					vertexAttribDivisorImpl( attrib.first, attrib.second.mDivisor );
-				}
-			}
-		}
-	}
-
-	// iterate all the vertex attribs in 'this' which are not enabled in layout and disable them
-	for( auto &attrib : originalLayout.mVertexAttribs ) {
-		auto existing = newLayout.mVertexAttribs.find( attrib.first );
-		if( attrib.second.mEnabled && ( ( existing == newLayout.mVertexAttribs.end() ) || (! existing->second.mEnabled) ) )
+	// disable any attributes which were enabled in the previous layout
+	for( auto &attrib : mFreshBindPrevious.mVertexAttribs ) {
+		auto existing = mLayout.mVertexAttribs.find( attrib.first );
+		if( attrib.second.mEnabled && ( ( existing == mLayout.mVertexAttribs.end() ) || ( ! existing->second.mEnabled) ) )
 			disableVertexAttribArrayImpl( attrib.first );
 	}
 
-	// finally, this->mLayout becomes 'newLayout'
-	mLayout = newLayout;
-
-	mCtx->bindBuffer( GL_ARRAY_BUFFER, oldArrayBufferBinding );
-	mCtx->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
+	// TODO: if the user never bound an ELEMENT_ARRAY_BUFFER, they assumed it was 0, so we should make that so by caching whether they changed it
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,6 +178,12 @@ void Vao::Layout::vertexAttribDivisor( GLuint index, GLuint divisor )
 	mVertexAttribs[index].mDivisor = divisor;
 }
 
+void Vao::Layout::clear()
+{
+	mElementArrayBufferBinding = 0;
+	mVertexAttribs.clear();
+}
+
 std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs )
 {
 	lhs << *rhs;
@@ -263,55 +216,6 @@ std::ostream& operator<<( std::ostream &lhs, const Vao::Layout &rhs )
 	lhs << "}";
 
 	return lhs;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// VaoCache
-VaoCacheRef VaoCache::create()
-{
-	return VaoCacheRef( new VaoCache() );
-}
-
-VaoCache::VaoCache()
-{
-}
-
-void VaoCache::bindImpl( class Context *context )
-{
-	if( context ) {
-		context->reflectBufferBinding( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
-		mLayout.mCachedArrayBufferBinding = context->getBufferBinding( GL_ARRAY_BUFFER );
-	}
-}
-
-void VaoCache::unbindImpl( class Context *context )
-{
-}
-
-void VaoCache::enableVertexAttribArrayImpl( GLuint index )
-{
-	mLayout.enableVertexAttribArray( index );
-}
-
-void VaoCache::disableVertexAttribArrayImpl( GLuint index )
-{
-	mLayout.disableVertexAttribArray( index );
-}
-
-void VaoCache::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
-{
-	mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
-}
-
-void VaoCache::vertexAttribDivisorImpl( GLuint index, GLuint divisor )
-{
-	mLayout.vertexAttribDivisor( index, divisor );
-}
-
-void VaoCache::reflectBindBufferImpl( GLenum target, GLuint buffer )
-{
-	mLayout.bindBuffer( target, buffer );
-	glBindBuffer( target, buffer );
 }
 
 } }

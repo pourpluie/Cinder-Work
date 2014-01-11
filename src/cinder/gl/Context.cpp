@@ -962,27 +962,34 @@ void Context::sanityCheck()
 {
 	GLint queriedInt;
 
+	// assert cached (VAO) GL_VERTEX_ARRAY_BINDING is correct
+	GLint trueVaoBinding;
+#if defined( CINDER_GLES )
+	glGetIntegerv( GL_VERTEX_ARRAY_BINDING_OES, &trueVaoBinding );
+#else
+	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &trueVaoBinding );
+#endif
+
+	VaoRef boundVao = getVao();
+	if( boundVao ) {
+		assert( trueVaoBinding == boundVao->mId );
+		assert( getBufferBinding( GL_ARRAY_BUFFER ) == boundVao->getLayout().mCachedArrayBufferBinding );
+		assert( getBufferBinding( GL_ELEMENT_ARRAY_BUFFER ) == boundVao->getLayout().mElementArrayBufferBinding );		
+	}
+	else
+		assert( trueVaoBinding == 0 );
+
 	// assert cached GL_ARRAY_BUFFER is correct
-	glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &queriedInt );
-	assert( getBufferBinding( GL_ARRAY_BUFFER ) == queriedInt );
+	GLint cachedArrayBufferBinding = getBufferBinding( GL_ARRAY_BUFFER );
+	GLint trueArrayBufferBinding;
+	glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &trueArrayBufferBinding );
+	assert( ( cachedArrayBufferBinding == -1 ) || ( trueArrayBufferBinding == cachedArrayBufferBinding ) );
 
 	// assert cached GL_ELEMENT_ARRAY_BUFFER is correct
-	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
-	assert( getBufferBinding( GL_ELEMENT_ARRAY_BUFFER ) == queriedInt );
-
-	// assert cached (VAO) GL_VERTEX_ARRAY_BINDING is correct
-#if defined( CINDER_GLES )
-	glGetIntegerv( GL_VERTEX_ARRAY_BINDING_OES, &queriedInt );
-#else
-	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &queriedInt );
-#endif
-//	assert( mCachedVao == queriedInt );
-
-	VaoRef vao = getVao();
-	if( vao ) {
-		assert( getBufferBinding( GL_ARRAY_BUFFER ) == vao->getLayout().mCachedArrayBufferBinding );
-		assert( getBufferBinding( GL_ELEMENT_ARRAY_BUFFER ) == vao->getLayout().mElementArrayBufferBinding );		
-	}
+	GLint cachedElementArrayBufferBinding = getBufferBinding( GL_ELEMENT_ARRAY_BUFFER );
+	GLint trueElementArrayBufferBinding;
+	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &trueElementArrayBufferBinding );
+	assert( ( cachedElementArrayBufferBinding == -1 ) || ( trueElementArrayBufferBinding == cachedElementArrayBufferBinding ) );
 
 	// assert the various texture bindings are correct
 /*	for( auto& cachedTextureBinding : mTextureBindingStack ) {
