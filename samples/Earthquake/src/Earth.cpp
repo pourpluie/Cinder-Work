@@ -20,7 +20,7 @@ Earth::Earth()
 {
 }
 
-Earth::Earth( const ci::gl::TextureRef &aTexDiffuse, const ci::gl::TextureRef &aTexNormal, const ci::gl::TextureRef &aTexMask )
+Earth::Earth( const gl::GlslProgRef &glslProg, const ci::gl::TextureRef &aTexDiffuse, const ci::gl::TextureRef &aTexNormal, const ci::gl::TextureRef &aTexMask )
 {
 	mLoc			= Vec3f::zero();
 	mRadius			= 250.0f;
@@ -29,6 +29,8 @@ Earth::Earth( const ci::gl::TextureRef &aTexDiffuse, const ci::gl::TextureRef &a
 	mTexMask		= aTexMask;
 	
 	mMinMagToRender = 5.0f;
+	
+	mBatch = gl::Batch::create( geom::Sphere().normals().texCoords().radius( mRadius ).segments( 64 ), glslProg );
 }
 
 void Earth::setQuakeLocTip()
@@ -99,7 +101,7 @@ void Earth::draw()
 	mTexNormal->bind( 1 );
 	mTexMask->bind( 2 );
 	
-	gl::drawSphere( mLoc, mRadius, 64 );
+	mBatch->draw();
 }
 
 

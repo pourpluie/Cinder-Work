@@ -103,7 +103,7 @@ void EarthquakeApp::setup()
 	mLightDir		= Vec3f( 0.025f, 0.25f, 1.0f );
 	mLightDir.normalize();
 	mPov			= POV( this, ci::Vec3f( 0.0f, 0.0f, 1000.0f ), ci::Vec3f( 0.0f, 0.0f, 0.0f ) );
-	mEarth			= Earth( earthDiffuse, earthNormal, earthMask );
+	mEarth			= Earth( mEarthShader, earthDiffuse, earthNormal, earthMask );
 	
 	parseEarthquakes( "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson" );
 	
@@ -222,11 +222,10 @@ void EarthquakeApp::draw()
 	if( mShowQuakes ){
 		mQuakeShader->bind();
 		mQuakeShader->uniform( "uLightDir", mLightDir );
-		mEarth.drawQuakeVectors();
+//		mEarth.drawQuakeVectors();
 	}
 	if( mShowText ){
 		gl::enableDepthWrite( false );
-//		mEarth.drawQuakeLabelsOnBillboard( sBillboardRight, sBillboardUp );
 		mEarth.drawQuakeLabelsOnSphere( mPov.mEyeNormal, mPov.mDist );
 	}
 	
@@ -253,6 +252,5 @@ void EarthquakeApp::parseEarthquakes( const string &url )
 	
 	//mEarth.addQuake( 37.7f, -122.0f, 8.6f, "San Francisco" );
 }
-
 
 CINDER_APP_NATIVE( EarthquakeApp, RendererGl )
