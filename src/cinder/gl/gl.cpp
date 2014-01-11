@@ -1057,8 +1057,8 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 	verts[3] = pos + bbRight * ( 0.5f * scale.x * cosA - -0.5f * sinA * scale.y ) + bbUp * ( 0.5f * scale.x * sinA + -0.5f * cosA * scale.y );
 	texCoordsOut[3*2+0] = texCoords.getX2(); texCoordsOut[3*2+1] = texCoords.getY2();
 	
-	VaoRef vao = Vao::create();
-	VaoScope vaoScope( vao );
+	ctx->pushVao();
+	ctx->getDefaultVao()->freshBindPre();
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*20 );
 	BufferScope bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, sizeof(float)*20, data );
@@ -1075,8 +1075,10 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*12) );
 	}
 	
+	ctx->getDefaultVao()->freshBindPost();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+	ctx->popVao();
 }
 
 void draw( const TextureRef &texture, const Vec2f &v )
