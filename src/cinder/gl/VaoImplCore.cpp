@@ -96,9 +96,10 @@ void VaoImplCore::unbindImpl( Context *context )
 
 void VaoImplCore::enableVertexAttribArrayImpl( GLuint index )
 {
-	mLayout.enableVertexAttribArray( index );
-
-	glEnableVertexAttribArray( index );
+	if( ! mLayout.isVertexAttribArrayEnabled( index ) ) {
+		mLayout.enableVertexAttribArray( index );
+		glEnableVertexAttribArray( index );
+	}
 }
 
 void VaoImplCore::disableVertexAttribArrayImpl( GLuint index )
@@ -110,9 +111,10 @@ void VaoImplCore::disableVertexAttribArrayImpl( GLuint index )
 
 void VaoImplCore::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-	mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
-
-	glVertexAttribPointer( index, size, type, normalized, stride, pointer );
+	if( ! mLayout.isVertexAttribEqual( index, size, type, normalized, stride, pointer ) ) {
+		mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
+		glVertexAttribPointer( index, size, type, normalized, stride, pointer );
+	}
 }
 
 void VaoImplCore::vertexAttribDivisorImpl( GLuint index, GLuint divisor )

@@ -62,6 +62,7 @@ VaoRef Vao::create()
 #if defined( CINDER_GLES )
 	#if defined( CINDER_COCOA_TOUCH )
 		return createVaoImplEs();
+//		return createVaoImplSoftware();
 	#elif defined( CINDER_GL_ANGLE )
 		return createVaoImplSoftware();
 	#else
@@ -72,7 +73,6 @@ VaoRef Vao::create()
 	#endif
 #else
 	return createVaoImplCore();
-//	return createVaoImplSoftware();
 #endif
 }
 
@@ -149,6 +149,15 @@ void Vao::Layout::enableVertexAttribArray( GLuint index )
 	}
 }
 
+bool Vao::Layout::isVertexAttribArrayEnabled( GLuint index ) const
+{
+	auto existing = mVertexAttribs.find( index );
+	if( existing != mVertexAttribs.end() )
+		return existing->second.mEnabled;
+	else
+		return false;
+}
+
 void Vao::Layout::disableVertexAttribArray( GLuint index )
 {
 	auto existing = mVertexAttribs.find( index );
@@ -167,6 +176,20 @@ void Vao::Layout::vertexAttribPointer( GLuint index, GLint size, GLenum type, GL
 	bool enabled = ( existing != mVertexAttribs.end() ) && ( existing->second.mEnabled );
 	mVertexAttribs[index] = Vao::VertexAttrib( size, type, normalized, stride, pointer, mCachedArrayBufferBinding );
 	mVertexAttribs[index].mEnabled = enabled;
+}
+
+bool Vao::Layout::isVertexAttribEqual( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) const
+{
+	auto existing = mVertexAttribs.find( index );
+	if( existing != mVertexAttribs.end() ) {
+		return existing->second.mSize == size
+			&& existing->second.mType == type
+			&& existing->second.mNormalized == normalized
+			&& existing->second.mStride == stride
+			&& existing->second.mPointer == pointer;
+	}
+	else
+		return false;
 }
 
 void Vao::Layout::vertexAttribDivisor( GLuint index, GLuint divisor )

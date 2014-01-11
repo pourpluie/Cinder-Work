@@ -1041,6 +1041,10 @@ void drawSphere( const Vec3f &center, float radius, int segments )
 void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians, const Vec3f &bbRight, const Vec3f &bbUp, const Rectf &texCoords )
 {
 	auto ctx = context();
+	gl::GlslProgRef glslProg = ctx->getGlslProg();
+	if( ! glslProg )
+		return;
+
 	GLfloat data[12+8]; // both verts and texCoords
 	Vec3f *verts = (Vec3f*)data;
 	float *texCoordsOut = data + 12;
@@ -1063,13 +1067,12 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 	BufferScope bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, sizeof(float)*20, data );
 	
-	gl::GlslProgRef shader = ctx->getGlslProg();
-	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = glslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 );
 	}
-	int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
+	int texLoc = glslProg->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 	if( texLoc >= 0 ) {
 		enableVertexAttribArray( texLoc );
 		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*12) );

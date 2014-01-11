@@ -79,12 +79,16 @@ class Vao : public std::enable_shared_from_this<Vao> {
 		
 		//! The equivalent of glBindBuffer( \a target, \a binding )
 		void	bindBuffer( GLenum target, GLuint buffer );
+		//! Returns whether the vertex attribute array at \a index is enabled or not
+		bool	isVertexAttribArrayEnabled( GLuint index ) const;
 		//! The equivalent of glEnableVertexAttribArray( \a index )
 		void	enableVertexAttribArray( GLuint index );
 		//! The equivalent of glDisableVertexAttribArray( \a index )
 		void	disableVertexAttribArray( GLuint index );
 		//! Sets the vertex attribute data
 		void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+		//! Returns whether the existing attribPointer information at \a index is equal to the supplied params
+		bool	isVertexAttribEqual( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) const;
 		//! Sets the instancing divisor
 		void	vertexAttribDivisor( GLuint index, GLuint divisor );
 
