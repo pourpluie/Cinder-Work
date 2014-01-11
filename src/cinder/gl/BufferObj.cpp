@@ -62,6 +62,15 @@ void BufferObj::copyData( GLsizeiptr size, const GLvoid *data )
 	}
 }
 
+void BufferObj::ensureMinimumSize( GLsizeiptr minimumSize )
+{
+	if( mSize < minimumSize ) {
+		mSize = minimumSize;
+		BufferScope bufferBind( mTarget, mId );
+		glBufferData( mTarget, mSize, NULL, mUsage );
+	}
+}
+
 #if ! defined( CINDER_GL_ANGLE )	
 void* BufferObj::map( GLenum access ) const
 {

@@ -219,14 +219,22 @@ void Batch::bind()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // VertBatch
-VertBatch::VertBatch( GLenum primType )
+VertBatch::VertBatch( GLenum primType, bool useContextDefaultBuffers )
 	: mPrimType( primType )
 {
+	if( useContextDefaultBuffers ) {
+		auto ctx = gl::context();
+		mVao = ctx->getDefaultVao();
+		mVbo = ctx->getDefaultArrayVbo();
+		mOwnsBuffers = false;
+	}
+	else
+		mOwnsBuffers = true;
 }
 
-VertBatchRef VertBatch::create( GLenum primType )
+VertBatchRef VertBatch::create( GLenum primType, bool useContextDefaultBuffers )
 {
-	return VertBatchRef( new VertBatch( primType ) ); 
+	return VertBatchRef( new VertBatch( primType, useContextDefaultBuffers ) ); 
 }
 
 void VertBatch::setType( GLenum primType )
@@ -307,44 +315,45 @@ void VertBatch::clear()
 
 void VertBatch::draw()
 {
+	// this pushes the VAO, which needs to be popped
 	setupBuffers();
 	VaoScope vao( mVao );
 	
 	auto ctx = context();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( mPrimType, 0, mVertices.size() );
+	
+	// this was set by setupBuffers
+	ctx->popVao();
 }
 
+// Leaves mVAO bound
 void VertBatch::setupBuffers()
 {
 	auto ctx = gl::context();
+	
+	GlslProgRef glslProg = ctx->getGlslProg();
+	if( ! glslProg )
+		return;
 
 	const size_t verticesSizeBytes = mVertices.size() * sizeof(Vec4f);
 	const size_t normalsSizeBytes = mNormals.size() * sizeof(Vec3f);
 	const size_t colorsSizeBytes = mColors.size() * sizeof(ColorAf);
 	const size_t texCoordsSizeBytes = mTexCoords.size() * sizeof(Vec4f);
+	size_t totalSizeBytes = verticesSizeBytes + normalsSizeBytes + colorsSizeBytes + texCoordsSizeBytes;
 
-/*	size_t vertexStride = 0;
-	if( ! mVertices.empty() )
-		vertexStride += sizeof(Vec4f);
-	if( ! mNormals.empty() )
-		vertexStride += sizeof(Vec3f);
-	if( ! mColors.empty() )
-		vertexStride += sizeof(ColorAf);
-	if( ! mTexCoords.empty() )
-		vertexStride += sizeof(Vec4f);*/
-
+	// allocate the VBO if we don't have one yet (which implies we're not using the context defaults)
+	bool forceUpload = false;
 	if( ! mVbo ) {
-		// calculate the room we'll need in the VBO
-		size_t totalSizeBytes = 0;
-		totalSizeBytes += verticesSizeBytes;
-		totalSizeBytes += normalsSizeBytes;
-		totalSizeBytes += colorsSizeBytes;
-		totalSizeBytes += texCoordsSizeBytes;
-		
 		// allocate the VBO and upload the data
 		mVbo = gl::Vbo::create( GL_ARRAY_BUFFER, totalSizeBytes );
-		BufferScope bufferScope( mVbo );
+		forceUpload = true;
+	}
+	
+	BufferScope bufferScope( mVbo );
+	// if this VBO was freshly made, or we don't own the buffer because we use the context defaults
+	if( forceUpload || ( ! mOwnsBuffers ) ) {
+		mVbo->ensureMinimumSize( totalSizeBytes );
 		
 		// upload positions
 		GLintptr offset = 0;
@@ -371,46 +380,45 @@ void VertBatch::setupBuffers()
 	}
 
 	// Setup the VAO
-	mVao = gl::Vao::create();
-	GlslProgRef shader = ctx->getGlslProg();
-	VaoScope vaoScope( mVao );
+	ctx->pushVao();
+	if( ! mOwnsBuffers )
+		mVao->freshBindPre();
+	else {
+		mVao = gl::Vao::create();
+		mVao->bind();
+	}
+
 	BufferScope vboScope( mVbo );
 	size_t offset = 0;
-	if( shader->hasAttribSemantic( geom::Attrib::POSITION ) ) {
-		int loc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( glslProg->hasAttribSemantic( geom::Attrib::POSITION ) ) {
+		int loc = glslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 		ctx->enableVertexAttribArray( loc );
 		ctx->vertexAttribPointer( loc, 4, GL_FLOAT, false, 0, (const GLvoid*)offset );
 		offset += verticesSizeBytes;
 	}
 
-	if( shader->hasAttribSemantic( geom::Attrib::NORMAL ) && ( ! mNormals.empty() ) ) {
-		int loc = shader->getAttribSemanticLocation( geom::Attrib::NORMAL );
+	if( glslProg->hasAttribSemantic( geom::Attrib::NORMAL ) && ( ! mNormals.empty() ) ) {
+		int loc = glslProg->getAttribSemanticLocation( geom::Attrib::NORMAL );
 		ctx->enableVertexAttribArray( loc );
 		ctx->vertexAttribPointer( loc, 3, GL_FLOAT, false, 0, (const GLvoid*)offset );
 		offset += normalsSizeBytes;
 	}
 
-	if( shader->hasAttribSemantic( geom::Attrib::COLOR ) && ( ! mColors.empty() ) ) {
-		int loc = shader->getAttribSemanticLocation( geom::Attrib::COLOR );
+	if( glslProg->hasAttribSemantic( geom::Attrib::COLOR ) && ( ! mColors.empty() ) ) {
+		int loc = glslProg->getAttribSemanticLocation( geom::Attrib::COLOR );
 		ctx->enableVertexAttribArray( loc );
 		ctx->vertexAttribPointer( loc, 4, GL_FLOAT, false, 0, (const GLvoid*)offset );
 		offset += colorsSizeBytes;
 	}
 
-	if( shader->hasAttribSemantic( geom::Attrib::TEX_COORD_0 ) && ( ! mTexCoords.empty() ) ) {
-		int loc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
+	if( glslProg->hasAttribSemantic( geom::Attrib::TEX_COORD_0 ) && ( ! mTexCoords.empty() ) ) {
+		int loc = glslProg->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 		ctx->enableVertexAttribArray( loc );
 		ctx->vertexAttribPointer( loc, 4, GL_FLOAT, false, 0, (const GLvoid*)offset );
 	}
 	
-/*	VertexLayout vtxl;
-	vtxl.attrib( ATTRIB_VERTEX, &mVertices );
-	if( ! mNormals.empty() )
-		vtxl.attrib( geom::Attrib::NORMAL, &mNormals );
-	if( ! layoutMatches( mCachedLayout ) ) {
-		buildBuffers( vtxl, ctx->getShader(), &mVbo, &mVao );
-		mCachedLayout = vtxl;
-	}*/
+	if( ! mOwnsBuffers )
+		mVao->freshBindPost();
 }
 
 } } // namespace cinder::gl

@@ -89,8 +89,10 @@ class Batch {
 //! Cannot be shared across contexts
 class VertBatch {
   public:
-	VertBatch( GLenum primType = GL_POINTS );
-	static VertBatchRef create( GLenum primType = GL_POINTS );
+	//! If \a useContextDefaultBuffers is \c true, uses default buffers for the context, saving allocations; suitable for single draw.
+	VertBatch( GLenum primType = GL_POINTS, bool useContextDefaultBuffers = true );
+	//! If \a useContextDefaultBuffers is \c false, allocates and uses internal buffers and VAO; suitable for multiple draws.
+	static VertBatchRef create( GLenum primType = GL_POINTS, bool useContextDefaultBuffers = false );
 
 	void	setType( GLenum type );
 	GLenum	getType() const { return mPrimType; }
@@ -134,6 +136,7 @@ class VertBatch {
 	std::vector<ColorAf>	mColors;
 	std::vector<Vec4f>		mTexCoords;
 	
+	bool					mOwnsBuffers;
 	VaoRef					mVao;
 	VboRef					mVbo;
 };
