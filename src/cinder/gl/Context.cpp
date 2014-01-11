@@ -1154,10 +1154,10 @@ VaoRef Context::getDefaultVao()
 VboRef Context::getDefaultArrayVbo( size_t requiredSize )
 {
 	if( ! mDefaultArrayVbo ) {
-		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize, NULL, GL_DYNAMIC_DRAW );
+		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, std::min<size_t>( 1, requiredSize ), NULL, GL_DYNAMIC_DRAW );
 	}
 	else if( requiredSize > mDefaultArrayVbo->getSize() ) {
-		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, requiredSize, NULL, GL_DYNAMIC_DRAW );
+		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, std::min<size_t>( 1, requiredSize ), NULL, GL_DYNAMIC_DRAW );
 	}
 	
 	return mDefaultArrayVbo;

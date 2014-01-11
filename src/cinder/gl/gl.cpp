@@ -1030,11 +1030,10 @@ void drawSphere( const Vec3f &center, float radius, int segments )
 	
 	ctx->pushVao();
 	ctx->getDefaultVao()->freshBindPre();
-	gl::VboMeshRef mesh = gl::VboMesh::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).normals().texCoords() );
+	gl::VboMeshRef mesh = gl::VboMesh::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).normals().texCoords(), ctx->getDefaultArrayVbo(), ctx->getDefaultElementVbo() );
 	mesh->buildVao( glslProg );
 	ctx->getDefaultVao()->freshBindPost();	
 	ctx->setDefaultShaderVars();
-ctx->sanityCheck();
 	mesh->drawImpl();
 	ctx->popVao();
 }

@@ -77,13 +77,19 @@ void VboMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *
 		mVboMesh->mIndexType = GL_UNSIGNED_SHORT;
 		std::unique_ptr<uint16_t> indices( new uint16_t[numIndices] );
 		copyIndexData( source, numIndices, indices.get() );
-		mVboMesh->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint16_t), indices.get() );
+		if( ! mVboMesh->mElements )
+			mVboMesh->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint16_t), indices.get() );
+		else
+			mVboMesh->mElements->copyData( numIndices * sizeof(uint16_t), indices.get() );
 	}
 	else {
 		mVboMesh->mIndexType = GL_UNSIGNED_INT;
 		std::unique_ptr<uint32_t> indices( new uint32_t[numIndices] );
 		copyIndexData( source, numIndices, indices.get() );
-		mVboMesh->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint32_t), indices.get() );
+		if( ! mVboMesh->mElements )
+			mVboMesh->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint32_t), indices.get() );
+		else
+			mVboMesh->mElements->copyData( numIndices * sizeof(uint32_t), indices.get() );
 	}
 }
 
@@ -91,7 +97,7 @@ void VboMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *
 // VboMesh
 VboMeshRef VboMesh::create( const geom::Source &source )
 {
-	return VboMeshRef( new VboMesh( source ) );
+	return VboMeshRef( new VboMesh( source, VboRef(), VboRef() ) );
 }
 
 VboMeshRef VboMesh::create( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo )
@@ -99,7 +105,12 @@ VboMeshRef VboMesh::create( uint32_t numVertices, uint32_t numIndices, GLenum gl
 	return VboMeshRef( new VboMesh( numVertices, numIndices, glPrimitive, indexType, vertexArrayBuffers, indexVbo ) );
 }
 
-VboMesh::VboMesh( const geom::Source &source )
+VboMeshRef VboMesh::create( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo )
+{
+	return VboMeshRef( new VboMesh( source, arrayVbo, elementArrayVbo ) );
+}
+
+VboMesh::VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo )
 {
 	mNumVertices = source.getNumVertices();
 
@@ -118,10 +129,18 @@ VboMesh::VboMesh( const geom::Source &source )
 	// TODO: this should use mapBuffer when available
 	std::unique_ptr<uint8_t> buffer( new uint8_t[vertexDataSizeBytes] );
 	
+	// Set our elements VBO to elementArrayVBO, which may well be empty, so that the target doesn't blow it away. Must do this before we loadInto().
+	mElements = elementArrayVbo;
+	
 	VboMeshGeomTarget target( source.getPrimitive(), bufferLayout, buffer.get(), this );
 	source.loadInto( &target );
 
-	VboRef vertexDataVbo = gl::Vbo::create( GL_ARRAY_BUFFER, vertexDataSizeBytes, buffer.get() );	
+	VboRef vertexDataVbo = arrayVbo;
+	if( ! vertexDataVbo )
+		vertexDataVbo = gl::Vbo::create( GL_ARRAY_BUFFER, vertexDataSizeBytes, buffer.get() );
+	else
+		vertexDataVbo->copyData( vertexDataSizeBytes, buffer.get() );
+
 	mVertexArrayVbos.push_back( make_pair( bufferLayout, vertexDataVbo ) );
 }
 

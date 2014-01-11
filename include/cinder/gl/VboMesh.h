@@ -23,8 +23,11 @@ void drawRange( const VboMeshRef& vbo, GLint start, GLsizei count );
 
 class VboMesh {
   public:
+	//! Creates a VboMesh which represents the geom::Source \a source.
 	static VboMeshRef	create( const geom::Source &source );
 	static VboMeshRef	create( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo = VboRef() );
+	//! Creates a VboMesh which represents the geom::Source \a source. Allows optional \a arrayVbo and \a elementArrayVbo in order to simplify recycling of VBOs.
+	static VboMeshRef	create( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo );
 
 	//! Maps a geom::Attrib to a named attribute in the GlslProg
 	typedef std::map<geom::Attrib,std::string> AttributeMapping;
@@ -68,7 +71,7 @@ class VboMesh {
 #endif
 
   protected:
-	VboMesh( const geom::Source &source );
+	VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo );
 	VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo );
 
 	uint32_t			mNumVertices, mNumIndices;
