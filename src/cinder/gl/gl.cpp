@@ -619,36 +619,6 @@ void draw( const VboMeshRef& mesh )
 	ctx->popVao();
 }
 
-void drawRange( const VboMeshRef& mesh, GLint start, GLsizei count )
-{
-/*	auto vaoBind( mesh->mVao );
-	
-	if ( mesh->mVboIndices ) {
-		if ( mesh->mVboVerticesDynamic ) {
-			mesh->mVboVerticesDynamic->bind();
-		}
-		if ( mesh->mVboVerticesStatic ) {
-			mesh->mVboVerticesStatic->bind();
-		}
-		drawRange( mesh->mVboIndices, start, count );
-		if ( mesh->mVboVerticesDynamic ) {
-			mesh->mVboVerticesDynamic->unbind();
-		}
-		if ( mesh->mVboVerticesStatic ) {
-			mesh->mVboVerticesStatic->unbind();
-		}
-	} else {
-		if ( mesh->mVboVerticesDynamic ) {
-			drawRange( mesh->mVboVerticesDynamic, start, count );
-		}
-		if ( mesh->mVboVerticesStatic ) {
-			drawRange( mesh->mVboVerticesStatic, start, count );
-		}
-	}
-	
-	mesh->mVao->unbind();*/
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Vertex Attributes
 void vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
