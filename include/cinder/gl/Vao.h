@@ -88,7 +88,7 @@ class Vao : public std::enable_shared_from_this<Vao> {
 		//! Sets the vertex attribute data
 		void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
 		//! Returns whether the existing attribPointer information at \a index is equal to the supplied params
-		bool	isVertexAttribEqual( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) const;
+		bool	isVertexAttribEqual( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer, GLuint arrayBufferBinding ) const;
 		//! Sets the instancing divisor
 		void	vertexAttribDivisor( GLuint index, GLuint divisor );
 

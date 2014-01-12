@@ -60,6 +60,8 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	mReadFramebufferStack.push_back( 0 );
 	mDrawFramebufferStack.push_back( 0 );	
 #endif
+	mDefaultArrayVboIdx = 0;
+
 	mActiveTextureStack.push_back( 0 );
 
 	mImmediateMode = gl::VertBatch::create();
@@ -1153,14 +1155,16 @@ VaoRef Context::getDefaultVao()
 
 VboRef Context::getDefaultArrayVbo( size_t requiredSize )
 {
-	if( ! mDefaultArrayVbo ) {
-		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, std::max<size_t>( 1, requiredSize ), NULL, GL_STREAM_DRAW );
+	mDefaultArrayVboIdx = ( mDefaultArrayVboIdx + 1 ) % 4;
+
+	if( ! mDefaultArrayVbo[mDefaultArrayVboIdx] ) {
+		mDefaultArrayVbo[mDefaultArrayVboIdx] = Vbo::create( GL_ARRAY_BUFFER, std::max<size_t>( 1, requiredSize ), NULL, GL_STREAM_DRAW );
 	}
-	else if( requiredSize > mDefaultArrayVbo->getSize() ) {
-		mDefaultArrayVbo = Vbo::create( GL_ARRAY_BUFFER, std::max<size_t>( 1, requiredSize ), NULL, GL_STREAM_DRAW );
+	else if( requiredSize > mDefaultArrayVbo[mDefaultArrayVboIdx]->getSize() ) {
+		mDefaultArrayVbo[mDefaultArrayVboIdx]->ensureMinimumSize( std::max<size_t>( 1, requiredSize ) );
 	}
-	
-	return mDefaultArrayVbo;
+
+	return mDefaultArrayVbo[mDefaultArrayVboIdx];
 }
 
 VboRef Context::getDefaultElementVbo( size_t requiredSize )

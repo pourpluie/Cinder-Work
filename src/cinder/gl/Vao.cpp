@@ -178,7 +178,7 @@ void Vao::Layout::vertexAttribPointer( GLuint index, GLint size, GLenum type, GL
 	mVertexAttribs[index].mEnabled = enabled;
 }
 
-bool Vao::Layout::isVertexAttribEqual( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) const
+bool Vao::Layout::isVertexAttribEqual( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer, GLuint arrayBufferBinding ) const
 {
 	auto existing = mVertexAttribs.find( index );
 	if( existing != mVertexAttribs.end() ) {
@@ -186,7 +186,8 @@ bool Vao::Layout::isVertexAttribEqual( GLuint index, GLint size, GLenum type, GL
 			&& existing->second.mType == type
 			&& existing->second.mNormalized == normalized
 			&& existing->second.mStride == stride
-			&& existing->second.mPointer == pointer;
+			&& existing->second.mPointer == pointer
+			&& existing->second.mArrayBufferBinding == arrayBufferBinding;
 	}
 	else
 		return false;

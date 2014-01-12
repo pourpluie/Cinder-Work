@@ -282,7 +282,8 @@ class Context {
 	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
 	
 	VaoRef						mDefaultVao;
-	VboRef						mDefaultArrayVbo, mDefaultElementVbo;
+	VboRef						mDefaultArrayVbo[4], mDefaultElementVbo;
+	uint8_t						mDefaultArrayVboIdx;
 	VertBatchRef				mImmediateMode;
 	
   private:

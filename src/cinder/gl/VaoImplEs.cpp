@@ -104,7 +104,8 @@ void VaoImplEs::disableVertexAttribArrayImpl( GLuint index )
 
 void VaoImplEs::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-	if( ! mLayout.isVertexAttribEqual( index, size, type, normalized, stride, pointer ) ) {
+	// test to see if the layout doesn't already reflect this, so we can avoid a redundant call to glVertexAttribPointer
+	if( ! mLayout.isVertexAttribEqual( index, size, type, normalized, stride, pointer, mLayout.mCachedArrayBufferBinding ) ) {
 		mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
 		glVertexAttribPointer( index, size, type, normalized, stride, pointer );
 	}
