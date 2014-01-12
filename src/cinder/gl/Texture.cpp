@@ -84,10 +84,16 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 		mInternalFormat = defaultInternalFormat;
 	else
 		mInternalFormat = format.mInternalFormat;
-		
+
+#if defined( CINDER_GLES )		
 	// by default mPixelDataFormat should match mInternalFormat
 	if( format.mPixelDataFormat == -1 )
 		format.mPixelDataFormat = mInternalFormat;
+#else
+	if( format.mPixelDataFormat == -1 ) {
+		format.mPixelDataFormat = GL_RGB;
+	}
+#endif
 
 	mMipmapping = format.mMipmapping;
 }
