@@ -222,7 +222,7 @@ void EarthquakeApp::draw()
 	if( mShowQuakes ){
 		mQuakeShader->bind();
 		mQuakeShader->uniform( "uLightDir", mLightDir );
-//		mEarth.drawQuakeVectors();
+		mEarth.drawQuakeVectors();
 	}
 	if( mShowText ){
 		gl::enableDepthWrite( false );
