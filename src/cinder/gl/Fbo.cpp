@@ -28,6 +28,7 @@
 //	 * UNSIGNED_INT_24_8_OES - <type> param of Tex(Sub)Image2D
 //	 * DEPTH24_STENCIL8_OES - <internalformat> param of RenderbufferStorage
 // * EXT_packed_depth_stencil http://www.opengl.org/registry/specs/EXT/packed_depth_stencil.txt
+// * http://www.khronos.org/registry/gles/extensions/ANGLE/ANGLE_framebuffer_multisample.txt
 
 #include "cinder/gl/gl.h" // must be first
 #include "cinder/gl/Fbo.h"
@@ -35,12 +36,17 @@
 
 using namespace std;
 
-#if (! defined( CINDER_GLES )) || defined( CINDER_COCOA_TOUCH )
+#if (! defined( CINDER_GLES )) || defined( CINDER_COCOA_TOUCH ) || defined( CINDER_GL_ANGLE )
 	#define SUPPORTS_MULTISAMPLE
 	#if defined( CINDER_COCOA_TOUCH )
 		#define glRenderbufferStorageMultisample	glRenderbufferStorageMultisampleAPPLE
+		#define glResolveMultisampleFramebuffer		glResolveMultisampleFramebufferAPPLE
 		#define GL_READ_FRAMEBUFFER					GL_READ_FRAMEBUFFER_APPLE
 		#define GL_DRAW_FRAMEBUFFER					GL_DRAW_FRAMEBUFFER_APPLE
+	#elif defined( CINDER_GL_ANGLE )
+		#define glRenderbufferStorageMultisample	glRenderbufferStorageMultisampleANGLE
+		#define GL_READ_FRAMEBUFFER					GL_READ_FRAMEBUFFER_ANGLE
+		#define GL_DRAW_FRAMEBUFFER					GL_DRAW_FRAMEBUFFER_ANGLE
 	#endif
 #endif
 
@@ -106,7 +112,7 @@ Renderbuffer::Renderbuffer( int width, int height, GLenum internalFormat, int ms
 		mInternalFormat = GL_DEPTH_COMPONENT24_OES;
 		
 	if( mSamples )
-		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
+		glRenderbufferStorageMultisample( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
 	else
 		glRenderbufferStorage( GL_RENDERBUFFER, mInternalFormat, mWidth, mHeight );
 #endif	
@@ -497,13 +503,20 @@ void Fbo::resolveTextures() const
 	if( ! mNeedsResolve )
 		return;
 
-#if defined( SUPPORTS_MULTISAMPLE ) && defined( CINDER_GLES )
+#if defined( CINDER_GL_ANGLE )
+	if( mMultisampleFramebufferId ) {
+		FramebufferScope drawFbScp( GL_DRAW_FRAMEBUFFER, mId );
+		FramebufferScope readFbScp( GL_READ_FRAMEBUFFER, mMultisampleFramebufferId );
+		
+		glBlitFramebufferANGLE( 0, 0, mWidth, mHeight, 0, 0, mWidth, mHeight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST );
+	}
+#elif defined( SUPPORTS_MULTISAMPLE ) && defined( CINDER_GLES )
 	// iOS-specific multisample resolution code
 	if( mMultisampleFramebufferId ) {
 		FramebufferScope drawFbScp( GL_DRAW_FRAMEBUFFER_APPLE, mId );
 		FramebufferScope readFbScp( GL_READ_FRAMEBUFFER_APPLE, mMultisampleFramebufferId );
 		
-		glResolveMultisampleFramebufferAPPLE();
+		glResolveMultisampleFramebuffer();
 	}
 #elif defined( SUPPORTS_MULTISAMPLE )
 	// if this FBO is multisampled, resolve it, so it can be displayed
@@ -519,7 +532,7 @@ void Fbo::resolveTextures() const
             if( colorAttachmentIt != mAttachmentsTexture.end() ) {
                 glDrawBuffer( colorAttachmentIt->first );
                 glReadBuffer( colorAttachmentIt->first );
-                glBlitFramebuffer( 0, 0, mWidth, mHeight, 0, 0, mWidth, mHeight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST );
+				glBlitFramebuffer( 0, 0, mWidth, mHeight, 0, 0, mWidth, mHeight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST );
                 drawBuffers.push_back( colorAttachmentIt->first );
             }
 		}
