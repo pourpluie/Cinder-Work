@@ -11,12 +11,18 @@ class BufferObj {
   public:
 	~BufferObj();
 
-	void				bind() const;
-	void				unbind() const;
-	
-	void				bufferData( GLsizeiptr size, const GLvoid *data, GLenum usage );
-	void				bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *data );
+	void		bind() const;
+	void		unbind() const;
 
+	//! Analogous to glBufferData()	
+	void		bufferData( GLsizeiptr size, const GLvoid *data, GLenum usage );
+	//! Analogous to glBufferSubData()
+	void		bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *data );
+	//! Calls bufferSubData when the size is adequate, otherwise calls bufferData, forcing a reallocation of the data store
+	void		copyData( GLsizeiptr size, const GLvoid *data );
+	//! Reallocates the buffer if its size is smaller than \a minimumSize. This destroys the contents of the buffer if it must be reallocated.
+	void		ensureMinimumSize( GLsizeiptr minimumSize );
+	
 #if ! defined( CINDER_GL_ANGLE )
 	//! Analogous to glMapBuffer(). \a access must be \c GL_READ_ONLY, \c GL_WRITE_ONLY, or \c GL_READ_WRITE. On iOS ES 2 only \c GL_WRITE_ONLY_OES is valid.
 	void*				map( GLenum access ) const;

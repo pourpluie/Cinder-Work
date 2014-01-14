@@ -74,6 +74,9 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 #if ! defined( CINDER_GLES )
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_R, format.mWrapR );
 #endif // ! defined( CINDER_GLES )
+
+	if( format.mMipmapping && ! format.mMinFilterSpecified )
+		format.mMinFilter = GL_LINEAR_MIPMAP_LINEAR;
 	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
 	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
 	
@@ -84,10 +87,16 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 		mInternalFormat = defaultInternalFormat;
 	else
 		mInternalFormat = format.mInternalFormat;
-		
+
+#if defined( CINDER_GLES )		
 	// by default mPixelDataFormat should match mInternalFormat
 	if( format.mPixelDataFormat == -1 )
 		format.mPixelDataFormat = mInternalFormat;
+#else
+	if( format.mPixelDataFormat == -1 ) {
+		format.mPixelDataFormat = GL_RGB;
+	}
+#endif
 
 	mMipmapping = format.mMipmapping;
 }
@@ -1061,6 +1070,9 @@ TextureCubeMap::TextureCubeMap( const Surface8u images[6], Format format )
 	for( GLenum target = 0; target < 6; ++target )
 		glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + target, 0, mInternalFormat, images[target].getWidth(), images[target].getHeight(), 0,
 			( images[target].hasAlpha() ) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, images[target].getData() );
+			
+	if( format.mMipmapping ) 
+		glGenerateMipmap( mTarget );			
 }
 
 /////////////////////////////////////////////////////////////////////////////////

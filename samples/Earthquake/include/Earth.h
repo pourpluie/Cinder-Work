@@ -2,14 +2,16 @@
 
 #include "Quake.h"
 #include "cinder/Vector.h"
+#include "cinder/gl/Batch.h"
 #include "cinder/gl/Texture.h"
+#include "cinder/gl/GlslProg.h"
 #include <list>
 #include <string>
 
 class Earth {
  public:
 	Earth();
-	Earth( ci::gl::Texture aTexDiffuse, ci::gl::Texture aTexNormal, ci::gl::Texture aTexMask );
+	Earth( const ci::gl::GlslProgRef &glslProg, const ci::gl::TextureRef &aTexDiffuse, const ci::gl::TextureRef &aTexNormal, const ci::gl::TextureRef &aTexMask );
 	
 	void setQuakeLocTip();
 	void update();
@@ -21,11 +23,14 @@ class Earth {
 	void drawQuakeVectors();
 	void addQuake( float aLat, float aLong, float aMag, std::string aTitle );
 	void setMinMagToRender( float amt );
+	
 	ci::Vec3f mLoc;
 	float mRadius;
-	ci::gl::Texture mTexDiffuse;
-	ci::gl::Texture mTexNormal;
-	ci::gl::Texture mTexMask;
+	ci::gl::TextureRef mTexDiffuse;
+	ci::gl::TextureRef mTexNormal;
+	ci::gl::TextureRef mTexMask;
 	std::list<Quake> mQuakes;
 	float mMinMagToRender;
+	
+	ci::gl::BatchRef	mBatch;
 };

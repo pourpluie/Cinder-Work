@@ -1,12 +1,10 @@
-#version 150
-
 uniform mat3		ciNormalMatrix;
 uniform mat4		ciModelViewProjection;
 
-in vec4		ciPosition;
-in vec3		ciNormal;
+attribute vec4		ciPosition;
+attribute vec3		ciNormal;
 
-out vec3			Normal;
+varying highp vec3	Normal;
 
 void main()
 {

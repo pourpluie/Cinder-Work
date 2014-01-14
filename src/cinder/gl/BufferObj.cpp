@@ -50,6 +50,27 @@ void BufferObj::bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *d
 	glBufferSubData( mTarget, offset, size, data );
 }
 
+void BufferObj::copyData( GLsizeiptr size, const GLvoid *data )
+{
+	BufferScope bufferBind( mTarget, mId );
+	
+	if( size <= mSize )
+		glBufferSubData( mTarget, 0, size, data );
+	else { // need to reallocate due to inadequate size
+		mSize = size;
+		glBufferData( mTarget, mSize, data, mUsage );
+	}
+}
+
+void BufferObj::ensureMinimumSize( GLsizeiptr minimumSize )
+{
+	if( mSize < minimumSize ) {
+		mSize = minimumSize;
+		BufferScope bufferBind( mTarget, mId );
+		glBufferData( mTarget, mSize, NULL, mUsage );
+	}
+}
+
 #if ! defined( CINDER_GL_ANGLE )	
 void* BufferObj::map( GLenum access ) const
 {

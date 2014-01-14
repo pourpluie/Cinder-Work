@@ -19,5 +19,5 @@ class Quake {
 	ci::Vec3f mLoc;
 	ci::Vec3f mLocTip;
 	ci::Vec3f mLocTipAnchor;
-	ci::gl::Texture mLabel;
+	ci::gl::TextureRef mLabel;
 };

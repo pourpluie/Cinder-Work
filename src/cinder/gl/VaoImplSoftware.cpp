@@ -71,9 +71,10 @@ VaoImplSoftware::~VaoImplSoftware()
 
 void VaoImplSoftware::enableVertexAttribArrayImpl( GLuint index )
 {
-	mLayout.enableVertexAttribArray( index );
-	
-	glEnableVertexAttribArray( index );
+	if( ! mLayout.isVertexAttribArrayEnabled( index ) ) {
+		mLayout.enableVertexAttribArray( index );
+		glEnableVertexAttribArray( index );
+	}
 }
 
 void VaoImplSoftware::disableVertexAttribArrayImpl( GLuint index )

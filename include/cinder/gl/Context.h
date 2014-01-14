@@ -237,9 +237,9 @@ class Context {
 	void			setDefaultShaderVars();
 
 	//! Returns default VBO for vertex array data, ensuring it is at least \a requiredSize bytes. Designed for use with convenience functions.
-	VboRef			getDefaultArrayVbo( size_t requiredSize );
+	VboRef			getDefaultArrayVbo( size_t requiredSize = 0 );
 	//! Returns default VBO for element array data, ensuring it is at least \a requiredSize bytes. Designed for use with convenience functions.
-	VboRef			getDefaultElementVbo( size_t requiredSize );
+	VboRef			getDefaultElementVbo( size_t requiredSize = 0 );
 	//! Returns default VAO, designed for use with convenience functions.
 	VaoRef			getDefaultVao();
 
@@ -282,7 +282,8 @@ class Context {
 	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
 	
 	VaoRef						mDefaultVao;
-	VboRef						mDefaultArrayVbo, mDefaultElementVbo;
+	VboRef						mDefaultArrayVbo[4], mDefaultElementVbo;
+	uint8_t						mDefaultArrayVboIdx;
 	VertBatchRef				mImmediateMode;
 	
   private:

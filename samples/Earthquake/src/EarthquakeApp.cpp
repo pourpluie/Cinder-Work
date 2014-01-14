@@ -1,4 +1,5 @@
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/AppNative.h"
+#include "cinder/app/RendererGl.h"
 #include "Earth.h"
 #include "POV.h"
 #include "Resources.h"
@@ -9,9 +10,10 @@
 #include "cinder/Url.h"
 #include "cinder/Vector.h"
 #include "cinder/gl/GlslProg.h"
+#include "cinder/gl/Context.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
-#include "cinder/gl/TileRender.h"
+//#include "cinder/gl/TileRender.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -24,10 +26,11 @@ using std::istringstream;
 using std::stringstream;
 
 
-class EarthquakeApp : public AppBasic {
+class EarthquakeApp : public AppNative {
  public:
 	void prepareSettings( Settings *settings );
 	void keyDown( KeyEvent event );
+	void mouseDrag( MouseEvent event );
 	void mouseMove( MouseEvent event );
 	void mouseWheel( MouseEvent event );
 	void parseEarthquakes( const string &url );
@@ -35,10 +38,10 @@ class EarthquakeApp : public AppBasic {
 	void update();
 	void draw();
 	
-	gl::GlslProg	mEarthShader;
-	gl::GlslProg	mQuakeShader;
+	gl::GlslProgRef	mEarthShader;
+	gl::GlslProgRef	mQuakeShader;
 	
-	gl::Texture		mStars;
+	gl::TextureRef	mStars;
 	
 	POV				mPov;
 	Earth			mEarth;
@@ -68,24 +71,27 @@ void EarthquakeApp::prepareSettings( Settings *settings )
 	settings->setFrameRate( 60.0f );
 	settings->setResizable( true );
 	settings->setFullScreen( false );
+	settings->enableMultiTouch( false );
 }
-
-
 
 void EarthquakeApp::setup()
 {
-	gl::Texture earthDiffuse	= gl::Texture( loadImage( loadResource( RES_EARTHDIFFUSE ) ) );
-	gl::Texture earthNormal		= gl::Texture( loadImage( loadResource( RES_EARTHNORMAL ) ) );
-	gl::Texture earthMask		= gl::Texture( loadImage( loadResource( RES_EARTHMASK ) ) );
-	earthDiffuse.setWrap( GL_REPEAT, GL_REPEAT );
-	earthNormal.setWrap( GL_REPEAT, GL_REPEAT );
-	earthMask.setWrap( GL_REPEAT, GL_REPEAT );
+	gl::TextureRef earthDiffuse		= gl::Texture::create( loadImage( loadResource( RES_EARTHDIFFUSE ) ) );
+	gl::TextureRef earthNormal		= gl::Texture::create( loadImage( loadResource( RES_EARTHNORMAL ) ) );
+	gl::TextureRef earthMask		= gl::Texture::create( loadImage( loadResource( RES_EARTHMASK ) ) );
+	earthDiffuse->setWrap( GL_REPEAT, GL_REPEAT );
+	earthNormal->setWrap( GL_REPEAT, GL_REPEAT );
+	earthMask->setWrap( GL_REPEAT, GL_REPEAT );
 
-	mStars						= gl::Texture( loadImage( loadResource( RES_STARS_PNG ) ) );
+	mStars						= gl::Texture::create( loadImage( loadResource( RES_STARS_PNG ) ) );
 
-	
-	mEarthShader = gl::GlslProg( loadResource( RES_PASSTHRU_VERT ), loadResource( RES_EARTH_FRAG ) );
-	mQuakeShader = gl::GlslProg( loadResource( RES_QUAKE_VERT ), loadResource( RES_QUAKE_FRAG ) );
+#if defined( CINDER_GLES )	
+	mEarthShader = gl::GlslProg::create( loadResource( "passThru_vert_es2.glsl" ), loadResource( "earth_frag_es2.glsl" ) );
+	mQuakeShader = gl::GlslProg::create( loadResource( "quake_vert_es2.glsl" ), loadResource( "quake_frag_es2.glsl" ) );
+#else
+	mEarthShader = gl::GlslProg::create( loadResource( RES_PASSTHRU_VERT ), loadResource( RES_EARTH_FRAG ) );
+	mQuakeShader = gl::GlslProg::create( loadResource( RES_QUAKE_VERT ), loadResource( RES_QUAKE_FRAG ) );
+#endif
 
 	
 	mCounter		= 0.0f;
@@ -97,7 +103,7 @@ void EarthquakeApp::setup()
 	mLightDir		= Vec3f( 0.025f, 0.25f, 1.0f );
 	mLightDir.normalize();
 	mPov			= POV( this, ci::Vec3f( 0.0f, 0.0f, 1000.0f ), ci::Vec3f( 0.0f, 0.0f, 0.0f ) );
-	mEarth			= Earth( earthDiffuse, earthNormal, earthMask );
+	mEarth			= Earth( mEarthShader, earthDiffuse, earthNormal, earthMask );
 	
 	parseEarthquakes( "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson" );
 	
@@ -136,7 +142,7 @@ void EarthquakeApp::keyDown( KeyEvent event )
 	else if( event.getCode() == app::KeyEvent::KEY_DOWN ) {
 		mPov.adjustDist( 10.0f );
 	}
-	else if( event.getChar() == ' ' ) {
+/*	else if( event.getChar() == ' ' ) {
 		gl::TileRender tr( 5000, 5000 );
 		CameraPersp cam;
 		cam.lookAt( mPov.mEye, mPov.mCenter );
@@ -146,7 +152,7 @@ void EarthquakeApp::keyDown( KeyEvent event )
 			draw();
 		}
 		writeImage( getHomeDirectory() / "output.png", tr.getSurface() );
-	}
+	}*/
 }
 
 
@@ -155,6 +161,10 @@ void EarthquakeApp::mouseWheel( MouseEvent event )
 	mPov.adjustDist( event.getWheelIncrement() * -2.0f );
 }
 
+void EarthquakeApp::mouseDrag( MouseEvent event )
+{
+	mouseMove( event );
+}
 
 void EarthquakeApp::mouseMove( MouseEvent event )
 {
@@ -192,47 +202,31 @@ void EarthquakeApp::draw()
 	gl::enableDepthWrite( true );
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	
-	glEnable( GL_TEXTURE_2D );
-	glDisable( GL_TEXTURE_RECTANGLE_ARB );
-	gl::GlslProg::unbind();
-	
-	glColor4f( 1, 1, 1, 1 );
-	mStars.enableAndBind();
+	gl::color( 1, 1, 1, 1 );
+	mStars->bind();
 	gl::drawSphere( Vec3f( 0, 0, 0 ), 15000.0f, 64 );
 	
 	//gl::rotate( Quatf( Vec3f::zAxis(), -0.2f ) );
 	//gl::rotate( Quatf( Vec3f::yAxis(), mCounter*0.1f ) );
 	
 	if( mShowEarth ){
-		mEarthShader.bind();
-		mEarthShader.uniform( "texDiffuse", 0 );
-		mEarthShader.uniform( "texNormal", 1 );
-		mEarthShader.uniform( "texMask", 2 );
-		mEarthShader.uniform( "counter", mCounter );
-		mEarthShader.uniform( "lightDir", mLightDir );
+		mEarthShader->bind();
+		mEarthShader->uniform( "uTexDiffuse", 0 );
+		mEarthShader->uniform( "uTexNormal", 1 );
+		mEarthShader->uniform( "uTexMask", 2 );
+		mEarthShader->uniform( "uLightDir", mLightDir );
 		mEarth.draw();
-		mEarthShader.unbind();
 	}
 	
-	
-	glDisable( GL_TEXTURE_2D );
-	
-	
-	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-
+	gl::color( 1, 1, 1, 1 );
 	if( mShowQuakes ){
-		mQuakeShader.bind();
-		mQuakeShader.uniform( "lightDir", mLightDir );
+		mQuakeShader->bind();
+		mQuakeShader->uniform( "uLightDir", mLightDir );
 		mEarth.drawQuakeVectors();
-		mQuakeShader.unbind();
 	}
-	
 	if( mShowText ){
 		gl::enableDepthWrite( false );
-		glEnable( GL_TEXTURE_2D );
-		//mEarth.drawQuakeLabelsOnBillboard( sBillboardRight, sBillboardUp );
 		mEarth.drawQuakeLabelsOnSphere( mPov.mEyeNormal, mPov.mDist );
-		glDisable( GL_TEXTURE_2D );
 	}
 	
 	if( mSaveFrames ){
@@ -259,5 +253,4 @@ void EarthquakeApp::parseEarthquakes( const string &url )
 	//mEarth.addQuake( 37.7f, -122.0f, 8.6f, "San Francisco" );
 }
 
-
-CINDER_APP_BASIC( EarthquakeApp, RendererGl )
+CINDER_APP_NATIVE( EarthquakeApp, RendererGl )

@@ -97,11 +97,9 @@ class TextureBase {
 		//! Sets the depth wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_CLAMP_TO_EDGE.
 		void	setWrapR( GLenum wrapR ) { mWrapR = wrapR; }
 #endif
-		/** \brief Sets the filtering behavior when a texture is displayed at a lower resolution than its native resolution. Default is \c GL_LINEAR
-		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
-		void	setMinFilter( GLenum minFilter ) { mMinFilter = minFilter; }
-		/** Sets the filtering behavior when a texture is displayed at a higher resolution than its native resolution. Default is \c GL_LINEAR
-		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
+		//! Sets the filtering behavior when a texture is displayed at a lower resolution than its native resolution. Default is \c GL_LINEAR unless mipmapping is enabled, in which case \c GL_LINEAR_MIPMAP_LINEAR
+		void	setMinFilter( GLenum minFilter ) { mMinFilter = minFilter; mMinFilterSpecified = true; }
+		//! Sets the filtering behavior when a texture is displayed at a higher resolution than its native resolution. Default is \c GL_LINEAR.
 		void	setMagFilter( GLenum magFilter ) { mMagFilter = magFilter; }
 		//! Sets the anisotropic filter amount. A value greater than 1.0 "enables" anisotropic filtering. Maximum of getMaxMaxAnisotropy();
 		void    setMaxAnisotropy( GLfloat maxAnisotropy ) { mMaxAnisotropy = maxAnisotropy; }
@@ -143,6 +141,7 @@ class TextureBase {
 		GLenum			mWrapS, mWrapT, mWrapR;
 		GLenum			mMinFilter, mMagFilter;
 		bool			mMipmapping;
+		bool			mMinFilterSpecified;
 		GLfloat         mMaxAnisotropy;
 		GLint			mInternalFormat;
 		GLint			mPixelDataFormat;
@@ -182,8 +181,8 @@ class Texture : public TextureBase {
 #if ! defined( CINDER_GLES )
 		Format& wrapR( GLenum wrapR ) { mWrapR = wrapR; return *this; }
 #endif
-		Format& minFilter( GLenum minFilter ) { mMinFilter = minFilter; return *this; }
-		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
+		Format& minFilter( GLenum minFilter ) { setMinFilter( minFilter ); return *this; }
+		Format& magFilter( GLenum magFilter ) { setMagFilter( magFilter ); return *this; }
 		//! Corresponds to the 'format' parameter of glTexImage*(). Defaults to match the internalFormat
 		Format& pixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; return *this; }
 		//! Corresponds to the 'type' parameter of glTexImage*(). Defaults to \c GL_UNSIGNED_BYTE
@@ -318,8 +317,8 @@ class Texture3d : public TextureBase {
 #if ! defined( CINDER_GLES )
 		Format& wrapR( GLenum wrapR ) { mWrapR = wrapR; return *this; }
 #endif
-		Format& minFilter( GLenum minFilter ) { mMinFilter = minFilter; return *this; }
-		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
+		Format& minFilter( GLenum minFilter ) { setMinFilter( minFilter ); return *this; }
+		Format& magFilter( GLenum magFilter ) { setMagFilter( magFilter ); return *this; }
 		Format& pixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; return *this; }
 		Format& pixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; return *this; }
 		
@@ -368,8 +367,8 @@ class TextureCubeMap : public TextureBase
 #if ! defined( CINDER_GLES )
 		Format& wrapR( GLenum wrapR ) { mWrapR = wrapR; return *this; }		
 #endif // ! defined( CINDER_GLES )
-		Format& minFilter( GLenum minFilter ) { mMinFilter = minFilter; return *this; }
-		Format& magFilter( GLenum magFilter ) { mMagFilter = magFilter; return *this; }
+		Format& minFilter( GLenum minFilter ) { setMinFilter( minFilter ); return *this; }
+		Format& magFilter( GLenum magFilter ) { setMagFilter( magFilter ); return *this; }
 		
 		friend TextureCubeMap;
 	};

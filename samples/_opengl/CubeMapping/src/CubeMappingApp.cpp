@@ -15,7 +15,7 @@ class CubeMappingApp : public AppNative {
 	void resize();
 	void update();
 	void draw();
-	
+
 	gl::TextureCubeMapRef	mCubeMap;
 	gl::BatchRef			mTeapotBatch, mSkyBoxBatch;
 	Matrix44f				mObjectRotation;
@@ -26,7 +26,7 @@ const int SKY_BOX_SIZE = 500;
 
 void CubeMappingApp::setup()
 {
-	mCubeMap = gl::TextureCubeMap::createHorizontalCross( loadImage( loadAsset( "env_map.jpg" ) ) );
+	mCubeMap = gl::TextureCubeMap::createHorizontalCross( loadImage( loadAsset( "env_map.jpg" ) ), gl::TextureCubeMap::Format().mipmap() );
 
 #if defined( CINDER_GLES )
 	auto envMapGlsl = gl::GlslProg::create( loadAsset( "env_map_es2.vert" ), loadAsset( "env_map_es2.frag" ) );

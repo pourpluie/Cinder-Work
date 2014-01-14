@@ -1,15 +1,13 @@
-#version 150
-
 uniform mat4 ciModelViewProjection;
 uniform mat3 ciNormalMatrix;
 
-in vec4	ciPosition;
-in vec3	ciNormal;
-in vec2 ciTexCoord0;
+attribute vec4	ciPosition;
+attribute vec3	ciNormal;
+attribute vec2 ciTexCoord0;
 
-out highp vec3 Normal;
-out highp vec3 PositionObjSpace;
-out highp vec2 TexCoord0;
+varying highp vec3 Normal;
+varying highp vec3 PositionObjSpace;
+varying highp vec2 TexCoord0;
 
 void main()
 {
