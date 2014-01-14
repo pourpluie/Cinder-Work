@@ -21,6 +21,10 @@ class Vao;
 typedef std::shared_ptr<Vao>			VaoRef;
 class BufferObj;
 typedef std::shared_ptr<BufferObj>		BufferObjRef;
+#if ! defined( CINDER_GLES )
+class Xfo;
+typedef std::shared_ptr<Xfo>			XfoRef;
+#endif
 class Texture;
 typedef std::shared_ptr<Texture>		TextureRef;
 class GlslProg;
@@ -120,6 +124,17 @@ class Context {
 	void			popGlslProg();
 	//! Returns the currently bound GlslProg
 	GlslProgRef		getGlslProg();
+	
+#if ! defined( CINDER_GLES )
+	void bindBufferBase( GLenum target, int index, BufferObjRef ref );
+
+	void xfoBind( XfoRef xfo );
+	void beginTransformFeedback( GLenum primitiveMode );
+	void pauseTransformFeedback();
+	void resumeTransformFeedback();
+	void endTransformFeedback();
+	XfoRef xfoGet();
+#endif
 
 	//! Analogous to glBindTexture( \a target, \a textureId )
 	void		bindTexture( GLenum target, GLuint textureId );
@@ -265,7 +280,11 @@ class Context {
 	std::map<GLenum,std::vector<int>>	mBufferBindingStack;
 	std::vector<GlslProgRef>			mGlslProgStack;
 	std::vector<VaoRef>					mVaoStack;
-
+	
+#if ! defined( CINDER_GLES )
+	XfoRef								mCachedXfo;
+#endif
+	
 	// Blend state stacks
 	std::vector<GLint>					mBlendSrcRgbStack, mBlendDstRgbStack;
 	std::vector<GLint>					mBlendSrcAlphaStack, mBlendDstAlphaStack;

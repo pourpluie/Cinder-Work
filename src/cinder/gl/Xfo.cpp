@@ -1,61 +1,46 @@
-//
-//  XFO.cpp
-//  TransformFeedbackObject
-//
-//  Created by Ryan Bartley on 12/16/13.
-//
-//
 
 #include "Xfo.h"
 #include "cinder/gl/Vbo.h"
-#include "TestContext.h"
+#include "Context.h"
 #include "cinder/gl/Environment.h"
 
-using std::cout;
-using std::endl;
-
 namespace cinder { namespace gl {
+
+#if ! defined( CINDER_GLES )
 	
-// defined in VaoImplEs
-#if defined( CINDER_GLES )
-extern XfoRef createXfoImplEs();
-#else
 extern XfoRef createXfoImplHardware();
-#endif
 extern XfoRef createXfoImplSoftware();
 
-XfoRef Xfo::create( bool software )
+XfoRef Xfo::create()
 {
-	if( software ) {
-		cout << "in baseXfo making software" << endl;
+	if( ! glGenTransformFeedbacks ) {
 		return createXfoImplSoftware();
 	}
 	else {
-		cout << "in baseXfo making hardware" << endl;
 		return createXfoImplHardware();
 	}
 }
-	
+
 void Xfo::bind()
 {
-	gl::TestContext::testContext()->xfoBind( shared_from_this() );
+	gl::context()->xfoBind( shared_from_this() );
 }
-	
+
 void Xfo::unbind()
 {
-	gl::TestContext::testContext()->xfoBind( nullptr );
+	gl::context()->xfoBind( nullptr );
 }
-	
+
 void Xfo::begin( GLenum primitiveMode )
 {
 	glBeginTransformFeedback( primitiveMode );
 }
-	
+
 void Xfo::pause()
 {
 	glPauseTransformFeedback();
 }
-	
+
 void Xfo::resume()
 {
 	glResumeTransformFeedback();
@@ -66,4 +51,6 @@ void Xfo::end()
 	glEndTransformFeedback();
 }
 
+#endif
+	
 } } // gl // cinder

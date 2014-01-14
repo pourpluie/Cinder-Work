@@ -6,18 +6,14 @@
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/GlslProg.h"
 
-#include "Xfo.h"
-#include "TestContext.h"
+#include "cinder/gl/Xfo.h"
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-// Shader macro
-#define GLSL(src) "#version 150 core\n" #src
-
 // Vertex shader
-const GLchar* vertexShaderSrc = GLSL(
+const GLchar* vertexShaderSrc = GLSL( 150 ,
 									 in float inValue;
 									 out float outValue;
 									 
@@ -33,9 +29,9 @@ enum WhichXFO {
 };
 
 class TransformFeedbackSingleObjectApp : public AppNative {
-  public:
+public:
 	void setup();
-	void mouseDown( MouseEvent event );	
+	void mouseDown( MouseEvent event );
 	void update();
 	void draw();
 	
@@ -53,14 +49,14 @@ class TransformFeedbackSingleObjectApp : public AppNative {
 
 void TransformFeedbackSingleObjectApp::setup()
 {
-	bool usingGl = false;
+	bool usingGl = true;
 	
 	if( usingGl ) {
 		glOriginalWay();
 	}
 	else {
 		setupShaders();
-		setupBuffers( SOFTWARE );
+		setupBuffers( SYSTEM );
 	}
 }
 
@@ -130,8 +126,7 @@ void TransformFeedbackSingleObjectApp::setupShaders()
 {
 	std::vector<std::string> varyings( { "outValue" } );
 	gl::GlslProg::Format mFormat;
-	mFormat.vertex( loadAsset( "basic.vert" ) );
-	//.geometry( loadAsset( "basic.geom" ) );
+	mFormat.vertex( loadAsset( "basicTransformFeedback.vert" ) );
 	mFormat.feedbackFormat( GL_SEPARATE_ATTRIBS ).feedbackVaryings( varyings );
 	try {
 		mGlsl = gl::GlslProg::create( mFormat );
@@ -163,25 +158,26 @@ void TransformFeedbackSingleObjectApp::setupBuffers( WhichXFO which )
 	switch (which) {
 		case HARDWARE: {
 			// Test for Hardware Solution
-			mXfo = gl::Xfo::create( false );
+			mXfo = gl::Xfo::create();
 			mXfo->bind();
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mTransformVbo );
 		}
-		break;
+			break;
 		case SOFTWARE: {
 			// Test for Software Solution
-			mXfo = gl::Xfo::create( true );
+			mXfo = gl::Xfo::create();
 			mXfo->bind();
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mTransformVbo );
 		}
-		break;
+			break;
 		case SYSTEM: {
 			// System Cached version
+			cout << "In system: mTransformVboId: " << mTransformVbo->getId() << endl;
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mTransformVbo );
 		}
-		break;
+			break;
 		default:
-		break;
+			break;
 	}
 	
 	gl::enable( GL_RASTERIZER_DISCARD );
@@ -214,7 +210,7 @@ void TransformFeedbackSingleObjectApp::update()
 void TransformFeedbackSingleObjectApp::draw()
 {
 	// clear out the window with black
-	gl::clear( Color( 0, 0, 0 ) ); 
+	gl::clear( Color( 0, 0, 0 ) );
 }
 
 CINDER_APP_NATIVE( TransformFeedbackSingleObjectApp, RendererGl )

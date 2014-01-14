@@ -5,6 +5,7 @@
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
+#include "cinder/gl/Xfo.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Batch.h"
 #include "cinder/Utilities.h"
@@ -42,7 +43,8 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	,mCachedFramebuffer( -1 )
 #endif
 #if ! defined( CINDER_GLES )
-	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL )
+	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL ),
+	mCachedXfo( nullptr )
 #endif
 {
 	// setup default VAO
@@ -389,6 +391,89 @@ void Context::invalidateBufferBindingCache( GLenum target )
 	else if( ! mBufferBindingStack[target].empty() )
 		mBufferBindingStack[target].back() = -1;
 }
+	
+#if ! defined( CINDER_GLES )
+void Context::bindBufferBase( GLenum target, int index, BufferObjRef buffer )
+{
+	switch (target) {
+		case GL_TRANSFORM_FEEDBACK_BUFFER: {
+			if( mCachedXfo ) {
+				mCachedXfo->setIndex( index, buffer );
+			}
+			else {
+				glBindBufferBase( target, index, buffer->getId() );
+			}
+		}
+		break;
+		case GL_UNIFORM_BUFFER: {
+			// Soon to implement
+		}
+		break;
+		default:
+		break;
+	}
+}
+	
+//////////////////////////////////////////////////////////////////
+// XFO
+void Context::xfoBind( XfoRef xfo )
+{
+	if( xfo != mCachedXfo ) {
+		if( mCachedXfo )
+			mCachedXfo->unbindImpl( this );
+		if( xfo ) {
+			xfo->bindImpl( this );
+		}
+		
+		mCachedXfo = xfo;
+	}
+}
+
+XfoRef Context::xfoGet()
+{
+	return mCachedXfo;
+}
+	
+void Context::beginTransformFeedback( GLenum primitiveMode )
+{
+	if( mCachedXfo ) {
+		mCachedXfo->begin( primitiveMode );
+	}
+	else {
+		glBeginTransformFeedback( primitiveMode );
+	}
+}
+
+void Context::pauseTransformFeedback()
+{
+	if( mCachedXfo ) {
+		mCachedXfo->pause();
+	}
+	else {
+		glPauseTransformFeedback();
+	}
+}
+
+void Context::resumeTransformFeedback()
+{
+	if( mCachedXfo ) {
+		mCachedXfo->resume();
+	}
+	else {
+		glResumeTransformFeedback();
+	}
+}
+
+void Context::endTransformFeedback()
+{
+	if( mCachedXfo ) {
+		mCachedXfo->end();
+	}
+	else {
+		glEndTransformFeedback();
+	}
+}
+#endif
 
 //////////////////////////////////////////////////////////////////
 // Shader

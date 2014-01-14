@@ -12,17 +12,12 @@
 		00B784B40FF439BC000DE1D7 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */; };
 		00B784B50FF439BC000DE1D7 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B10FF439BC000DE1D7 /* AudioUnit.framework */; };
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
-		3EA8EFD7790B43209299C9E1 /* TransformFeedbackSingleObjectApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81D3336C1BA420FB5A04A50 /* TransformFeedbackSingleObjectApp.cpp */; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
 		5323E6B60EAFCA7E003A9687 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B50EAFCA7E003A9687 /* QTKit.framework */; };
-		8034FB64F4B042618D5460CC /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 202B408CC599431B9D66E73B /* CinderApp.icns */; };
+		85FC0A6F8EC647198C89CAA4 /* TransformFeedbackSingleObjectApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 81A5991BD6D344BF948DCD1C /* TransformFeedbackSingleObjectApp.cpp */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
-		B37DBC98187B39C200734032 /* TestContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37DBC92187B39C200734032 /* TestContext.cpp */; };
-		B37DBC99187B39C200734032 /* Xfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37DBC94187B39C200734032 /* Xfo.cpp */; };
-		B37DBC9A187B39C200734032 /* XfoImplHardware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37DBC96187B39C200734032 /* XfoImplHardware.cpp */; };
-		B37DBC9B187B39C200734032 /* XfoImplSoftware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B37DBC97187B39C200734032 /* XfoImplSoftware.cpp */; };
-		B37DBC9D187B3AC400734032 /* basic.vert in Sources */ = {isa = PBXBuildFile; fileRef = B37DBC9C187B3AC400734032 /* basic.vert */; };
-		B37DBC9F187B3AEC00734032 /* basic.geom in Sources */ = {isa = PBXBuildFile; fileRef = B37DBC9E187B3AEC00734032 /* basic.geom */; };
+		93308321923F42F08D49ADFD /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 130E3C3EF14D446D9D11BE8B /* CinderApp.icns */; };
+		B39A4C041884D9AC002A63AF /* basicTransformFeedback.vert in Sources */ = {isa = PBXBuildFile; fileRef = B39A4C031884D9AC002A63AF /* basicTransformFeedback.vert */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,24 +27,17 @@
 		00B784B10FF439BC000DE1D7 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		00B784B20FF439BC000DE1D7 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
-		202B408CC599431B9D66E73B /* CinderApp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = CinderApp.icns; path = ../resources/CinderApp.icns; sourceTree = "<group>"; };
+		130E3C3EF14D446D9D11BE8B /* CinderApp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = CinderApp.icns; path = ../resources/CinderApp.icns; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		2EE3FA692DF64F76A995F577 /* TransformFeedbackSingleObject_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = TransformFeedbackSingleObject_Prefix.pch; sourceTree = "<group>"; };
 		5323E6B10EAFCA74003A9687 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		5323E6B50EAFCA7E003A9687 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = /System/Library/Frameworks/QTKit.framework; sourceTree = "<absolute>"; };
+		7561AA6244054E758B1EFF46 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
+		81A5991BD6D344BF948DCD1C /* TransformFeedbackSingleObjectApp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = TransformFeedbackSingleObjectApp.cpp; path = ../src/TransformFeedbackSingleObjectApp.cpp; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* TransformFeedbackSingleObject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TransformFeedbackSingleObject.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		B37DBC92187B39C200734032 /* TestContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestContext.cpp; sourceTree = "<group>"; };
-		B37DBC93187B39C200734032 /* TestContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestContext.h; sourceTree = "<group>"; };
-		B37DBC94187B39C200734032 /* Xfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Xfo.cpp; sourceTree = "<group>"; };
-		B37DBC95187B39C200734032 /* Xfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Xfo.h; sourceTree = "<group>"; };
-		B37DBC96187B39C200734032 /* XfoImplHardware.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XfoImplHardware.cpp; sourceTree = "<group>"; };
-		B37DBC97187B39C200734032 /* XfoImplSoftware.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XfoImplSoftware.cpp; sourceTree = "<group>"; };
-		B37DBC9C187B3AC400734032 /* basic.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = basic.vert; path = ../assets/basic.vert; sourceTree = "<group>"; };
-		B37DBC9E187B3AEC00734032 /* basic.geom */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = basic.geom; path = ../assets/basic.geom; sourceTree = "<group>"; };
-		B6BC2E6C451A482193BE9F63 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B94BEC3A28084714B1021AA1 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
-		E81D3336C1BA420FB5A04A50 /* TransformFeedbackSingleObjectApp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; name = TransformFeedbackSingleObjectApp.cpp; path = ../src/TransformFeedbackSingleObjectApp.cpp; sourceTree = "<group>"; };
-		E8247FFFFD1C4C9D81739859 /* TransformFeedbackSingleObject_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = TransformFeedbackSingleObject_Prefix.pch; sourceTree = "<group>"; };
+		9C88A8ECFADF4A22914CCFD6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B39A4C031884D9AC002A63AF /* basicTransformFeedback.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = basicTransformFeedback.vert; path = ../assets/basicTransformFeedback.vert; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,7 +62,6 @@
 		01B97315FEAEA392516A2CEA /* Blocks */ = {
 			isa = PBXGroup;
 			children = (
-				B37DBC91187B39C200734032 /* XFO */,
 			);
 			name = Blocks;
 			sourceTree = "<group>";
@@ -82,7 +69,7 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				E81D3336C1BA420FB5A04A50 /* TransformFeedbackSingleObjectApp.cpp */,
+				81A5991BD6D344BF948DCD1C /* TransformFeedbackSingleObjectApp.cpp */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -135,8 +122,8 @@
 		29B97315FDCFA39411CA2CEA /* Headers */ = {
 			isa = PBXGroup;
 			children = (
-				B94BEC3A28084714B1021AA1 /* Resources.h */,
-				E8247FFFFD1C4C9D81739859 /* TransformFeedbackSingleObject_Prefix.pch */,
+				7561AA6244054E758B1EFF46 /* Resources.h */,
+				2EE3FA692DF64F76A995F577 /* TransformFeedbackSingleObject_Prefix.pch */,
 			);
 			name = Headers;
 			sourceTree = "<group>";
@@ -144,10 +131,9 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				202B408CC599431B9D66E73B /* CinderApp.icns */,
-				B6BC2E6C451A482193BE9F63 /* Info.plist */,
-				B37DBC9C187B3AC400734032 /* basic.vert */,
-				B37DBC9E187B3AEC00734032 /* basic.geom */,
+				B39A4C031884D9AC002A63AF /* basicTransformFeedback.vert */,
+				130E3C3EF14D446D9D11BE8B /* CinderApp.icns */,
+				9C88A8ECFADF4A22914CCFD6 /* Info.plist */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -159,20 +145,6 @@
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		B37DBC91187B39C200734032 /* XFO */ = {
-			isa = PBXGroup;
-			children = (
-				B37DBC92187B39C200734032 /* TestContext.cpp */,
-				B37DBC93187B39C200734032 /* TestContext.h */,
-				B37DBC94187B39C200734032 /* Xfo.cpp */,
-				B37DBC95187B39C200734032 /* Xfo.h */,
-				B37DBC96187B39C200734032 /* XfoImplHardware.cpp */,
-				B37DBC97187B39C200734032 /* XfoImplSoftware.cpp */,
-			);
-			name = XFO;
-			path = ../../XFO;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -227,7 +199,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8034FB64F4B042618D5460CC /* CinderApp.icns in Resources */,
+				93308321923F42F08D49ADFD /* CinderApp.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,13 +210,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B37DBC99187B39C200734032 /* Xfo.cpp in Sources */,
-				B37DBC9D187B3AC400734032 /* basic.vert in Sources */,
-				B37DBC9A187B39C200734032 /* XfoImplHardware.cpp in Sources */,
-				3EA8EFD7790B43209299C9E1 /* TransformFeedbackSingleObjectApp.cpp in Sources */,
-				B37DBC98187B39C200734032 /* TestContext.cpp in Sources */,
-				B37DBC9F187B3AEC00734032 /* basic.geom in Sources */,
-				B37DBC9B187B39C200734032 /* XfoImplSoftware.cpp in Sources */,
+				85FC0A6F8EC647198C89CAA4 /* TransformFeedbackSingleObjectApp.cpp in Sources */,
+				B39A4C041884D9AC002A63AF /* basicTransformFeedback.vert in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -254,7 +221,6 @@
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CINDER_PATH = ../../../../../;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
@@ -280,7 +246,6 @@
 		C01FCF4C08A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CINDER_PATH = ../../../../../;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -306,7 +271,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = i386;
-				CINDER_PATH = ../../../../cinder_dev;
+				CINDER_PATH = ../../../..;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -323,7 +288,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = i386;
-				CINDER_PATH = ../../../../cinder_dev;
+				CINDER_PATH = ../../../..;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;

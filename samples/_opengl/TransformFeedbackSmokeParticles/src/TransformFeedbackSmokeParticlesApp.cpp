@@ -12,8 +12,7 @@
 #include "cinder/Camera.h"
 #include "cinder/Rand.h"
 
-#include "Xfo.h"
-#include "TestContext.h"
+#include "cinder/gl/Xfo.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -33,9 +32,9 @@ float mix( float x, float y, float a )
 }
 
 class TransformFeedbackSmokeParticlesApp : public AppNative {
-  public:
+public:
 	void setup();
-	void mouseDown( MouseEvent event );	
+	void mouseDown( MouseEvent event );
 	void update();
 	void draw();
 	
@@ -224,7 +223,7 @@ void TransformFeedbackSmokeParticlesApp::loadBuffers()
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[1] );
 			mPXfo[1]->unbind();
 		}
-		break;
+			break;
 		case SOFTWARE: {
 			mPXfo[0] = gl::Xfo::create( true );
 			mPXfo[1] = gl::Xfo::create( true );
@@ -241,14 +240,14 @@ void TransformFeedbackSmokeParticlesApp::loadBuffers()
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[1] );
 			mPXfo[1]->unbind();
 		}
-		break;
+			break;
 		case SYSTEM: {
 			// If we're using system we souldn't cache it here.
 			// We'd swap during the actual update method as you'll see below.
 		}
-		break;
+			break;
 		default:
-		break;
+			break;
 	}
 }
 
@@ -269,17 +268,17 @@ void TransformFeedbackSmokeParticlesApp::update()
 	switch ( mXfoChoice ) {
 		case HARDWARE:
 			mPXfo[1-mDrawBuff]->bind();
-		break;
+			break;
 		case SOFTWARE:
 			mPXfo[1-mDrawBuff]->bind();
-		break;
+			break;
 		case SYSTEM:
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[1-mDrawBuff] );
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[1-mDrawBuff] );
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[1-mDrawBuff] );
-		break;
+			break;
 		default:
-		break;
+			break;
 	}
 	
 	gl::beginTransformFeedback( GL_POINTS );
