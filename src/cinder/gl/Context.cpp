@@ -38,9 +38,6 @@ namespace cinder { namespace gl {
 Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	: mPlatformData( platformData ),
 	mColor( ColorAf::white() )
-#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
-	,mCachedFramebuffer( -1 )
-#endif
 #if ! defined( CINDER_GLES )
 	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL )
 #endif
@@ -59,6 +56,8 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	 
 	mReadFramebufferStack.push_back( 0 );
 	mDrawFramebufferStack.push_back( 0 );	
+#else
+	mFramebufferStack.push_back( 0 );
 #endif
 	mDefaultArrayVboIdx = 0;
 
@@ -562,10 +561,8 @@ void Context::bindFramebuffer( GLenum target, GLuint framebuffer )
 {
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
 	if( target == GL_FRAMEBUFFER ) {
-		if( framebuffer != mCachedFramebuffer ) {
-			mCachedFramebuffer = framebuffer;
+		if( setStackState<GLint>( mFramebufferStack, framebuffer ) )
 			glBindFramebuffer( target, framebuffer );
-		}
 	}
 	else {
 		//throw gl::Exception( "Illegal target for Context::bindFramebuffer" );	
@@ -962,8 +959,6 @@ bool Context::getStackState( std::vector<T> &stack, T *result )
 // This routine confirms that the ci::gl::Context's understanding of the world matches OpenGL's
 void Context::sanityCheck()
 {
-	GLint queriedInt;
-
 	// assert cached (VAO) GL_VERTEX_ARRAY_BINDING is correct
 	GLint trueVaoBinding;
 #if defined( CINDER_GLES )
@@ -1235,7 +1230,7 @@ FramebufferScope::FramebufferScope( GLenum target, GLuint framebufferId )
 FramebufferScope::~FramebufferScope()
 {	
 #if ! defined( SUPPORTS_FBO_MULTISAMPLING )
-	mCtx->bindFramebuffer( GL_FRAMEBUFFER, mPrevFramebuffer );
+	mCtx->popFramebuffer( GL_FRAMEBUFFER );
 #else
 	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
 		mCtx->popFramebuffer( GL_READ_FRAMEBUFFER );
