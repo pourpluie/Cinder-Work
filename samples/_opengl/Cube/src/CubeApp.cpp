@@ -1,5 +1,5 @@
 #include "cinder/app/AppNative.h"
-#include "cinder/app/RendererGl.h"
+#include "cinder/app/RendererAngle.h"
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Batch.h"
 #include "cinder/gl/VboMesh.h"
@@ -63,7 +63,7 @@ void RotatingCubeApp::update()
 
 void RotatingCubeApp::draw()
 {
-	gl::clear( Color::black() );
+	gl::clear( Color( 1, 0, 0 ) );
 
 	mTexture->bind();
 	gl::pushMatrices();
@@ -72,4 +72,4 @@ void RotatingCubeApp::draw()
 	gl::popMatrices();
 }
 
-CINDER_APP_NATIVE( RotatingCubeApp, RendererGl )
+CINDER_APP_NATIVE( RotatingCubeApp, RendererAngle )
