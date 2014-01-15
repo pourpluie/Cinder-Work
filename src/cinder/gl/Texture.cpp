@@ -61,7 +61,7 @@ TextureBase::~TextureBase()
 	if ( ( mTextureId > 0 ) && ( ! mDoNotDispose ) ) {
 		auto ctx = gl::context();
 		if( ctx ) {
-			gl::context()->textureDeleted( mTarget, mTextureId );
+			ctx->textureDeleted( mTarget, mTextureId );
 			glDeleteTextures( 1, &mTextureId );
 		}
 	}

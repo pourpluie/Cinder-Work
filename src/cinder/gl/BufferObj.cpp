@@ -28,7 +28,9 @@ BufferObj::~BufferObj()
 {
 	glDeleteBuffers( 1, &mId );
 	
-	gl::context()->bufferDeleted( mTarget, mId );
+	auto ctx = gl::context();
+	if( ctx )
+		ctx->bufferDeleted( mTarget, mId );
 }
 
 void BufferObj::bind() const
