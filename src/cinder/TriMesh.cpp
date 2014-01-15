@@ -56,6 +56,7 @@ TriMesh::TriMesh( const TriMesh::Format &format )
 {
 	mPositionsDims = format.mPositionsDims;
 	mNormalsDims = format.mNormalsDims;
+	mTangentsDims = format.mTangentsDims;
 	mColorsDims = format.mColorsDims;
 	mTexCoords0Dims = format.mTexCoords0Dims;
 	mTexCoords1Dims = format.mTexCoords1Dims;
@@ -65,7 +66,7 @@ TriMesh::TriMesh( const TriMesh::Format &format )
 
 TriMesh::TriMesh( const geom::Source &source )
 {
-	mPositionsDims = mNormalsDims = mColorsDims = 0;
+	mPositionsDims = mNormalsDims = mTangentsDims = mColorsDims = 0;
 	mTexCoords0Dims = mTexCoords1Dims = mTexCoords2Dims = mTexCoords3Dims = 0;
 
 	size_t numVertices = source.getNumVertices();
@@ -80,6 +81,12 @@ TriMesh::TriMesh( const geom::Source &source )
 	if( source.getAttribDims( geom::Attrib::NORMAL ) > 0 ) {
 		mNormalsDims = 3;
 		mNormals.resize( numVertices );
+	}
+
+	// tangents
+	if( source.getAttribDims( geom::Attrib::TANGENT ) > 0 ) {
+		mTangentsDims = 3;
+		mTangents.resize( numVertices );
 	}
 
 	// colors
@@ -146,11 +153,12 @@ void TriMesh::clear()
 {
 	mPositions.clear();
 	mNormals.clear();
+	mTangents.clear();
 	mColors.clear();
 	mTexCoords0.clear();
 	mTexCoords1.clear();
 	mTexCoords2.clear();
-	mTexCoords3.clear();			
+	mTexCoords3.clear();
 	mIndices.clear();
 }
 
@@ -181,6 +189,12 @@ void TriMesh::appendNormals( const Vec3f *normals, size_t num )
 {
 	assert( mNormalsDims == 3 );
 	mNormals.insert( mNormals.end(), normals, normals + num * 3 );
+}
+
+void TriMesh::appendTangents( const Vec3f *tangents, size_t num )
+{
+	assert( mTangentsDims == 3 );
+	mTangents.insert( mTangents.end(), tangents, tangents + num );
 }
 
 void TriMesh::appendColors( const Color *rgbs, size_t num )
@@ -355,7 +369,7 @@ void TriMesh::read( DataSourceRef dataSource )
 	uint8_t versionNumber;
 	in->read( &versionNumber );
 	
-	uint32_t numVertices, numNormals, numTexCoords, numIndices;
+	uint32_t numVertices, numNormals, numTangents , numTexCoords, numIndices;
 	in->readLittle( &numVertices );
 	in->readLittle( &numNormals );
 	in->readLittle( &numTexCoords );
@@ -388,13 +402,28 @@ void TriMesh::read( DataSourceRef dataSource )
 		in->readLittle( &v );
 		mIndices.push_back( v );
 	}
+
+	// tangents were introduced in version 2,
+	// appended to the end to keep format compatible with older versions
+	if(versionNumber > 1)
+	{
+		in->readLittle( &numTangents );
+		
+		mTangents.reserve( numTangents );
+
+		for( size_t idx = 0; idx < numTangents; ++idx ) {
+			Vec3f v;
+			in->readLittle( &v.x ); in->readLittle( &v.y ); in->readLittle( &v.z );
+			mTangents.push_back( v );
+		}
+	}
 }
 
 void TriMesh::write( DataTargetRef dataTarget ) const
 {
 	OStreamRef out = dataTarget->getStream();
 	
-	const uint8_t versionNumber = 1;
+	const uint8_t versionNumber = 2;
 	out->write( versionNumber );
 	
 	out->writeLittle( static_cast<uint32_t>( mPositions.size() ) );
@@ -416,6 +445,14 @@ void TriMesh::write( DataTargetRef dataTarget ) const
 
 	for( vector<uint32_t>::const_iterator it = mIndices.begin(); it != mIndices.end(); ++it ) {
 		out->writeLittle( *it );
+	}
+	
+	// tangents were introduced in version 2,
+	// appended to the end to keep format compatible with older versions
+	out->writeLittle( static_cast<uint32_t>( mTangents.size() ) );
+
+	for( vector<Vec3f>::const_iterator it = mTangents.begin(); it != mTangents.end(); ++it ) {
+		out->writeLittle( it->x ); out->writeLittle( it->y ); out->writeLittle( it->z );
 	}
 }
 
@@ -444,6 +481,64 @@ void TriMesh::recalculateNormals()
 	}
 
 	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );
+}
+
+// Code taken from:
+// Lengyel, Eric. "Computing Tangent Space Basis Vectors for an Arbitrary Mesh". 
+// Terathon Software 3D Graphics Library, 2001.
+// http://www.terathon.com/code/tangent.html
+void TriMesh::recalculateTangents()
+{
+	assert( mPositionsDims == 3 );
+	assert( mNormalsDims == 3 );
+	assert( mTexCoords0Dims == 2 );
+
+	// requires valid normals and texture coordinates
+	if(!(hasNormals() && hasTexCoords()))
+		return;
+
+	mTangents.assign( mPositions.size(), Vec3f::zero() );
+
+	size_t n = getNumTriangles();
+	for( size_t i = 0; i < n; ++i ) {
+		uint32_t index0 = mIndices[i * 3];
+		uint32_t index1 = mIndices[i * 3 + 1];
+		uint32_t index2 = mIndices[i * 3 + 2];
+
+		const Vec3f &v0 = *(const Vec3f*)(&mPositions[index0*3]);
+		const Vec3f &v1 = *(const Vec3f*)(&mPositions[index1*3]);
+		const Vec3f &v2 = *(const Vec3f*)(&mPositions[index2*3]);
+
+		const Vec2f &w0 = *(const Vec2f*)(&mTexCoords0[index0*2]);
+		const Vec2f &w1 = *(const Vec2f*)(&mTexCoords0[index1*2]);
+		const Vec2f &w2 = *(const Vec2f*)(&mTexCoords0[index2*2]);
+
+		float x1 = v1.x - v0.x;
+		float x2 = v2.x - v0.x;
+		float y1 = v1.y - v0.y;
+		float y2 = v2.y - v0.y;
+		float z1 = v1.z - v0.z;
+		float z2 = v2.z - v0.z;
+
+		float s1 = w1.x - w0.x;
+		float s2 = w2.x - w0.x;
+		float t1 = w1.y - w0.y;
+		float t2 = w2.y - w0.y;
+
+		float r = 1.0f / (s1 * t2 - s2 * t1);
+		Vec3f tangent((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
+
+		mTangents[ index0 ] += tangent;
+		mTangents[ index1 ] += tangent;
+		mTangents[ index2 ] += tangent;
+	}
+
+	n = getNumVertices();
+	for( size_t i = 0; i < n; ++i ) {
+		Vec3f normal = mNormals[i];
+		Vec3f tangent = mTangents[i];
+		mTangents[i] = (tangent - normal * normal.dot(tangent)).normalized();
+	}
 }
 
 /*TriMesh TriMesh::create( vector<uint32_t> &indices, const vector<ColorAf> &colors,
@@ -481,8 +576,9 @@ uint8_t TriMesh::getAttribDims( geom::Attrib attr ) const
 		case geom::Attrib::TEX_COORD_0: return mTexCoords0Dims;
 		case geom::Attrib::TEX_COORD_1: return mTexCoords1Dims;
 		case geom::Attrib::TEX_COORD_2: return mTexCoords2Dims;
-		case geom::Attrib::TEX_COORD_3: return mTexCoords3Dims;						
+		case geom::Attrib::TEX_COORD_3: return mTexCoords3Dims;
 		case geom::Attrib::NORMAL: return mNormalsDims;
+		case geom::Attrib::TANGENT: return mTangentsDims;
 		default:
 			return 0;
 	}
@@ -498,6 +594,7 @@ void TriMesh::getAttribPointer( geom::Attrib attr, const float **resultPtr, size
 		case geom::Attrib::TEX_COORD_2: *resultPtr = (const float*)mTexCoords2.data(); *resultStrideBytes = 0; *resultDims = mTexCoords2Dims; break;
 		case geom::Attrib::TEX_COORD_3: *resultPtr = (const float*)mTexCoords3.data(); *resultStrideBytes = 0; *resultDims = mTexCoords3Dims; break;
 		case geom::Attrib::NORMAL: *resultPtr = (const float*)mNormals.data(); *resultStrideBytes = 0; *resultDims = mNormalsDims; break;
+		case geom::Attrib::TANGENT: *resultPtr = (const float*)mTangents.data(); *resultStrideBytes = 0; *resultDims = mTangentsDims; break;
 		default:
 			*resultPtr = nullptr; *resultStrideBytes = 0; *resultDims = 0;
 	}
@@ -531,6 +628,9 @@ void TriMesh::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const 
 		break;
 		case geom::Attrib::NORMAL:
 			geom::copyData( dims, srcData, numVertices, 3, 0, (float*)mNormals.data() );
+		break;
+		case geom::Attrib::TANGENT:
+			geom::copyData( dims, srcData, numVertices, 3, 0, (float*)mTangents.data() );
 		break;
 		default:
 			throw geom::ExcMissingAttrib();
