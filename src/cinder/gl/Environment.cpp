@@ -172,7 +172,8 @@ void Environment::makeContextCurrent( const Context *context )
 #elif defined( CINDER_GL_ANGLE )
 	if( context ) {
 		auto platformData = dynamic_pointer_cast<PlatformDataAngle>( context->getPlatformData() );
-		assert( ::eglMakeCurrent( platformData->mDisplay, platformData->mSurface, platformData->mSurface, platformData->mContext ) );
+		EGLBoolean status = ::eglMakeCurrent( platformData->mDisplay, platformData->mSurface, platformData->mSurface, platformData->mContext );
+		assert( status );
 	}
 	else {
 		// currently not implemented

@@ -242,4 +242,4 @@ void checkGlStatus()
 } } // namespace cinder::app
 
 
-#endif // defined( CINDER_ANGLE_GL )
+#endif // defined( CINDER_GL_ANGLE )
