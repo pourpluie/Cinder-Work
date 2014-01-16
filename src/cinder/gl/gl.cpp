@@ -904,8 +904,8 @@ void draw( const TextureRef &texture, const Rectf &rect )
 
 	shader->uniform( "uTex0", 0 );
 
-	GLfloat data[8+8]; // both verts and texCoords
-	GLfloat *verts = data, *texCoords = data + 8;
+	GLfloat data[8+8+16]; // both verts, texCoords and colors
+	GLfloat *verts = data, *texCoords = data + 8, *colors = data + 16;
 	
 	verts[0*2+0] = rect.getX2(); texCoords[0*2+0] = texture->getRight();
 	verts[0*2+1] = rect.getY1(); texCoords[0*2+1] = texture->getTop();
@@ -915,12 +915,19 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	verts[2*2+1] = rect.getY2(); texCoords[2*2+1] = texture->getBottom();
 	verts[3*2+0] = rect.getX1(); texCoords[3*2+0] = texture->getLeft();
 	verts[3*2+1] = rect.getY2(); texCoords[3*2+1] = texture->getBottom();
+
+	for(int i=0;i<4;++i) {
+		colors[i*4+0] = ctx->getCurrentColor().r;
+		colors[i*4+1] = ctx->getCurrentColor().g;
+		colors[i*4+2] = ctx->getCurrentColor().b;
+		colors[i*4+3] = ctx->getCurrentColor().a;
+	}
 	
-	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
+	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*32 );
 	BufferScope vboScp( defaultVbo );
 	ctx->pushVao();
 	ctx->getDefaultVao()->freshBindPre();
-		defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
+		defaultVbo->bufferSubData( 0, sizeof(float)*32, data );
 		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 		if( posLoc >= 0 ) {
 			enableVertexAttribArray( posLoc );
@@ -928,8 +935,13 @@ void draw( const TextureRef &texture, const Rectf &rect )
 		}
 		int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 		if( texLoc >= 0 ) {
-			enableVertexAttribArray( texLoc );	
+			enableVertexAttribArray( texLoc );
 			vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
+		}
+		int colorLoc = shader->getAttribSemanticLocation( geom::Attrib::COLOR );
+		if( colorLoc >= 0 ) {
+			enableVertexAttribArray( colorLoc );
+			vertexAttribPointer( colorLoc, 4, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*16) );
 		}
 	ctx->getDefaultVao()->freshBindPost();
 	

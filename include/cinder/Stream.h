@@ -61,7 +61,7 @@ class StreamBase : private boost::noncopyable {
 	//! Sets whether the Stream has been requested to destroy its source upon its own destruction. For example, IStreamFile will delete its source file. Ignored in some types of streams. Defaults to \c false.
 	void		setDeleteOnDestroy( bool enable = true ) { mDeleteOnDestroy = enable; }
 
-	//! Returns the current position of the stream measured in bytes **/
+	//! Returns the current position of the stream measured in bytes.
 	virtual off_t		tell() const = 0;
 
 	//! Sets the current position of the stream to byte \a absoluteOffset. A negative offset is relative to the end of the file.

@@ -71,21 +71,21 @@ class TriMesh : public geom::Source {
 	
 	void		clear();
 	
-	bool		hasNormals() const { return mNormalsDims > 0; }
-	bool		hasTangents() const { return mTangentsDims > 0; }
-	bool		hasColors() const { return mColorsDims > 0; }
-	bool		hasColorsRgb() const { return mColorsDims == 3; }
-	bool		hasColorsRgba() const { return mColorsDims == 4; }
+	bool		hasNormals() const { return !mNormals.empty(); }
+	bool		hasTangents() const { return !mTangents.empty(); }
+	bool		hasColors() const { return !mColors.empty(); }
+	bool		hasColorsRgb() const { return mColorsDims == 3 && !mColors.empty(); }
+	bool		hasColorsRgba() const { return mColorsDims == 4 && !mColors.empty(); }
 	//! Returns whether the TriMesh has texture coordinates for unit 0
-	bool		hasTexCoords() const { return mTexCoords0Dims > 0; }
+	bool		hasTexCoords() const { return !mTexCoords0.empty(); }
 	//! Returns whether the TriMesh has texture coordinates for unit 0
-	bool		hasTexCoords0() const { return mTexCoords0Dims > 0; }
+	bool		hasTexCoords0() const { return !mTexCoords0.empty(); }
 	//! Returns whether the TriMesh has texture coordinates for unit 1
-	bool		hasTexCoords1() const { return mTexCoords1Dims > 0; }
+	bool		hasTexCoords1() const { return !mTexCoords1.empty(); }
 	//! Returns whether the TriMesh has texture coordinates for unit 2
-	bool		hasTexCoords2() const { return mTexCoords2Dims > 0; }
+	bool		hasTexCoords2() const { return !mTexCoords2.empty(); }
 	//! Returns whether the TriMesh has texture coordinates for unit 3
-	bool		hasTexCoords3() const { return mTexCoords3Dims > 0; }
+	bool		hasTexCoords3() const { return !mTexCoords3.empty(); }
 
 	//! Creates a vertex which can be referred to with appendTriangle() or appendIndices() */
 	void		appendVertex( const Vec2f &v ) { appendVertices( &v, 1 ); }
