@@ -20,6 +20,7 @@
 		<header replaceName="true" isPCH="true">xcode_ios/_TBOX_PREFIX__Prefix.pch</header>
 	</platform>
 	<platform os="msw">
+		<staticLibrary absolute="true">OpenGL32.lib</staticLibrary>
 		<resource type="ICON" id="1">resources/cinder_app_icon.ico</resource>
 	</platform>
 </template>
