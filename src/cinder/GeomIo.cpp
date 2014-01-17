@@ -944,8 +944,11 @@ uint8_t	Circle::getAttribDims( Attrib attr ) const
 // Sphere
 
 Sphere::Sphere()
-	: mNumSegments( -1 ), mCenter( 0, 0, 0 ), mRadius( 1.0f ), mCalculationsCached( false ), mHasTexCoord0( false ), mHasNormals( false )
+	: mNumSegments( -1 ), mCenter( 0, 0, 0 ), mRadius( 1.0f ), mCalculationsCached( false )
 {
+	enable( Attrib::POSITION );
+	enable( Attrib::NORMAL );
+	enable( Attrib::TEX_COORD_0 );
 }
 
 void Sphere::calculate() const
@@ -972,6 +975,9 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 	float segIncr = 1.0f / (float)( segments - 1 );
 	float radius = mRadius;
 
+	bool hasNormals = isEnabled( Attrib::NORMAL );
+	bool hasTexCoords = isEnabled( Attrib::TEX_COORD_0 );
+
 	auto vertIt = mVertices.begin();
 	auto normIt = mNormals.begin();
 	auto texIt = mTexCoords.begin();
@@ -984,11 +990,11 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 			vertIt->set( x * radius, y * radius, z * radius );
 			++vertIt;
 
-			if( mHasNormals ) {
+			if( hasNormals ) {
 				normIt->set( x, y, z );
 				++normIt;
 			}
-			if( mHasTexCoord0 ) {
+			if( hasTexCoords ) {
 				texIt->set( s * segIncr, 1.0f - r * ringIncr );
 				++texIt;
 			}
@@ -1035,10 +1041,11 @@ uint8_t Sphere::getAttribDims( Attrib attr ) const
 void Sphere::loadInto( Target *target ) const
 {
 	calculate();
-	target->copyAttrib( Attrib::POSITION, 3, 0, mVertices.data()->ptr(), mVertices.size() );
-	if( mHasTexCoord0 )
+	if( isEnabled( Attrib::POSITION ) )
+		target->copyAttrib( Attrib::POSITION, 3, 0, mVertices.data()->ptr(), mVertices.size() );
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
 		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
-	if( mHasNormals )
+	if( isEnabled( Attrib::NORMAL ) )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
 
 	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );	

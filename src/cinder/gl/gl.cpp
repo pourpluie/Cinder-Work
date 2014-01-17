@@ -1040,7 +1040,7 @@ void drawSphere( const Vec3f &center, float radius, int segments )
 	
 	ctx->pushVao();
 	ctx->getDefaultVao()->freshBindPre();
-	gl::VboMeshRef mesh = gl::VboMesh::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).normals().texCoords(), ctx->getDefaultArrayVbo(), ctx->getDefaultElementVbo() );
+	gl::VboMeshRef mesh = gl::VboMesh::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).enable( geom::Attrib::NORMAL ).enable( geom::Attrib::TEX_COORD_0 ), ctx->getDefaultArrayVbo(), ctx->getDefaultElementVbo() );
 	mesh->buildVao( glslProg );
 	ctx->getDefaultVao()->freshBindPost();	
 	ctx->setDefaultShaderVars();

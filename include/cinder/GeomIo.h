@@ -29,6 +29,8 @@
 #include "cinder/Matrix.h"
 #include "cinder/BSpline.h"
 
+#include <set>
+
 namespace cinder { namespace geom {
 
 class Target;
@@ -96,18 +98,11 @@ class Source {
 	
 	virtual void		loadInto( Target *target ) const = 0;
 	
-/*
-	//! Always copy indices; generate them when they don't exist. Copies getNumVertices() indices when indices don't exist.
-	void				forceCopyIndices( uint16_t *dest ) const;
-	//! Always copy indices; generate them when they don't exist. Copies getNumVertices() indices when indices don't exist.
-	void				forceCopyIndices( uint32_t *dest ) const;
-	//! Returns the number of indices that will be copied by forceCopyIndicesTriangles( uint16_t *dest );
-	size_t				getNumIndicesTriangles() const;
-	//! Always copy indices appropriate for a \c Primitive::TRIANGLES; generate them when they don't exist. Copies getNumIndicesTriangles().
-	void				forceCopyIndicesTriangles( uint16_t *dest ) const;
-	//! Always copy indices appropriate for a \c Primitive::TRIANGLES; generate them when they don't exist. Copies getNumIndicesTriangles().
-	void				forceCopyIndicesTriangles( uint32_t *dest ) const;
-*/	
+	virtual void		clearAttribs() { mEnabledAttribs.clear(); }
+	virtual Source&		enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
+	virtual Source&		disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
+	virtual bool		isEnabled( Attrib attrib ) const { return mEnabledAttribs.count( attrib ) > 0; }
+
   protected:  
 	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec2f &mult, const Vec2f &add );
 	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add );
@@ -119,6 +114,7 @@ class Source {
 	template<typename T>
 	void forceCopyIndicesTrianglesImpl( T *dest ) const;
 	
+	std::set<Attrib>	mEnabledAttribs;
 };
 
 class Target {
@@ -275,8 +271,8 @@ class Sphere : public Source {
   public:
 	Sphere();
 
-	Sphere&		texCoords() { mHasTexCoord0 = true; return *this; }
-	Sphere&		normals() { mHasNormals = true; return *this; }
+	Sphere&		enable( Attrib attrib ) { Source::enable( attrib ); return *this; }
+	Sphere&		disable( Attrib attrib ) { Source::disable( attrib ); return *this; }	
 	Sphere&		center( const Vec3f &center ) { mCenter = center; return *this; }
 	Sphere&		radius( float radius ) { mRadius = radius; return *this; }
 	Sphere&		segments( int segments ) { mNumSegments = segments; return *this; }
@@ -291,8 +287,6 @@ class Sphere : public Source {
 	void		calculate() const;
 	void		calculateImplUV( size_t segments, size_t rings ) const;
 
-	bool		mHasTexCoord0;
-	bool		mHasNormals;
 	Vec3f		mCenter;
 	float		mRadius;
 	int			mNumSegments;

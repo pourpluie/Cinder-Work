@@ -30,7 +30,7 @@ Earth::Earth( const gl::GlslProgRef &glslProg, const ci::gl::TextureRef &aTexDif
 	
 	mMinMagToRender = 5.0f;
 	
-	mBatch = gl::Batch::create( geom::Sphere().normals().texCoords().radius( mRadius ).segments( 64 ), glslProg );
+	mBatch = gl::Batch::create( geom::Sphere().enable( geom::Attrib::NORMAL ).enable( geom::Attrib::TEX_COORD_0 ).radius( mRadius ).segments( 64 ), glslProg );
 }
 
 void Earth::setQuakeLocTip()
