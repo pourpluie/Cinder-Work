@@ -13,13 +13,14 @@ namespace cinder { namespace gl {
 
 typedef std::shared_ptr<class TextureBase>		TextureBaseRef;
 typedef std::shared_ptr<class Texture>			TextureRef;
-typedef std::shared_ptr<class Texture2d>		Texture2dRef;
+typedef class Texture							Texture2d;
+typedef std::shared_ptr<Texture2d>				Texture2dRef;
 typedef std::shared_ptr<class Texture3d>		Texture3dRef;
 typedef std::shared_ptr<class TextureCubeMap>	TextureCubeMapRef;
 
 class TextureBase {
   public:
-	~TextureBase();
+	virtual ~TextureBase();
 
 	//! the Texture's internal format, which is the format that OpenGL stores the texture data in memory. Common values include \c GL_RGB, \c GL_RGBA and \c GL_LUMINANCE
 	GLint			getInternalFormat() const;
@@ -371,11 +372,13 @@ class TextureCubeMap : public TextureBase
 		friend TextureCubeMap;
 	};
   
+	static TextureCubeMapRef	create( int32_t width, int32_t height, const Format &format = Format() );
 	static TextureCubeMapRef	createHorizontalCross( const ImageSourceRef &imageSource, const Format &format = Format() );
 	//! Expects images ordered { +X, -X, +Y, -Y, +Z, -Z }
 	static TextureCubeMapRef	create( const ImageSourceRef images[6], const Format &format = Format() );
 	
   protected:
+	TextureCubeMap( int32_t width, int32_t height, Format format );
 	TextureCubeMap( const Surface8u images[6], Format format );
 	
 	GLint		mWidth, mHeight;

@@ -1047,6 +1047,11 @@ TextureCubeMap::Format::Format()
 	mMagFilter = GL_NEAREST;	
 }
 
+TextureCubeMapRef TextureCubeMap::create( int32_t width, int32_t height, const Format &format )
+{
+	return TextureCubeMapRef( new TextureCubeMap( width, height, format ) );
+}
+
 TextureCubeMapRef TextureCubeMap::createHorizontalCross( const ImageSourceRef &imageSource, const Format &format )
 {
 	Vec2i faceSize( imageSource->getWidth() / 4, imageSource->getHeight() / 3 );
@@ -1083,6 +1088,18 @@ TextureCubeMapRef TextureCubeMap::create( const ImageSourceRef images[6], const 
 		surfaces[i] = Surface8u( images[i] );
 	
 	return TextureCubeMapRef( new TextureCubeMap( surfaces, format ) );
+}
+
+TextureCubeMap::TextureCubeMap( int32_t width, int32_t height, Format format )
+	: mWidth( width ), mHeight( height )
+{
+	glGenTextures( 1, &mTextureId );
+	mTarget = format.getTarget();
+	TextureBindScope texBindScope( mTarget, mTextureId );	
+	TextureBase::initParams( format, GL_RGB );
+
+	for( GLenum target = 0; target < 6; ++target )
+		glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + target, 0, mInternalFormat, mWidth, mHeight, 0, format.mPixelDataFormat, format.mPixelDataType, NULL );
 }
 
 TextureCubeMap::TextureCubeMap( const Surface8u images[6], Format format )
