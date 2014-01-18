@@ -5,7 +5,7 @@
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
-#include "cinder/gl/Xfo.h"
+#include "cinder/gl/TransformFeedbackObj.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Batch.h"
 #include "cinder/Utilities.h"
@@ -44,7 +44,7 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 #endif
 #if ! defined( CINDER_GLES )
 	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL ),
-	mCachedXfo( nullptr )
+	mCachedTransformFeedbackObj( nullptr )
 #endif
 {
 	// setup default VAO
@@ -393,12 +393,12 @@ void Context::invalidateBufferBindingCache( GLenum target )
 }
 	
 #if ! defined( CINDER_GLES )
-void Context::bindBufferBase( GLenum target, int index, BufferObjRef buffer )
+void Context::bindBufferBase( GLenum target, int index, const BufferObjRef &buffer )
 {
 	switch (target) {
 		case GL_TRANSFORM_FEEDBACK_BUFFER: {
-			if( mCachedXfo ) {
-				mCachedXfo->setIndex( index, buffer );
+			if( mCachedTransformFeedbackObj ) {
+				mCachedTransformFeedbackObj->setIndex( index, buffer );
 			}
 			else {
 				glBindBufferBase( target, index, buffer->getId() );
@@ -415,29 +415,28 @@ void Context::bindBufferBase( GLenum target, int index, BufferObjRef buffer )
 }
 	
 //////////////////////////////////////////////////////////////////
-// XFO
-void Context::xfoBind( XfoRef xfo )
+// TransformFeedbackObj
+void Context::bindTransformFeedbackObj( const TransformFeedbackObjRef &feedbackObj )
 {
-	if( xfo != mCachedXfo ) {
-		if( mCachedXfo )
-			mCachedXfo->unbindImpl( this );
-		if( xfo ) {
-			xfo->bindImpl( this );
-		}
+	if( feedbackObj != mCachedTransformFeedbackObj ) {
+		if( mCachedTransformFeedbackObj )
+			mCachedTransformFeedbackObj->unbindImpl( this );
+		if( feedbackObj )
+			feedbackObj->bindImpl( this );
 		
-		mCachedXfo = xfo;
+		mCachedTransformFeedbackObj = feedbackObj;
 	}
 }
 
-XfoRef Context::xfoGet()
+TransformFeedbackObjRef Context::transformFeedbackObjGet()
 {
-	return mCachedXfo;
+	return mCachedTransformFeedbackObj;
 }
 	
 void Context::beginTransformFeedback( GLenum primitiveMode )
 {
-	if( mCachedXfo ) {
-		mCachedXfo->begin( primitiveMode );
+	if( mCachedTransformFeedbackObj ) {
+		mCachedTransformFeedbackObj->begin( primitiveMode );
 	}
 	else {
 		glBeginTransformFeedback( primitiveMode );
@@ -446,8 +445,8 @@ void Context::beginTransformFeedback( GLenum primitiveMode )
 
 void Context::pauseTransformFeedback()
 {
-	if( mCachedXfo ) {
-		mCachedXfo->pause();
+	if( mCachedTransformFeedbackObj ) {
+		mCachedTransformFeedbackObj->pause();
 	}
 	else {
 		glPauseTransformFeedback();
@@ -456,8 +455,8 @@ void Context::pauseTransformFeedback()
 
 void Context::resumeTransformFeedback()
 {
-	if( mCachedXfo ) {
-		mCachedXfo->resume();
+	if( mCachedTransformFeedbackObj ) {
+		mCachedTransformFeedbackObj->resume();
 	}
 	else {
 		glResumeTransformFeedback();
@@ -466,8 +465,8 @@ void Context::resumeTransformFeedback()
 
 void Context::endTransformFeedback()
 {
-	if( mCachedXfo ) {
-		mCachedXfo->end();
+	if( mCachedTransformFeedbackObj ) {
+		mCachedTransformFeedbackObj->end();
 	}
 	else {
 		glEndTransformFeedback();

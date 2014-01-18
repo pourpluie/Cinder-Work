@@ -22,8 +22,8 @@ typedef std::shared_ptr<Vao>			VaoRef;
 class BufferObj;
 typedef std::shared_ptr<BufferObj>		BufferObjRef;
 #if ! defined( CINDER_GLES )
-class Xfo;
-typedef std::shared_ptr<Xfo>			XfoRef;
+class TransformFeedbackObj;
+typedef std::shared_ptr<TransformFeedbackObj>	TransformFeedbackObjRef;
 #endif
 class Texture;
 typedef std::shared_ptr<Texture>		TextureRef;
@@ -126,14 +126,14 @@ class Context {
 	GlslProgRef		getGlslProg();
 	
 #if ! defined( CINDER_GLES )
-	void bindBufferBase( GLenum target, int index, BufferObjRef ref );
+	void bindBufferBase( GLenum target, int index, const BufferObjRef &ref );
 
-	void xfoBind( XfoRef xfo );
+	void bindTransformFeedbackObj( const TransformFeedbackObjRef &feedbackObj );
 	void beginTransformFeedback( GLenum primitiveMode );
 	void pauseTransformFeedback();
 	void resumeTransformFeedback();
 	void endTransformFeedback();
-	XfoRef xfoGet();
+	TransformFeedbackObjRef transformFeedbackObjGet();
 #endif
 
 	//! Analogous to glBindTexture( \a target, \a textureId )
@@ -282,7 +282,7 @@ class Context {
 	std::vector<VaoRef>					mVaoStack;
 	
 #if ! defined( CINDER_GLES )
-	XfoRef								mCachedXfo;
+	TransformFeedbackObjRef				mCachedTransformFeedbackObj;
 #endif
 	
 	// Blend state stacks

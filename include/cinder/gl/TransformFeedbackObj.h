@@ -7,13 +7,13 @@ namespace cinder { namespace gl {
 
 #if ! defined( CINDER_GLES )
 	
-typedef std::shared_ptr<class Xfo> XfoRef;
+typedef std::shared_ptr<class TransformFeedbackObj> TransformFeedbackObjRef;
 
-class Xfo : public std::enable_shared_from_this<Xfo>{
+class TransformFeedbackObj : public std::enable_shared_from_this<TransformFeedbackObj> {
   public:
 	
-	static XfoRef create();
-	virtual ~Xfo() {}
+	static TransformFeedbackObjRef create();
+	virtual ~TransformFeedbackObj() {}
 	
 	void bind();
 	void unbind();
@@ -26,7 +26,7 @@ class Xfo : public std::enable_shared_from_this<Xfo>{
 	GLuint	getId() const { return mId; }
 	
   protected:
-	Xfo() {}
+	TransformFeedbackObj() {}
 	
 	virtual void bindImpl( class Context *context ) = 0;
 	virtual void unbindImpl( class Context *context ) = 0;
