@@ -261,10 +261,8 @@ class Texture : public TextureBase {
 	//!	Creates a new Texture from raw DirectDraw Stream data
 	static Texture	loadDds( IStreamRef ddsStream, Format format );
 	
-#if ! defined( CINDER_GLES )
 	//! Returns an ImageSource pointing to this Texture
-	operator	ImageSourceRef() const;
-#endif
+	ImageSourceRef	createSource();
 	
 	// These constructors are not protected to allow for shared_ptr's with custom deleters
 	/** Consider Texture::create() instead. Constructs a texture of size(\a width, \a height), storing the data in internal format \a aInternalFormat. **/

@@ -1,4 +1,5 @@
 #include "cinder/gl/gl.h" // has to be first
+#include "cinder/gl/Fbo.h"
 #include "cinder/ImageIo.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/Context.h"
@@ -275,6 +276,7 @@ TextureBase::Format::Format()
 	mWrapS = GL_CLAMP_TO_EDGE;
 	mWrapT = GL_CLAMP_TO_EDGE;
 	mWrapR = GL_CLAMP_TO_EDGE;
+	mMinFilterSpecified = false;
 	mMinFilter = GL_LINEAR;
 	mMagFilter = GL_LINEAR;
 	mMipmapping = false;
@@ -881,23 +883,23 @@ void TextureCache::markTextureAsFree( int id )
 
 /////////////////////////////////////////////////////////////////////////////////
 // ImageSourceTexture
-#if ! defined( CINDER_GLES )
 class ImageSourceTexture : public ImageSource {
   public:
-	ImageSourceTexture( const Texture &texture )
+	ImageSourceTexture( Texture &texture )
 		: ImageSource()
 	{
 		mWidth = texture.getWidth();
 		mHeight = texture.getHeight();
 		
-		GLint internalFormat = texture.getInternalFormat();
+
 		GLenum format;
+#if ! defined( CINDER_GLES )		
+		GLint internalFormat = texture.getInternalFormat();
 		switch( internalFormat ) {
-			case GL_RGB: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGB; break;
-			case GL_RGBA: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGBA; break;
-			case GL_LUMINANCE: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_LUMINANCE; break;
-			case GL_LUMINANCE_ALPHA: setChannelOrder( ImageIo::YA ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_LUMINANCE_ALPHA; break;
-#if ! defined( CINDER_GLES )
+			case GL_RGB: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); format = GL_RGB; break;
+			case GL_RGBA: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); format = GL_RGBA; break;
+			case GL_LUMINANCE: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::UINT8 ); format = GL_LUMINANCE; break;
+			case GL_LUMINANCE_ALPHA: setChannelOrder( ImageIo::YA ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::UINT8 ); format = GL_LUMINANCE_ALPHA; break;
 			case GL_RGBA8: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); format = GL_RGBA; break; 
 			case GL_RGB8: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); format = GL_RGB; break;
 			case GL_BGR: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); format = GL_RGB; break;
@@ -911,9 +913,15 @@ class ImageSourceTexture : public ImageSource {
 			case GL_R32F: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_RED; break;
 			case GL_LUMINANCE32F_ARB: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_LUMINANCE; break;
 			case GL_LUMINANCE_ALPHA32F_ARB: setChannelOrder( ImageIo::YA ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_LUMINANCE_ALPHA; break;
-#endif
 			default: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); break;
 		}
+#else
+		// at least on iOS, non-RGBA appears to fail on glReadPixels, so we force RGBA
+		setChannelOrder( ImageIo::RGBA );
+		setColorModel( ImageIo::CM_RGB );
+		setDataType( ImageIo::UINT8 );
+		format = GL_RGBA;
+#endif
 
 		GLenum dataType = GL_UNSIGNED_BYTE;
 		int dataSize = 1;
@@ -927,10 +935,21 @@ class ImageSourceTexture : public ImageSource {
 		}
 			
 		mRowBytes = mWidth * ImageIo::channelOrderNumChannels( mChannelOrder ) * dataSize;
-		mData = shared_ptr<uint8_t>( new uint8_t[mRowBytes * mHeight], boost::checked_array_delete<uint8_t> );
+		mData = unique_ptr<uint8_t>( new uint8_t[mRowBytes * mHeight] );
+
+#if defined( CINDER_GLES )
+		// This line is not too awesome, however we need a TextureRef, not a Texture, for an FBO attachment. So this creates a shared_ptr with a no-op deleter
+		// that won't destroy our original texture.
+		TextureRef tempSharedPtr( &texture, []( const Texture* ){} );
+		// The theory here is we need to build an FBO, attach the Texture to it, issue a glReadPixels against it, and the put it away		
+		FboRef fbo = Fbo::create( mWidth, mHeight, gl::Fbo::Format().attachment( GL_COLOR_ATTACHMENT0, tempSharedPtr ) );
+		FramebufferScope fbScp( fbo );
+		glReadPixels( 0, 0, mWidth, mHeight, format, dataType, mData.get() );
+#else
 		gl::TextureBindScope tbScope( texture.getTarget(), texture.getId() );
 		glPixelStorei( GL_PACK_ALIGNMENT, 1 );
 		glGetTexImage( texture.getTarget(), 0, format, dataType, mData.get() );
+#endif
 	}
 
 	void load( ImageTargetRef target ) {
@@ -944,16 +963,14 @@ class ImageSourceTexture : public ImageSource {
 		}
 	}
 	
-	shared_ptr<uint8_t>	mData;
-	int32_t				mRowBytes;
+	std::unique_ptr<uint8_t>	mData;
+	int32_t						mRowBytes;
 };
 
-Texture::operator ImageSourceRef() const
+ImageSourceRef Texture::createSource()
 {
-	return shared_ptr<ImageSource>( new ImageSourceTexture( *this ) );
+	return ImageSourceRef( new ImageSourceTexture( *this ) );
 }
-
-#endif // ! defined( CINDER_GLES )
 
 #if ! defined( CINDER_GLES )
 /////////////////////////////////////////////////////////////////////////////////
