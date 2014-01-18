@@ -12,13 +12,13 @@
 #include "cinder/Camera.h"
 #include "cinder/Rand.h"
 
-#include "cinder/gl/Xfo.h"
+#include "cinder/gl/TransformFeedbackObj.h"
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-enum WhichXFO {
+enum WhichTranformFeedbackObj {
 	SOFTWARE = 0,
 	HARDWARE = 1,
 	SYSTEM = 2
@@ -43,22 +43,22 @@ public:
 	void loadTexture();
 	
 private:
-	WhichXFO			mXfoChoice;
-	Rand				mRand;
-	gl::VaoRef			mPVao[2];
-	gl::VboRef			mPPositions[2], mPVelocities[2], mPStartTimes[2], mPInitVelocity;
-	gl::XfoRef			mPXfo[2];
-	gl::GlslProgRef		mPUpdateGlsl, mPRenderGlsl;
-	gl::TextureRef		mSmokeTexture;
-	CameraPersp			mCam;
-	TriMeshRef			mTrimesh;
-	uint32_t			mDrawBuff;
+	WhichTranformFeedbackObj			mFeedbackObjChoice;
+	Rand							mRand;
+	gl::VaoRef						mPVao[2];
+	gl::VboRef						mPPositions[2], mPVelocities[2], mPStartTimes[2], mPInitVelocity;
+	gl::TransformFeedbackObjRef		mPFeedbackObj[2];
+	gl::GlslProgRef					mPUpdateGlsl, mPRenderGlsl;
+	gl::TextureRef					mSmokeTexture;
+	CameraPersp						mCam;
+	TriMeshRef						mTrimesh;
+	uint32_t						mDrawBuff;
 };
 
 void TransformFeedbackSmokeParticlesApp::setup()
 {
 	// Change this to use different implementations throughout.
-	mXfoChoice = SYSTEM;
+	mFeedbackObjChoice = HARDWARE;
 	
 	mDrawBuff = 1;
 	
@@ -204,41 +204,41 @@ void TransformFeedbackSmokeParticlesApp::loadBuffers()
 	ci::gl::vertexAttribPointer( 3, 3, GL_FLOAT, GL_FALSE, 0, 0 );
 	ci::gl::enableVertexAttribArray( 3 );
 	
-	// Creating the XFO's
+	// Creating the TransformFeedbackObj's
 	
-	switch ( mXfoChoice ) {
+	switch ( mFeedbackObjChoice ) {
 		case HARDWARE: {
-			mPXfo[0] = gl::Xfo::create( false );
-			mPXfo[1] = gl::Xfo::create( false );
+			mPFeedbackObj[0] = gl::TransformFeedbackObj::create();
+			mPFeedbackObj[1] = gl::TransformFeedbackObj::create();
 			
-			mPXfo[0]->bind();
+			mPFeedbackObj[0]->bind();
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[0] );
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[0] );
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[0] );
-			mPXfo[0]->unbind();
+			mPFeedbackObj[0]->unbind();
 			
-			mPXfo[1]->bind();
+			mPFeedbackObj[1]->bind();
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[1] );
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[1] );
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[1] );
-			mPXfo[1]->unbind();
+			mPFeedbackObj[1]->unbind();
 		}
 			break;
 		case SOFTWARE: {
-			mPXfo[0] = gl::Xfo::create( true );
-			mPXfo[1] = gl::Xfo::create( true );
+			mPFeedbackObj[0] = gl::TransformFeedbackObj::create();
+			mPFeedbackObj[1] = gl::TransformFeedbackObj::create();
 			
-			mPXfo[0]->bind();
+			mPFeedbackObj[0]->bind();
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[0] );
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[0] );
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[0] );
-			mPXfo[0]->unbind();
+			mPFeedbackObj[0]->unbind();
 			
-			mPXfo[1]->bind();
+			mPFeedbackObj[1]->bind();
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[1] );
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[1] );
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[1] );
-			mPXfo[1]->unbind();
+			mPFeedbackObj[1]->unbind();
 		}
 			break;
 		case SYSTEM: {
@@ -265,12 +265,12 @@ void TransformFeedbackSmokeParticlesApp::update()
 	
 	mPUpdateGlsl->uniform( "Time", getElapsedFrames() / 60.0f );
 	
-	switch ( mXfoChoice ) {
+	switch ( mFeedbackObjChoice ) {
 		case HARDWARE:
-			mPXfo[1-mDrawBuff]->bind();
+			mPFeedbackObj[1-mDrawBuff]->bind();
 			break;
 		case SOFTWARE:
-			mPXfo[1-mDrawBuff]->bind();
+			mPFeedbackObj[1-mDrawBuff]->bind();
 			break;
 		case SYSTEM:
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[1-mDrawBuff] );

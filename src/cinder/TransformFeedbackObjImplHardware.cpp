@@ -1,4 +1,4 @@
-#include "Xfo.h"
+#include "cinder/gl/TransformFeedbackObj.h"
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Vbo.h"
 
@@ -6,10 +6,10 @@ namespace cinder { namespace gl {
 	
 #if ! defined( CINDER_GLES )
 	
-class XfoImplHardware : public Xfo {
+class TransformFeedbackObjImplHardware : public TransformFeedbackObj {
   public:
-	XfoImplHardware();
-	~XfoImplHardware();
+	TransformFeedbackObjImplHardware();
+	~TransformFeedbackObjImplHardware();
 	
 	void bindImpl( Context *context );
 	void unbindImpl( Context *context );
@@ -19,32 +19,32 @@ class XfoImplHardware : public Xfo {
 	friend class Context;
 };
 
-XfoRef createXfoImplHardware()
+TransformFeedbackObjRef createTransformFeedbackObjImplHardware()
 {
-	return XfoRef( new XfoImplHardware() );
+	return TransformFeedbackObjRef( new TransformFeedbackObjImplHardware() );
 }
 
-XfoImplHardware::XfoImplHardware()
+TransformFeedbackObjImplHardware::TransformFeedbackObjImplHardware()
 {
 	glGenTransformFeedbacks( 1, &mId );
 }
 
-XfoImplHardware::~XfoImplHardware()
+TransformFeedbackObjImplHardware::~TransformFeedbackObjImplHardware()
 {
 	glDeleteTransformFeedbacks( 1, &mId );
 }
 
-void XfoImplHardware::bindImpl( Context *context )
+void TransformFeedbackObjImplHardware::bindImpl( Context *context )
 {
 	glBindTransformFeedback( GL_TRANSFORM_FEEDBACK, mId );
 }
 
-void XfoImplHardware::unbindImpl( Context *context )
+void TransformFeedbackObjImplHardware::unbindImpl( Context *context )
 {
 	glBindTransformFeedback( GL_TRANSFORM_FEEDBACK, 0 );
 }
 
-void XfoImplHardware::setIndex( int index, BufferObjRef buffer )
+void TransformFeedbackObjImplHardware::setIndex( int index, BufferObjRef buffer )
 {
 	auto exists = mBufferBases.find( index );
 	if( exists == mBufferBases.end() ) {

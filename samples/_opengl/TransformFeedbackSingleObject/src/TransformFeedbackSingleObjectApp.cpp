@@ -6,7 +6,7 @@
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/GlslProg.h"
 
-#include "cinder/gl/Xfo.h"
+#include "cinder/gl/TransformFeedbackObj.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -44,7 +44,7 @@ public:
 	gl::VaoRef		mVao;
 	gl::VboRef		mVbo;
 	gl::VboRef		mTransformVbo;
-	gl::XfoRef		mXfo;
+	gl::TransformFeedbackObjRef		mFeedbackObj;
 };
 
 void TransformFeedbackSingleObjectApp::setup()
@@ -158,15 +158,15 @@ void TransformFeedbackSingleObjectApp::setupBuffers( WhichXFO which )
 	switch (which) {
 		case HARDWARE: {
 			// Test for Hardware Solution
-			mXfo = gl::Xfo::create();
-			mXfo->bind();
+			mFeedbackObj = gl::TransformFeedbackObj::create();
+			mFeedbackObj->bind();
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mTransformVbo );
 		}
 			break;
 		case SOFTWARE: {
 			// Test for Software Solution
-			mXfo = gl::Xfo::create();
-			mXfo->bind();
+			mFeedbackObj = gl::TransformFeedbackObj::create();
+			mFeedbackObj->bind();
 			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mTransformVbo );
 		}
 			break;
@@ -192,9 +192,10 @@ void TransformFeedbackSingleObjectApp::setupBuffers( WhichXFO which )
 	
     // Fetch and print results
     GLfloat feedback[5];
-    glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(feedback), feedback);
+	mTransformVbo->getBufferSubData( 0, sizeof(float) * 5, feedback );
 	
     printf("%f %f %f %f %f\n", feedback[0], feedback[1], feedback[2], feedback[3], feedback[4]);
+	
 	quit();
 }
 

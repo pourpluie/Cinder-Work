@@ -224,7 +224,7 @@ GlslProg::GlslProg( const Format &format )
 		glBindAttribLocation( mHandle, attribLoc.second, attribLoc.first.c_str() );
 	
 #if ! defined( CINDER_GLES )
-	if( !format.getVaryings().empty() && format.getTransformFormat() > 0 ) {
+	if( ! format.getVaryings().empty() && format.getTransformFormat() > 0 ) {
 		const GLchar *varyings[format.getVaryings().size()];
 		for( int i = 0; i < format.getVaryings().size(); ++i ) {
 			varyings[i] = format.getVaryings()[i].c_str();

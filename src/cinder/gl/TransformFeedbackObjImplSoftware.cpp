@@ -1,17 +1,16 @@
-#include "Xfo.h"
+#include "cinder/gl/TransformFeedbackObj.h"
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Vbo.h"
-#include <iostream>
 
 namespace cinder { namespace gl {
 
 #if ! defined( CINDER_GLES )
 	
-class XfoImplSoftware : public Xfo {
+class TransformFeedbackObjImplSoftware : public TransformFeedbackObj {
   public:
 	
-	XfoImplSoftware();
-	~XfoImplSoftware() {}
+	TransformFeedbackObjImplSoftware();
+	~TransformFeedbackObjImplSoftware() {}
 	
 	void bindImpl( class Context *context );
 	void unbindImpl( class Context *context );
@@ -21,17 +20,17 @@ class XfoImplSoftware : public Xfo {
 	friend class Context;
 };
 
-XfoRef createXfoImplSoftware()
+TransformFeedbackObjRef createTransformFeedbackObjImplSoftware()
 {
-	return XfoRef( new XfoImplSoftware() );
+	return TransformFeedbackObjRef( new TransformFeedbackObjImplSoftware() );
 }
 
-XfoImplSoftware::XfoImplSoftware()
+TransformFeedbackObjImplSoftware::TransformFeedbackObjImplSoftware()
 {
 	mId = 0;
 }
 
-void XfoImplSoftware::setIndex( int index, BufferObjRef buffer )
+void TransformFeedbackObjImplSoftware::setIndex( int index, BufferObjRef buffer )
 {
 	bool changed = false;
 	
@@ -52,14 +51,14 @@ void XfoImplSoftware::setIndex( int index, BufferObjRef buffer )
 	}
 }
 
-void XfoImplSoftware::bindImpl( Context *context )
+void TransformFeedbackObjImplSoftware::bindImpl( Context *context )
 {
 	for( auto bufferIt = mBufferBases.begin(); bufferIt != mBufferBases.end(); bufferIt++ ) {
 		glBindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, bufferIt->first, bufferIt->second->getId() );
 	}
 }
 
-void XfoImplSoftware::unbindImpl( Context *context )
+void TransformFeedbackObjImplSoftware::unbindImpl( Context *context )
 {
 	
 }
