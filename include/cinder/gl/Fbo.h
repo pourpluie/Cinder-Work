@@ -170,9 +170,9 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 		//! Enables a stencil buffer. Defaults to false.
 		Format& stencilBuffer( bool stencilBuffer = true ) { mStencilBuffer = stencilBuffer; return *this; }
 
-		//! Adds a Renderbuffer attachment \a buffer at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT1). Replaces any existing attachment at the same attachment point.
+		//! Adds a Renderbuffer attachment \a buffer at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT0). Replaces any existing attachment at the same attachment point.
 		Format&	attachment( GLenum attachmentPoint, RenderbufferRef buffer, RenderbufferRef multisampleBuffer = RenderbufferRef() );
-		//! Adds a Renderbuffer attachment \a buffer at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT1). Replaces any existing attachment at the same attachment point.
+		//! Adds a Renderbuffer attachment \a buffer at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT0). Replaces any existing attachment at the same attachment point.
 		Format&	attachment( GLenum attachmentPoint, TextureRef texture, RenderbufferRef multisampleBuffer = RenderbufferRef() );
 		
 		//! Sets the internal format for the color buffer. Defaults to \c GL_RGBA8. Common options also include \c GL_RGB8, \c GL_RGBA16F and \c GL_RGBA32F
