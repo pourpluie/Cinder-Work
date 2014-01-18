@@ -15,21 +15,14 @@ class TransformFeedbackObj : public std::enable_shared_from_this<TransformFeedba
 	static TransformFeedbackObjRef create();
 	virtual ~TransformFeedbackObj() {}
 	
-	//! Binds this Transform Feedback Obj to the system.
 	void bind();
-	//! Unbinds this Transform Feedback Obj from the system.
 	void unbind();
 	
-	//! Notifies the system to begin capturing Vertices
 	void begin( GLenum primitiveMode );
-	//! Notifies the system to pause capturing Vertices
 	void pause();
-	//! Notifies the system to begin capturing Vertices after a pause
 	void resume();
-	//! Notifies the sytstem you are finished capturing Vertices with this object
 	void end();
 	
-	//! Returns the gl system id for this Transform Feedback Obj
 	GLuint	getId() const { return mId; }
 	
   protected:
