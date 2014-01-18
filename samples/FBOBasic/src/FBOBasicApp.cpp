@@ -103,7 +103,7 @@ void FBOBasicApp::draw()
 
 	// show the FBO texture in the upper left corner
 	gl::setMatricesWindow( toPixels( getWindowSize() ) );
-	gl::draw( mFbo->getTexture(), Rectf( 0, 0, 128, 128 ) );
+	gl::draw( mFbo->getColorTexture(), Rectf( 0, 0, 128, 128 ) );
 	
 	if( mFbo->getDepthTexture() ) // NULL if we have multisampling
 		gl::draw( mFbo->getDepthTexture(), Rectf( 128, 0, 128 + 128, 128 ) );

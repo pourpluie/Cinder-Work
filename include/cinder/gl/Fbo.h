@@ -105,10 +105,12 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 	//! Returns the Fbo::Format of this FBO
 	const Format&	getFormat() const { return mFormat; }
 
-	//! Returns a Ref to the color texture of the FBO. \a attachment specifies which attachment (such as \c GL_COLOR_ATTACHMENT0) in the case of multiple color buffers
-	TextureRef		getTexture( GLenum attachment = GL_COLOR_ATTACHMENT0 );
-	//! Returns a reference to the depth texture of the FBO. Returns an empty Ref if there is no Texture as a depth attachment.
-	TextureRef		getDepthTexture();	
+	//! Returns a reference to the color Texture2d of the FBO (at \c GL_COLOR_ATTACHMENT0). Resolves multisampling and renders mipmaps if necessary. Returns an empty Ref if there is no Texture2d attached at \c GL_COLOR_ATTACHMENT0
+	Texture2dRef	getColorTexture();	
+	//! Returns a reference to the depth Texture2d of the FBO. Resolves multisampling and renders mipmaps if necessary. Returns an empty Ref if there is no Texture2d as a depth attachment.
+	Texture2dRef	getDepthTexture();
+	//! Returns a Ref to the TextureBase attached at \a attachment. Resolves multisampling and renders mipmaps if necessary. Returns NULL if a Texture is not bound at \a attachment.
+	TextureBaseRef	getTexture( GLenum attachment );
 	
 	//! Binds the color texture associated with an Fbo to its target. Optionally binds to a multitexturing unit when \a textureUnit is non-zero. Optionally binds to a multitexturing unit when \a textureUnit is non-zero. \a attachment specifies which color buffer in the case of multiple attachments.
 	void 			bindTexture( int textureUnit = 0, GLenum attachment = GL_COLOR_ATTACHMENT0 );
@@ -172,8 +174,10 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 
 		//! Adds a Renderbuffer attachment \a buffer at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT0). Replaces any existing attachment at the same attachment point.
 		Format&	attachment( GLenum attachmentPoint, RenderbufferRef buffer, RenderbufferRef multisampleBuffer = RenderbufferRef() );
+		//! Adds a Texture2d attachment \a texture at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT0). Replaces any existing attachment at the same attachment point.
+		Format&	attachment( GLenum attachmentPoint, Texture2dRef texture, RenderbufferRef multisampleBuffer = RenderbufferRef() );
 		//! Adds a Renderbuffer attachment \a buffer at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT0). Replaces any existing attachment at the same attachment point.
-		Format&	attachment( GLenum attachmentPoint, TextureRef texture, RenderbufferRef multisampleBuffer = RenderbufferRef() );
+		Format&	attachment( GLenum attachmentPoint, const TextureCubeMapRef &cubeMapTexture );
 		
 		//! Sets the internal format for the color buffer. Defaults to \c GL_RGBA8. Common options also include \c GL_RGB8, \c GL_RGBA16F and \c GL_RGBA32F
 		void	setColorBufferInternalFormat( GLint colorInternalFormat ) { mColorBufferInternalFormat = colorInternalFormat; }
@@ -242,7 +246,7 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 		
 		std::map<GLenum,RenderbufferRef>	mAttachmentsBuffer;
 		std::map<GLenum,RenderbufferRef>	mAttachmentsMultisampleBuffer;
-		std::map<GLenum,TextureRef>			mAttachmentsTexture;
+		std::map<GLenum,TextureBaseRef>		mAttachmentsTexture;
 
 		friend class Fbo;
 	};
@@ -267,7 +271,7 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 	
 	std::map<GLenum,RenderbufferRef>	mAttachmentsBuffer; // map from attachment ID to Renderbuffer
 	std::map<GLenum,RenderbufferRef>	mAttachmentsMultisampleBuffer; // map from attachment ID to Renderbuffer	
-	std::map<GLenum,TextureRef>			mAttachmentsTexture; // map from attachment ID to Texture
+	std::map<GLenum,TextureBaseRef>		mAttachmentsTexture; // map from attachment ID to Texture
 	
 	mutable bool		mNeedsResolve, mNeedsMipmapUpdate;
 	

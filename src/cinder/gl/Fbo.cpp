@@ -216,7 +216,7 @@ Fbo::Format& Fbo::Format::attachment( GLenum attachmentPoint, RenderbufferRef bu
 	return *this;
 }
 
-Fbo::Format& Fbo::Format::attachment( GLenum attachmentPoint, TextureRef texture, RenderbufferRef multisampleBuffer )
+Fbo::Format& Fbo::Format::attachment( GLenum attachmentPoint, Texture2dRef texture, RenderbufferRef multisampleBuffer )
 {
 	mAttachmentsTexture[attachmentPoint] = texture;
 	mAttachmentsMultisampleBuffer[attachmentPoint] = multisampleBuffer;
@@ -448,21 +448,21 @@ void Fbo::initMultisample( bool csaa )
 	}
 }
 
-TextureRef Fbo::getTexture( GLenum attachment )
+Texture2dRef Fbo::getColorTexture()
 {
-	auto attachedTextureIt = mAttachmentsTexture.find( attachment );
-	if( attachedTextureIt != mAttachmentsTexture.end() ) {
+	auto attachedTextureIt = mAttachmentsTexture.find( GL_COLOR_ATTACHMENT0 );
+	if( attachedTextureIt != mAttachmentsTexture.end() && ( typeid(*attachedTextureIt->second) == typeid(Texture2d) ) ) {
 		resolveTextures();
-		updateMipmaps( attachment );
-		return attachedTextureIt->second;
+		updateMipmaps( GL_COLOR_ATTACHMENT0 );
+		return static_pointer_cast<Texture2d>( attachedTextureIt->second );
 	}
 	else
-		return TextureRef();
+		return Texture2dRef();
 }
 
-TextureRef Fbo::getDepthTexture()
+Texture2dRef Fbo::getDepthTexture()
 {
-	TextureRef result;
+	TextureBaseRef result;
 	
 	// search for a depth attachment
 	auto attachedTextureIt = mAttachmentsTexture.find( GL_DEPTH_ATTACHMENT );
@@ -475,25 +475,37 @@ TextureRef Fbo::getDepthTexture()
 			result = attachedTextureIt->second;
 	}
 #endif
-	if( result ) {
+	if( result && ( typeid(*result) == typeid(Texture2d) ) ) {
 		resolveTextures();
 		updateMipmaps( attachedTextureIt->first );
-        return result;
+        return static_pointer_cast<Texture2d>( result );
 	}
 	else
-		return TextureRef();
+		return Texture2dRef();
+}
+
+TextureBaseRef Fbo::getTexture( GLenum attachment )
+{
+	auto attachedTextureIt = mAttachmentsTexture.find( attachment );
+	if( attachedTextureIt != mAttachmentsTexture.end() ) {
+		resolveTextures();
+		updateMipmaps( attachment );
+		return attachedTextureIt->second;
+	}
+	else
+		return TextureBaseRef();
 }
 
 void Fbo::bindTexture( int textureUnit, GLenum attachment )
 {
-	TextureRef tex = getTexture( attachment );
+	auto tex = getTexture( attachment );
 	if( tex )
 		tex->bind( textureUnit );
 }
 
 void Fbo::unbindTexture( int textureUnit, GLenum attachment )
 {
-	TextureRef tex = getTexture( attachment );
+	auto tex = getTexture( attachment );
 	if( tex )
 		tex->unbind( textureUnit );
 }
