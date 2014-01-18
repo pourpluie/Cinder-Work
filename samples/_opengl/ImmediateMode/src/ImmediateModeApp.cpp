@@ -19,7 +19,7 @@ class ImmediateModeApp : public AppNative {
 void ImmediateModeApp::setup()
 {
 	mGlsl = gl::GlslProg::create( gl::GlslProg::Format()
-		.vertex(	GLSL( 150,
+		.vertex(	CI_GLSL( 150,
 			uniform mat4	ciModelViewProjection;
 			in vec4			ciPosition;
 			in vec3			ciColor;
@@ -30,7 +30,7 @@ void ImmediateModeApp::setup()
 				Color = ciColor;
 			}
 		 ) )
-		.fragment( GLSL( 150, 
+		.fragment(	CI_GLSL( 150,
 			in vec3		Color;
 			out vec3	oColor;
 			
