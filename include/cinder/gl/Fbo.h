@@ -173,11 +173,9 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 		Format& stencilBuffer( bool stencilBuffer = true ) { mStencilBuffer = stencilBuffer; return *this; }
 
 		//! Adds a Renderbuffer attachment \a buffer at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT0). Replaces any existing attachment at the same attachment point.
-		Format&	attachment( GLenum attachmentPoint, RenderbufferRef buffer, RenderbufferRef multisampleBuffer = RenderbufferRef() );
-		//! Adds a Texture2d attachment \a texture at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT0). Replaces any existing attachment at the same attachment point.
-		Format&	attachment( GLenum attachmentPoint, Texture2dRef texture, RenderbufferRef multisampleBuffer = RenderbufferRef() );
-		//! Adds a Renderbuffer attachment \a buffer at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT0). Replaces any existing attachment at the same attachment point.
-		Format&	attachment( GLenum attachmentPoint, const TextureCubeMapRef &cubeMapTexture );
+		Format&	attachment( GLenum attachmentPoint, const RenderbufferRef &buffer, RenderbufferRef multisampleBuffer = RenderbufferRef() );
+		//! Adds a Texture attachment \a texture at \a attachmentPoint (such as \c GL_COLOR_ATTACHMENT0). Replaces any existing attachment at the same attachment point.
+		Format&	attachment( GLenum attachmentPoint, const TextureBaseRef &texture, RenderbufferRef multisampleBuffer = RenderbufferRef() );
 		
 		//! Sets the internal format for the color buffer. Defaults to \c GL_RGBA8. Common options also include \c GL_RGB8, \c GL_RGBA16F and \c GL_RGBA32F
 		void	setColorBufferInternalFormat( GLint colorInternalFormat ) { mColorBufferInternalFormat = colorInternalFormat; }

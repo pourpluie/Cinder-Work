@@ -208,7 +208,7 @@ void Fbo::Format::getDepthStencilFormats( GLint depthInternalFormat, GLint *resu
 	}
 }
 
-Fbo::Format& Fbo::Format::attachment( GLenum attachmentPoint, RenderbufferRef buffer, RenderbufferRef multisampleBuffer )
+Fbo::Format& Fbo::Format::attachment( GLenum attachmentPoint, const RenderbufferRef &buffer, RenderbufferRef multisampleBuffer )
 {
 	mAttachmentsBuffer[attachmentPoint] = buffer;
 	mAttachmentsMultisampleBuffer[attachmentPoint] = multisampleBuffer;
@@ -216,7 +216,7 @@ Fbo::Format& Fbo::Format::attachment( GLenum attachmentPoint, RenderbufferRef bu
 	return *this;
 }
 
-Fbo::Format& Fbo::Format::attachment( GLenum attachmentPoint, Texture2dRef texture, RenderbufferRef multisampleBuffer )
+Fbo::Format& Fbo::Format::attachment( GLenum attachmentPoint, const TextureBaseRef &texture, RenderbufferRef multisampleBuffer )
 {
 	mAttachmentsTexture[attachmentPoint] = texture;
 	mAttachmentsMultisampleBuffer[attachmentPoint] = multisampleBuffer;
