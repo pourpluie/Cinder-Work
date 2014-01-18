@@ -942,7 +942,7 @@ class ImageSourceTexture : public ImageSource {
 		// that won't destroy our original texture.
 		TextureRef tempSharedPtr( &texture, []( const Texture* ){} );
 		// The theory here is we need to build an FBO, attach the Texture to it, issue a glReadPixels against it, and the put it away		
-		FboRef fbo = Fbo::create( mWidth, mHeight, gl::Fbo::Format().attachment( GL_COLOR_ATTACHMENT0, tempSharedPtr ) );
+		FboRef fbo = Fbo::create( mWidth, mHeight, gl::Fbo::Format().attachment( GL_COLOR_ATTACHMENT0, tempSharedPtr ).disableDepth() );
 		FramebufferScope fbScp( fbo );
 		glReadPixels( 0, 0, mWidth, mHeight, format, dataType, mData.get() );
 #else
