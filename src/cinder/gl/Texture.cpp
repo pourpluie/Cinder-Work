@@ -70,16 +70,27 @@ TextureBase::~TextureBase()
 // Expects texture to be bound
 void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 {
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
+	// default is GL_REPEAT
+	if( format.mWrapS != GL_REPEAT )
+		glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, format.mWrapS );
+	// default is GL_REPEAT
+	if( format.mWrapT != GL_REPEAT )
+		glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
 #if ! defined( CINDER_GLES )
-	glTexParameteri( mTarget, GL_TEXTURE_WRAP_R, format.mWrapR );
+	// default is GL_REPEAT
+	if( format.mWrapR != GL_REPEAT )
+		glTexParameteri( mTarget, GL_TEXTURE_WRAP_R, format.mWrapR );
 #endif // ! defined( CINDER_GLES )
 
 	if( format.mMipmapping && ! format.mMinFilterSpecified )
 		format.mMinFilter = GL_LINEAR_MIPMAP_LINEAR;
-	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
-	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
+	// default is GL_NEAREST_MIPMAP_LINEAR
+	if( format.mMinFilter != GL_NEAREST_MIPMAP_LINEAR )
+		glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, format.mMinFilter );
+
+	// default is GL_LINEAR
+	if( format.mMagFilter != GL_LINEAR )
+		glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, format.mMagFilter );
 	
 	if( format.mMaxAnisotropy > 1.0f )
 		glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, format.mMaxAnisotropy );
