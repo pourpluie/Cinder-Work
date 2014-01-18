@@ -56,7 +56,7 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	 
 	mReadFramebufferStack.push_back( 0 );
 	mDrawFramebufferStack.push_back( 0 );	
-#else
+#elif defined( CINDER_GL_ANGLE )
 	mFramebufferStack.push_back( 0 );
 #endif
 	mDefaultArrayVboIdx = 0;
