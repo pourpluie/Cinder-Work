@@ -61,6 +61,9 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 #endif
 	mDefaultArrayVboIdx = 0;
 
+	// initial state for depth mask is enabled
+	mBoolStateStack[GL_DEPTH_WRITEMASK] = vector<GLboolean>();
+	mBoolStateStack[GL_DEPTH_WRITEMASK].push_back( GL_TRUE );
 	mActiveTextureStack.push_back( 0 );
 
 	mImmediateMode = gl::VertBatch::create();
