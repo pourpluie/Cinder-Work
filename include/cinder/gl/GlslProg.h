@@ -36,11 +36,14 @@
 #include "cinder/DataSource.h"
 #include "cinder/GeomIo.h"
 
+//! Convenience macro that allows one to embed raw glsl code in-line. The \a VERSION parameter will be used for the glsl's '#version' define.
+//! \note Some strings will confuse different compilers, most commonly being preprocessor derictives (hence the need for \a VERSION to be a pamaeter).
+//! If available on all target platforms, users should use C+11 raw string literals, which do not suffer from the same limitations.
+#define CI_GLSL(VERSION,CODE) "#version " #VERSION "\n" #CODE
+
 namespace cinder { namespace gl {
 	
 typedef std::shared_ptr<class GlslProg> GlslProgRef;
-
-#define GLSL(VERSION,CODE) "#version " #VERSION "\n" #CODE
 
 class GlslProg : public std::enable_shared_from_this<GlslProg> {
   public:
