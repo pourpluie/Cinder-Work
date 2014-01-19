@@ -257,6 +257,7 @@ class Circle : public Source {
 
 class Sphere : public Source {
   public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
 	Sphere();
 
 	Sphere&		enable( Attrib attrib ) { Source::enable( attrib ); return *this; }
@@ -283,6 +284,7 @@ class Sphere : public Source {
 	mutable std::vector<Vec3f>			mVertices;
 	mutable std::vector<Vec2f>			mTexCoords;
 	mutable std::vector<Vec3f>			mNormals;
+	mutable std::vector<Vec3f>			mColors;	
 	mutable std::vector<uint32_t>		mIndices;
 };
 

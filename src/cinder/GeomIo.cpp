@@ -818,6 +818,7 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 	mVertices.resize( segments * rings );
 	mNormals.resize( segments * rings );
 	mTexCoords.resize( segments * rings );
+	mColors.resize( segments * rings );	
 	mIndices.resize( segments * rings * 6 );
 
 	float ringIncr = 1.0f / (float)( rings - 1 );
@@ -826,10 +827,12 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 
 	bool hasNormals = isEnabled( Attrib::NORMAL );
 	bool hasTexCoords = isEnabled( Attrib::TEX_COORD_0 );
+	bool hasColors = isEnabled( Attrib::COLOR );
 
 	auto vertIt = mVertices.begin();
 	auto normIt = mNormals.begin();
 	auto texIt = mTexCoords.begin();
+	auto colorIt = mColors.begin();
 	for( size_t r = 0; r < rings; r++ ) {
 		for( size_t s = 0; s < segments; s++ ) {
 			float x = math<float>::cos( 2 * M_PI * s * segIncr ) * math<float>::sin( M_PI * r * ringIncr );
@@ -846,6 +849,10 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 			if( hasTexCoords ) {
 				texIt->set( s * segIncr, 1.0f - r * ringIncr );
 				++texIt;
+			}
+			if( hasColors ) {
+				colorIt->set( x, y, z );
+				++colorIt;
 			}
 		}
 	}
@@ -880,8 +887,9 @@ uint8_t Sphere::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
 		case Attrib::POSITION: return 3;
-		case Attrib::TEX_COORD_0: return 2;
-		case Attrib::NORMAL: return 3;
+		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
 		default:
 			return 0;
 	}
@@ -896,6 +904,8 @@ void Sphere::loadInto( Target *target ) const
 		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
 	if( isEnabled( Attrib::NORMAL ) )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
+	if( isEnabled( Attrib::COLOR ) )
+		target->copyAttrib( Attrib::COLOR, 3, 0, mColors.data()->ptr(), mColors.size() );
 
 	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );	
 }
