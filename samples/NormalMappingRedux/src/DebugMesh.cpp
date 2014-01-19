@@ -1,3 +1,25 @@
+/*
+ Copyright (c) 2014, Paul Houx - All rights reserved.
+ This code is intended for use with the Cinder C++ library: http://libcinder.org
+
+ Redistribution and use in source and binary forms, with or without modification, are permitted provided that
+ the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and
+	the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+	the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include "DebugMesh.h"
 
 using namespace ci;
@@ -35,32 +57,48 @@ void DebugMesh::setMesh(const TriMesh& mesh)
 {
 	clear();
 
+	if(!mesh.hasNormals())
+		return;
+
 	// create a debug mesh, showing normals, tangents and bitangents
 	size_t numVertices = mesh.getNumVertices();
 
-	mVertices.reserve( numVertices * 4 );
-	mColors.reserve( numVertices * 4 );
-	mIndices.reserve( numVertices * 6 );
+	bool hasTangents = mesh.hasTangents();
+	size_t numVerticesPerVertex = hasTangents ? 4 : 2;
+	size_t numIndicesPerVertex = hasTangents ? 6 : 2;
+
+	mVertices.reserve( numVertices * numVerticesPerVertex );
+	mColors.reserve( numVertices * numVerticesPerVertex );
+	mIndices.reserve( numVertices * numIndicesPerVertex );
 
 	for(size_t i=0;i<numVertices;++i) {
 		uint32_t idx = mVertices.size();
 
 		mVertices.push_back( mesh.getVertices<3>()[i] );
-		mVertices.push_back( mesh.getVertices<3>()[i] + mesh.getTangents()[i] );
-		mVertices.push_back( mesh.getVertices<3>()[i] + mesh.getNormals()[i].cross(mesh.getTangents()[i]) );
 		mVertices.push_back( mesh.getVertices<3>()[i] + mesh.getNormals()[i] );
+		if(hasTangents)
+		{
+			mVertices.push_back( mesh.getVertices<3>()[i] + mesh.getTangents()[i] );
+			mVertices.push_back( mesh.getVertices<3>()[i] + mesh.getNormals()[i].cross(mesh.getTangents()[i]) );
+		}
 
 		mColors.push_back( Color(0, 0, 0) );	// base vertices black
-		mColors.push_back( Color(1, 0, 0) );	// tangents (along u-coordinate) red
-		mColors.push_back( Color(0, 1, 0) ); // bitangents (along v-coordinate) green
-		mColors.push_back( Color(0, 0, 1) ); // normals blue
+		mColors.push_back( Color(0, 0, 1) );	// normals blue
+		if(hasTangents)
+		{
+			mColors.push_back( Color(1, 0, 0) );	// tangents (along u-coordinate) red
+			mColors.push_back( Color(0, 1, 0) );	// bitangents (along v-coordinate) green
+		}
 
 		mIndices.push_back( idx );
 		mIndices.push_back( idx + 1 );
-		mIndices.push_back( idx );
-		mIndices.push_back( idx + 2 );
-		mIndices.push_back( idx );
-		mIndices.push_back( idx + 3 );
+		if(hasTangents)
+		{
+			mIndices.push_back( idx );
+			mIndices.push_back( idx + 2 );
+			mIndices.push_back( idx );
+			mIndices.push_back( idx + 3 );
+		}
 	}
 }
 

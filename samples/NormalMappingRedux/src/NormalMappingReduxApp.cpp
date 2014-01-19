@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2013, Paul Houx - All rights reserved.
+ Copyright (c) 2014, Paul Houx - All rights reserved.
  This code is intended for use with the Cinder C++ library: http://libcinder.org
 
  Leprechaun 3D model courtesy of Fabiano Di Liso aka Nazedo
@@ -65,10 +65,10 @@ public:
 	void	draw();
 	void	resize();
 
-	void	mouseDown( MouseEvent event );	
+	void	mouseDown( MouseEvent event );
 	void	mouseDrag( MouseEvent event );
 
-	void	keyDown( KeyEvent event ) { quit(); }
+	void	keyDown( KeyEvent event );
 
 	bool	isInitialized() const { return (mDiffuseMap && mSpecularMap && mNormalMap && mCopyrightMap
 												&& mShader && /*mLightLantern && mLightAmbient &&*/ mMesh); }
@@ -269,6 +269,7 @@ void NormalMappingReduxApp::update()
 	mShader->uniform( "uLights[1].position", mLightAmbient->position );
 	mShader->uniform( "uLights[1].diffuse", mLightAmbient->diffuse );
 	mShader->uniform( "uLights[1].specular", mLightAmbient->specular );
+	mShader->uniform( "uNumOfLights", 2 );
 }
 
 void NormalMappingReduxApp::draw()
@@ -287,26 +288,20 @@ void NormalMappingReduxApp::draw()
 		gl::enableDepthWrite();
 
 		// bind textures
-		gl::enable( mDiffuseMap->getTarget() );
 		mDiffuseMap->bind(0);
 		mSpecularMap->bind(1);
 		mNormalMap->bind(2);
 		mEmmisiveMap->bind(3);
 
-		// enable our normal mapping shader
-		gl::context()->pushGlslProg(mShader);
-	
 		// render our model
-		gl::pushModelView();
-		gl::multModelView( mMeshTransform );
-		gl::draw( mMesh );
-		gl::popModelView();
-
-		// disable shader
-		gl::context()->popGlslProg();
-
-		// unbind textures
-		gl::disable( mDiffuseMap->getTarget() );
+		{
+			gl::GlslProgScope GlslProgScope( mShader );
+	
+			gl::pushModelView();
+			gl::multModelView( mMeshTransform );
+			gl::draw( mMesh );
+			gl::popModelView();
+		}
 	
 		// render normals, tangents and bitangents if necessary
 		if(bShowNormalsAndTangents) {
@@ -317,7 +312,7 @@ void NormalMappingReduxApp::draw()
 			gl::multModelView( mMeshTransform );
 			gl::draw( mMeshDebug );
 			gl::popModelView();
-		}	//*/
+		}
 
 		// get ready to render in 2D again
 		gl::disableDepthWrite();
@@ -328,6 +323,7 @@ void NormalMappingReduxApp::draw()
 		// render our parameter window
 		if(mParams)
 			mParams->draw();
+		//*/
 
 		// render the copyright message
 		//if(fOpacity.value() > 0.f)
@@ -340,6 +336,7 @@ void NormalMappingReduxApp::draw()
 			gl::draw( mCopyrightMap, centered );
 			gl::disableAlphaBlending();
 		}
+		//*/
 	}
 }
 
@@ -358,6 +355,22 @@ void NormalMappingReduxApp::mouseDrag( MouseEvent event )
 {
 	mMayaCamera.mouseDrag( event.getPos(), event.isLeftDown(), event.isMiddleDown(), event.isRightDown() );
 	mCamera = mMayaCamera.getCamera();
+}
+
+void NormalMappingReduxApp::keyDown( KeyEvent event )
+{
+	switch( event.getCode() )
+	{
+	case KeyEvent::KEY_ESCAPE:
+		quit();
+		break;
+	case KeyEvent::KEY_f:
+		setFullScreen( !isFullScreen() );
+		break;
+	case KeyEvent::KEY_v:
+		gl::enableVerticalSync( !gl::isVerticalSyncEnabled() );
+		break;
+	}
 }
 
 TriMesh NormalMappingReduxApp::createMesh(const fs::path& mshFile)
@@ -394,7 +407,6 @@ TriMesh NormalMappingReduxApp::createMesh(const fs::path& mshFile)
 	return mesh;
 }
 
-//
 gl::VboMeshRef NormalMappingReduxApp::createDebugMesh(const TriMesh& mesh)
 {
 	// create a debug mesh, showing normals, tangents and bitangents
@@ -404,7 +416,6 @@ gl::VboMeshRef NormalMappingReduxApp::createDebugMesh(const TriMesh& mesh)
 	gl::VboMeshRef result = gl::VboMesh::create( source );
 
 	return result;
-}	//*/
+}
 
-//auto renderOptions = RendererGl::Options().coreProfile(true);
-CINDER_APP_NATIVE( NormalMappingReduxApp, RendererGl() )
+CINDER_APP_NATIVE( NormalMappingReduxApp, RendererGl )
