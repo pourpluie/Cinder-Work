@@ -29,7 +29,6 @@ http://www.cgtrader.com/3d-models/character-people/fantasy/the-leprechaun-the-go
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Context.h"
 #include "cinder/gl/GlslProg.h"
-//#include "cinder/gl/Light.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/VboMesh.h"
 #include "cinder/params/Params.h"
@@ -59,7 +58,7 @@ public:
 	void	prepareSettings( Settings* settings );
 
 	void	setup();
-	//void	shutdown();
+	void	shutdown();
 
 	void	update();
 	void	draw();
@@ -78,6 +77,9 @@ private:
 	gl::VboMeshRef	createDebugMesh(const TriMesh& mesh);
 
 private:
+	typedef enum { Default, Glossy, NormalMap, LightingOnly } ViewMode;
+	ViewMode			mViewMode;
+
 	Matrix44f			mMeshTransform;
 	AxisAlignedBox3f	mMeshBounds;
 
@@ -103,13 +105,8 @@ private:
 	bool				bAnimateLantern;
 	Perlin				mPerlin;
 
-	bool				bEnableDiffuseMap;
-	bool				bEnableSpecularMap;
 	bool				bEnableNormalMap;
-	bool				bEnableEmmisiveMap;
-
 	bool				bShowNormalsAndTangents;
-	bool				bShowNormals;
 
 	float				fTime;
 	Anim<float>			fOpacity;
@@ -119,6 +116,8 @@ private:
 
 void NormalMappingReduxApp::prepareSettings(Settings* settings)
 {
+	settings->disableFrameRate();
+
 	settings->setWindowSize( 1024, 768 );
 	settings->setTitle( "OpenGL 3+ Normal Mapping Demo" );
 
@@ -128,21 +127,7 @@ void NormalMappingReduxApp::prepareSettings(Settings* settings)
 }
 
 void NormalMappingReduxApp::setup()
-{	
-	// create a parameter window, so we can toggle stuff
-	mParams = params::InterfaceGl::create( getWindow(), "Normal Mapping Demo", Vec2i(300, 200) );
-	mParams->addParam( "Rotate Model", &bAutoRotate );
-	mParams->addParam( "Animate Light", &bAnimateLantern );
-	mParams->addSeparator();
-	mParams->addParam( "Show Normals & Tangents", &bShowNormalsAndTangents );
-	mParams->addParam( "Show Normals", &bShowNormals );
-	mParams->addSeparator();
-	mParams->addParam( "Enable Diffuse Map", &bEnableDiffuseMap );
-	mParams->addParam( "Enable Specular Map", &bEnableSpecularMap );
-	mParams->addParam( "Enable Normal Map", &bEnableNormalMap );
-	mParams->addParam( "Enable Emmisive Map", &bEnableEmmisiveMap );
-	mParams->setOptions( "", "valueswidth=fit" );
-
+{
 	// setup camera and lights
 	mCamera.setEyePoint( Vec3f( 0.2f, 0.4f, 1.0f ) );
 	mCamera.setCenterOfInterestPoint( Vec3f(0.0f, 0.5f, 0.0f) );
@@ -168,13 +153,10 @@ void NormalMappingReduxApp::setup()
 
 	bAnimateLantern = true;
 
-	bEnableDiffuseMap = true;
-	bEnableSpecularMap = false;
 	bEnableNormalMap = true;
-	bEnableEmmisiveMap = true;
-
 	bShowNormalsAndTangents = false;
-	bShowNormals = false;
+
+	mViewMode = ViewMode::Default;
 
 	// load assets
 	try {
@@ -217,10 +199,29 @@ void NormalMappingReduxApp::setup()
 	timeline().appendTo( &fOpacity, 1.0f, 30.0f );
 	timeline().appendTo( &fOpacity, 0.0f, 2.5f, EaseInOutCubic() );
 
+	// create a parameter window, so we can toggle stuff
+	std::vector<std::string> viewmodes;
+	viewmodes.push_back("Final Render");
+	viewmodes.push_back("Glossy Render");
+	viewmodes.push_back("Calculated Normals");
+	viewmodes.push_back("Lighting Only");
+
+	mParams = params::InterfaceGl::create( getWindow(), "Normal Mapping Demo", Vec2i(300, 200) );
+	mParams->addParam( "Rotate Model", &bAutoRotate );
+	mParams->addParam( "Animate Light", &bAnimateLantern );
+	mParams->addSeparator();
+
+	mParams->addParam( "Enable Normal Mapping", &bEnableNormalMap );
+	mParams->addParam( "Viewing Mode", viewmodes, (int*) &mViewMode );
+	mParams->addSeparator();
+
+	mParams->addParam( "Show Normals & Tangents", &bShowNormalsAndTangents );
+	mParams->setOptions( "", "valueswidth=fit" );
+
 	// keep track of time
 	fTime = (float) getElapsedSeconds();
 }
-/*
+
 void NormalMappingReduxApp::shutdown()
 {
 	// safely delete our lights
@@ -229,7 +230,7 @@ void NormalMappingReduxApp::shutdown()
 
 	mLightAmbient = mLightLantern = NULL;
 }
-*/
+
 void NormalMappingReduxApp::update()
 {
 	// keep track of time
@@ -257,11 +258,11 @@ void NormalMappingReduxApp::update()
 	mShader->uniform( "uSpecularMap", 1 );
 	mShader->uniform( "uNormalMap", 2 );
 	mShader->uniform( "uEmmisiveMap", 3 );
-	mShader->uniform( "bShowNormals", bShowNormals );
-	mShader->uniform( "bUseDiffuseMap", bEnableDiffuseMap );
-	mShader->uniform( "bUseSpecularMap", bEnableSpecularMap );
+	mShader->uniform( "bShowNormals", mViewMode == ViewMode::NormalMap );
+	mShader->uniform( "bUseDiffuseMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::Glossy) );
+	mShader->uniform( "bUseSpecularMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::LightingOnly) );
 	mShader->uniform( "bUseNormalMap", bEnableNormalMap );
-	mShader->uniform( "bUseEmmisiveMap", bEnableEmmisiveMap );
+	mShader->uniform( "bUseEmmisiveMap", mViewMode == ViewMode::Default );
 
 	mShader->uniform( "uLights[0].position", mLightLantern->position );
 	mShader->uniform( "uLights[0].diffuse", mLightLantern->diffuse );
