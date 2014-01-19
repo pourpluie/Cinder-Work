@@ -127,10 +127,6 @@ Batch::Batch( const geom::Source &source, const gl::GlslProgRef &glsl )
 
 void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 {
-	// first, enable any attributes in the source that the GLSL wants based on the latter's semantics
-	for( const auto &attr : glsl.getAttribSemantics() )
-		source.enable( attr.second );
-
 	mNumVertices = source.getNumVertices();
 	mPrimitive = toGl( source.getPrimitive() );
 

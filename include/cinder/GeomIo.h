@@ -101,7 +101,7 @@ class Source {
 	virtual void		clearAttribs() { mEnabledAttribs.clear(); }
 	virtual Source&		enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
 	virtual Source&		disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
-	virtual bool		isEnabled( Attrib attrib ) const { return mEnabledAttribs.count( attrib ) > 0; }
+	virtual bool		isEnabled( Attrib attrib ) const;
 
   protected:  
 	static void	copyDataMultAdd( const float *srcData, size_t numElements, uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec2f &mult, const Vec2f &add );
@@ -137,12 +137,11 @@ class Target {
 
 class Rect : public Source {
   public:
-	//! Defaults to having positions, normals and texCoords
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL
 	Rect();
 	
-	Rect&		colors( bool enable = true ) { mHasColor = enable; return *this; }
-	Rect&		texCoords( bool enable = true ) { mHasTexCoord0 = enable; return *this; }
-	Rect&		normals( bool enable = true ) { mHasNormals = enable; return *this; }
+	virtual Rect&		enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
+	virtual Rect&		disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }	
 	Rect&		position( const Vec2f &pos ) { mPos = pos; return *this; }
 	Rect&		scale( const Vec2f &scale ) { mScale = scale; return *this; }
 	Rect&		scale( float s ) { mScale = Vec2f( s, s ); return *this; }
@@ -154,9 +153,6 @@ class Rect : public Source {
 	virtual void		loadInto( Target *target ) const override;
 	
 	Vec2f		mPos, mScale;
-	bool		mHasColor;
-	bool		mHasTexCoord0;
-	bool		mHasNormals;
 	
 	static float	sPositions[4*2];
 	static float	sColors[4*3];
@@ -166,13 +162,11 @@ class Rect : public Source {
 
 class Cube : public Source {
   public:
-	//! Defaults to having positions, normals and texCoords
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL
 	Cube();
 	
-	Cube&		colors( bool enable = true ) { mHasColor = enable; return *this; }
-	Cube&		texCoords( bool enable = true ) { mHasTexCoord0 = enable; return *this; }
-	Cube&		normals( bool enable = true ) { mHasNormals = enable; return *this; }
-  
+	virtual Cube&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
+	virtual Cube&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }		  
 	virtual size_t		getNumVertices() const override { return 24; }
 	virtual size_t		getNumIndices() const override { return 36; }	
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }	
@@ -180,10 +174,6 @@ class Cube : public Source {
 	virtual void		loadInto( Target *target ) const override;
 
   protected:	
-	bool		mHasColor;
-	bool		mHasTexCoord0;
-	bool		mHasNormals;
-	
 	static float	sPositions[24*3];
 	static float	sColors[24*3];
 	static float	sTexCoords[24*2];
@@ -194,10 +184,11 @@ class Cube : public Source {
 
 class Teapot : public Source {
   public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL
 	Teapot();
 	
-	Teapot&		texCoords() { mHasTexCoord0 = true; return *this; }
-	Teapot&		normals() { mHasNormals = true; return *this; }
+	virtual Teapot&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
+	virtual Teapot&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }			
 	Teapot&		subdivision( int sub );
   
 	virtual size_t		getNumVertices() const override;
@@ -221,8 +212,6 @@ class Teapot : public Source {
 	static Vec3f	evaluateNormal( int gridU, int gridV, const float *B, const float *dB, const Vec3f patch[][4] );
 
 	int			mSubdivision;
-	bool		mHasTexCoord0;
-	bool		mHasNormals;
 
 	mutable	size_t						mNumVertices;
 	mutable size_t						mNumIndices;
@@ -237,15 +226,16 @@ class Teapot : public Source {
 
 class Circle : public Source {
   public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL
 	Circle();
 
-	Circle&		texCoords() { mHasTexCoord0 = true; return *this; }
-	Circle&		normals() { mHasNormals = true; return *this; }
+	virtual Circle&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
+	virtual Circle&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }			
 	Circle&		center( const Vec2f &center ) { mCenter = center; return *this; }
 	Circle&		radius( float radius );	
 	Circle&		segments( int segments );
   
-	void		loadInto( Target *target ) const;
+	virtual void		loadInto( Target *target ) const override;
 	virtual size_t		getNumVertices() const override;
 	virtual size_t		getNumIndices() const override { return 0; }
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLE_FAN; }
@@ -255,8 +245,6 @@ class Circle : public Source {
 	void	updateVertexCounts();
 	void	calculate() const;
 
-	bool		mHasTexCoord0;
-	bool		mHasNormals;
 	Vec2f		mCenter;
 	float		mRadius;
 	int			mRequestedSegments, mNumSegments;
@@ -273,9 +261,9 @@ class Sphere : public Source {
 
 	Sphere&		enable( Attrib attrib ) { Source::enable( attrib ); return *this; }
 	Sphere&		disable( Attrib attrib ) { Source::disable( attrib ); return *this; }	
-	Sphere&		center( const Vec3f &center ) { mCenter = center; return *this; }
-	Sphere&		radius( float radius ) { mRadius = radius; return *this; }
-	Sphere&		segments( int segments ) { mNumSegments = segments; return *this; }
+	Sphere&		center( const Vec3f &center ) { mCenter = center; mCalculationsCached = false; return *this; }
+	Sphere&		radius( float radius ) { mRadius = radius; mCalculationsCached = false; return *this; }
+	Sphere&		segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
 
 	virtual size_t		getNumVertices() const override;
 	virtual size_t		getNumIndices() const override;

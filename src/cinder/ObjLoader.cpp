@@ -66,13 +66,13 @@ ObjLoader::ObjLoader( DataSourceRef dataSource, DataSourceRef materialSource, bo
 void ObjLoader::loadInto( geom::Target *target ) const
 {
 	// copy attributes
-	if( getAttribDims( geom::Attrib::POSITION ) && target->getAttribDims( geom::Attrib::POSITION ) )
+	if( getAttribDims( geom::Attrib::POSITION ) )
 		target->copyAttrib( geom::Attrib::POSITION, getAttribDims( geom::Attrib::POSITION ), 0, (const float*)mOutputVertices.data(), getNumVertices() );
-	if( getAttribDims( geom::Attrib::COLOR ) && target->getAttribDims( geom::Attrib::COLOR ) )
+	if( getAttribDims( geom::Attrib::COLOR ) )
 		target->copyAttrib( geom::Attrib::COLOR, getAttribDims( geom::Attrib::COLOR ), 0, (const float*)mOutputColors.data(), std::min( mOutputColors.size(), mOutputVertices.size() ) );
-	if( getAttribDims( geom::Attrib::TEX_COORD_0 ) && target->getAttribDims( geom::Attrib::TEX_COORD_0 ) )
+	if( getAttribDims( geom::Attrib::TEX_COORD_0 ) )
 		target->copyAttrib( geom::Attrib::TEX_COORD_0, getAttribDims( geom::Attrib::TEX_COORD_0 ), 0, (const float*)mOutputTexCoords.data(), std::min( mOutputTexCoords.size(), mOutputVertices.size() ) );
-	if( getAttribDims( geom::Attrib::NORMAL ) && target->getAttribDims( geom::Attrib::NORMAL ) )
+	if( getAttribDims( geom::Attrib::NORMAL ) )
 		target->copyAttrib( geom::Attrib::NORMAL, getAttribDims( geom::Attrib::NORMAL ), 0, (const float*)mOutputNormals.data(), std::min( mOutputNormals.size(), mOutputVertices.size() ) );
 	
 	// copy indices

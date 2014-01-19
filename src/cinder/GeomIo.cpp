@@ -204,170 +204,6 @@ void Source::copyDataMultAdd( const float *srcData, size_t numElements,
 	}
 }
 
-// Always copy indices; generate them when they don't exist
-/*
-void Source::forceCopyIndices( uint16_t *dest ) const
-{
-	size_t numIndices = getNumIndices();
-	if( numIndices > 0 ) {
-		copyIndices( dest );
-	}
-	else {
-		if( getNumVertices() > 65535 )
-			throw ExcInadequateIndexStorage();
-
-		uint16_t count = 0;
-		std::generate( dest, dest + getNumVertices(), [&] { return count++; } );
-	}
-}
-
-
-// Always copy indices; generate them when they don't exist
-void Source::forceCopyIndices( uint32_t *dest ) const
-{
-	size_t numIndices = getNumIndices();
-	if( numIndices > 0 ) {
-		copyIndices( dest );
-	}
-	else {
-		uint32_t count = 0;
-		std::generate( dest, dest + getNumVertices(), [&] { return count++; } );
-	}
-}
-
-size_t Source::getNumIndicesTriangles() const
-{
-	size_t indices = getNumIndices();
-	if( getPrimitive() == Primitive::TRIANGLES ) {
-		if( indices > 0 ) // is indexed
-			return indices;
-		else
-			return getNumVertices();
-	}
-	else if( getPrimitive() == Primitive::TRIANGLE_STRIP ) {
-		if( indices > 0 ) // is indexed
-			return (size_t)std::max<int32_t>( ( indices - 2 ) * 3, 0 );
-		else
-			return (size_t)std::max<int32_t>( ( getNumVertices() - 2 ) * 3, 0 );
-	}
-	else if( getPrimitive() == Primitive::TRIANGLE_FAN ) {
-		if( indices > 0 ) // is indexed
-			return (size_t)std::max<int32_t>( ( indices - 2 ) * 3, 0 );
-		else
-			return (size_t)std::max<int32_t>( ( getNumVertices() - 2 ) * 3, 0 );
-	}
-	else
-		return 0;
-}
-
-void Source::forceCopyIndicesTriangles( uint16_t *dest ) const
-{
-	forceCopyIndicesTrianglesImpl<uint16_t>( dest );
-}
-
-
-void Source::forceCopyIndicesTriangles( uint32_t *dest ) const
-{
-	forceCopyIndicesTrianglesImpl<uint32_t>( dest );
-}
-
-template<typename T>
-void Source::forceCopyIndicesTrianglesImpl( T *dest ) const
-{
-	// if we're already triangles then just call forceCopyIndices
-	if( getPrimitive() == Primitive::TRIANGLES ) {
-		forceCopyIndices( dest );
-	}
-	else { // not triangles; might be indexed, might not be
-		// first just make sure there's room in T-sized indices
-		size_t numIndicesForced = getNumIndicesTriangles();
-		if( numIndicesForced > std::numeric_limits<T>::max() )
-			throw ExcInadequateIndexStorage();
-		
-		size_t numIndices = getNumIndices();
-		if( numIndices > 0 ) { // we're indexed, just not TRIANGLES; might be triStrip or triFan
-			switch( getPrimitive() ) {
-				case Primitive::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
-					if( numIndices < 3 )
-						return;
-					// first get the triStrip indices, then we'll output them as triangles
-					unique_ptr<T> tempIndices( new T[numIndices] );
-					copyIndices( tempIndices.get() );
-					size_t outIdx = 0; // (012, 213), (234, 435), etc : (odd,even), (odd,even), etc
-					for( size_t i = 0; i < numIndices - 2; ++i ) {
-						if( i & 1 ) { // odd
-							dest[outIdx++] = tempIndices.get()[i+1];
-							dest[outIdx++] = tempIndices.get()[0];
-							dest[outIdx++] = tempIndices.get()[i+2];
-						}
-						else { // even
-							dest[outIdx++] = tempIndices.get()[i];
-							dest[outIdx++] = tempIndices.get()[i+1];
-							dest[outIdx++] = tempIndices.get()[i+2];
-						}
-					}
-				}
-				break;
-				case Primitive::TRIANGLE_FAN: { // ABC, ACD, ADE, etc
-					if( numIndices < 3 )
-						return;
-					// first the triangle fan indices, then we'll output them as triangles
-					unique_ptr<T> tempIndices( new T[numIndices] );
-					copyIndices( tempIndices.get() );
-					size_t outIdx = 0;
-					for( size_t i = 0; i < numIndices - 2; ++i ) {
-						dest[outIdx++] = tempIndices.get()[0];
-						dest[outIdx++] = tempIndices.get()[i+1];
-						dest[outIdx++] = tempIndices.get()[i+2];
-					}
-				}
-				default:
-					throw ExcIllegalPrimitiveType();
-			}
-		}
-		else { // non-indexed, non-triangles; we'll just generate them
-			size_t numVertices = getNumVertices();
-			
-			switch( getPrimitive() ) {
-				case Primitive::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
-					size_t numIndices = (size_t)std::max<int32_t>( ( numVertices - 2 ) * 3, 0 );
-					if( numIndices > std::numeric_limits<T>::max() )
-						throw ExcInadequateIndexStorage();
-
-					size_t outIdx = 0; // (012, 213), (234, 435), etc : (odd,even), (odd,even), etc
-					for( size_t i = 0; i < numVertices - 2; ++i ) {
-						if( i & 1 ) { // odd
-							dest[outIdx++] = i + 1;
-							dest[outIdx++] = i;
-							dest[outIdx++] = i + 2;
-						}
-						else { // even
-							dest[outIdx++] = i;
-							dest[outIdx++] = i + 1;
-							dest[outIdx++] = i + 2;
-						}
-					}
-				}
-				case Primitive::TRIANGLE_FAN: {  // ABC, ACD, ADE, etc
-					size_t numIndices = (size_t)std::max<int32_t>( ( numVertices - 2 ) * 3, 0 );
-					if( numIndices > std::numeric_limits<T>::max() )
-						throw ExcInadequateIndexStorage();
-
-					size_t outIdx = 0;
-					for( size_t i = 0; i < numIndices - 2; ++i ) {
-						dest[outIdx++] = 0;
-						dest[outIdx++] = i + 1;
-						dest[outIdx++] = i + 2;
-					}
-				}
-				break;
-				default:
-					throw ExcIllegalPrimitiveType();
-			}
-		}
-	}
-}
-*/
 
 namespace { 
 template<typename T>
@@ -413,6 +249,13 @@ void copyIndexDataForceTrianglesImpl( Primitive primitive, const uint32_t *sourc
 
 } // anonymous namespace
 
+bool Source::isEnabled( Attrib attrib ) const
+{
+	return mEnabledAttribs.count( attrib ) > 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Target
 void Target::copyIndexDataForceTriangles( Primitive primitive, const uint32_t *source, size_t numIndices, uint32_t *target )
 {
 	copyIndexDataForceTrianglesImpl<uint32_t>( primitive, source, numIndices, target );
@@ -460,8 +303,9 @@ float Rect::sNormals[4*3] = {0, 0, 1,	0, 0, 1,	0, 0, 1,	0, 0, 1 };
 Rect::Rect()
 	: mPos( Vec2f::zero() ), mScale( Vec2f::one() )
 {
-	mHasColor = false;
-	mHasTexCoord0 = mHasNormals = true;
+	enable( Attrib::POSITION );	
+	enable( Attrib::TEX_COORD_0 );
+	enable( Attrib::NORMAL );
 }
 
 void Rect::loadInto( Target *target ) const
@@ -471,11 +315,11 @@ void Rect::loadInto( Target *target ) const
 		positions.get()[p] = Vec2f( sPositions[p*2+0], sPositions[p*2+1] ) * mScale + mPos;
 
 	target->copyAttrib( Attrib::POSITION, 2, 0, positions.get()->ptr(), 4 );
-	if( mHasColor )
+	if( isEnabled( Attrib::COLOR ) )
 		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 4 );
-	if( mHasTexCoord0 )
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
 		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sTexCoords, 4 );
-	if( mHasNormals )
+	if( isEnabled( Attrib::NORMAL ) )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 4 );
 }
 
@@ -483,9 +327,9 @@ uint8_t	Rect::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
 		case Attrib::POSITION: return 2;
-		case Attrib::COLOR: return mHasColor ? 3 : 0;
-		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
-		case Attrib::NORMAL: return mHasNormals ? 3 : 0;
+		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
 		default:
 			return 0;
 	}
@@ -531,17 +375,18 @@ float Cube::sNormals[24*3]=	{	1,0,0,	1,0,0,	1,0,0,	1,0,0,
 
 Cube::Cube()
 {
-	mHasTexCoord0 = mHasNormals = true;
-	mHasColor = false;
+	enable( Attrib::POSITION );
+	enable( Attrib::TEX_COORD_0 );
+	enable( Attrib::NORMAL );
 }
 
 uint8_t	Cube::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
 		case Attrib::POSITION: return 3;
-		case Attrib::COLOR: return mHasColor ? 3 : 0;
-		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
-		case Attrib::NORMAL: return mHasNormals ? 2 : 0;
+		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
 		default:
 			return 0;
 	}	
@@ -550,11 +395,11 @@ uint8_t	Cube::getAttribDims( Attrib attr ) const
 void Cube::loadInto( Target *target ) const
 {
 	target->copyAttrib( Attrib::POSITION, 3, 0, sPositions, 24 );
-	if( mHasColor )
+	if( isEnabled( Attrib::COLOR ) )
 		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 24 );
-	if( mHasTexCoord0 )
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
 		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sTexCoords, 24 );
-	if( mHasNormals )
+	if( isEnabled( Attrib::NORMAL ) )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 24 );
 	
 	target->copyIndices( Primitive::TRIANGLES, sIndices, 36, 1 );
@@ -611,7 +456,9 @@ const float Teapot::sCurveData[][3] =
 Teapot::Teapot()
 	: mSubdivision( 4 )
 {
-	mHasTexCoord0 = mHasNormals = false;
+	enable( Attrib::POSITION );
+	enable( Attrib::TEX_COORD_0 );
+	enable( Attrib::NORMAL );
 	updateVertexCounts();
 }
 
@@ -632,9 +479,9 @@ void Teapot::loadInto( Target *target ) const
 	calculate();
 
 	target->copyAttrib( Attrib::POSITION, 3, 0, (const float*)mPositions.get(), mNumVertices );
-	if( mHasTexCoord0 )
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
 		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, (const float*)mTexCoords.get(), mNumVertices );
-	if( mHasNormals )
+	if( isEnabled( Attrib::NORMAL ) )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, (const float*)mNormals.get(), mNumVertices );
 
 	target->copyIndices( Primitive::TRIANGLES, mIndices.get(), mNumIndices, 4 );
@@ -649,8 +496,8 @@ uint8_t	Teapot::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
 		case Attrib::POSITION: return 3;
-		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
-		case Attrib::NORMAL: return mHasNormals ? 3 : 0;
+		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
 		default:
 			return 0;
 	}
@@ -854,7 +701,9 @@ Vec3f Teapot::evaluateNormal( int gridU, int gridV, const float *B, const float 
 Circle::Circle()
 	: mRequestedSegments( -1 ), mCenter( 0, 0 ), mRadius( 1.0f )
 {
-	mHasTexCoord0 = mHasNormals = true;
+	enable( Attrib::POSITION );
+	enable( Attrib::TEX_COORD_0 );
+	enable( Attrib::NORMAL );
 	updateVertexCounts();
 }
 
@@ -887,16 +736,16 @@ void Circle::updateVertexCounts()
 void Circle::calculate() const
 {
 	mPositions = unique_ptr<Vec2f>( new Vec2f[mNumVertices] );
-	if( mHasTexCoord0 )
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
 		mTexCoords = unique_ptr<Vec2f>( new Vec2f[mNumVertices] );
-	if( mHasNormals )		
+	if( isEnabled( Attrib::NORMAL ) )		
 		mNormals = unique_ptr<Vec3f>( new Vec3f[mNumVertices] );	
 
 	// center
 	mPositions.get()[0] = mCenter;
-	if( mHasTexCoord0 )
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
 		mTexCoords.get()[0] = Vec2f( 0.5f, 0.5f );
-	if( mHasNormals )
+	if( isEnabled( Attrib::NORMAL ) )
 		mNormals.get()[0] = Vec3f( 0, 0, 1 );
 	
 	// iterate the segments
@@ -905,9 +754,9 @@ void Circle::calculate() const
 	for( int s = 0; s <= mNumSegments; s++ ) {
 		Vec2f unit( math<float>::cos( t ), math<float>::sin( t ) );
 		mPositions.get()[s+1] = mCenter + unit * mRadius;
-		if( mHasTexCoord0 )
+		if( isEnabled( Attrib::TEX_COORD_0 ) )
 			mTexCoords.get()[s+1] = unit * 0.5f + Vec2f( 0.5f, 0.5f );
-		if( mHasNormals )
+		if( isEnabled( Attrib::NORMAL ) )
 			mNormals.get()[s+1] = Vec3f( 0, 0, 1 );
 		t += tDelta;
 	}
@@ -923,9 +772,9 @@ void Circle::loadInto( Target *target ) const
 	calculate();
 
 	target->copyAttrib( Attrib::POSITION, 2, 0, (const float*)mPositions.get(), mNumVertices );
-	if( mHasTexCoord0 )
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
 		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, (const float*)mTexCoords.get(), mNumVertices );
-	if( mHasNormals )
+	if( isEnabled( Attrib::NORMAL ) )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, (const float*)mNormals.get(), mNumVertices );
 }
 
@@ -933,8 +782,8 @@ uint8_t	Circle::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
 		case Attrib::POSITION: return 2;
-		case Attrib::TEX_COORD_0: return mHasTexCoord0 ? 2 : 0;
-		case Attrib::NORMAL: return mHasNormals ? 3 : 0;
+		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
 		default:
 			return 0;
 	}
