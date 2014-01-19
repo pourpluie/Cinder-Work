@@ -35,10 +35,10 @@ void InstancedTeapotsApp::setup()
 {
 	mCam.lookAt( Vec3f( 0, CAMERA_Y_RANGE.first, 0 ), Vec3f::zero() );
 	
-	mTexture = gl::Texture::create( loadImage( loadAsset( "texture.jpg" ) ), gl::Texture::Format().mipmap().minFilter( GL_LINEAR_MIPMAP_LINEAR ) );
+	mTexture = gl::Texture::create( loadImage( loadAsset( "texture.jpg" ) ), gl::Texture::Format().mipmap() );
 	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) );
 
-	gl::VboMeshRef mesh = gl::VboMesh::create( geom::Teapot().texCoords().normals().subdivision( 4 ) );
+	gl::VboMeshRef mesh = gl::VboMesh::create( geom::Teapot().subdivision( 4 ) );
 
 	// create an array of initial per-instance positions laid out in a 2D grid
 	std::vector<Vec3f> positions;

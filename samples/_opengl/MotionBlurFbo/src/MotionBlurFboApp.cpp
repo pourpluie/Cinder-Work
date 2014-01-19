@@ -39,7 +39,7 @@ void MotionBlurFboApp::setup()
 	mCam.setPerspective( 60, getWindowAspectRatio(), 1, 1000 );
 	mCubeRotation.setToIdentity();
 	
-	mBatch = gl::Batch::create( geom::Cube().colors(), gl::getStockShader( gl::ShaderDef().color() ) );
+	mBatch = gl::Batch::create( geom::Cube().enable( geom::Attrib::COLOR ), gl::getStockShader( gl::ShaderDef().color() ) );
 	
 	mFbo = gl::Fbo::create( toPixels( getWindowWidth() ), toPixels( getWindowHeight() ) );
 
@@ -90,7 +90,7 @@ void MotionBlurFboApp::draw()
 		gl::enableAdditiveBlending();
 		gl::disableDepthWrite();
 		gl::disableDepthRead();		
-		gl::draw( mFbo->getTexture() );
+		gl::draw( mFbo->getColorTexture() );
 		gl::enableAlphaBlending();
 	}
 
@@ -101,7 +101,7 @@ void MotionBlurFboApp::draw()
 	// set the color to be 1/SUBFRAMES, which divides the HDR image by the number of sub-frames we rendered
 	gl::color( 1.0f / SUBFRAMES, 1.0f / SUBFRAMES, 1.0f / SUBFRAMES, 1 );
 	gl::setMatricesWindow( getWindowSize() );
-	gl::draw( mAccumFbo->getTexture() );
+	gl::draw( mAccumFbo->getColorTexture() );
 }
 
 CINDER_APP_NATIVE( MotionBlurFboApp, RendererGl )
