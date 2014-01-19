@@ -1,5 +1,7 @@
 #version 150
 
+#define MAX_NUM_LIGHTS 16
+
 struct LightSource
 {
 	vec4 position;
@@ -25,7 +27,8 @@ uniform bool		bUseSpecularMap;
 uniform bool		bUseNormalMap;
 uniform bool		bUseEmmisiveMap;
 
-uniform LightSource	uLights[2];
+uniform LightSource	uLights[MAX_NUM_LIGHTS];
+uniform int			uNumOfLights;
 
 out vec4			oColor;
 
@@ -41,14 +44,14 @@ void main()
 	vec4	vDiffuseColor	= bUseEmmisiveMap ? texture2D(uEmmisiveMap, vTexCoord0.st) : vec4(0, 0, 0, 1);
 	vec4	vSpecularColor	= vec4(0, 0, 0, 1);
 
-	for(int i=0; i<2; ++i)
+	for(int i=0; i<uNumOfLights; ++i)
 	{
-		// calculate view space light vectors (for directional light source)
-		vec3	vToLight = normalize(-uLights[i].position.xyz); 
-		vec3	vReflect = normalize(-reflect(vToLight,vSurfaceNormal));
+		// calculate view space light vectors
+		vec3	vToLight = normalize(uLights[i].position.xyz - vVertex.xyz); 
+		vec3	vReflect = normalize(-reflect(vToLight, vSurfaceNormal));
 
 		// calculate diffuse term
-		float	fDiffuse = max(dot(vSurfaceNormal,vToLight), 0.0);
+		float	fDiffuse = max(dot(vSurfaceNormal, vToLight), 0.0);
 		fDiffuse = clamp(fDiffuse, 0.1, 1.0);  
 
 		// calculate specular term
