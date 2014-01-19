@@ -92,7 +92,11 @@ void stencilOp( GLenum fail, GLenum zfail, GLenum zpass );
 
 std::pair<Vec2i, Vec2i> getViewport();
 void viewport( int x, int y, int width, int height );
-void viewport( const Vec2i &position, const Vec2i &dimension );
+void viewport( const Vec2i &position, const Vec2i &size );
+inline void viewport( const Vec2i &size ) { viewport( Vec2f::zero(), size ); }
+void pushViewport( const Vec2i &position, const Vec2i &size );
+inline void pushViewport( const Vec2i &size ) { pushViewport( Vec2f::zero(), size ); }
+void popViewport();
 
 std::pair<Vec2i, Vec2i> getScissor();
 void scissor( int x, int y, int width, int height );
