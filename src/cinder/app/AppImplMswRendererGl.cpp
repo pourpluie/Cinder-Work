@@ -28,6 +28,7 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Environment.h"
 #include "glload/wgl_all.h"
+#include "glload/wgl_load.h"
 #include "cinder/app/App.h"
 #include "cinder/Camera.h"
 #include <windowsx.h>
@@ -307,6 +308,8 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 	else
 		gl::Environment::setLegacy();
 	gl::env()->initializeFunctionPointers();
+
+	wgl_LoadFunctions( dc );								// Initialize WGL function pointers
 
 	if( ( ! sMultisampleSupported ) && ( mRenderer->getOptions().getAntiAliasing() > RendererGl::AA_NONE ) )  {
 		int level = initMultisample( pfd, mRenderer->getOptions().getAntiAliasing(), dc );
