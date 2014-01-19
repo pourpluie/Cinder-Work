@@ -1,14 +1,16 @@
 #version 150 core
-#extension all : warn
 
-layout (location = 0) in vec3 VertexPosition;
-layout (location = 1) in vec3 VertexVelocity;
-layout (location = 2) in float VertexStartTime;
-layout (location = 3) in vec3 VertexInitialVelocity;
+in vec3 VertexPosition;
+in vec3 VertexVelocity;
+in float VertexStartTime;
+in vec3 VertexInitialVelocity;
+in vec4 VertexColor;
 
 out vec3 Position; // To Transform Feedback
 out vec3 Velocity; // To Transform Feedback
+out vec4 Color; // To Transform Feedback
 out float StartTime; // To Transform Feedback
+
 
 uniform float Time; // Time
 uniform float H;	// Elapsed time between frames

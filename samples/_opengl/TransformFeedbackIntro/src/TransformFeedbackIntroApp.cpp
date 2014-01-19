@@ -6,8 +6,6 @@
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/GlslProg.h"
 
-#include "cinder/gl/TransformFeedbackObj.h"
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -22,13 +20,8 @@ const GLchar* vertexShaderSrc = GLSL( 150 ,
 									 }
 									 );
 
-enum WhichXFO {
-	SOFTWARE = 0,
-	HARDWARE = 1,
-	SYSTEM = 2
-};
 
-class TransformFeedbackSingleObjectApp : public AppNative {
+class TransformFeedbackIntroApp : public AppNative {
 public:
 	void setup();
 	void mouseDown( MouseEvent event );
@@ -38,29 +31,27 @@ public:
 	void glOriginalWay();
 	
 	void setupShaders();
-	void setupBuffers( WhichXFO which );
+	void setupBuffers();
 	
 	gl::GlslProgRef mGlsl;
 	gl::VaoRef		mVao;
-	gl::VboRef		mVbo;
-	gl::VboRef		mTransformVbo;
-	gl::TransformFeedbackObjRef		mFeedbackObj;
+	gl::VboRef		mInitialVbo, mTransformVbo;
 };
 
-void TransformFeedbackSingleObjectApp::setup()
+void TransformFeedbackIntroApp::setup()
 {
-	bool usingGl = true;
+	bool usingGl = false;
 	
 	if( usingGl ) {
 		glOriginalWay();
 	}
 	else {
 		setupShaders();
-		setupBuffers( SYSTEM );
+		setupBuffers();
 	}
 }
 
-void TransformFeedbackSingleObjectApp::glOriginalWay()
+void TransformFeedbackIntroApp::glOriginalWay()
 {
 	// Compile shader
     GLuint shader = glCreateShader(GL_VERTEX_SHADER);
@@ -122,7 +113,7 @@ void TransformFeedbackSingleObjectApp::glOriginalWay()
 	quit();
 }
 
-void TransformFeedbackSingleObjectApp::setupShaders()
+void TransformFeedbackIntroApp::setupShaders()
 {
 	std::vector<std::string> varyings( { "outValue" } );
 	gl::GlslProg::Format mFormat;
@@ -137,48 +128,23 @@ void TransformFeedbackSingleObjectApp::setupShaders()
 	}
 }
 
-void TransformFeedbackSingleObjectApp::setupBuffers( WhichXFO which )
+void TransformFeedbackIntroApp::setupBuffers()
 {
 	mVao = gl::Vao::create();
 	mVao->bind();
 	
 	float data[] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f };
 	
-	mVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW );
-	mVbo->bind();
+	mInitialVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW );
+	mInitialVbo->bind();
 	
 	gl::enableVertexAttribArray(0);
 	gl::vertexAttribPointer( 0, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0 );
 	
 	mTransformVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(data), nullptr, GL_STATIC_READ );
 	
-	// So the create method taking a param won't be there in finished version,
-	// just wanted to make an easy switch for testing.
-	
-	switch (which) {
-		case HARDWARE: {
-			// Test for Hardware Solution
-			mFeedbackObj = gl::TransformFeedbackObj::create();
-			mFeedbackObj->bind();
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mTransformVbo );
-		}
-			break;
-		case SOFTWARE: {
-			// Test for Software Solution
-			mFeedbackObj = gl::TransformFeedbackObj::create();
-			mFeedbackObj->bind();
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mTransformVbo );
-		}
-			break;
-		case SYSTEM: {
-			// System Cached version
-			cout << "In system: mTransformVboId: " << mTransformVbo->getId() << endl;
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mTransformVbo );
-		}
-			break;
-		default:
-			break;
-	}
+	// Bind the transform vbo to the first index binding point to receive the transform feedback
+	gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mTransformVbo );
 	
 	gl::enable( GL_RASTERIZER_DISCARD );
 	
@@ -199,19 +165,19 @@ void TransformFeedbackSingleObjectApp::setupBuffers( WhichXFO which )
 	quit();
 }
 
-void TransformFeedbackSingleObjectApp::mouseDown( MouseEvent event )
+void TransformFeedbackIntroApp::mouseDown( MouseEvent event )
 {
 }
 
-void TransformFeedbackSingleObjectApp::update()
+void TransformFeedbackIntroApp::update()
 {
 	
 }
 
-void TransformFeedbackSingleObjectApp::draw()
+void TransformFeedbackIntroApp::draw()
 {
 	// clear out the window with black
 	gl::clear( Color( 0, 0, 0 ) );
 }
 
-CINDER_APP_NATIVE( TransformFeedbackSingleObjectApp, RendererGl )
+CINDER_APP_NATIVE( TransformFeedbackIntroApp, RendererGl )

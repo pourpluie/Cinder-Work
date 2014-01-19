@@ -1,4 +1,4 @@
-#version 400
+#version 150
 #extension all : warn
 
 uniform sampler2D ParticleTex;
@@ -14,7 +14,4 @@ void main() {
 	FragColor = vec4((vec3(1 - FragColor.r, 1 - FragColor.g, 1 - FragColor.b) * pink), FragColor.a);
 	FragColor.a *= (Transp);
 	FragColor.a -= .1;
-//	FragColor = vec4(pink, (1.0 * Transp)-.03);
-//	FragColor = vec4(1.0);
-//	FragColor = texture( ParticleTex, gl_PointCoord );
 }

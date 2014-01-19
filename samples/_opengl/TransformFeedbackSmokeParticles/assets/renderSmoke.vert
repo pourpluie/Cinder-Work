@@ -1,18 +1,18 @@
 #version 150 core
-#extension all : warn
 
-layout (location = 0) in vec3 VertexPosition;
-layout (location = 1) in vec3 VertexVelocity;
-layout (location = 2) in float VertexStartTime;
-layout (location = 3) in vec3 VertexInitialVelocity;
+in vec3 VertexPosition;
+in vec3 VertexVelocity;
+in float VertexStartTime;
+in vec3 VertexInitialVelocity;
+in vec4 VertexColor;
 
 out float Transp; // To Fragment Shader
 
 uniform float MinParticleSize;
 uniform float MaxParticleSize;
 
-uniform float Time; // Time
-uniform float ParticleLifetime; // Particle lifespan
+uniform float Time; 
+uniform float ParticleLifetime;
 
 uniform mat4 modelView;
 uniform mat4 projection;

@@ -1,7 +1,7 @@
 #version 150 core
 #extension all : warn
 
-layout (location = 0) out vec4 color;
+out vec4 color;
 
 void main(void)
 {

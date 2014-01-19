@@ -13,7 +13,7 @@ extern TransformFeedbackObjRef createTransformFeedbackObjImplSoftware();
 
 TransformFeedbackObjRef TransformFeedbackObj::create()
 {
-	if( ! glGenTransformFeedbacks || true ) {
+	if( ! glGenTransformFeedbacks ) {
 		return createTransformFeedbackObjImplSoftware();
 	}
 	else {

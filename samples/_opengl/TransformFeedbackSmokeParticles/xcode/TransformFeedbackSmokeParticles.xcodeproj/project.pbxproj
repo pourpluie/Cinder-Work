@@ -139,8 +139,8 @@
 			children = (
 				B39A4BF81884D6F8002A63AF /* renderSmoke.frag */,
 				B39A4BF91884D6F8002A63AF /* renderSmoke.vert */,
-				B39A4BFA1884D6F8002A63AF /* smoke_blur.png */,
 				B39A4BFB1884D6F8002A63AF /* updateSmoke.vert */,
+				B39A4BFA1884D6F8002A63AF /* smoke_blur.png */,
 				AF774889F2AC4362B5FEFB09 /* CinderApp.icns */,
 				0AD9BA38351541B991B40106 /* Info.plist */,
 			);

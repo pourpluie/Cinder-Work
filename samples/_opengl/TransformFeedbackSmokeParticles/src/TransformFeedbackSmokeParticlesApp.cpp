@@ -18,12 +18,6 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-enum WhichTranformFeedbackObj {
-	SOFTWARE = 0,
-	HARDWARE = 1,
-	SYSTEM = 2
-};
-
 const int nParticles = 4000;
 
 float mix( float x, float y, float a )
@@ -43,13 +37,14 @@ public:
 	void loadTexture();
 	
 private:
-	WhichTranformFeedbackObj			mFeedbackObjChoice;
-	Rand							mRand;
 	gl::VaoRef						mPVao[2];
-	gl::VboRef						mPPositions[2], mPVelocities[2], mPStartTimes[2], mPInitVelocity;
 	gl::TransformFeedbackObjRef		mPFeedbackObj[2];
+	gl::VboRef						mPPositions[2], mPVelocities[2], mPStartTimes[2], mPInitVelocity;
+	
 	gl::GlslProgRef					mPUpdateGlsl, mPRenderGlsl;
 	gl::TextureRef					mSmokeTexture;
+	
+	Rand							mRand;
 	CameraPersp						mCam;
 	TriMeshRef						mTrimesh;
 	uint32_t						mDrawBuff;
@@ -57,9 +52,6 @@ private:
 
 void TransformFeedbackSmokeParticlesApp::setup()
 {
-	// Change this to use different implementations throughout.
-	mFeedbackObjChoice = HARDWARE;
-	
 	mDrawBuff = 1;
 	
 	mCam.setPerspective( 60.0f, getWindowAspectRatio(), .01f, 1000.0f );
@@ -73,14 +65,14 @@ void TransformFeedbackSmokeParticlesApp::setup()
 void TransformFeedbackSmokeParticlesApp::loadTexture()
 {
 	gl::Texture::Format mTextureFormat;
-	mTextureFormat.magFilter( GL_LINEAR ).minFilter( GL_LINEAR_MIPMAP_LINEAR ).mipmap().internalFormat( GL_RGBA );
+	mTextureFormat.magFilter( GL_LINEAR ).minFilter( GL_LINEAR ).mipmap().internalFormat( GL_RGBA );
 	mSmokeTexture = gl::Texture::create( loadImage( loadAsset( "smoke_blur.png" ) ), mTextureFormat );
 }
 
 void TransformFeedbackSmokeParticlesApp::loadShaders()
 {
 	try {
-		std::vector<std::string> varyings({
+		std::vector<std::string> TransformFeedbackVaryings({
 			"Position",
 			"Velocity",
 			"StartTime"
@@ -88,8 +80,12 @@ void TransformFeedbackSmokeParticlesApp::loadShaders()
 		
 		ci::gl::GlslProg::Format mUpdateParticleGlslFormat;
 		mUpdateParticleGlslFormat.vertex( loadAsset( "updateSmoke.vert" ) )
-		.feedbackFormat( GL_SEPARATE_ATTRIBS )
-		.feedbackVaryings( varyings );
+			.feedbackFormat( GL_SEPARATE_ATTRIBS )
+			.feedbackVaryings( TransformFeedbackVaryings )
+			.attribLocation("VertexPosition", 0 )
+			.attribLocation( "VertexVelocity", 1 )
+			.attribLocation( "VertexStartTime", 2 )
+			.attribLocation( "VertexInitialVelocity", 3 );
 		
 		mPUpdateGlsl = ci::gl::GlslProg::create( mUpdateParticleGlslFormat );
 	}
@@ -104,7 +100,11 @@ void TransformFeedbackSmokeParticlesApp::loadShaders()
 	try {
 		ci::gl::GlslProg::Format mRenderParticleGlslFormat;
 		mRenderParticleGlslFormat.vertex( loadAsset( "renderSmoke.vert" ) )
-		.fragment( loadAsset( "renderSmoke.frag" ) );
+			.fragment( loadAsset( "renderSmoke.frag" ) )
+			.attribLocation("VertexPosition", 0 )
+			.attribLocation( "VertexVelocity", 1 )
+			.attribLocation( "VertexStartTime", 2 )
+			.attribLocation( "VertexInitialVelocity", 3 );
 		
 		mPRenderGlsl = ci::gl::GlslProg::create( mRenderParticleGlslFormat );
 	}
@@ -205,50 +205,20 @@ void TransformFeedbackSmokeParticlesApp::loadBuffers()
 	ci::gl::enableVertexAttribArray( 3 );
 	
 	// Creating the TransformFeedbackObj's
+	mPFeedbackObj[0] = gl::TransformFeedbackObj::create();
+	mPFeedbackObj[1] = gl::TransformFeedbackObj::create();
 	
-	switch ( mFeedbackObjChoice ) {
-		case HARDWARE: {
-			mPFeedbackObj[0] = gl::TransformFeedbackObj::create();
-			mPFeedbackObj[1] = gl::TransformFeedbackObj::create();
-			
-			mPFeedbackObj[0]->bind();
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[0] );
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[0] );
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[0] );
-			mPFeedbackObj[0]->unbind();
-			
-			mPFeedbackObj[1]->bind();
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[1] );
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[1] );
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[1] );
-			mPFeedbackObj[1]->unbind();
-		}
-			break;
-		case SOFTWARE: {
-			mPFeedbackObj[0] = gl::TransformFeedbackObj::create();
-			mPFeedbackObj[1] = gl::TransformFeedbackObj::create();
-			
-			mPFeedbackObj[0]->bind();
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[0] );
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[0] );
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[0] );
-			mPFeedbackObj[0]->unbind();
-			
-			mPFeedbackObj[1]->bind();
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[1] );
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[1] );
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[1] );
-			mPFeedbackObj[1]->unbind();
-		}
-			break;
-		case SYSTEM: {
-			// If we're using system we souldn't cache it here.
-			// We'd swap during the actual update method as you'll see below.
-		}
-			break;
-		default:
-			break;
-	}
+	mPFeedbackObj[0]->bind();
+	gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[0] );
+	gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[0] );
+	gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[0] );
+	mPFeedbackObj[0]->unbind();
+	
+	mPFeedbackObj[1]->bind();
+	gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[1] );
+	gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[1] );
+	gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[1] );
+	mPFeedbackObj[1]->unbind();
 }
 
 void TransformFeedbackSmokeParticlesApp::mouseDown( MouseEvent event )
@@ -265,21 +235,7 @@ void TransformFeedbackSmokeParticlesApp::update()
 	
 	mPUpdateGlsl->uniform( "Time", getElapsedFrames() / 60.0f );
 	
-	switch ( mFeedbackObjChoice ) {
-		case HARDWARE:
-			mPFeedbackObj[1-mDrawBuff]->bind();
-			break;
-		case SOFTWARE:
-			mPFeedbackObj[1-mDrawBuff]->bind();
-			break;
-		case SYSTEM:
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mPPositions[1-mDrawBuff] );
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mPVelocities[1-mDrawBuff] );
-			gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 2, mPStartTimes[1-mDrawBuff] );
-			break;
-		default:
-			break;
-	}
+	mPFeedbackObj[1-mDrawBuff]->bind();
 	
 	gl::beginTransformFeedback( GL_POINTS );
 	gl::drawArrays( GL_POINTS, 0, nParticles );
@@ -291,6 +247,8 @@ void TransformFeedbackSmokeParticlesApp::draw()
 {
 	// clear out the window with black
 	gl::clear( Color( 0, 0, 0 ) );
+	static float rotateRadians = 0.0f;
+	rotateRadians += 0.01f;
 	
 	gl::VaoScope mVaoScope( mPVao[1-mDrawBuff] );
 	gl::GlslProgScope mGlslScope( mPRenderGlsl );
@@ -300,6 +258,7 @@ void TransformFeedbackSmokeParticlesApp::draw()
 	
 	gl::pushMatrices();
 	gl::setMatrices( mCam );
+	gl::multModelView( Matrix44f::createRotation( Vec3f( 0, 1, 0 ), rotateRadians ) );
 	
 	mPRenderGlsl->uniform( "Time", getElapsedFrames() / 60.0f );
 	mPRenderGlsl->uniform( "projection", gl::getProjection() );

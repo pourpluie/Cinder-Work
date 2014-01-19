@@ -135,9 +135,9 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				B3A82AFD18884CF5006EC555 /* update.vert */,
 				B3A82AFC18884CF5006EC555 /* render.vert */,
 				B3A82AFB18884CF5006EC555 /* render.frag */,
+				B3A82AFD18884CF5006EC555 /* update.vert */,
 				AB7C452617944D36B78C548D /* CinderApp.icns */,
 				9DFC1473A4C5416181CCD078 /* Info.plist */,
 			);

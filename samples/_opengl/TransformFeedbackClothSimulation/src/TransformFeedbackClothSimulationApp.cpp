@@ -94,23 +94,22 @@ void TransformFeedbackClothSimulationApp::update()
 	gl::enable( GL_RASTERIZER_DISCARD );
 	
 	for( i = mIterationsPerFrame; i != 0; --i ) {
+		
 		if(mouseMoving) {
 			mUpdateGlsl->uniform("mouse_pos", currentMousePosition );
 			mouseMoving = false;
 		}
+		
 		mBuffers[mIterationIndex & 1].first->bind();
 		glBindTexture( GL_TEXTURE_BUFFER, mPosTbo[mIterationIndex & 1] );
+		
 		mIterationIndex++;
+		
 		mFeedbackObjs[mIterationIndex & 1]->bind();
-//		glBindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mBuffers[mIterationIndex & 1].second[POSITION]->getId() );
-//		glBindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 1, mBuffers[mIterationIndex & 1].second[VELOCITY]->getId() );
-//		glBeginTransformFeedback(GL_POINTS);
-//		glDrawArrays(GL_POINTS, 0, POINTS_TOTAL);
-//		glEndTransformFeedback();
+		
 		gl::beginTransformFeedback( GL_POINTS );
 		gl::drawArrays( GL_POINTS, 0, POINTS_TOTAL );
 		gl::endTransformFeedback();
-//		mFeedbackObjs[mIterationIndex & 1]->bind();
 	}
 	
 	gl::disable( GL_RASTERIZER_DISCARD );
@@ -142,7 +141,11 @@ void TransformFeedbackClothSimulationApp::loadShaders()
 	
 	gl::GlslProg::Format updateFormat;
 	updateFormat.vertex( loadAsset( "update.vert" ) )
-	.feedbackFormat( GL_SEPARATE_ATTRIBS ).feedbackVaryings( tf_varyings );
+	.feedbackFormat( GL_SEPARATE_ATTRIBS )
+		.feedbackVaryings( tf_varyings )
+		.attribLocation( "position_mass", 0 )
+		.attribLocation( "velocity", 1 )
+		.attribLocation( "connection", 2 );
 	
 	try {
 		if( mUpdateGlsl ) mUpdateGlsl.reset();
@@ -157,7 +160,8 @@ void TransformFeedbackClothSimulationApp::loadShaders()
 	
 	gl::GlslProg::Format renderFormat;
 	renderFormat.vertex( loadAsset( "render.vert" ) )
-	.fragment( loadAsset( "render.frag" ) );
+		.fragment( loadAsset( "render.frag" ) )
+		.attribLocation( "position", 0 );
 	
 	try {
 		if( mRenderGlsl ) mRenderGlsl.reset();

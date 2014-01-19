@@ -3,11 +3,11 @@
 
 // This input vector contains the vertex position in xyz, and the
 // mass of the vertex in w
-layout (location = 0) in vec4 position_mass;
+in vec4 position_mass;
 // This is the current velocity of the vertex
-layout (location = 1) in vec3 velocity;
+in vec3 velocity;
 // This is our connection vector
-layout (location = 2) in ivec4 connection;
+in ivec4 connection;
 
 // This is a TBO that will be bound to the same buffer as the
 // position_mass input attribute

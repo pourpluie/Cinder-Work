@@ -1,7 +1,7 @@
 #version 150 core
 #extension all : warn
 
-layout (location = 0) in vec3 position;
+in vec3 position;
 
 void main(void)
 {
