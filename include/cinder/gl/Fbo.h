@@ -35,7 +35,9 @@ namespace cinder { namespace gl {
 class Renderbuffer;
 typedef std::shared_ptr<Renderbuffer>	RenderbufferRef;
 class Fbo;
-typedef std::shared_ptr<Fbo>	FboRef;
+typedef std::shared_ptr<Fbo>			FboRef;
+class FboCubeMap;
+typedef std::shared_ptr<FboCubeMap>		FboCubeMapRef;
 
 //! Represents an OpenGL Renderbuffer, used primarily in conjunction with FBOs. Supported on OpenGL ES but multisampling is currently ignored. \ImplShared
 class Renderbuffer {
@@ -274,6 +276,41 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 	mutable bool		mNeedsResolve, mNeedsMipmapUpdate;
 	
 	static GLint		sMaxSamples, sMaxAttachments;
+};
+
+
+//! Helper class for implementing dynamic cube mapping
+class FboCubeMap : public Fbo {
+  public:
+	struct Format : private Fbo::Format {
+		// Default constructor. Enables a depth RenderBuffer and a color CubeMap
+		Format();
+		
+		//! Sets the TextureCubeMap format for the default CubeMap.
+		Format&						textureCubeMapFormat( const gl::TextureCubeMap::Format &format );
+		//! Returns the TextureCubeMap format for the default CubeMap.
+		gl::TextureCubeMap::Format	getTextureCubeMapFormat() const { return mTextureCubeMapFormat; }
+		
+		//! Disables both a depth Texture and a depth Buffer
+		Format&	disableDepth() { mDepthTexture = mDepthBuffer = false; return *this; }
+		
+	  protected:
+		gl::TextureCubeMap::Format	mTextureCubeMapFormat;
+		
+		friend class FboCubeMap;
+	};
+  
+	static FboCubeMapRef	create( int32_t faceWidth, int32_t faceHeight, const Format &format = Format() );
+	
+	//! Binds a face of the Fbo as the currently active framebuffer. \a faceTarget expects values in the \c GL_TEXTURE_CUBE_MAP_POSITIVE_X family.
+	void 	bindFramebufferFace( GLenum faceTarget, GLenum target = GL_FRAMEBUFFER, GLenum attachment = GL_COLOR_ATTACHMENT0 );
+	//! Returns the view matrix appropriate for a given face (in the \c GL_TEXTURE_CUBE_MAP_POSITIVE_X family) looking from the position \a eyePos
+	Matrix44f	calcViewMatrix( GLenum face, const Vec3f &eyePos );
+	
+  protected:
+	FboCubeMap( int32_t faceWidth, int32_t faceHeight, const Format &format, const TextureCubeMapRef &textureCubeMap );
+  
+	TextureCubeMapRef		mTextureCubeMap;
 };
 
 class FboException : public Exception {

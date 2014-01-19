@@ -33,6 +33,7 @@
 #include "cinder/gl/gl.h" // must be first
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Context.h"
+#include "cinder/Camera.h"
 
 using namespace std;
 
@@ -698,6 +699,54 @@ void Fbo::blitFromScreen( const Area &srcArea, const Area &dstArea, GLenum filte
 	glBlitFramebuffer( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
 }
 #endif
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FboCubeMap
+
+FboCubeMap::Format::Format()
+	: Fbo::Format()
+{
+	mTextureCubeMapFormat = gl::TextureCubeMap::Format().mipmap();
+}
+
+FboCubeMapRef FboCubeMap::create( int32_t faceWidth, int32_t faceHeight, const Format &format )
+{
+	// create and attach the cubeMap at GL_COLOR_ATTACHMENT0
+	auto textureCubeMap = gl::TextureCubeMap::create( faceWidth, faceHeight, format.getTextureCubeMapFormat() );
+	auto amendedFormat = format;
+	amendedFormat.attachment( GL_COLOR_ATTACHMENT0, textureCubeMap );
+	
+	return FboCubeMapRef( new FboCubeMap( faceWidth, faceHeight, amendedFormat, textureCubeMap ) );
+}
+
+FboCubeMap::FboCubeMap( int32_t faceWidth, int32_t faceHeight, const Format &format, const TextureCubeMapRef &textureCubeMap )
+	: Fbo( faceWidth, faceHeight, format ), mTextureCubeMap( textureCubeMap )
+{
+}
+
+void FboCubeMap::bindFramebufferFace( GLenum faceTarget, GLenum target, GLenum attachment )
+{
+	bindFramebuffer( target );
+	glFramebufferTexture2D( target, attachment, faceTarget, mTextureCubeMap->getId(), 0 );
+}
+
+Matrix44f FboCubeMap::calcViewMatrix( GLenum face, const Vec3f &eyePos )
+{
+	static const Vec3f viewDirs[6] = { Vec3f( 1, 0, 0 ), Vec3f( -1, 0, 0 ), Vec3f( 0, 1, 0 ), Vec3f( 0, -1, 0 ), Vec3f( 0, 0, 1 ), Vec3f( 0, 0, -1 ) };
+	if( face < GL_TEXTURE_CUBE_MAP_POSITIVE_X || face > GL_TEXTURE_CUBE_MAP_NEGATIVE_Z )
+		return Matrix44f();
+	
+	CameraPersp cam;
+	cam.lookAt( eyePos, eyePos + viewDirs[face - GL_TEXTURE_CUBE_MAP_POSITIVE_X] );
+	Matrix44f result;
+	// We need to rotate 180deg around Z for non-Y faces
+	if( face != GL_TEXTURE_CUBE_MAP_POSITIVE_Y && face != GL_TEXTURE_CUBE_MAP_NEGATIVE_Y )
+		result.rotate( Vec3f( 0, 0, 1 ), M_PI );
+	result *= cam.getModelViewMatrix();
+
+	
+	return result;
+}
 
 FboExceptionInvalidSpecification::FboExceptionInvalidSpecification( const string &message ) throw()
 	: FboException()
