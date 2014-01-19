@@ -36,8 +36,7 @@ class DynamicCubeMappingApp : public AppNative {
 	Matrix44f				mObjectRotation;
 	CameraPersp				mCam;
 	
-	gl::TextureCubeMapRef	mDynamicCubeMap;
-	gl::FboRef				mDynamicCubeMapFbo;
+	gl::FboCubeMapRef		mDynamicCubeMapFbo;
 	
 	std::vector<Satellite>	mSatellites;
 	gl::BatchRef			mSatelliteBatch;
@@ -65,9 +64,8 @@ void DynamicCubeMappingApp::setup()
 	
 	mObjectRotation.setToIdentity();
 
-	// build our dynamic CubeMap, which is really just an FBO
-	mDynamicCubeMap = gl::TextureCubeMap::create( 1024, 1024 );
-	mDynamicCubeMapFbo = gl::Fbo::create( 1024, 1024, gl::Fbo::Format().attachment( GL_COLOR_ATTACHMENT0, mDynamicCubeMap ) );
+	// build our dynamic CubeMap
+	mDynamicCubeMapFbo = gl::FboCubeMap::create( 1024, 1024 );
 
 	// setup satellites (orbiting spheres )
 	for( int i = 0; i < 33; ++i ) {
@@ -125,31 +123,22 @@ void DynamicCubeMappingApp::drawSkyBox()
 void DynamicCubeMappingApp::draw()
 {
 	gl::clear( Color( 0, 0, 0 ) );
-	gl::setMatrices( mCam );
 
 	gl::pushViewport( Vec2i( 0, 0 ), mDynamicCubeMapFbo->getSize() );
-	gl::pushMatrices();
-	gl::context()->pushFramebuffer( mDynamicCubeMapFbo );
-	Vec3f dirs[6] = { Vec3f( 1, 0, 0 ), Vec3f( -1, 0, 0 ), Vec3f( 0, 1, 0 ), Vec3f( 0, -1, 0 ), Vec3f( 0, 0, 1 ), Vec3f( 0, 0, -1 ) };
 	for( uint8_t dir = 0; dir < 6; ++dir ) {
-		ci::CameraPersp cam;
-		cam.lookAt( Vec3f::zero(), dirs[dir] );
-		cam.setPerspective( 90.0f, 1.0f, 1, 5000 );
-		gl::setModelView( Matrix44f() );
-		if( dir + GL_TEXTURE_CUBE_MAP_POSITIVE_X != GL_TEXTURE_CUBE_MAP_POSITIVE_Y && dir + GL_TEXTURE_CUBE_MAP_POSITIVE_X != GL_TEXTURE_CUBE_MAP_NEGATIVE_Y )
-			gl::rotate( 180, 0, 0, 1 );		
-		gl::setProjection( cam );
-		gl::multModelView( cam.getModelViewMatrix() );
-		glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + dir, mDynamicCubeMap->getId(), 0 );
-		gl::clear();
+		gl::setProjection( ci::CameraPersp( mDynamicCubeMapFbo->getWidth(), mDynamicCubeMapFbo->getHeight(), 90.0f, 1, 1000 ) );
+		gl::setModelView( mDynamicCubeMapFbo->calcViewMatrix( GL_TEXTURE_CUBE_MAP_POSITIVE_X + dir, Vec3f::zero() ) );
+		mDynamicCubeMapFbo->bindFramebufferFace( GL_TEXTURE_CUBE_MAP_POSITIVE_X + dir );
 		
+		gl::clear();
 		drawSatellites();
 		drawSkyBox();
 	}
+	gl::Fbo::unbindFramebuffer();
 	gl::popViewport();
-	gl::popMatrices();
-	gl::context()->popFramebuffer();
 
+
+	gl::setMatrices( mCam );
 	// now draw the full scene
 	drawSatellites();
 	drawSkyBox();	
