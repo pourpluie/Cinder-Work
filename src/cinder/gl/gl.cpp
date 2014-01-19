@@ -700,6 +700,9 @@ void bindBuffer( const BufferObjRef &buffer )
 GLenum toGl( geom::Primitive prim )
 {
 	switch( prim ) {
+		case geom::Primitive::LINES:
+			return GL_LINES;
+		break;
 		case geom::Primitive::TRIANGLES:
 			return GL_TRIANGLES;
 		break;
@@ -716,6 +719,9 @@ GLenum toGl( geom::Primitive prim )
 geom::Primitive toGeomPrimitive( GLenum prim )
 {
 	switch( prim ) {
+		case GL_LINES:
+			return geom::Primitive::LINES;
+		break;
 		case GL_TRIANGLES:
 			return geom::Primitive::TRIANGLES;
 		break;

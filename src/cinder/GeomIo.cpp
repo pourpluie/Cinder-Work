@@ -210,6 +210,7 @@ template<typename T>
 void copyIndexDataForceTrianglesImpl( Primitive primitive, const uint32_t *source, size_t numIndices, T *target )
 {
 	switch( primitive ) {
+		case Primitive::LINES:
 		case Primitive::TRIANGLES:
 			memcpy( target, source, sizeof(uint32_t) * numIndices );
 		break;

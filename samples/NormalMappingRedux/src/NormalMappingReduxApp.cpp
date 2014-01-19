@@ -41,6 +41,8 @@ http://www.cgtrader.com/3d-models/character-people/fantasy/the-leprechaun-the-go
 #include "cinder/Timer.h"
 #include "cinder/TriMesh.h"
 
+#include "DebugMesh.h"
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -57,7 +59,7 @@ public:
 	void	prepareSettings( Settings* settings );
 
 	void	setup();
-	void	shutdown();
+	//void	shutdown();
 
 	void	update();
 	void	draw();
@@ -93,7 +95,7 @@ private:
 
 	gl::GlslProgRef		mShader;
 	gl::VboMeshRef		mMesh;
-	//gl::VboMeshRef		mMeshDebug;
+	gl::VboMeshRef		mMeshDebug;
 
 	bool				bAutoRotate;
 	float				fAutoRotateAngle;
@@ -131,13 +133,13 @@ void NormalMappingReduxApp::setup()
 	mParams = params::InterfaceGl::create( getWindow(), "Normal Mapping Demo", Vec2i(300, 200) );
 	mParams->addParam( "Rotate Model", &bAutoRotate );
 	mParams->addParam( "Animate Light", &bAnimateLantern );
-	//mParams->addSeparator();
-	//mParams->addParam( "Show Normals & Tangents", &bShowNormalsAndTangents );
-	//mParams->addParam( "Show Normals", &bShowNormals );
+	mParams->addSeparator();
+	mParams->addParam( "Show Normals & Tangents", &bShowNormalsAndTangents );
+	mParams->addParam( "Show Normals", &bShowNormals );
 	mParams->addSeparator();
 	mParams->addParam( "Enable Diffuse Map", &bEnableDiffuseMap );
 	mParams->addParam( "Enable Specular Map", &bEnableSpecularMap );
-	//mParams->addParam( "Enable Normal Map", &bEnableNormalMap );
+	mParams->addParam( "Enable Normal Map", &bEnableNormalMap );
 	mParams->addParam( "Enable Emmisive Map", &bEnableEmmisiveMap );
 	mParams->setOptions( "", "valueswidth=fit" );
 
@@ -168,7 +170,7 @@ void NormalMappingReduxApp::setup()
 
 	bEnableDiffuseMap = true;
 	bEnableSpecularMap = false;
-	bEnableNormalMap = false;
+	bEnableNormalMap = true;
 	bEnableEmmisiveMap = true;
 
 	bShowNormalsAndTangents = false;
@@ -201,7 +203,7 @@ void NormalMappingReduxApp::setup()
 		mMesh = gl::VboMesh::create( mesh );
 		mMeshBounds = mesh.calcBoundingBox();
 
-		//mMeshDebug = createDebugMesh(mesh);
+		mMeshDebug = createDebugMesh(mesh);
 	}
 	catch( const std::exception& e ) {
 		console() << "Error loading asset: " << e.what() << std::endl;
@@ -218,7 +220,7 @@ void NormalMappingReduxApp::setup()
 	// keep track of time
 	fTime = (float) getElapsedSeconds();
 }
-
+/*
 void NormalMappingReduxApp::shutdown()
 {
 	// safely delete our lights
@@ -227,7 +229,7 @@ void NormalMappingReduxApp::shutdown()
 
 	mLightAmbient = mLightLantern = NULL;
 }
-
+*/
 void NormalMappingReduxApp::update()
 {
 	// keep track of time
@@ -306,13 +308,16 @@ void NormalMappingReduxApp::draw()
 		// unbind textures
 		gl::disable( mDiffuseMap->getTarget() );
 	
-		/*// render normals, tangents and bitangents if necessary
+		// render normals, tangents and bitangents if necessary
 		if(bShowNormalsAndTangents) {
+			gl::GlslProgRef shader = gl::context()->getStockShader( gl::ShaderDef().color() );
+			gl::GlslProgScope GlslProgScope( shader );
+
 			gl::pushModelView();
 			gl::multModelView( mMeshTransform );
 			gl::draw( mMeshDebug );
 			gl::popModelView();
-		}*/
+		}	//*/
 
 		// get ready to render in 2D again
 		gl::disableDepthWrite();
@@ -321,11 +326,11 @@ void NormalMappingReduxApp::draw()
 		gl::popMatrices();
 
 		// render our parameter window
-		//if(mParams)
-		//	mParams->draw();
+		if(mParams)
+			mParams->draw();
 
 		// render the copyright message
-		if(fOpacity.value() > 0.f)
+		//if(fOpacity.value() > 0.f)
 		{
 			Area centered = Area::proportionalFit( mCopyrightMap->getBounds(), getWindowBounds(), true, false );
 			centered.offset( Vec2i(0, (getWindowHeight() - centered.y2) - 20) );
@@ -389,51 +394,17 @@ TriMesh NormalMappingReduxApp::createMesh(const fs::path& mshFile)
 	return mesh;
 }
 
-/*gl::VboMeshRef NormalMappingReduxApp::createDebugMesh(const TriMesh& mesh)
+//
+gl::VboMeshRef NormalMappingReduxApp::createDebugMesh(const TriMesh& mesh)
 {
 	// create a debug mesh, showing normals, tangents and bitangents
-	size_t numVertices = mesh.getNumVertices();
+	DebugMesh source(mesh);
 
-	std::vector<Vec3f>		vertices;	vertices.reserve( numVertices * 4 );
-	std::vector<Color>		colors;		colors.reserve( numVertices * 4 );
-	std::vector<uint32_t>	indices;	indices.reserve( numVertices * 6 );
-
-	for(size_t i=0;i<numVertices;++i) {
-		uint32_t idx = vertices.size();
-
-		vertices.push_back( mesh.getVertices<3>()[i] );
-		vertices.push_back( mesh.getVertices<3>()[i] + mesh.getTangents()[i] );
-		vertices.push_back( mesh.getVertices<3>()[i] + mesh.getNormals()[i].cross(mesh.getTangents()[i]) );
-		vertices.push_back( mesh.getVertices<3>()[i] + mesh.getNormals()[i] );
-
-		colors.push_back( Color(0, 0, 0) );	// base vertices black
-		colors.push_back( Color(1, 0, 0) );	// tangents (along u-coordinate) red
-		colors.push_back( Color(0, 1, 0) ); // bitangents (along v-coordinate) green
-		colors.push_back( Color(0, 0, 1) ); // normals blue
-
-		indices.push_back( idx );
-		indices.push_back( idx + 1 );
-		indices.push_back( idx );
-		indices.push_back( idx + 2 );
-		indices.push_back( idx );
-		indices.push_back( idx + 3 );
-	}
-
-	//gl::VboMesh::Layout layout;
-	//layout.setStaticPositions();
-	//layout.setStaticColorsRGB();
-	//layout.setStaticIndices();
-	//
-	//gl::VboMeshRef result = gl::VboMesh::create( numVertices * 4, numVertices * 6, layout, GL_LINES );
-	//result->bufferPositions( vertices );
-	//result->bufferColorsRGB( colors );
-	//result->bufferIndices( indices );
-
-	gl::context()->getDefaultArrayVbo(
-	gl::VboMeshRef result = gl::VboMesh::create( numVertices * 4, numVertices * 6, GL_LINES, GL_UNSIGNED_SHORT );
+	// create a VBO from the mesh
+	gl::VboMeshRef result = gl::VboMesh::create( source );
 
 	return result;
-}*/
+}	//*/
 
 //auto renderOptions = RendererGl::Options().coreProfile(true);
 CINDER_APP_NATIVE( NormalMappingReduxApp, RendererGl() )

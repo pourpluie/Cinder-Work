@@ -258,10 +258,11 @@ GlslProg::AttribSemanticMap& GlslProg::getDefaultAttribNameToSemanticMap()
 	if( ! initialized ) {
 		sDefaultAttribNameToSemanticMap["ciPosition"] = geom::Attrib::POSITION;
 		sDefaultAttribNameToSemanticMap["ciNormal"] = geom::Attrib::NORMAL;
+		sDefaultAttribNameToSemanticMap["ciTangent"] = geom::Attrib::TANGENT;
 		sDefaultAttribNameToSemanticMap["ciTexCoord0"] = geom::Attrib::TEX_COORD_0;
 		sDefaultAttribNameToSemanticMap["ciTexCoord1"] = geom::Attrib::TEX_COORD_1;
 		sDefaultAttribNameToSemanticMap["ciTexCoord2"] = geom::Attrib::TEX_COORD_2;
-		sDefaultAttribNameToSemanticMap["ciTexCoord3"] = geom::Attrib::TEX_COORD_3;						
+		sDefaultAttribNameToSemanticMap["ciTexCoord3"] = geom::Attrib::TEX_COORD_3;
 		sDefaultAttribNameToSemanticMap["ciColor"] = geom::Attrib::COLOR;
 		sDefaultAttribNameToSemanticMap["ciBoneIndex"] = geom::Attrib::BONE_INDEX;
 		sDefaultAttribNameToSemanticMap["ciBoneWeight"] = geom::Attrib::BONE_WEIGHT;

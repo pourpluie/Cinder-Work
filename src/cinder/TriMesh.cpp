@@ -521,6 +521,8 @@ void TriMesh::recalculateTangents()
 		Vec3f tangent = mTangents[i];
 		mTangents[i] = (tangent - normal * normal.dot(tangent)).normalized();
 	}
+
+	mTangentsDims = 3;
 }
 
 /*TriMesh TriMesh::create( vector<uint32_t> &indices, const vector<ColorAf> &colors,

@@ -107,9 +107,11 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\DebugMesh.cpp" />
     <ClCompile Include="..\src\NormalMappingReduxApp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\DebugMesh.h" />
     <ClInclude Include="..\include\Resources.h" />
   </ItemGroup>
   <ItemGroup>
