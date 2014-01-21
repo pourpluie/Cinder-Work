@@ -225,11 +225,11 @@ GlslProg::GlslProg( const Format &format )
 	
 #if ! defined( CINDER_GLES )
 	if( ! format.getVaryings().empty() && format.getTransformFormat() > 0 ) {
-		const GLchar *varyings[format.getVaryings().size()];
+		unique_ptr<const GLchar *> varyings( new const GLchar*[format.getVaryings().size()] );
 		for( int i = 0; i < format.getVaryings().size(); ++i ) {
-			varyings[i] = format.getVaryings()[i].c_str();
+			varyings.get()[i] = format.getVaryings()[i].c_str();
 		}
-		glTransformFeedbackVaryings( mHandle, format.getVaryings().size(), varyings, format.getTransformFormat() );
+		glTransformFeedbackVaryings( mHandle, format.getVaryings().size(), varyings.get(), format.getTransformFormat() );
 	}
 #endif
 	
