@@ -86,7 +86,7 @@ class MouseEvent : public Event {
 #endif
 			};	
 			
-  private:
+  protected:
 	int				mInitiator;
 	int				mX, mY;
 	unsigned int	mModifiers;
