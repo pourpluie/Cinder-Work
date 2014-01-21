@@ -51,12 +51,14 @@ void BufferObj::bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *d
 	BufferScope bufferBind( mTarget, mId );
 	glBufferSubData( mTarget, offset, size, data );
 }
-	
+
+#if ! defined( CINDER_GLES )
 void BufferObj::getBufferSubData( GLintptr offset, GLsizeiptr size, GLvoid *data )
 {
 	BufferScope bufferBind( mTarget, mId );
 	glGetBufferSubData( mTarget, offset, size, data );
 }
+#endif
 
 void BufferObj::copyData( GLsizeiptr size, const GLvoid *data )
 {
