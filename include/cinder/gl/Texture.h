@@ -5,6 +5,7 @@
 #include "cinder/Surface.h"
 #include "cinder/Rect.h"
 #include "cinder/Stream.h"
+#include "cinder/Exception.h"
 
 #include <vector>
 #include <utility>
@@ -415,18 +416,19 @@ class SurfaceConstraintsGLTexture : public SurfaceConstraints
 	virtual int32_t				getRowBytes( int requestedWidth, const SurfaceChannelOrder &sco, int elementSize ) const { return requestedWidth * elementSize * sco.getPixelInc(); }
 };
 
-class TextureDataExc : public std::exception
-{
+class TextureDataExc : public Exception {
   public:	
-	TextureDataExc( const std::string &log ) throw();
-	virtual const char* what() const throw()
-	{
-		return mMessage;
-	}
+	TextureDataExc( const std::string &message ) : mMessage( message )	{}
+
+	virtual const char* what() const throw()	{ return mMessage.c_str(); }
 	
-  private:
-	char	mMessage[ 16001 ];
-	GLint	mShaderType;
+  protected:
+	std::string		mMessage;
+};
+
+class TextureResizeExc : public TextureDataExc {
+  public:
+	TextureResizeExc( const std::string &message, const Vec2i &updateSize, const Vec2i &textureSize );
 };
 
 	

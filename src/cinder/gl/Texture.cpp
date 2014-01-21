@@ -18,9 +18,6 @@ namespace cinder { namespace gl {
 class ImageSourceTexture;
 class ImageTargetTexture;
 
-TextureDataExc::TextureDataExc( const std::string &log ) throw()
-{ strncpy( mMessage, log.c_str(), 16000 ); }
-
 /////////////////////////////////////////////////////////////////////////////////
 // ImageTargetGLTexture
 template<typename T>
@@ -602,10 +599,9 @@ void Texture::update( const Surface &surface, int mipLevel )
 	GLenum type;
 	if( mipLevel == 0 ) {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
-		if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) ) {
-			throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
-		}
-	
+		if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) )
+			throw TextureResizeExc( "Invalid Texture::update() surface dimensions", surface.getSize(), getSize() );
+
 		TextureBindScope tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		glTexImage2D( mTarget, mipLevel, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, type, surface.getData() );
@@ -627,10 +623,9 @@ void Texture::update( const Surface32f &surface, int mipLevel )
 	GLenum type;
 	if( mipLevel == 0 ) {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
-		if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) ) {
-			throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
-		}
-		
+		if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) )
+			throw TextureResizeExc( "Invalid Texture::update() surface dimensions", surface.getSize(), getSize() );
+
 		TextureBindScope tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		// @TODO: type does not seem to be pulling out the right value..
@@ -673,10 +668,9 @@ void Texture::update( const Channel32f &channel, int mipLevel )
 {
 
 	if( mipLevel == 0 ) {
-		if( ( channel.getWidth() != getWidth() ) || ( channel.getHeight() != getHeight() ) ) {
-			throw TextureDataExc( "Invalid Texture::update() channel dimensions" );
-		}
-		
+		if( ( channel.getWidth() != getWidth() ) || ( channel.getHeight() != getHeight() ) )
+			throw TextureResizeExc( "Invalid Texture::update() channel dimensions", channel.getSize(), getSize() );
+
 		TextureBindScope tbs( mTarget, mTextureId );
 		glTexSubImage2D( mTarget, mipLevel, 0, 0, getWidth(), getHeight(), GL_LUMINANCE, GL_FLOAT, channel.getData() );
 	}
@@ -1027,8 +1021,8 @@ void Texture3d::update( const Surface &surface, int depth, int mipLevel )
 		
 	Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
 	if( surface.getSize() != mipMapSize )
-		throw TextureDataExc( "Invalid Texture::update() surface dimensions" );
-	
+		throw TextureResizeExc( "Invalid Texture::update() surface dimensions", surface.getSize(), mipMapSize );
+
 	TextureBindScope tbs( mTarget, mTextureId );
 	glTexSubImage3D( mTarget, mipLevel,
 		0, 0, depth, // offsets
@@ -1157,6 +1151,15 @@ template<typename T>
 ImageTargetGLTexture<T>::~ImageTargetGLTexture()
 {
 	delete [] mData;
+}
+
+
+TextureResizeExc::TextureResizeExc( const string &message, const Vec2i &updateSize, const Vec2i &textureSize )
+	 : TextureDataExc( "" )
+{
+	stringstream ss;
+	ss << message << ", update size: " << updateSize << ", texture size: " << textureSize << ")";
+	mMessage = ss.str();
 }
 
 } } // namespace cinder::gl
