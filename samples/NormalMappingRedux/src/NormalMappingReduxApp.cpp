@@ -54,6 +54,9 @@ struct LightSource
 };
 
 class NormalMappingReduxApp : public AppNative {
+	
+	typedef enum { NormalMap, LightingOnly, Glossy, Default } ViewMode;
+
 public:
 	void	prepareSettings( Settings* settings );
 
@@ -69,15 +72,17 @@ public:
 
 	void	keyDown( KeyEvent event );
 
-	bool	isInitialized() const { return (mDiffuseMap && mSpecularMap && mNormalMap && mCopyrightMap
-												&& mShader && /*mLightLantern && mLightAmbient &&*/ mMesh); }
+	bool	isInitialized() const {
+		return (mDiffuseMap && mSpecularMap && mNormalMap && mCopyrightMap && mShader && mMesh);
+	}
 
 private:
+	/* Load the mesh and calculate normals and tangents if necessary. */
 	TriMesh			createMesh(const fs::path& mshFile);
+	/* Construct a mesh to visualize normals (blue), tangents (red) and bi-tangents (green). */
 	gl::VboMeshRef	createDebugMesh(const TriMesh& mesh);
 
 private:
-	typedef enum { Default, Glossy, NormalMap, LightingOnly } ViewMode;
 	ViewMode			mViewMode;
 
 	Matrix44f			mMeshTransform;
@@ -86,8 +91,8 @@ private:
 	CameraPersp			mCamera;
 	MayaCamUI			mMayaCamera;
 
-	LightSource*		mLightLantern;
-	LightSource*		mLightAmbient;
+	LightSource			mLightLantern;
+	LightSource			mLightAmbient;
 
 	gl::TextureRef		mCopyrightMap;
 	gl::TextureRef		mDiffuseMap;
@@ -119,28 +124,22 @@ void NormalMappingReduxApp::prepareSettings(Settings* settings)
 	settings->disableFrameRate();
 
 	settings->setWindowSize( 1024, 768 );
-	settings->setTitle( "OpenGL 3+ Normal Mapping Demo" );
-
-	// make sure our pointers are invalid
-	mLightLantern = NULL;
-	mLightAmbient = NULL;
+	settings->setTitle( "OpenGL Core Profile - Normal Mapping Demo" );
 }
 
 void NormalMappingReduxApp::setup()
 {
 	// setup camera and lights
-	mCamera.setEyePoint( Vec3f( 0.2f, 0.4f, 1.0f ) );
-	mCamera.setCenterOfInterestPoint( Vec3f(0.0f, 0.5f, 0.0f) );
+	mCamera.setEyePoint( Vec3f( 0.2f, 0.4f, 2.0f ) );
+	mCamera.setCenterOfInterestPoint( Vec3f(0.0f, 0.45f, 0.0f) );
 	mCamera.setNearClip( 0.01f );
 	mCamera.setFarClip( 100.0f );
 
-	mLightLantern = new LightSource;
-	mLightLantern->diffuse = Color(0.9f, 0.6f, 0.3f);
-	mLightLantern->specular = Color(0.9f, 0.6f, 0.3f);
+	mLightLantern.diffuse = Color(0.9f, 0.6f, 0.3f);
+	mLightLantern.specular = Color(0.9f, 0.6f, 0.3f);
 
-	mLightAmbient = new LightSource;
-	mLightAmbient->diffuse = Color(0.2f, 0.6f, 1.0f);
-	mLightAmbient->specular = Color(0.2f, 0.2f, 0.2f);
+	mLightAmbient.diffuse = Color(0.2f, 0.6f, 1.0f);
+	mLightAmbient.specular = Color(0.2f, 0.2f, 0.2f);
 
 	// setup perlin noise to easily animate our lantern light source
 	mPerlin = Perlin(4, 65535);
@@ -169,8 +168,18 @@ void NormalMappingReduxApp::setup()
 		mNormalMap = gl::Texture::create( loadImage( loadAsset("leprechaun_normal.jpg") ) );
 		mEmmisiveMap = gl::Texture::create( loadImage( loadAsset("leprechaun_emmisive.png") ) );
 
-		// load our shader
+		// load our shader and set the non-varying uniforms
 		mShader = gl::GlslProg::create( loadAsset("normal_mapping_vert.glsl"), loadAsset("normal_mapping_frag.glsl") );
+
+		mShader->uniform( "uDiffuseMap", 0 );
+		mShader->uniform( "uSpecularMap", 1 );
+		mShader->uniform( "uNormalMap", 2 );
+		mShader->uniform( "uEmmisiveMap", 3 );
+		mShader->uniform( "uLights[0].diffuse", mLightLantern.diffuse );
+		mShader->uniform( "uLights[0].specular", mLightLantern.specular );
+		mShader->uniform( "uLights[1].diffuse", mLightAmbient.diffuse );
+		mShader->uniform( "uLights[1].specular", mLightAmbient.specular );
+		mShader->uniform( "uNumOfLights", 2 );
 	}
 	catch( const std::exception& e ) {
 		console() << "Error loading asset: " << e.what() << std::endl;
@@ -201,12 +210,12 @@ void NormalMappingReduxApp::setup()
 
 	// create a parameter window, so we can toggle stuff
 	std::vector<std::string> viewmodes;
-	viewmodes.push_back("Final Render");
-	viewmodes.push_back("Glossy Render");
 	viewmodes.push_back("Calculated Normals");
-	viewmodes.push_back("Lighting Only");
+	viewmodes.push_back("Lighting Only     ");
+	viewmodes.push_back("Glossy Render     ");
+	viewmodes.push_back("Final Render      ");
 
-	mParams = params::InterfaceGl::create( getWindow(), "Normal Mapping Demo", Vec2i(300, 200) );
+	mParams = params::InterfaceGl::create( getWindow(), "Normal Mapping Demo", Vec2i(340, 150) );
 	mParams->addParam( "Rotate Model", &bAutoRotate );
 	mParams->addParam( "Animate Light", &bAnimateLantern );
 	mParams->addSeparator();
@@ -224,11 +233,6 @@ void NormalMappingReduxApp::setup()
 
 void NormalMappingReduxApp::shutdown()
 {
-	// safely delete our lights
-	if(mLightAmbient) delete mLightAmbient;
-	if(mLightLantern) delete mLightLantern;
-
-	mLightAmbient = mLightLantern = NULL;
 }
 
 void NormalMappingReduxApp::update()
@@ -246,31 +250,23 @@ void NormalMappingReduxApp::update()
 		mMeshTransform.scale( Vec3f::one() / mMeshBounds.getSize().y );
 	}
 
-	// position our lights
+	// position our lights (in eye space)
 	Vec3f lanternPositionOS = Vec3f(12.5f, 30.0f, 12.5f);
 	if(bAnimateLantern) 
 		lanternPositionOS += mPerlin.dfBm( Vec3f( 0.0f, 0.0f, fTime ) ) * 5.0f;
 	Vec3f lanternPositionWS = mMeshTransform.transformPointAffine( lanternPositionOS );
-	mLightLantern->position = mCamera.getModelViewMatrix().transformPointAffine( lanternPositionWS );
-	mLightAmbient->position = Vec4f::zero(); // camera position in eye space
+	mLightLantern.position = mCamera.getModelViewMatrix().transformPointAffine( lanternPositionWS );
+	mLightAmbient.position = Vec4f::zero();
 
-	mShader->uniform( "uDiffuseMap", 0 );
-	mShader->uniform( "uSpecularMap", 1 );
-	mShader->uniform( "uNormalMap", 2 );
-	mShader->uniform( "uEmmisiveMap", 3 );
+	// set the varying shader uniforms
 	mShader->uniform( "bShowNormals", mViewMode == ViewMode::NormalMap );
 	mShader->uniform( "bUseDiffuseMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::Glossy) );
 	mShader->uniform( "bUseSpecularMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::LightingOnly) );
 	mShader->uniform( "bUseNormalMap", bEnableNormalMap );
 	mShader->uniform( "bUseEmmisiveMap", mViewMode == ViewMode::Default );
 
-	mShader->uniform( "uLights[0].position", mLightLantern->position );
-	mShader->uniform( "uLights[0].diffuse", mLightLantern->diffuse );
-	mShader->uniform( "uLights[0].specular", mLightLantern->specular );
-	mShader->uniform( "uLights[1].position", mLightAmbient->position );
-	mShader->uniform( "uLights[1].diffuse", mLightAmbient->diffuse );
-	mShader->uniform( "uLights[1].specular", mLightAmbient->specular );
-	mShader->uniform( "uNumOfLights", 2 );
+	mShader->uniform( "uLights[0].position", mLightLantern.position );
+	mShader->uniform( "uLights[1].position", mLightAmbient.position );
 }
 
 void NormalMappingReduxApp::draw()
@@ -296,6 +292,7 @@ void NormalMappingReduxApp::draw()
 
 		// render our model
 		{
+			// use our own normal mapping shader for this scope
 			gl::GlslProgScope GlslProgScope( mShader );
 	
 			gl::pushModelView();
@@ -306,8 +303,8 @@ void NormalMappingReduxApp::draw()
 	
 		// render normals, tangents and bitangents if necessary
 		if(bShowNormalsAndTangents) {
-			gl::GlslProgRef shader = gl::context()->getStockShader( gl::ShaderDef().color() );
-			gl::GlslProgScope GlslProgScope( shader );
+			// use a default shader for this scope
+			gl::GlslProgScope GlslProgScope( gl::context()->getStockShader( gl::ShaderDef().color() ) );
 
 			gl::pushModelView();
 			gl::multModelView( mMeshTransform );

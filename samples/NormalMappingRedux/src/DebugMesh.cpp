@@ -57,12 +57,15 @@ void DebugMesh::setMesh(const TriMesh& mesh)
 {
 	clear();
 
+	// check if mesh is valid and count vertices
 	if(!mesh.hasNormals())
 		return;
 
-	// create a debug mesh, showing normals, tangents and bitangents
 	size_t numVertices = mesh.getNumVertices();
+	if(numVertices < 1)
+		return;
 
+	// reserve memory to prevent reallocations
 	bool hasTangents = mesh.hasTangents();
 	size_t numVerticesPerVertex = hasTangents ? 4 : 2;
 	size_t numIndicesPerVertex = hasTangents ? 6 : 2;
@@ -71,23 +74,29 @@ void DebugMesh::setMesh(const TriMesh& mesh)
 	mColors.reserve( numVertices * numVerticesPerVertex );
 	mIndices.reserve( numVertices * numIndicesPerVertex );
 
+	// determine the right scale, based on the bounding box
+	AxisAlignedBox3f bbox = mesh.calcBoundingBox();
+	Vec3f size = bbox.getMax() - bbox.getMin();
+	float scale = math<float>::max( math<float>::max( float(size.x), float(size.y) ), float(size.z) ) / 100.0f;
+
+	// construct mesh
 	for(size_t i=0;i<numVertices;++i) {
 		uint32_t idx = mVertices.size();
 
 		mVertices.push_back( mesh.getVertices<3>()[i] );
-		mVertices.push_back( mesh.getVertices<3>()[i] + mesh.getNormals()[i] );
+		mVertices.push_back( mesh.getVertices<3>()[i] + scale * mesh.getNormals()[i] );
 		if(hasTangents)
 		{
-			mVertices.push_back( mesh.getVertices<3>()[i] + mesh.getTangents()[i] );
-			mVertices.push_back( mesh.getVertices<3>()[i] + mesh.getNormals()[i].cross(mesh.getTangents()[i]) );
+			mVertices.push_back( mesh.getVertices<3>()[i] + scale * mesh.getTangents()[i] );
+			mVertices.push_back( mesh.getVertices<3>()[i] + scale * mesh.getNormals()[i].cross(mesh.getTangents()[i]) );
 		}
 
-		mColors.push_back( Color(0, 0, 0) );	// base vertices black
-		mColors.push_back( Color(0, 0, 1) );	// normals blue
+		mColors.push_back( Color(0, 0, 0) );
+		mColors.push_back( Color(0, 0, 1) );
 		if(hasTangents)
 		{
-			mColors.push_back( Color(1, 0, 0) );	// tangents (along u-coordinate) red
-			mColors.push_back( Color(0, 1, 0) );	// bitangents (along v-coordinate) green
+			mColors.push_back( Color(1, 0, 0) );
+			mColors.push_back( Color(0, 1, 0) );
 		}
 
 		mIndices.push_back( idx );

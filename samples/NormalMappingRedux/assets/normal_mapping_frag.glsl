@@ -1,5 +1,28 @@
 #version 150
 
+// inputs passed from the vertex shader
+in vec4				vVertex;
+in vec3				vNormal;
+in vec3				vTangent;
+in vec3				vBiTangent;
+in vec2				vTexCoord0;
+
+// output a single color
+out vec4			oColor;
+
+// textures and settings
+uniform	sampler2D	uDiffuseMap;
+uniform	sampler2D	uSpecularMap;
+uniform	sampler2D	uNormalMap;
+uniform	sampler2D	uEmmisiveMap;
+
+uniform bool		bShowNormals;
+uniform bool		bUseDiffuseMap;
+uniform bool		bUseSpecularMap;
+uniform bool		bUseNormalMap;
+uniform bool		bUseEmmisiveMap;
+
+// light source information
 #define MAX_NUM_LIGHTS 16
 
 struct LightSource
@@ -9,40 +32,22 @@ struct LightSource
 	vec4 specular;
 };
 
-in vec4				vVertex;
-in vec3				vNormal;
-in vec3				vTangent;
-in vec3				vBiTangent;
-in vec2				vTexCoord0;
-
-uniform	sampler2D	uDiffuseMap;
-uniform	sampler2D	uSpecularMap;
-uniform	sampler2D	uNormalMap;
-uniform	sampler2D	uEmmisiveMap;
-
-uniform bool		bShowNormals;
-
-uniform bool		bUseDiffuseMap;
-uniform bool		bUseSpecularMap;
-uniform bool		bUseNormalMap;
-uniform bool		bUseEmmisiveMap;
-
 uniform LightSource	uLights[MAX_NUM_LIGHTS];
 uniform int			uNumOfLights;
 
-out vec4			oColor;
-
 void main()
 {
-	// fetch the normal from the normal map and modify it using the normal (and tangents) from the 3D mesh
+	// fetch the normal from the normal map
 	vec3	vMappedNormal = texture2D(uNormalMap, vTexCoord0.st).rgb * 2.0 - 1.0;
-	vec3	vSurfaceNormal = bUseNormalMap ? normalize((vTangent * vMappedNormal.x) + (vBiTangent * vMappedNormal.y) + (vNormal * vMappedNormal.z)) : vNormal;
- 
-	vec3	vToCamera = normalize(-vVertex.xyz); 
 
+	// modify it using the normal & tangents from the 3D mesh (normal mapping)
+	vec3	vSurfaceNormal = bUseNormalMap ? normalize((vTangent * vMappedNormal.x) + (vBiTangent * vMappedNormal.y) + (vNormal * vMappedNormal.z)) : vNormal;
+  
 	// apply each of our light sources
 	vec4	vDiffuseColor	= bUseEmmisiveMap ? texture2D(uEmmisiveMap, vTexCoord0.st) : vec4(0, 0, 0, 1);
 	vec4	vSpecularColor	= vec4(0, 0, 0, 1);
+
+	vec3	vToCamera = normalize(-vVertex.xyz);
 
 	for(int i=0; i<uNumOfLights; ++i)
 	{
