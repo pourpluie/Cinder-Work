@@ -18,9 +18,6 @@ namespace cinder { namespace gl {
 class ImageSourceTexture;
 class ImageTargetTexture;
 
-TextureDataExc::TextureDataExc( const std::string &log ) throw()
-{ strncpy( mMessage, log.c_str(), 16000 ); }
-
 /////////////////////////////////////////////////////////////////////////////////
 // ImageTargetGLTexture
 template<typename T>
