@@ -497,6 +497,33 @@ void end()
 	}
 }
 
+#if ! defined( CINDER_GLES )
+void bindBufferBase( GLenum target, int index, BufferObjRef buffer )
+{
+	gl::context()->bindBufferBase( target, index, buffer );
+}
+	
+void beginTransformFeedback( GLenum primitiveMode )
+{
+	gl::context()->beginTransformFeedback( primitiveMode );
+}
+
+void pauseTransformFeedback()
+{
+	gl::context()->pauseTransformFeedback();
+}
+
+void resumeTransformFeedback()
+{
+	gl::context()->resumeTransformFeedback();
+}
+
+void endTransformFeedback()
+{
+	gl::context()->endTransformFeedback();
+}
+#endif
+
 void color( float r, float g, float b )
 {
 	auto ctx = gl::context();

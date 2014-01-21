@@ -5,6 +5,7 @@
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
+#include "cinder/gl/TransformFeedbackObj.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Batch.h"
 #include "cinder/Utilities.h"
@@ -39,7 +40,8 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	: mPlatformData( platformData ),
 	mColor( ColorAf::white() )
 #if ! defined( CINDER_GLES )
-	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL )
+	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL ),
+	mCachedTransformFeedbackObj( nullptr )
 #endif
 {
 	// setup default VAO
@@ -391,6 +393,88 @@ void Context::invalidateBufferBindingCache( GLenum target )
 	else if( ! mBufferBindingStack[target].empty() )
 		mBufferBindingStack[target].back() = -1;
 }
+	
+#if ! defined( CINDER_GLES )
+void Context::bindBufferBase( GLenum target, int index, const BufferObjRef &buffer )
+{
+	switch (target) {
+		case GL_TRANSFORM_FEEDBACK_BUFFER: {
+			if( mCachedTransformFeedbackObj ) {
+				mCachedTransformFeedbackObj->setIndex( index, buffer );
+			}
+			else {
+				glBindBufferBase( target, index, buffer->getId() );
+			}
+		}
+		break;
+		case GL_UNIFORM_BUFFER: {
+			// Soon to implement
+		}
+		break;
+		default:
+		break;
+	}
+}
+	
+//////////////////////////////////////////////////////////////////
+// TransformFeedbackObj
+void Context::bindTransformFeedbackObj( const TransformFeedbackObjRef &feedbackObj )
+{
+	if( feedbackObj != mCachedTransformFeedbackObj ) {
+		if( mCachedTransformFeedbackObj )
+			mCachedTransformFeedbackObj->unbindImpl( this );
+		if( feedbackObj )
+			feedbackObj->bindImpl( this );
+		
+		mCachedTransformFeedbackObj = feedbackObj;
+	}
+}
+
+TransformFeedbackObjRef Context::transformFeedbackObjGet()
+{
+	return mCachedTransformFeedbackObj;
+}
+	
+void Context::beginTransformFeedback( GLenum primitiveMode )
+{
+	if( mCachedTransformFeedbackObj ) {
+		mCachedTransformFeedbackObj->begin( primitiveMode );
+	}
+	else {
+		glBeginTransformFeedback( primitiveMode );
+	}
+}
+
+void Context::pauseTransformFeedback()
+{
+	if( mCachedTransformFeedbackObj ) {
+		mCachedTransformFeedbackObj->pause();
+	}
+	else {
+		glPauseTransformFeedback();
+	}
+}
+
+void Context::resumeTransformFeedback()
+{
+	if( mCachedTransformFeedbackObj ) {
+		mCachedTransformFeedbackObj->resume();
+	}
+	else {
+		glResumeTransformFeedback();
+	}
+}
+
+void Context::endTransformFeedback()
+{
+	if( mCachedTransformFeedbackObj ) {
+		mCachedTransformFeedbackObj->end();
+	}
+	else {
+		glEndTransformFeedback();
+	}
+}
+#endif
 
 //////////////////////////////////////////////////////////////////
 // Shader

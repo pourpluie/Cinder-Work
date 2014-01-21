@@ -21,6 +21,10 @@ class Vao;
 typedef std::shared_ptr<Vao>			VaoRef;
 class BufferObj;
 typedef std::shared_ptr<BufferObj>		BufferObjRef;
+#if ! defined( CINDER_GLES )
+class TransformFeedbackObj;
+typedef std::shared_ptr<TransformFeedbackObj>	TransformFeedbackObjRef;
+#endif
 class Texture;
 typedef std::shared_ptr<Texture>		TextureRef;
 class GlslProg;
@@ -120,6 +124,24 @@ class Context {
 	void			popGlslProg();
 	//! Returns the currently bound GlslProg
 	GlslProgRef		getGlslProg();
+	
+#if ! defined( CINDER_GLES )
+	//! Binds \a ref to the specific \a index within \a target.
+	void bindBufferBase( GLenum target, int index, const BufferObjRef &ref );
+
+	//! Binds \a feedbackObj as the current Transform Feedback Object. Also, unbinds currently bound Transform Feedback Obj if one exists.
+	void bindTransformFeedbackObj( const TransformFeedbackObjRef &feedbackObj );
+	//! Calls the currently bound Transform Feedback Object's begin method. Alternatively, if mCachedTransformFeedbackObj is null, this method calls glBeginTransformFeedback.
+	void beginTransformFeedback( GLenum primitiveMode );
+	//! Calls the currently bound Transform Feedback Object's pause method. Alternatively, if mCachedTransformFeedbackObj is null, this method calls glPauseTransformFeedback.
+	void pauseTransformFeedback();
+	//! Calls the currently bound Transform Feedback Object's resume method. Alternatively, if mCachedTransformFeedbackObj is null, this method calls glResumeTransformFeedback.
+	void resumeTransformFeedback();
+	//! Calls the currently bound Transform Feedback Object's end method. Alternatively, if mCachedTransformFeedbackObj is null, this method calls glEndTransformFeedback.
+	void endTransformFeedback();
+	//! Returns mCachedTransformFeedbackObj.
+	TransformFeedbackObjRef transformFeedbackObjGet();
+#endif
 
 	//! Analogous to glBindTexture( \a target, \a textureId )
 	void		bindTexture( GLenum target, GLuint textureId );
@@ -265,7 +287,11 @@ class Context {
 	std::map<GLenum,std::vector<int>>	mBufferBindingStack;
 	std::vector<GlslProgRef>			mGlslProgStack;
 	std::vector<VaoRef>					mVaoStack;
-
+	
+#if ! defined( CINDER_GLES )
+	TransformFeedbackObjRef				mCachedTransformFeedbackObj;
+#endif
+	
 	// Blend state stacks
 	std::vector<GLint>					mBlendSrcRgbStack, mBlendDstRgbStack;
 	std::vector<GLint>					mBlendSrcAlphaStack, mBlendDstAlphaStack;

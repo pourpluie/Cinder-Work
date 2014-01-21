@@ -64,6 +64,10 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		Format&		geometry( const DataSourceRef &dataSource );
 		//! Supplies the GLSL source for the geometry shader
 		Format&		geometry( const char *geometryShader );
+		//! Sets the TransformFeedback varyings
+		Format&		feedbackVaryings( const std::vector<std::string>& varyings ) { mTransformVaryings = varyings; return *this; }
+		//! Sets the TransformFeedback format
+		Format&		feedbackFormat( GLenum format ) { mTransformFormat = format; return *this; }
 #endif
 		
 		//! Specifies an attribute name to map to a specific semantic
@@ -83,6 +87,9 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 #if ! defined( CINDER_GLES )
 		//! Returns the GLSL source for the geometry shader
 		const char*	getGeometry() const { return mGeometryShader.get(); }
+		const std::vector<std::string>&  getVaryings() const { return mTransformVaryings; }
+		//! Returns the TransFormFeedback format
+		GLenum			getTransformFormat() const { return mTransformFormat; }
 #endif
 
 		//! Returns the map between uniform semantics and uniform names
@@ -100,6 +107,8 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		std::unique_ptr<char>					mFragmentShader;
 #if ! defined( CINDER_GLES )
 		std::unique_ptr<char>					mGeometryShader;
+		GLenum									mTransformFormat;
+		std::vector<std::string>				mTransformVaryings;
 #endif
 		std::map<std::string,GLint>				mAttribNameLocMap;
 		std::map<geom::Attrib,GLint>			mAttribSemanticLocMap;

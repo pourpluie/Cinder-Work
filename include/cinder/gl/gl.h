@@ -163,6 +163,15 @@ inline void translate( float x, float y ) { translate( Vec3f( x, y, 0 ) ); }
 void begin( GLenum mode );
 void end();
 
+#if ! defined( CINDER_GLES )
+void bindBufferBase( GLenum target, int index, BufferObjRef buffer );
+	
+void beginTransformFeedback( GLenum primitiveMode );
+void endTransformFeedback();
+void resumeTransformFeedback();
+void pauseTransformFeedback();	
+#endif
+	
 void color( float r, float g, float b );
 void color( float r, float g, float b, float a );
 void color( const ci::Color &c );

@@ -749,6 +749,9 @@
 		43F78EF81516DAE200EB63B5 /* Json.h in Headers */ = {isa = PBXBuildFile; fileRef = 43F78EF51516DAE200EB63B5 /* Json.h */; };
 		5391FD680E957646002A13D5 /* KeyEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 5391FD670E957646002A13D5 /* KeyEvent.h */; };
 		5391FE660E95CB01002A13D5 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0867D6A5FE840307C02AAC07 /* AppKit.framework */; };
+		B39A4BF31884CCD4002A63AF /* TransformFeedbackObj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B39A4BF21884CCD4002A63AF /* TransformFeedbackObj.cpp */; };
+		B39A4BF51884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B39A4BF41884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp */; };
+		B39A4BF71884CE56002A63AF /* TransformFeedbackObjImplHardware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B39A4BF61884CE56002A63AF /* TransformFeedbackObjImplHardware.cpp */; };
 		C70E19FF106AA38700E63577 /* Buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = C70E19FE106AA38700E63577 /* Buffer.h */; };
 		C70E1A03106AA39D00E63577 /* Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C70E1A01106AA39D00E63577 /* Buffer.cpp */; };
 		C727BFE5121B3AE600192073 /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007438400EA7924F005DD3E6 /* Capture.cpp */; };
@@ -1110,6 +1113,10 @@
 		43F78EF11516DAB700EB63B5 /* Json.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Json.cpp; sourceTree = "<group>"; };
 		43F78EF51516DAE200EB63B5 /* Json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Json.h; sourceTree = "<group>"; };
 		5391FD670E957646002A13D5 /* KeyEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeyEvent.h; path = app/KeyEvent.h; sourceTree = "<group>"; };
+		B39A4BF11884CC23002A63AF /* TransformFeedbackObj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TransformFeedbackObj.h; path = gl/TransformFeedbackObj.h; sourceTree = "<group>"; };
+		B39A4BF21884CCD4002A63AF /* TransformFeedbackObj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformFeedbackObj.cpp; path = gl/TransformFeedbackObj.cpp; sourceTree = "<group>"; };
+		B39A4BF41884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformFeedbackObjImplSoftware.cpp; path = gl/TransformFeedbackObjImplSoftware.cpp; sourceTree = "<group>"; };
+		B39A4BF61884CE56002A63AF /* TransformFeedbackObjImplHardware.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TransformFeedbackObjImplHardware.cpp; sourceTree = "<group>"; };
 		C70E19FE106AA38700E63577 /* Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Buffer.h; sourceTree = "<group>"; };
 		C70E1A01106AA39D00E63577 /* Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Buffer.cpp; sourceTree = "<group>"; };
 		C7792FAE119A185000521786 /* CocoaCaConverter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CocoaCaConverter.cpp; sourceTree = "<group>"; };
@@ -1660,6 +1667,7 @@
 				00A06FBC1760EFC500D8BE17 /* Vao.h */,
 				00A06FBD1760EFC500D8BE17 /* Vbo.h */,
 				00A06FBE1760EFC500D8BE17 /* VboMesh.h */,
+				B39A4BF11884CC23002A63AF /* TransformFeedbackObj.h */,
 			);
 			name = gl;
 			sourceTree = "<group>";
@@ -1686,6 +1694,9 @@
 				00A06F7D1760EFAD00D8BE17 /* Vbo.cpp */,
 				00A06F7E1760EFAD00D8BE17 /* VboMesh.cpp */,
 				0087340C17958FBA00BC2063 /* Batch.cpp */,
+				B39A4BF21884CCD4002A63AF /* TransformFeedbackObj.cpp */,
+				B39A4BF41884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp */,
+				B39A4BF61884CE56002A63AF /* TransformFeedbackObjImplHardware.cpp */,
 			);
 			name = gl;
 			sourceTree = "<group>";
@@ -2594,6 +2605,7 @@
 				007B09740E9559960052257E /* Rand.cpp in Sources */,
 				007B09840E957B9A0052257E /* KeyEvent.cpp in Sources */,
 				003832E40E9C04AD00ACB120 /* Stream.cpp in Sources */,
+				B39A4BF71884CE56002A63AF /* TransformFeedbackObjImplHardware.cpp in Sources */,
 				007438420EA7924F005DD3E6 /* Capture.cpp in Sources */,
 				00D23A540EAEB4C00002BF91 /* Color.cpp in Sources */,
 				009EEF1A0EB79C89003AB86B /* Rect.cpp in Sources */,
@@ -2675,6 +2687,7 @@
 				00A121F01362778200081873 /* TimelineItem.cpp in Sources */,
 				00A121F11362778200081873 /* Tween.cpp in Sources */,
 				005C0CED14CBB47500A12CD2 /* Base64.cpp in Sources */,
+				B39A4BF31884CCD4002A63AF /* TransformFeedbackObj.cpp in Sources */,
 				004172FF14C9BE760070C0D1 /* Frustum.cpp in Sources */,
 				0041730314C9BE8E0070C0D1 /* Plane.cpp in Sources */,
 				43F78EF21516DAB700EB63B5 /* Json.cpp in Sources */,
@@ -2695,6 +2708,7 @@
 				00611D6E174AD7F800BE54C2 /* RendererGl.cpp in Sources */,
 				00A06F7F1760EFAD00D8BE17 /* BufferObj.cpp in Sources */,
 				00A06F821760EFAD00D8BE17 /* Context.cpp in Sources */,
+				B39A4BF51884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp in Sources */,
 				00A06F851760EFAD00D8BE17 /* Environment.cpp in Sources */,
 				00A06F881760EFAD00D8BE17 /* Fbo.cpp in Sources */,
 				00A06F8E1760EFAD00D8BE17 /* gl.cpp in Sources */,
