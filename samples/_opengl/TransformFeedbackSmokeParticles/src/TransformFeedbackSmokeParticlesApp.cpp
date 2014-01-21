@@ -26,7 +26,7 @@ float mix( float x, float y, float a )
 }
 
 class TransformFeedbackSmokeParticlesApp : public AppNative {
-public:
+  public:
 	void setup();
 	void mouseDown( MouseEvent event );
 	void update();
@@ -36,7 +36,7 @@ public:
 	void loadShaders();
 	void loadTexture();
 	
-private:
+  private:
 	gl::VaoRef						mPVao[2];
 	gl::TransformFeedbackObjRef		mPFeedbackObj[2];
 	gl::VboRef						mPPositions[2], mPVelocities[2], mPStartTimes[2], mPInitVelocity;
@@ -89,8 +89,8 @@ void TransformFeedbackSmokeParticlesApp::loadShaders()
 		
 		mPUpdateGlsl = ci::gl::GlslProg::create( mUpdateParticleGlslFormat );
 	}
-	catch ( ci::gl::GlslProgCompileExc ex ) {
-		std::cout << "PARTICLE UPDATE GLSL ERROR: " << ex.what() << std::endl;
+	catch( const ci::gl::GlslProgCompileExc &ex ) {
+		console() << "PARTICLE UPDATE GLSL ERROR: " << ex.what() << std::endl;
 	}
 	
 	mPUpdateGlsl->uniform( "H", 1.0f / 60.0f );
@@ -108,8 +108,8 @@ void TransformFeedbackSmokeParticlesApp::loadShaders()
 		
 		mPRenderGlsl = ci::gl::GlslProg::create( mRenderParticleGlslFormat );
 	}
-	catch( ci::gl::GlslProgCompileExc ex ) {
-		std::cout << "PARTICLE RENDER GLSL ERROR: " << ex.what() << std::endl;
+	catch( const ci::gl::GlslProgCompileExc &ex ) {
+		console() << "PARTICLE RENDER GLSL ERROR: " << ex.what() << std::endl;
 	}
 	
 	mPRenderGlsl->uniform( "ParticleTex", 0 );
@@ -239,8 +239,7 @@ void TransformFeedbackSmokeParticlesApp::update()
 	
 	gl::beginTransformFeedback( GL_POINTS );
 	gl::drawArrays( GL_POINTS, 0, nParticles );
-	gl::endTransformFeedback();
-	
+	gl::endTransformFeedback();	
 }
 
 void TransformFeedbackSmokeParticlesApp::draw()

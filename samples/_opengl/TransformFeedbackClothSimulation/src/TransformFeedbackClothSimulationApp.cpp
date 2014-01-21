@@ -12,7 +12,7 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-typedef std::vector<std::pair<gl::VaoRef, std::vector<gl::VboRef> > > PingPongBuffers;
+typedef std::vector<std::pair<gl::VaoRef, std::vector<gl::VboRef>>> PingPongBuffers;
 
 enum BUFFER_TYPE {
 	POSITION = 0,
@@ -93,9 +93,8 @@ void TransformFeedbackClothSimulationApp::update()
 	
 	gl::enable( GL_RASTERIZER_DISCARD );
 	
-	for( i = mIterationsPerFrame; i != 0; --i ) {
-		
-		if(mouseMoving) {
+	for( i = mIterationsPerFrame; i != 0; --i ) {	
+		if( mouseMoving ) {
 			mUpdateGlsl->uniform("mouse_pos", currentMousePosition );
 			mouseMoving = false;
 		}
@@ -150,11 +149,13 @@ void TransformFeedbackClothSimulationApp::loadShaders()
 	try {
 		if( mUpdateGlsl ) mUpdateGlsl.reset();
 		mUpdateGlsl = gl::GlslProg::create(updateFormat);
-	} catch ( gl::GlslNullProgramExc ex ) {
-		cout << "Update Shader failure: " << ex.what() << endl;
+	}
+	catch( const gl::GlslNullProgramExc &ex ) {
+		console() << "Update Shader failure: " << ex.what() << endl;
 		quit();
-	} catch ( gl::GlslProgCompileExc ex ) {
-		cout << "Update Shader failure: " << ex.what() << endl;
+	}
+	catch( const gl::GlslProgCompileExc &ex ) {
+		console() << "Update Shader failure: " << ex.what() << endl;
 		quit();
 	}
 	
@@ -166,8 +167,9 @@ void TransformFeedbackClothSimulationApp::loadShaders()
 	try {
 		if( mRenderGlsl ) mRenderGlsl.reset();
 		mRenderGlsl = gl::GlslProg::create(renderFormat);
-	} catch ( gl::GlslProgCompileExc ex ) {
-		cout << "Render Shader failure: " << ex.what() << endl;
+	}
+	catch( const gl::GlslProgCompileExc &ex ) {
+		console() << "Render Shader failure: " << ex.what() << endl;
 		quit();
 	}
 }
@@ -228,7 +230,8 @@ void TransformFeedbackClothSimulationApp::loadBuffers()
 			mBuffers[i].second[CONNECTION]->bind();
 			glVertexAttribIPointer( 2, 4, GL_INT, 0, NULL );
 			gl::enableVertexAttribArray(2);
-		} else {
+		}
+		else {
 			mBuffers[i].second[CONNECTION] = mBuffers[0].second[2];
 			mBuffers[i].second[CONNECTION]->bind();
 			glVertexAttribIPointer( 2, 4, GL_INT, 0, NULL );

@@ -11,7 +11,7 @@ using namespace ci::app;
 using namespace std;
 
 // Vertex shader
-const GLchar* vertexShaderSrc = GLSL( 150 ,
+const GLchar* vertexShaderSrc = CI_GLSL( 150,
 									 in float inValue;
 									 out float outValue;
 									 
@@ -22,7 +22,7 @@ const GLchar* vertexShaderSrc = GLSL( 150 ,
 
 
 class TransformFeedbackIntroApp : public AppNative {
-public:
+  public:
 	void setup();
 	void mouseDown( MouseEvent event );
 	void update();
@@ -122,7 +122,8 @@ void TransformFeedbackIntroApp::setupShaders()
 	try {
 		mGlsl = gl::GlslProg::create( mFormat );
 		mGlsl->bind();
-	} catch ( gl::GlslProgCompileExc ex) {
+	}
+	catch( const gl::GlslProgCompileExc &ex ) {
 		cout << ex.what() << endl;
 		shutdown();
 	}
@@ -171,13 +172,11 @@ void TransformFeedbackIntroApp::mouseDown( MouseEvent event )
 
 void TransformFeedbackIntroApp::update()
 {
-	
 }
 
 void TransformFeedbackIntroApp::draw()
 {
-	// clear out the window with black
-	gl::clear( Color( 0, 0, 0 ) );
+	gl::clear();
 }
 
 CINDER_APP_NATIVE( TransformFeedbackIntroApp, RendererGl )
