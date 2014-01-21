@@ -422,8 +422,13 @@ class TextureDataExc : public Exception {
 
 	virtual const char* what() const throw()	{ return mMessage.c_str(); }
 	
-  private:
+  protected:
 	std::string		mMessage;
+};
+
+class TextureResizeExc : public TextureDataExc {
+  public:
+	TextureResizeExc( const std::string &message, const Vec2i &updateSize, const Vec2i &textureSize );
 };
 
 	
