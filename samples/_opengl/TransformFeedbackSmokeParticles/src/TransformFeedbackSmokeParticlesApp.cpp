@@ -11,6 +11,7 @@
 #include "cinder/TriMesh.h"
 #include "cinder/Camera.h"
 #include "cinder/Rand.h"
+#include "cinder/ImageIo.h"
 
 #include "cinder/gl/TransformFeedbackObj.h"
 
@@ -72,17 +73,16 @@ void TransformFeedbackSmokeParticlesApp::loadTexture()
 void TransformFeedbackSmokeParticlesApp::loadShaders()
 {
 	try {
-		std::vector<std::string> TransformFeedbackVaryings({
-			"Position",
-			"Velocity",
-			"StartTime"
-		});
+		std::vector<std::string> transformFeedbackVaryings;
+		transformFeedbackVaryings.push_back( "Position" );
+		transformFeedbackVaryings.push_back( "Velocity" );
+		transformFeedbackVaryings.push_back( "StartTime" );
 		
 		ci::gl::GlslProg::Format mUpdateParticleGlslFormat;
 		mUpdateParticleGlslFormat.vertex( loadAsset( "updateSmoke.vert" ) )
 			.feedbackFormat( GL_SEPARATE_ATTRIBS )
-			.feedbackVaryings( TransformFeedbackVaryings )
-			.attribLocation("VertexPosition", 0 )
+			.feedbackVaryings( transformFeedbackVaryings )
+			.attribLocation( "VertexPosition", 0 )
 			.attribLocation( "VertexVelocity", 1 )
 			.attribLocation( "VertexStartTime", 2 )
 			.attribLocation( "VertexInitialVelocity", 3 );
@@ -135,10 +135,10 @@ void TransformFeedbackSmokeParticlesApp::loadBuffers()
 	float velocity, theta, phi;
 	
 	for( int i = 0; i < nParticles; i++ ) {
-		theta = mix( 0.0f, (float)pi / 6.0f, mRand.nextFloat() );
-		phi = mix( 0.0f, (float)(2 * pi), mRand.nextFloat() );
+		theta = mix( 0.0f, (float)M_PI / 6.0f, mRand.nextFloat() );
+		phi = mix( 0.0f, (float)(2 * M_PI), mRand.nextFloat() );
 		
-		float angle = mRand.nextFloat( 0.0f, pi * 2.0f );
+		float angle = mRand.nextFloat( 0.0f, M_PI * 2.0f );
 		v.z = mRand.nextFloat( -1.0f, 1.0 );
 		v.x = sqrt( 1 - v.z * v.z ) * cos( angle );
 		v.y = sqrt( 1 - v.z * v.z ) * sin( angle );

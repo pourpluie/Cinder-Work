@@ -5,7 +5,7 @@ uniform sampler2D ParticleTex;
 
 in float Transp;
 
-layout (location = 0) out vec4 FragColor;
+out vec4 FragColor;
 
 const vec3 pink = vec3(1.0, 0.07, 0.57);
 

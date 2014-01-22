@@ -115,15 +115,14 @@ void TransformFeedbackIntroApp::glOriginalWay()
 
 void TransformFeedbackIntroApp::setupShaders()
 {
-	gl::GlslProg::Format mFormat = gl::GlslProg::Format()
-										.vertex( loadAsset( "basicTransformFeedback.vert" ) )
-										.feedbackVarying( "outValue" ).feedbackFormat( GL_INTERLEAVED_ATTRIBS );
+	vector<std::string> varyings;
+	varyings.push_back( "outValue" );
+	gl::GlslProg::Format mFormat = gl::GlslProg::Format();
+								mFormat.vertex( loadAsset( "basicTransformFeedback.vert" ) );
+								mFormat.feedbackVaryings( varyings ).feedbackFormat( GL_INTERLEAVED_ATTRIBS );
 	try {
 		mGlsl = gl::GlslProg::create( mFormat );
-		console() << *mGlsl << std::endl;
-		GLint inputAttrib = glGetAttribLocation( mGlsl->getHandle(), "inValue");
 		mGlsl->bind();
-		console() << inputAttrib << std::endl;
 	}
 	catch( const gl::GlslProgCompileExc &ex ) {
 		console() << ex.what() << endl;
@@ -141,8 +140,7 @@ void TransformFeedbackIntroApp::setupBuffers()
 	mInitialVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(float) * 5, data, GL_STATIC_DRAW );
 	mInitialVbo->bind();
 	
-	//GLint inputAttrib = mGlsl->getAttribLocation( "inValue" );
-GLint inputAttrib = glGetAttribLocation( mGlsl->getHandle(), "inValue");
+	GLint inputAttrib = glGetAttribLocation( mGlsl->getHandle(), "inValue");
 	gl::enableVertexAttribArray( inputAttrib );
 	gl::vertexAttribPointer( inputAttrib, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0 );
 	
