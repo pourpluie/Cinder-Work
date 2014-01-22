@@ -28,7 +28,6 @@
 #include <fstream>
 #include <exception>
 #include <map>
-#include <memory>
 
 #include "cinder/gl/gl.h"
 #include "cinder/Vector.h"
@@ -65,9 +64,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		Format&		geometry( const DataSourceRef &dataSource );
 		//! Supplies the GLSL source for the geometry shader
 		Format&		geometry( const char *geometryShader );
-		//! Adds a single Transform Feedback varying
-		Format&		feedbackVarying( const std::string &varying ) { mTransformVaryings.push_back( varying ); return *this; }
-		//! Sets (and replaces) the Transform Feedback varyings
+		//! Sets the TransformFeedback varyings
 		Format&		feedbackVaryings( const std::vector<std::string>& varyings ) { mTransformVaryings = varyings; return *this; }
 		//! Sets the TransformFeedback format
 		Format&		feedbackFormat( GLenum format ) { mTransformFormat = format; return *this; }
@@ -84,12 +81,12 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		Format&		attribLocation( geom::Attrib attr, GLint location );
 
 		//! Returns the GLSL source for the fragment shader
-		const std::string&	getVertex() const { return mVertexShader; }		
+		const char*	getVertex() const { return mVertexShader.get(); }		
 		//! Returns the GLSL source for the vertex shader
-		const std::string&	getFragment() const { return mFragmentShader; }
+		const char*	getFragment() const { return mFragmentShader.get(); }
 #if ! defined( CINDER_GLES )
 		//! Returns the GLSL source for the geometry shader
-		const std::string	getGeometry() const { return mGeometryShader; }
+		const char*	getGeometry() const { return mGeometryShader.get(); }
 		const std::vector<std::string>&  getVaryings() const { return mTransformVaryings; }
 		//! Returns the TransFormFeedback format
 		GLenum			getTransformFormat() const { return mTransformFormat; }
@@ -106,12 +103,12 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		const std::map<geom::Attrib,GLint>&	getAttribSemanticLocations() const { return mAttribSemanticLocMap; }
 		
 	  protected:
-		std::string						mVertexShader;
-		std::string						mFragmentShader;
+		std::unique_ptr<char>					mVertexShader;
+		std::unique_ptr<char>					mFragmentShader;
 #if ! defined( CINDER_GLES )
-		std::string						mGeometryShader;
-		GLenum							mTransformFormat;
-		std::vector<std::string>		mTransformVaryings;
+		std::unique_ptr<char>					mGeometryShader;
+		GLenum									mTransformFormat;
+		std::vector<std::string>				mTransformVaryings;
 #endif
 		std::map<std::string,GLint>				mAttribNameLocMap;
 		std::map<geom::Attrib,GLint>			mAttribSemanticLocMap;
