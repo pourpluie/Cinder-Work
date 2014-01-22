@@ -217,7 +217,13 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	AttribSemanticMap						mAttribNameToSemanticMap;
 	mutable bool							mAttribSemanticsCached;
 	mutable AttribSemanticMap				mAttribSemantics;
-	
+
+	// storage as a work-around for NVidia on MSW driver bug expecting persistent memory in calls to glTransformFeedbackVaryings
+#if ! defined( CINDER_GLES )
+	std::unique_ptr<std::vector<GLchar>>	mTransformFeedbackVaryingsChars;
+	std::unique_ptr<std::vector<GLchar*>>	mTransformFeedbackVaryingsCharStarts;
+#endif
+
 	friend class Context;
 	friend std::ostream& operator<<( std::ostream &lhs, const GlslProgRef &rhs );
 	friend std::ostream& operator<<( std::ostream &lhs, const GlslProg &rhs );

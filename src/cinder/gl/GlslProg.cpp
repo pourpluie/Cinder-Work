@@ -216,11 +216,22 @@ GlslProg::GlslProg( const Format &format )
 	
 #if ! defined( CINDER_GLES )
 	if( ! format.getVaryings().empty() && format.getTransformFormat() > 0 ) {
-		unique_ptr<const GLchar *> varyings( new const GLchar*[format.getVaryings().size()] );
-		for( int i = 0; i < format.getVaryings().size(); ++i ) {
-			varyings.get()[i] = format.getVaryings()[i].c_str();
+		// This is a mess due to an NVidia driver bug on MSW which expects the memory passed to glTransformFeedbackVaryings
+		// to still be around after the call. We allocate the storage and put it on the GlslProg itself to be freed at destruction
+		size_t totalSizeBytes = 0;
+		for( auto &v : format.getVaryings() )
+			totalSizeBytes += v.length() + 1;
+
+		mTransformFeedbackVaryingsChars = std::unique_ptr<std::vector<GLchar>>( new vector<GLchar>() );
+		mTransformFeedbackVaryingsCharStarts = std::unique_ptr<std::vector<GLchar*>>( new vector<GLchar*>() );
+		mTransformFeedbackVaryingsChars->resize( totalSizeBytes );
+		size_t curOffset = 0;
+		for( auto &v : format.getVaryings() ) {
+			mTransformFeedbackVaryingsCharStarts->push_back( &(*mTransformFeedbackVaryingsChars)[curOffset] );
+			memcpy( &(*mTransformFeedbackVaryingsChars)[curOffset], v.c_str(), v.length() + 1 );
+			curOffset += v.length() + 1;
 		}
-		glTransformFeedbackVaryings( mHandle, format.getVaryings().size(), varyings.get(), format.getTransformFormat() );
+		glTransformFeedbackVaryings( mHandle, format.getVaryings().size(), mTransformFeedbackVaryingsCharStarts->data(), format.getTransformFormat() );
 	}
 #endif
 	
@@ -737,7 +748,7 @@ std::ostream& operator<<( std::ostream &lhs, const GlslProg &rhs )
 	lhs << "ID: " << rhs.mHandle << std::endl;
 	lhs << " Uniforms: " << std::endl;
 	auto uniformTypes = rhs.getActiveUniformTypes();
-	for( auto &uni : uniformTypes ) {
+/*	for( auto &uni : uniformTypes ) {
 		lhs << "  \"" << uni.first << "\":" << std::endl;
 		lhs << "    Loc: " << rhs.getUniformLocation( uni.first ) << std::endl;
 		lhs << "    Type: " << gl::typeToString( uni.second ) << std::endl;
@@ -757,7 +768,7 @@ std::ostream& operator<<( std::ostream &lhs, const GlslProg &rhs )
 		if( semIt != rhs.getAttribSemantics().end() ) {
 			lhs << "    Semantic: <" << geom::attribToString( semIt->second ) << ">" << std::endl;
 		}
-	}	
+	}*/
 
 	return lhs;
 }
