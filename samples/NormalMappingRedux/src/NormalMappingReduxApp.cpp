@@ -55,7 +55,7 @@ struct LightSource
 
 class NormalMappingReduxApp : public AppNative {
 	
-	typedef enum { NormalMap, LightingOnly, Glossy, Default } ViewMode;
+	typedef enum { Default, Glossy, LightingOnly, NormalMap } ViewMode;
 
 public:
 	void	prepareSettings( Settings* settings );
@@ -114,7 +114,6 @@ private:
 	bool				bShowNormalsAndTangents;
 
 	float				fTime;
-	Anim<float>			fOpacity;
 
 	params::InterfaceGlRef	mParams;
 };
@@ -130,8 +129,8 @@ void NormalMappingReduxApp::prepareSettings(Settings* settings)
 void NormalMappingReduxApp::setup()
 {
 	// setup camera and lights
-	mCamera.setEyePoint( Vec3f( 0.2f, 0.4f, 2.0f ) );
-	mCamera.setCenterOfInterestPoint( Vec3f(0.0f, 0.45f, 0.0f) );
+	mCamera.setEyePoint( Vec3f( 0.2f, 0.4f, 1.0f ) );
+	mCamera.setCenterOfInterestPoint( Vec3f(0.0f, 0.425f, 0.0f) );
 	mCamera.setNearClip( 0.01f );
 	mCamera.setFarClip( 100.0f );
 
@@ -139,7 +138,7 @@ void NormalMappingReduxApp::setup()
 	mLightLantern.specular = Color(0.9f, 0.6f, 0.3f);
 
 	mLightAmbient.diffuse = Color(0.2f, 0.6f, 1.0f);
-	mLightAmbient.specular = Color(0.2f, 0.2f, 0.2f);
+	mLightAmbient.specular = Color(0.05f, 0.15f, 0.25f);
 
 	// setup perlin noise to easily animate our lantern light source
 	mPerlin = Perlin(4, 65535);
@@ -147,7 +146,7 @@ void NormalMappingReduxApp::setup()
 	// default settings
 	mMeshBounds = AxisAlignedBox3f( Vec3f::zero(), Vec3f::one() );
 
-	bAutoRotate = true;
+	bAutoRotate = false;
 	fAutoRotateAngle = 0.0f;
 
 	bAnimateLantern = true;
@@ -199,33 +198,27 @@ void NormalMappingReduxApp::setup()
 	catch( const std::exception& e ) {
 		console() << "Error loading asset: " << e.what() << std::endl;
 		quit();
-	}	
-
-	// animate copyright message
-	fOpacity = 0.0f;
-	timeline().apply( &fOpacity, 0.0f, 0.0f, 2.0f );
-	timeline().appendTo( &fOpacity, 1.0f, 2.5f, EaseInOutCubic() );
-	timeline().appendTo( &fOpacity, 1.0f, 30.0f );
-	timeline().appendTo( &fOpacity, 0.0f, 2.5f, EaseInOutCubic() );
+	}
 
 	// create a parameter window, so we can toggle stuff
 	std::vector<std::string> viewmodes;
-	viewmodes.push_back("Calculated Normals");
-	viewmodes.push_back("Lighting Only     ");
-	viewmodes.push_back("Glossy Render     ");
 	viewmodes.push_back("Final Render      ");
+	viewmodes.push_back("Glossy Render     ");
+	viewmodes.push_back("Lighting Only     ");
+	viewmodes.push_back("Calculated Normals");
 
 	mParams = params::InterfaceGl::create( getWindow(), "Normal Mapping Demo", Vec2i(340, 150) );
+	mParams->setOptions( "", "valueswidth=fit" );
+
 	mParams->addParam( "Rotate Model", &bAutoRotate );
 	mParams->addParam( "Animate Light", &bAnimateLantern );
-	mParams->addSeparator();
 
+	mParams->addSeparator();
 	mParams->addParam( "Enable Normal Mapping", &bEnableNormalMap );
 	mParams->addParam( "Viewing Mode", viewmodes, (int*) &mViewMode );
-	mParams->addSeparator();
 
+	mParams->addSeparator();
 	mParams->addParam( "Show Normals & Tangents", &bShowNormalsAndTangents );
-	mParams->setOptions( "", "valueswidth=fit" );
 
 	// keep track of time
 	fTime = (float) getElapsedSeconds();
@@ -242,13 +235,12 @@ void NormalMappingReduxApp::update()
 	fTime += fElapsed;
 	
 	// rotate the mesh
-	if(bAutoRotate) {
+	if(bAutoRotate) 
 		fAutoRotateAngle += (fElapsed * 0.2f);
 
-		mMeshTransform.setToIdentity();
-		mMeshTransform.rotate( Vec3f::yAxis(), fAutoRotateAngle );
-		mMeshTransform.scale( Vec3f::one() / mMeshBounds.getSize().y );
-	}
+	mMeshTransform.setToIdentity();
+	mMeshTransform.rotate( Vec3f::yAxis(), fAutoRotateAngle );
+	mMeshTransform.scale( Vec3f::one() / mMeshBounds.getSize().y );
 
 	// position our lights (in eye space)
 	Vec3f lanternPositionOS = Vec3f(12.5f, 30.0f, 12.5f);
@@ -262,8 +254,8 @@ void NormalMappingReduxApp::update()
 	mShader->uniform( "bShowNormals", mViewMode == ViewMode::NormalMap );
 	mShader->uniform( "bUseDiffuseMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::Glossy) );
 	mShader->uniform( "bUseSpecularMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::LightingOnly) );
+	mShader->uniform( "bUseEmmisiveMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::Glossy) );
 	mShader->uniform( "bUseNormalMap", bEnableNormalMap );
-	mShader->uniform( "bUseEmmisiveMap", mViewMode == ViewMode::Default );
 
 	mShader->uniform( "uLights[0].position", mLightLantern.position );
 	mShader->uniform( "uLights[1].position", mLightAmbient.position );
@@ -321,20 +313,14 @@ void NormalMappingReduxApp::draw()
 		// render our parameter window
 		if(mParams)
 			mParams->draw();
-		//*/
 
 		// render the copyright message
-		//if(fOpacity.value() > 0.f)
-		{
-			Area centered = Area::proportionalFit( mCopyrightMap->getBounds(), getWindowBounds(), true, false );
-			centered.offset( Vec2i(0, (getWindowHeight() - centered.y2) - 20) );
+		Area centered = Area::proportionalFit( mCopyrightMap->getBounds(), getWindowBounds(), true, false );
+		centered.offset( Vec2i(0, (getWindowHeight() - centered.y2) - 20) );
 
-			gl::enableAlphaBlending();
-			gl::color( ColorA(1, 1, 1, fOpacity.value()) );
-			gl::draw( mCopyrightMap, centered );
-			gl::disableAlphaBlending();
-		}
-		//*/
+		gl::enableAlphaBlending();
+		gl::draw( mCopyrightMap, centered );
+		gl::disableAlphaBlending();
 	}
 }
 
@@ -361,9 +347,6 @@ void NormalMappingReduxApp::keyDown( KeyEvent event )
 	{
 	case KeyEvent::KEY_ESCAPE:
 		quit();
-		break;
-	case KeyEvent::KEY_f:
-		setFullScreen( !isFullScreen() );
 		break;
 	case KeyEvent::KEY_v:
 		gl::enableVerticalSync( !gl::isVerticalSyncEnabled() );
