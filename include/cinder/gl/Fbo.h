@@ -287,9 +287,9 @@ class FboCubeMap : public Fbo {
 		Format();
 		
 		//! Sets the TextureCubeMap format for the default CubeMap.
-		Format&						textureCubeMapFormat( const gl::TextureCubeMap::Format &format );
+		Format&							textureCubeMapFormat( const TextureCubeMap::Format &format );
 		//! Returns the TextureCubeMap format for the default CubeMap.
-		gl::TextureCubeMap::Format	getTextureCubeMapFormat() const { return mTextureCubeMapFormat; }
+		const TextureCubeMap::Format&	getTextureCubeMapFormat() const { return mTextureCubeMapFormat; }
 		
 		//! Disables both a depth Texture and a depth Buffer
 		Format&	disableDepth() { mDepthTexture = mDepthBuffer = false; return *this; }
