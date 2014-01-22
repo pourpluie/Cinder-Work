@@ -44,25 +44,22 @@ GlslProg::Format& GlslProg::Format::vertex( const DataSourceRef &dataSource )
 {
 	if( dataSource ) {
 		Buffer buffer( dataSource );
-		mVertexShader = std::unique_ptr<char>( new char[buffer.getDataSize() + 1] );
-		memcpy( mVertexShader.get(), buffer.getData(), buffer.getDataSize() );
-		mVertexShader.get()[buffer.getDataSize()] = 0;
+		mVertexShader.resize( buffer.getDataSize() + 1 );
+		memcpy( (void*)mVertexShader.data(), buffer.getData(), buffer.getDataSize() );
+		mVertexShader[buffer.getDataSize()] = 0;
 	}
 	else
-		mVertexShader.reset();
+		mVertexShader.clear();
 
 	return *this;
 }
 
 GlslProg::Format& GlslProg::Format::vertex( const char *vertexShader )
 {
-	if( vertexShader ) {
-		const size_t stringSize = strlen( vertexShader );
-		mVertexShader = std::unique_ptr<char>( new char[stringSize + 1] );
-		strcpy( mVertexShader.get(), vertexShader );
-	}
+	if( vertexShader )
+		mVertexShader = string( vertexShader );
 	else
-		mVertexShader.reset();
+		mVertexShader.clear();
 
 	return *this;
 }
@@ -71,25 +68,22 @@ GlslProg::Format& GlslProg::Format::fragment( const DataSourceRef &dataSource )
 {
 	if( dataSource ) {
 		Buffer buffer( dataSource );
-		mFragmentShader = std::unique_ptr<char>( new char[buffer.getDataSize() + 1] );
-		memcpy( mFragmentShader.get(), buffer.getData(), buffer.getDataSize() );
-		mFragmentShader.get()[buffer.getDataSize()] = 0;
+		mFragmentShader.resize( buffer.getDataSize() + 1 );
+		memcpy( (void*)mFragmentShader.data(), buffer.getData(), buffer.getDataSize() );
+		mFragmentShader[buffer.getDataSize()] = 0;
 	}
 	else
-		mFragmentShader.reset();
+		mFragmentShader.clear();
 		
 	return *this;
 }
 
 GlslProg::Format& GlslProg::Format::fragment( const char *fragmentShader )
 {
-	if( fragmentShader ) {
-		const size_t stringSize = strlen( fragmentShader );
-		mFragmentShader = std::unique_ptr<char>( new char[stringSize + 1] );
-		strcpy( mFragmentShader.get(), fragmentShader );
-	}
+	if( fragmentShader )
+		mFragmentShader = string( fragmentShader );
 	else
-		mFragmentShader.reset();
+		mFragmentShader.clear();
 
 	return *this;
 }
@@ -99,12 +93,12 @@ GlslProg::Format& GlslProg::Format::geometry( const DataSourceRef &dataSource )
 {
 	if( dataSource ) {
 		Buffer buffer( dataSource );
-		mGeometryShader = std::unique_ptr<char>( new char[buffer.getDataSize() + 1] );
-		memcpy( mGeometryShader.get(), buffer.getData(), buffer.getDataSize() );
-		mGeometryShader.get()[buffer.getDataSize()] = 0;
+		mGeometryShader.resize( buffer.getDataSize() + 1 );
+		memcpy( (void*)mGeometryShader.data(), buffer.getData(), buffer.getDataSize() );
+		mGeometryShader[buffer.getDataSize()] = 0;
 	}
 	else
-		mGeometryShader.reset();
+		mGeometryShader.clear();
 		
 	return *this;
 }
@@ -112,12 +106,9 @@ GlslProg::Format& GlslProg::Format::geometry( const DataSourceRef &dataSource )
 GlslProg::Format& GlslProg::Format::geometry( const char *geometryShader )
 {
 	if( geometryShader ) {
-		const size_t stringSize = strlen( geometryShader );
-		mGeometryShader = std::unique_ptr<char>( new char[stringSize + 1] );
-		strcpy( mGeometryShader.get(), geometryShader );
-	}
+		mGeometryShader = string( geometryShader );	}
 	else
-		mGeometryShader.reset();
+		mGeometryShader.clear();
 
 	return *this;
 }
@@ -167,7 +158,7 @@ GlslProgRef GlslProg::create( const char *vertexShader, const char *fragmentShad
 	
 GlslProg::~GlslProg()
 {
-	if ( mHandle ) {
+	if( mHandle ) {
 		glDeleteProgram( (GLuint)mHandle );
 	}
 }
@@ -182,12 +173,12 @@ GlslProg::GlslProg( const Format &format )
 {
 	mHandle = glCreateProgram();
 	
-	if( format.getVertex() )
+	if( ! format.getVertex().empty() )
 		loadShader( format.getVertex(), GL_VERTEX_SHADER );
-	if( format.getFragment() )
+	if( ! format.getFragment().empty() )
 		loadShader( format.getFragment(), GL_FRAGMENT_SHADER );
 #if ! defined( CINDER_GLES )
-	if( format.getGeometry() )
+	if( ! format.getGeometry().empty() )
 		loadShader( format.getGeometry(), GL_GEOMETRY_SHADER );
 #endif
 
@@ -269,10 +260,11 @@ GlslProg::AttribSemanticMap& GlslProg::getDefaultAttribNameToSemanticMap()
 	return sDefaultAttribNameToSemanticMap;
 }
 
-void GlslProg::loadShader( const char *shaderSource, GLint shaderType )
+void GlslProg::loadShader( const std::string &shaderSource, GLint shaderType )
 {
 	GLuint handle = glCreateShader( shaderType );
-	glShaderSource( handle, 1, reinterpret_cast<const GLchar**>( &shaderSource ), NULL );
+	const char *cStr = shaderSource.c_str();
+	glShaderSource( handle, 1, reinterpret_cast<const GLchar**>( &cStr ), NULL );
 	glCompileShader( handle );
 	
 	GLint status;

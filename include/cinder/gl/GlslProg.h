@@ -80,13 +80,13 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		//! Specifies a location for a semantic
 		Format&		attribLocation( geom::Attrib attr, GLint location );
 
-		//! Returns the GLSL source for the fragment shader
-		const char*	getVertex() const { return mVertexShader.get(); }		
-		//! Returns the GLSL source for the vertex shader
-		const char*	getFragment() const { return mFragmentShader.get(); }
+		//! Returns the GLSL source for the vertex shader. Returns an empty string if it isn't present.
+		const std::string&	getVertex() const { return mVertexShader; }
+		//! Returns the GLSL source for the fragment shader. Returns an empty string if it isn't present.
+		const std::string&	getFragment() const { return mFragmentShader; }
 #if ! defined( CINDER_GLES )
 		//! Returns the GLSL source for the geometry shader
-		const char*	getGeometry() const { return mGeometryShader.get(); }
+		const std::string&	getGeometry() const { return mGeometryShader; }
 		const std::vector<std::string>&  getVaryings() const { return mTransformVaryings; }
 		//! Returns the TransFormFeedback format
 		GLenum			getTransformFormat() const { return mTransformFormat; }
@@ -103,10 +103,10 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		const std::map<geom::Attrib,GLint>&	getAttribSemanticLocations() const { return mAttribSemanticLocMap; }
 		
 	  protected:
-		std::unique_ptr<char>					mVertexShader;
-		std::unique_ptr<char>					mFragmentShader;
+		std::string					mVertexShader;
+		std::string					mFragmentShader;
 #if ! defined( CINDER_GLES )
-		std::unique_ptr<char>					mGeometryShader;
+		std::string								mGeometryShader;
 		GLenum									mTransformFormat;
 		std::vector<std::string>				mTransformVaryings;
 #endif
@@ -194,8 +194,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	GlslProg( const Format &format );
 
 	void			bindImpl();
-	void			loadShader( Buffer shaderSourceBuffer, GLint shaderType );
-	void			loadShader( const char *shaderSource, GLint shaderType );
+	void			loadShader( const std::string &shaderSource, GLint shaderType );
 	void			attachShaders();
 	void			link();
 	
