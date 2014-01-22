@@ -710,6 +710,7 @@
 		00E5A41A163F45AF00AACB3A /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007438400EA7924F005DD3E6 /* Capture.cpp */; };
 		00E5A41C163F5A2B00AACB3A /* CaptureImplCocoaDummy.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E5A41B163F5A2B00AACB3A /* CaptureImplCocoaDummy.h */; };
 		00E5A41F163F5AC600AACB3A /* CaptureImplCocoaDummy.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00E5A41D163F5AC500AACB3A /* CaptureImplCocoaDummy.mm */; };
+		00E7ECA6188F93B00029139A /* TransformFeedbackObjImplHardware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00E7ECA5188F93B00029139A /* TransformFeedbackObjImplHardware.cpp */; };
 		00F3BD1D0EBF88AA00382AC1 /* Utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F3BD1C0EBF88AA00382AC1 /* Utilities.cpp */; };
 		00F3BD200EBF89B700382AC1 /* Utilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 00F3BD1F0EBF89B700382AC1 /* Utilities.h */; };
 		00F6BBAB181AC48700C1FFD7 /* TwOpenGLCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F6BBA9181AC48700C1FFD7 /* TwOpenGLCore.cpp */; };
@@ -751,7 +752,6 @@
 		5391FE660E95CB01002A13D5 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0867D6A5FE840307C02AAC07 /* AppKit.framework */; };
 		B39A4BF31884CCD4002A63AF /* TransformFeedbackObj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B39A4BF21884CCD4002A63AF /* TransformFeedbackObj.cpp */; };
 		B39A4BF51884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B39A4BF41884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp */; };
-		B39A4BF71884CE56002A63AF /* TransformFeedbackObjImplHardware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B39A4BF61884CE56002A63AF /* TransformFeedbackObjImplHardware.cpp */; };
 		C70E19FF106AA38700E63577 /* Buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = C70E19FE106AA38700E63577 /* Buffer.h */; };
 		C70E1A03106AA39D00E63577 /* Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C70E1A01106AA39D00E63577 /* Buffer.cpp */; };
 		C727BFE5121B3AE600192073 /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007438400EA7924F005DD3E6 /* Capture.cpp */; };
@@ -1090,6 +1090,7 @@
 		00E3914117A327BF00952CA0 /* QuickTimeGl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = QuickTimeGl.cpp; path = qtime/QuickTimeGl.cpp; sourceTree = "<group>"; };
 		00E5A41B163F5A2B00AACB3A /* CaptureImplCocoaDummy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CaptureImplCocoaDummy.h; sourceTree = "<group>"; };
 		00E5A41D163F5AC500AACB3A /* CaptureImplCocoaDummy.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CaptureImplCocoaDummy.mm; sourceTree = "<group>"; };
+		00E7ECA5188F93B00029139A /* TransformFeedbackObjImplHardware.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformFeedbackObjImplHardware.cpp; path = gl/TransformFeedbackObjImplHardware.cpp; sourceTree = "<group>"; };
 		00F3BD1C0EBF88AA00382AC1 /* Utilities.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Utilities.cpp; sourceTree = "<group>"; };
 		00F3BD1F0EBF89B700382AC1 /* Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utilities.h; sourceTree = "<group>"; };
 		00F6BBA9181AC48700C1FFD7 /* TwOpenGLCore.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = TwOpenGLCore.cpp; path = ../src/AntTweakBar/TwOpenGLCore.cpp; sourceTree = "<group>"; };
@@ -1116,7 +1117,6 @@
 		B39A4BF11884CC23002A63AF /* TransformFeedbackObj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TransformFeedbackObj.h; path = gl/TransformFeedbackObj.h; sourceTree = "<group>"; };
 		B39A4BF21884CCD4002A63AF /* TransformFeedbackObj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformFeedbackObj.cpp; path = gl/TransformFeedbackObj.cpp; sourceTree = "<group>"; };
 		B39A4BF41884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformFeedbackObjImplSoftware.cpp; path = gl/TransformFeedbackObjImplSoftware.cpp; sourceTree = "<group>"; };
-		B39A4BF61884CE56002A63AF /* TransformFeedbackObjImplHardware.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TransformFeedbackObjImplHardware.cpp; sourceTree = "<group>"; };
 		C70E19FE106AA38700E63577 /* Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Buffer.h; sourceTree = "<group>"; };
 		C70E1A01106AA39D00E63577 /* Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Buffer.cpp; sourceTree = "<group>"; };
 		C7792FAE119A185000521786 /* CocoaCaConverter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CocoaCaConverter.cpp; sourceTree = "<group>"; };
@@ -1675,6 +1675,7 @@
 		00CE73960E92DBEB0059E09B /* gl */ = {
 			isa = PBXGroup;
 			children = (
+				00E7ECA5188F93B00029139A /* TransformFeedbackObjImplHardware.cpp */,
 				00A06F6F1760EFAD00D8BE17 /* BufferObj.cpp */,
 				00A06F701760EFAD00D8BE17 /* Context.cpp */,
 				00A06F711760EFAD00D8BE17 /* Environment.cpp */,
@@ -1696,7 +1697,6 @@
 				0087340C17958FBA00BC2063 /* Batch.cpp */,
 				B39A4BF21884CCD4002A63AF /* TransformFeedbackObj.cpp */,
 				B39A4BF41884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp */,
-				B39A4BF61884CE56002A63AF /* TransformFeedbackObjImplHardware.cpp */,
 			);
 			name = gl;
 			sourceTree = "<group>";
@@ -2605,7 +2605,6 @@
 				007B09740E9559960052257E /* Rand.cpp in Sources */,
 				007B09840E957B9A0052257E /* KeyEvent.cpp in Sources */,
 				003832E40E9C04AD00ACB120 /* Stream.cpp in Sources */,
-				B39A4BF71884CE56002A63AF /* TransformFeedbackObjImplHardware.cpp in Sources */,
 				007438420EA7924F005DD3E6 /* Capture.cpp in Sources */,
 				00D23A540EAEB4C00002BF91 /* Color.cpp in Sources */,
 				009EEF1A0EB79C89003AB86B /* Rect.cpp in Sources */,
@@ -2658,6 +2657,7 @@
 				00419C7611057CC6007EC9AD /* Trim.cpp in Sources */,
 				001E3561115D5EFA000C228C /* Xml.cpp in Sources */,
 				00B729E3115DABD800CD71B9 /* Timer.cpp in Sources */,
+				00E7ECA6188F93B00029139A /* TransformFeedbackObjImplHardware.cpp in Sources */,
 				0049A349116EE655007DDFB0 /* AxisAlignedBox.cpp in Sources */,
 				C7A76E9F1176449F00A46655 /* Io.cpp in Sources */,
 				C7A76EA01176449F00A46655 /* Output.cpp in Sources */,
