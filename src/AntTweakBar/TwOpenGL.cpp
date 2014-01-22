@@ -147,9 +147,15 @@ PFNGLGetVertexAttribiv _glGetVertexAttribiv = NULL;
     {
         int err=0;
         char msg[256];
+
+    #ifdef ANT_WINDOWS
+        if(!wglGetCurrentContext())
+            return;
+    #endif
+
         while( (err=_glGetError())!=0 )
         {
-            sprintf(msg, "%s(%d) : [%s] GL_ERROR=0x%x\n", file, line, func, err);
+            sprintf_s(msg, 256, "%s(%d) : [%s] GL_ERROR=0x%x\n", file, line, func, err);
             #ifdef ANT_WINDOWS
                 OutputDebugStringA(msg);
             #endif
