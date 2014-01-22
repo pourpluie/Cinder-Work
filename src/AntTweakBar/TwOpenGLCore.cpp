@@ -37,6 +37,12 @@ extern const char *g_ErrCantUnloadOGL;
     {
         int err=0;
         char msg[256];
+
+    #ifdef ANT_WINDOWS
+        if(!wglGetCurrentContext())
+            return;
+    #endif
+
         while( (err=_glGetError())!=0 )
         {
             sprintf(msg, "%s(%d) : [%s] GL_CORE_ERROR=0x%x\n", file, line, func, err);
