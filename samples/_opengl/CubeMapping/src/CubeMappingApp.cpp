@@ -1,9 +1,5 @@
 #include "cinder/app/AppNative.h"
-#if defined( CINDER_GL_ANGLE )
-	#include "cinder/app/RendererAngle.h"
-#else
-	#include "cinder/app/RendererGl.h"
-#endif
+#include "cinder/app/RendererGl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Batch.h"
@@ -86,8 +82,4 @@ void CubeMappingApp::draw()
 	gl::popMatrices();		
 }
 
-#if defined( CINDER_GL_ANGLE )
-CINDER_APP_NATIVE( CubeMappingApp, RendererAngle )
-#else
 CINDER_APP_NATIVE( CubeMappingApp, RendererGl )
-#endif
