@@ -43,6 +43,14 @@ void TriMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
+// TriMesh::Format
+TriMesh::Format::Format()
+{
+	mPositionsDims = mNormalsDims = mColorsDims = 0;
+	mTexCoords0Dims = mTexCoords1Dims = mTexCoords2Dims = mTexCoords3Dims = 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
 // TriMesh
 TriMesh::TriMesh( const TriMesh::Format &format )
 {
@@ -476,7 +484,7 @@ uint8_t TriMesh::getAttribDims( geom::Attrib attr ) const
 		case geom::Attrib::TEX_COORD_3: return mTexCoords3Dims;						
 		case geom::Attrib::NORMAL: return mNormalsDims;
 		default:
-			return false;
+			return 0;
 	}
 }
 
