@@ -18,10 +18,10 @@ class BufferObj {
 	void		bufferData( GLsizeiptr size, const GLvoid *data, GLenum usage );
 	//! Analogous to glBufferSubData()
 	void		bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *data );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ANGLE )
 	//! Returns some or all of the data from the buffer object currently bound for this objects \a target.
 	void		getBufferSubData( GLintptr offset, GLsizeiptr size, GLvoid *data );
-#endif
+#endif // ! defined( CINDER_GL_ANGLE )
 	//! Calls bufferSubData when the size is adequate, otherwise calls bufferData, forcing a reallocation of the data store
 	void		copyData( GLsizeiptr size, const GLvoid *data );
 	//! Reallocates the buffer if its size is smaller than \a minimumSize. This destroys the contents of the buffer if it must be reallocated.
