@@ -162,9 +162,14 @@ class RendererGl : public Renderer {
 #elif defined( CINDER_COCOA_TOUCH )
 	AppImplCocoaTouchRendererGl	*mImpl;
 #elif defined( CINDER_MSW )
-	class AppImplMswRendererGl	*mImpl;
+	#if defined( CINDER_GL_ANGLE )
+		class AppImplMswRendererAngle	*mImpl;
+		friend class					AppImplMswRendererAngle;
+	#else
+		class AppImplMswRendererGl		*mImpl;
+		friend class					AppImplMswRendererGl;
+	#endif
 	HWND						mWnd;
-	friend class				AppImplMswRendererGl;
 #endif
 };
 
