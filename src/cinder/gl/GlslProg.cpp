@@ -44,12 +44,11 @@ GlslProg::Format& GlslProg::Format::vertex( const DataSourceRef &dataSource )
 {
 	if( dataSource ) {
 		Buffer buffer( dataSource );
-		mVertexShader = std::unique_ptr<char>( new char[buffer.getDataSize() + 1] );
-		memcpy( mVertexShader.get(), buffer.getData(), buffer.getDataSize() );
-		mVertexShader.get()[buffer.getDataSize()] = 0;
+		mVertexShader.resize( buffer.getDataSize() + 1, 0 );
+		memcpy( (void*)mVertexShader.data(), buffer.getData(), buffer.getDataSize() );
 	}
 	else
-		mVertexShader.reset();
+		mVertexShader.clear();
 
 	return *this;
 }
@@ -58,11 +57,11 @@ GlslProg::Format& GlslProg::Format::vertex( const char *vertexShader )
 {
 	if( vertexShader ) {
 		const size_t stringSize = strlen( vertexShader );
-		mVertexShader = std::unique_ptr<char>( new char[stringSize + 1] );
-		strcpy( mVertexShader.get(), vertexShader );
+		mVertexShader.resize( stringSize + 1, 0 );
+		strcpy( &mVertexShader[0], vertexShader );
 	}
 	else
-		mVertexShader.reset();
+		mVertexShader.clear();
 
 	return *this;
 }
@@ -71,12 +70,11 @@ GlslProg::Format& GlslProg::Format::fragment( const DataSourceRef &dataSource )
 {
 	if( dataSource ) {
 		Buffer buffer( dataSource );
-		mFragmentShader = std::unique_ptr<char>( new char[buffer.getDataSize() + 1] );
-		memcpy( mFragmentShader.get(), buffer.getData(), buffer.getDataSize() );
-		mFragmentShader.get()[buffer.getDataSize()] = 0;
+		mFragmentShader.resize( buffer.getDataSize() + 1, 0 );
+		memcpy( (void*)mFragmentShader.data(), buffer.getData(), buffer.getDataSize() );
 	}
 	else
-		mFragmentShader.reset();
+		mFragmentShader.clear();
 		
 	return *this;
 }
@@ -85,11 +83,11 @@ GlslProg::Format& GlslProg::Format::fragment( const char *fragmentShader )
 {
 	if( fragmentShader ) {
 		const size_t stringSize = strlen( fragmentShader );
-		mFragmentShader = std::unique_ptr<char>( new char[stringSize + 1] );
-		strcpy( mFragmentShader.get(), fragmentShader );
+		mFragmentShader.resize( stringSize + 1, 0 );
+		strcpy( &mFragmentShader[0], fragmentShader );
 	}
 	else
-		mFragmentShader.reset();
+		mFragmentShader.clear();
 
 	return *this;
 }
@@ -99,12 +97,11 @@ GlslProg::Format& GlslProg::Format::geometry( const DataSourceRef &dataSource )
 {
 	if( dataSource ) {
 		Buffer buffer( dataSource );
-		mGeometryShader = std::unique_ptr<char>( new char[buffer.getDataSize() + 1] );
-		memcpy( mGeometryShader.get(), buffer.getData(), buffer.getDataSize() );
-		mGeometryShader.get()[buffer.getDataSize()] = 0;
+		mGeometryShader.resize( buffer.getDataSize() + 1, 0 );
+		memcpy( (void*)mGeometryShader.data(), buffer.getData(), buffer.getDataSize() );
 	}
 	else
-		mGeometryShader.reset();
+		mGeometryShader.clear();
 		
 	return *this;
 }
@@ -113,11 +110,11 @@ GlslProg::Format& GlslProg::Format::geometry( const char *geometryShader )
 {
 	if( geometryShader ) {
 		const size_t stringSize = strlen( geometryShader );
-		mGeometryShader = std::unique_ptr<char>( new char[stringSize + 1] );
-		strcpy( mGeometryShader.get(), geometryShader );
+		mGeometryShader.resize( stringSize + 1, 0 );
+		strcpy( &mGeometryShader[0], geometryShader );
 	}
 	else
-		mGeometryShader.reset();
+		mGeometryShader.clear();
 
 	return *this;
 }
@@ -182,13 +179,13 @@ GlslProg::GlslProg( const Format &format )
 {
 	mHandle = glCreateProgram();
 	
-	if( format.getVertex() )
-		loadShader( format.getVertex(), GL_VERTEX_SHADER );
-	if( format.getFragment() )
-		loadShader( format.getFragment(), GL_FRAGMENT_SHADER );
+	if( ! format.getVertex().empty() )
+		loadShader( format.getVertex().c_str(), GL_VERTEX_SHADER );
+	if( ! format.getFragment().empty() )
+		loadShader( format.getFragment().c_str(), GL_FRAGMENT_SHADER );
 #if ! defined( CINDER_GLES )
-	if( format.getGeometry() )
-		loadShader( format.getGeometry(), GL_GEOMETRY_SHADER );
+	if( ! format.getGeometry().empty() )
+		loadShader( format.getGeometry().c_str(), GL_GEOMETRY_SHADER );
 #endif
 
 	// copy the Format's attribute-semantic map
@@ -225,14 +222,14 @@ GlslProg::GlslProg( const Format &format )
 	
 #if ! defined( CINDER_GLES )
 	if( ! format.getVaryings().empty() && format.getTransformFormat() > 0 ) {
-		unique_ptr<const GLchar *> varyings( new const GLchar*[format.getVaryings().size()] );
-		for( int i = 0; i < format.getVaryings().size(); ++i ) {
-			varyings.get()[i] = format.getVaryings()[i].c_str();
-		}
-		glTransformFeedbackVaryings( mHandle, format.getVaryings().size(), varyings.get(), format.getTransformFormat() );
+		vector<string> varyings = format.getVaryings();
+		vector<const GLchar*> varyingStrings;
+		std::transform(std::begin(varyings), std::end(varyings), 
+			std::back_inserter(varyingStrings), std::mem_fn( &std::string::c_str) );
+		glTransformFeedbackVaryings( mHandle, 1, varyingStrings.data(), format.getTransformFormat() );
 	}
 #endif
-	
+
 	link();
 }
 
@@ -612,6 +609,7 @@ GLint GlslProg::getUniformLocation( const std::string &name ) const
 {
 	map<string,int>::const_iterator uniformIt = mUniformLocs.find( name );
 	if( uniformIt == mUniformLocs.end() ) {
+		GlslProgScope shaderBind( shared_from_this() );
 		GLint loc = glGetUniformLocation( mHandle, name.c_str() );
 		mUniformLocs[name] = loc;
 		return loc;
@@ -624,6 +622,7 @@ GLint GlslProg::getUniformLocation( const std::string &name ) const
 const std::map<std::string,GLenum>& GlslProg::getActiveUniformTypes() const
 {
 	if( ! mActiveUniformTypesCached ) {
+		GlslProgScope shaderBind( shared_from_this() );
 		GLint numActiveUniforms = 0;
 		glGetProgramiv( mHandle, GL_ACTIVE_UNIFORMS, &numActiveUniforms );
 		for( GLint i = 0; i < numActiveUniforms; ++i ) {
@@ -643,6 +642,7 @@ const std::map<std::string,GLenum>& GlslProg::getActiveUniformTypes() const
 const std::map<std::string,GLenum>& GlslProg::getActiveAttribTypes() const
 {
 	if( ! mActiveAttribTypesCached ) {
+		GlslProgScope shaderBind( shared_from_this() );
 		GLint numActiveAttrs = 0;
 		glGetProgramiv( mHandle, GL_ACTIVE_ATTRIBUTES, &numActiveAttrs );
 		for( GLint i = 0; i < numActiveAttrs; ++i ) {
@@ -725,6 +725,7 @@ GLint GlslProg::getAttribLocation( const std::string &name ) const
 {
 	auto existing = mAttribLocs.find( name );
 	if( existing == mAttribLocs.end() ) {
+		GlslProgScope shaderBind( shared_from_this() );
 		const GLint loc = glGetAttribLocation( mHandle, name.c_str() );
 		if( loc != -1 )
 			mAttribLocs[name] = loc;
