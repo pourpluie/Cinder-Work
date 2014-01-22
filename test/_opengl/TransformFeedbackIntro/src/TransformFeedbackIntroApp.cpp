@@ -108,23 +108,25 @@ void TransformFeedbackIntroApp::glOriginalWay()
     GLfloat feedback[5];
     glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(feedback), feedback);
 	
-    printf("%f %f %f %f %f\n", feedback[0], feedback[1], feedback[2], feedback[3], feedback[4]);
+    console() << feedback[0] << " " <<  feedback[1] << " " << feedback[2] << " " << feedback[3] << " " << feedback[4] << std::endl;
 	
 	quit();
 }
 
 void TransformFeedbackIntroApp::setupShaders()
 {
-	std::vector<std::string> varyings( { "outValue" } );
-	gl::GlslProg::Format mFormat;
-	mFormat.vertex( loadAsset( "basicTransformFeedback.vert" ) );
-	mFormat.feedbackFormat( GL_SEPARATE_ATTRIBS ).feedbackVaryings( varyings );
+	gl::GlslProg::Format mFormat = gl::GlslProg::Format()
+										.vertex( loadAsset( "basicTransformFeedback.vert" ) )
+										.feedbackVarying( "outValue" ).feedbackFormat( GL_INTERLEAVED_ATTRIBS );
 	try {
 		mGlsl = gl::GlslProg::create( mFormat );
+		console() << *mGlsl << std::endl;
+		GLint inputAttrib = glGetAttribLocation( mGlsl->getHandle(), "inValue");
 		mGlsl->bind();
+		console() << inputAttrib << std::endl;
 	}
 	catch( const gl::GlslProgCompileExc &ex ) {
-		cout << ex.what() << endl;
+		console() << ex.what() << endl;
 		shutdown();
 	}
 }
@@ -133,16 +135,18 @@ void TransformFeedbackIntroApp::setupBuffers()
 {
 	mVao = gl::Vao::create();
 	mVao->bind();
+
+	float data[5] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f };
 	
-	float data[] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f };
-	
-	mInitialVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW );
+	mInitialVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(float) * 5, data, GL_STATIC_DRAW );
 	mInitialVbo->bind();
 	
-	gl::enableVertexAttribArray(0);
-	gl::vertexAttribPointer( 0, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0 );
+	//GLint inputAttrib = mGlsl->getAttribLocation( "inValue" );
+GLint inputAttrib = glGetAttribLocation( mGlsl->getHandle(), "inValue");
+	gl::enableVertexAttribArray( inputAttrib );
+	gl::vertexAttribPointer( inputAttrib, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0 );
 	
-	mTransformVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(data), nullptr, GL_STATIC_READ );
+	mTransformVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(float) * 5, nullptr, GL_STATIC_READ );
 	
 	// Bind the transform vbo to the first index binding point to receive the transform feedback
 	gl::bindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, 0, mTransformVbo );
@@ -161,7 +165,7 @@ void TransformFeedbackIntroApp::setupBuffers()
     GLfloat feedback[5];
 	mTransformVbo->getBufferSubData( 0, sizeof(float) * 5, feedback );
 	
-    printf("%f %f %f %f %f\n", feedback[0], feedback[1], feedback[2], feedback[3], feedback[4]);
+    console() << feedback[0] << " " <<  feedback[1] << " " << feedback[2] << " " << feedback[3] << " " << feedback[4] << std::endl;
 	
 	quit();
 }
