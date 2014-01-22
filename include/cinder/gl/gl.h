@@ -8,6 +8,8 @@
 	#include "GLES2/gl2ext.h"
 	#define CINDER_GLES
 	#define CINDER_GLES2
+	#pragma comment( lib, "libEGL.lib" )
+	#pragma comment( lib, "libGLESv2.lib" )
 #elif ! defined( CINDER_COCOA_TOUCH )
 	#if defined( __clang__ )
 		#pragma clang diagnostic push
