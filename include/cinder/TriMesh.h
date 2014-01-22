@@ -40,6 +40,8 @@ class TriMesh : public geom::Source {
  public:
 	class Format {
 	  public:
+		Format();
+		
 		Format&		positions( uint8_t dims = 3 ) { mPositionsDims = dims; return *this; }
 		Format&		normals() { mNormalsDims = 3; return *this; }
 		Format&		colors( uint8_t dims = 3 ) { mColorsDims = dims; return *this; }
