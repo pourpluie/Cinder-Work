@@ -53,12 +53,14 @@ class Vao : public std::enable_shared_from_this<Vao> {
 
 
 	struct VertexAttrib {
+		typedef enum { FLOAT, INTEGER } PointerType;
+	
 		VertexAttrib()
-			: mEnabled( false ), mSize( 0 ), mType( GL_FLOAT ), mNormalized( false ), mStride( 0 ), mPointer( 0 ), mArrayBufferBinding( 0 ), mDivisor( 0 )
+			: mEnabled( false ), mSize( 0 ), mType( GL_FLOAT ), mNormalized( false ), mStride( 0 ), mPointer( 0 ), mArrayBufferBinding( 0 ), mDivisor( 0 ), mPointerType( FLOAT )
 		{}
 		
-		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer, GLuint arrayBufferBinding, GLuint divisor = 0 )
-			: mEnabled( false ), mSize( size ), mType( type ), mNormalized( normalized ), mStride( stride ), mPointer( pointer ), mArrayBufferBinding( arrayBufferBinding ), mDivisor( divisor )
+		VertexAttrib( GLint size, GLenum type, GLboolean normalized, GLsizei stride, PointerType pointerType, const GLvoid* pointer, GLuint arrayBufferBinding, GLuint divisor = 0 )
+			: mEnabled( false ), mSize( size ), mType( type ), mNormalized( normalized ), mStride( stride ), mPointerType( pointerType ), mPointer( pointer ), mArrayBufferBinding( arrayBufferBinding ), mDivisor( divisor )
 		{}
 		
 		void		setDivisor( GLuint divisor ) { mDivisor = divisor; }
@@ -68,6 +70,7 @@ class Vao : public std::enable_shared_from_this<Vao> {
 		GLenum			mType;
 		GLboolean		mNormalized;
 		GLsizei			mStride;
+		PointerType		mPointerType;
 		const GLvoid*	mPointer;
 		GLuint			mArrayBufferBinding;
 		GLuint			mDivisor;
@@ -87,8 +90,10 @@ class Vao : public std::enable_shared_from_this<Vao> {
 		void	disableVertexAttribArray( GLuint index );
 		//! Sets the vertex attribute data
 		void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+		//! Sets the integer vertex attribute data
+		void	vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
 		//! Returns whether the existing attribPointer information at \a index is equal to the supplied params
-		bool	isVertexAttribEqual( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer, GLuint arrayBufferBinding ) const;
+		bool	isVertexAttribEqual( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, VertexAttrib::PointerType pointerType, const GLvoid *pointer, GLuint arrayBufferBinding ) const;
 		//! Sets the instancing divisor
 		void	vertexAttribDivisor( GLuint index, GLuint divisor );
 
@@ -118,6 +123,8 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	virtual void	disableVertexAttribArrayImpl( GLuint index ) = 0;
 	// Analogous to glVertexAttribPointer(). Expects this to be the currently bound VAO; called by Context
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) = 0;
+	// Analogous to glVertexAttribIPointer(). Expects this to be the currently bound VAO; called by Context
+	virtual void	vertexAttribIPointerImpl( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer ) = 0;
 	// Analogous to glVertexAttribDivisor(). Expects this to be the currently bound VAO; called by Context
 	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) = 0;
 	// Caches the currently bound buffer; called by Context when GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER changes

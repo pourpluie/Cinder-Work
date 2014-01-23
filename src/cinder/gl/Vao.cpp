@@ -174,11 +174,19 @@ void Vao::Layout::vertexAttribPointer( GLuint index, GLint size, GLenum type, GL
 {
 	auto existing = mVertexAttribs.find( index );
 	bool enabled = ( existing != mVertexAttribs.end() ) && ( existing->second.mEnabled );
-	mVertexAttribs[index] = Vao::VertexAttrib( size, type, normalized, stride, pointer, mCachedArrayBufferBinding );
+	mVertexAttribs[index] = Vao::VertexAttrib( size, type, normalized, stride, VertexAttrib::FLOAT, pointer, mCachedArrayBufferBinding );
 	mVertexAttribs[index].mEnabled = enabled;
 }
 
-bool Vao::Layout::isVertexAttribEqual( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer, GLuint arrayBufferBinding ) const
+void Vao::Layout::vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer )
+{
+	auto existing = mVertexAttribs.find( index );
+	bool enabled = ( existing != mVertexAttribs.end() ) && ( existing->second.mEnabled );
+	mVertexAttribs[index] = Vao::VertexAttrib( size, type, false, stride, VertexAttrib::INTEGER, pointer, mCachedArrayBufferBinding );
+	mVertexAttribs[index].mEnabled = enabled;
+}
+
+bool Vao::Layout::isVertexAttribEqual( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, VertexAttrib::PointerType pointerType, const GLvoid *pointer, GLuint arrayBufferBinding ) const
 {
 	auto existing = mVertexAttribs.find( index );
 	if( existing != mVertexAttribs.end() ) {
@@ -186,6 +194,7 @@ bool Vao::Layout::isVertexAttribEqual( GLuint index, GLint size, GLenum type, GL
 			&& existing->second.mType == type
 			&& existing->second.mNormalized == normalized
 			&& existing->second.mStride == stride
+			&& existing->second.mPointerType == pointerType
 			&& existing->second.mPointer == pointer
 			&& existing->second.mArrayBufferBinding == arrayBufferBinding;
 	}

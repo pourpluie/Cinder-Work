@@ -1126,6 +1126,15 @@ void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLbool
 		vao->vertexAttribPointerImpl( index, size, type, normalized, stride, pointer );
 }
 
+#if ! defined( CINDER_GLES )
+void Context::vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer )
+{
+	VaoRef vao = getVao();
+	if( vao )
+		vao->vertexAttribIPointerImpl( index, size, type, stride, pointer );
+}
+#endif // ! defined( CINDER_GLES )
+
 void Context::vertexAttribDivisor( GLuint index, GLuint divisor )
 {
 	VaoRef vao = getVao();

@@ -43,6 +43,7 @@ class VaoImplCore : public Vao {
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	disableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
+	virtual void	vertexAttribIPointerImpl( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer ) override;
 	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) override;
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;	
 
@@ -112,9 +113,18 @@ void VaoImplCore::disableVertexAttribArrayImpl( GLuint index )
 void VaoImplCore::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
 	// test to see if the layout doesn't already reflect this, so we can avoid a redundant call to glVertexAttribPointer
-	if( ! mLayout.isVertexAttribEqual( index, size, type, normalized, stride, pointer, mLayout.mCachedArrayBufferBinding ) ) {
+	if( ! mLayout.isVertexAttribEqual( index, size, type, normalized, stride, VertexAttrib::FLOAT, pointer, mLayout.mCachedArrayBufferBinding ) ) {
 		mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
 		glVertexAttribPointer( index, size, type, normalized, stride, pointer );
+	}
+}
+
+void VaoImplCore::vertexAttribIPointerImpl( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer )
+{
+	// test to see if the layout doesn't already reflect this, so we can avoid a redundant call to glVertexAttribPointer
+	if( ! mLayout.isVertexAttribEqual( index, size, type, false, stride, VertexAttrib::INTEGER, pointer, mLayout.mCachedArrayBufferBinding ) ) {
+		mLayout.vertexAttribIPointer( index, size, type, stride, pointer );
+		glVertexAttribIPointer( index, size, type, stride, pointer );
 	}
 }
 

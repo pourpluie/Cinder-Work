@@ -663,6 +663,13 @@ void vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean norma
 	context()->vertexAttribPointer( index, size, type, normalized, stride, pointer );
 }
 
+#if ! defined( CINDER_GLES )
+void vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer )
+{
+	context()->vertexAttribIPointer( index, size, type, stride, pointer );
+}
+#endif
+
 void enableVertexAttribArray( GLuint index )
 {
 	context()->enableVertexAttribArray( index );

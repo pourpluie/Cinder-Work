@@ -46,6 +46,7 @@ class VaoImplEs : public Vao {
 	virtual void	enableVertexAttribArrayImpl( GLuint index ) override;
 	virtual void	disableVertexAttribArrayImpl( GLuint index );
 	virtual void	vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer ) override;
+	virtual void	vertexAttribIPointerImpl( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer ) override;
 	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) override;
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;
 	
@@ -105,10 +106,22 @@ void VaoImplEs::disableVertexAttribArrayImpl( GLuint index )
 void VaoImplEs::vertexAttribPointerImpl( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
 	// test to see if the layout doesn't already reflect this, so we can avoid a redundant call to glVertexAttribPointer
-	if( ! mLayout.isVertexAttribEqual( index, size, type, normalized, stride, pointer, mLayout.mCachedArrayBufferBinding ) ) {
+	if( ! mLayout.isVertexAttribEqual( index, size, type, normalized, stride, VertexAttrib::FLOAT, pointer, mLayout.mCachedArrayBufferBinding ) ) {
 		mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
 		glVertexAttribPointer( index, size, type, normalized, stride, pointer );
 	}
+}
+
+void VaoImplEs::vertexAttribIPointerImpl( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer )
+{
+// currently a no-op although this is implemented in ES 3
+#if 0
+	// test to see if the layout doesn't already reflect this, so we can avoid a redundant call to glVertexAttribPointer
+	if( ! mLayout.isVertexAttribEqual( index, size, type, normalized, stride, VertexAttrib::INTEGER, pointer, mLayout.mCachedArrayBufferBinding ) ) {
+		mLayout.vertexAttribPointer( index, size, type, normalized, stride, pointer );
+		glVertexAttribIPointer( index, size, type, normalized, stride, pointer );
+	}
+#endif
 }
 
 void VaoImplEs::vertexAttribDivisorImpl( GLuint index, GLuint divisor )

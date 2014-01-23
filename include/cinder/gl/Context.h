@@ -230,6 +230,10 @@ class Context {
 	void		disableVertexAttribArray( GLuint index );
 	//! Analogous to glVertexAttribPointer()
 	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+#if ! defined( CINDER_GLES )
+	//! Analogous to glVertexAttribIPointer()
+	void		vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
+#endif // ! defined( CINDER_GLES )
 	//! Analogous to glVertexAttribDivisor()
 	void		vertexAttribDivisor( GLuint index, GLuint divisor );
 	//! Analogous to glVertexAttrib1f()

@@ -227,13 +227,13 @@ void TransformFeedbackClothSimulationApp::loadBuffers()
 		if( i < 1 ) {
 			mBuffers[i].second[CONNECTION] = gl::Vbo::create( GL_ARRAY_BUFFER, POINTS_TOTAL * sizeof(Vec4i), connectionVectors, GL_STATIC_DRAW );
 			mBuffers[i].second[CONNECTION]->bind();
-			glVertexAttribIPointer( 2, 4, GL_INT, 0, NULL );
+			gl::vertexAttribIPointer( 2, 4, GL_INT, 0, NULL );
 			gl::enableVertexAttribArray(2);
 		}
 		else {
 			mBuffers[i].second[CONNECTION] = mBuffers[0].second[2];
 			mBuffers[i].second[CONNECTION]->bind();
-			glVertexAttribIPointer( 2, 4, GL_INT, 0, NULL );
+			gl::vertexAttribIPointer( 2, 4, GL_INT, 0, NULL );
 			gl::enableVertexAttribArray(2);
 		}
 		

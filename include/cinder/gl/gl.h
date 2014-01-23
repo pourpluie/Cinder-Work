@@ -227,6 +227,10 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments = -1 );
 // Vertex Attributes
 //! Analogous to glVertexAttribPointer
 void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
+#if ! defined( CINDER_GLES )
+//! Analogous to glVertexAttribIPointer
+void	vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
+#endif // ! defined( CINDER_GLES )
 //! Analogous to glEnableVertexAttribArray
 void	enableVertexAttribArray( GLuint index );
 
