@@ -96,7 +96,14 @@ void VaoImplSoftware::bindImpl( Context *context )
 		if( attribIt->second.mEnabled ) {
 			glEnableVertexAttribArray( attribIt->first );
 			glBindBuffer( GL_ARRAY_BUFFER, attribIt->second.mArrayBufferBinding );
-			glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
+			if( attribIt->second.mPointerType == VertexAttrib::FLOAT )
+				glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
+			else
+#if ! defined( CINDER_GLES )
+				glVertexAttribIPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mStride, attribIt->second.mPointer );
+#else
+				; // should we throw here?
+#endif
 		}
 	}
 

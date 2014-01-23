@@ -1675,7 +1675,6 @@
 		00CE73960E92DBEB0059E09B /* gl */ = {
 			isa = PBXGroup;
 			children = (
-				00E7ECA5188F93B00029139A /* TransformFeedbackObjImplHardware.cpp */,
 				00A06F6F1760EFAD00D8BE17 /* BufferObj.cpp */,
 				00A06F701760EFAD00D8BE17 /* Context.cpp */,
 				00A06F711760EFAD00D8BE17 /* Environment.cpp */,
@@ -1697,6 +1696,7 @@
 				0087340C17958FBA00BC2063 /* Batch.cpp */,
 				B39A4BF21884CCD4002A63AF /* TransformFeedbackObj.cpp */,
 				B39A4BF41884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp */,
+				00E7ECA5188F93B00029139A /* TransformFeedbackObjImplHardware.cpp */,
 			);
 			name = gl;
 			sourceTree = "<group>";

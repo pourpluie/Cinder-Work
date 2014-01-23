@@ -62,7 +62,6 @@ VaoRef Vao::create()
 #if defined( CINDER_GLES )
 	#if defined( CINDER_COCOA_TOUCH )
 		return createVaoImplEs();
-//		return createVaoImplSoftware();
 	#elif defined( CINDER_GL_ANGLE )
 		return createVaoImplSoftware();
 	#else
