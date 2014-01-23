@@ -133,14 +133,13 @@ void TransformFeedbackClothSimulationApp::draw()
 
 void TransformFeedbackClothSimulationApp::loadShaders()
 {
-	std::vector<std::string> tf_varyings({
-		"tf_position_mass",
-		"tf_velocity"
-	});
+	std::vector<std::string> tf_varyings;
+	tf_varyings.push_back( "tf_position_mass" );
+	tf_varyings.push_back( "tf_velocity" );
 	
 	gl::GlslProg::Format updateFormat;
 	updateFormat.vertex( loadAsset( "update.vert" ) )
-	.feedbackFormat( GL_SEPARATE_ATTRIBS )
+		.feedbackFormat( GL_SEPARATE_ATTRIBS )
 		.feedbackVaryings( tf_varyings )
 		.attribLocation( "position_mass", 0 )
 		.attribLocation( "velocity", 1 )
