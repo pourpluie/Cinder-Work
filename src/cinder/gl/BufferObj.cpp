@@ -52,7 +52,7 @@ void BufferObj::bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *d
 	glBufferSubData( mTarget, offset, size, data );
 }
 
-#if ! defined( CINDER_GL_ANGLE )
+#if ! defined( CINDER_GLES )
 void BufferObj::getBufferSubData( GLintptr offset, GLsizeiptr size, GLvoid *data )
 {
 	BufferScope bufferBind( mTarget, mId );
