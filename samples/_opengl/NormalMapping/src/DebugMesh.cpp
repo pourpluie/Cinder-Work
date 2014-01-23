@@ -67,11 +67,11 @@ void DebugMesh::setMesh(const TriMesh& mesh)
 
 	// reserve memory to prevent reallocations
 	bool hasTangents = mesh.hasTangents();
-	size_t numVerticesPerVertex = hasTangents ? 4 : 2;
+	size_t numEntriesPerVertex = hasTangents ? 4 : 2;
 	size_t numIndicesPerVertex = hasTangents ? 6 : 2;
 
-	mVertices.reserve( numVertices * numVerticesPerVertex );
-	mColors.reserve( numVertices * numVerticesPerVertex );
+	mVertices.reserve( numVertices * numEntriesPerVertex );
+	mColors.reserve( numVertices * numEntriesPerVertex );
 	mIndices.reserve( numVertices * numIndicesPerVertex );
 
 	// determine the right scale, based on the bounding box
@@ -85,24 +85,21 @@ void DebugMesh::setMesh(const TriMesh& mesh)
 
 		mVertices.push_back( mesh.getVertices<3>()[i] );
 		mVertices.push_back( mesh.getVertices<3>()[i] + scale * mesh.getNormals()[i] );
+		
+		mColors.push_back( Color(0, 0, 0) );
+		mColors.push_back( Color(0, 0, 1) );
+		
+		mIndices.push_back( idx );
+		mIndices.push_back( idx + 1 );
+
 		if(hasTangents)
 		{
 			mVertices.push_back( mesh.getVertices<3>()[i] + scale * mesh.getTangents()[i] );
 			mVertices.push_back( mesh.getVertices<3>()[i] + scale * mesh.getNormals()[i].cross(mesh.getTangents()[i]) );
-		}
 
-		mColors.push_back( Color(0, 0, 0) );
-		mColors.push_back( Color(0, 0, 1) );
-		if(hasTangents)
-		{
 			mColors.push_back( Color(1, 0, 0) );
 			mColors.push_back( Color(0, 1, 0) );
-		}
 
-		mIndices.push_back( idx );
-		mIndices.push_back( idx + 1 );
-		if(hasTangents)
-		{
 			mIndices.push_back( idx );
 			mIndices.push_back( idx + 2 );
 			mIndices.push_back( idx );
