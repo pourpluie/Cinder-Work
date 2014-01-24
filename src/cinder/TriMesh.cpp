@@ -46,7 +46,7 @@ void TriMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *
 // TriMesh::Format
 TriMesh::Format::Format()
 {
-	mPositionsDims = mNormalsDims = mTangentsDims = mBiTangentsDims = mColorsDims = 0;
+	mPositionsDims = mNormalsDims = mTangentsDims = mBitangentsDims = mColorsDims = 0;
 	mTexCoords0Dims = mTexCoords1Dims = mTexCoords2Dims = mTexCoords3Dims = 0;
 }
 
@@ -57,7 +57,7 @@ TriMesh::TriMesh( const TriMesh::Format &format )
 	mPositionsDims = format.mPositionsDims;
 	mNormalsDims = format.mNormalsDims;
 	mTangentsDims = format.mTangentsDims;
-	mBiTangentsDims = format.mBiTangentsDims;
+	mBitangentsDims = format.mBitangentsDims;
 	mColorsDims = format.mColorsDims;
 	mTexCoords0Dims = format.mTexCoords0Dims;
 	mTexCoords1Dims = format.mTexCoords1Dims;
@@ -67,7 +67,7 @@ TriMesh::TriMesh( const TriMesh::Format &format )
 
 TriMesh::TriMesh( const geom::Source &source )
 {
-	mPositionsDims = mNormalsDims = mTangentsDims = mBiTangentsDims = mColorsDims = 0;
+	mPositionsDims = mNormalsDims = mTangentsDims = mBitangentsDims = mColorsDims = 0;
 	mTexCoords0Dims = mTexCoords1Dims = mTexCoords2Dims = mTexCoords3Dims = 0;
 
 	size_t numPositions = source.getNumVertices();
@@ -90,10 +90,10 @@ TriMesh::TriMesh( const geom::Source &source )
 		mTangents.resize( numPositions );
 	}
 
-	// bi-tangents
+	// bitangents
 	if( source.getAttribDims( geom::Attrib::BITANGENT ) > 0 ) {
-		mBiTangentsDims = 3;
-		mBiTangents.resize( numPositions );
+		mBitangentsDims = 3;
+		mBitangents.resize( numPositions );
 	}
 
 	// colors
@@ -161,7 +161,7 @@ void TriMesh::clear()
 	mPositions.clear();
 	mNormals.clear();
 	mTangents.clear();
-	mBiTangents.clear();
+	mBitangents.clear();
 	mColors.clear();
 	mTexCoords0.clear();
 	mTexCoords1.clear();
@@ -205,10 +205,10 @@ void TriMesh::appendTangents( const Vec3f *tangents, size_t num )
 	mTangents.insert( mTangents.end(), tangents, tangents + num );
 }
 
-void TriMesh::appendBiTangents( const Vec3f *biTangents, size_t num )
+void TriMesh::appendBitangents( const Vec3f *bitangents, size_t num )
 {
-	assert( mBiTangentsDims == 3 );
-	mBiTangents.insert( mBiTangents.end(), biTangents, biTangents + num );
+	assert( mBitangentsDims == 3 );
+	mBitangents.insert( mBitangents.end(), bitangents, bitangents + num );
 }
 
 void TriMesh::appendColors( const Color *rgbs, size_t num )
@@ -336,12 +336,12 @@ void TriMesh::getTriangleTangents( size_t idx, Vec3f *a, Vec3f *b, Vec3f *c ) co
 	*c = mTangents[mIndices[idx * 3 + 2]];
 }
 
-void TriMesh::getTriangleBiTangents( size_t idx, Vec3f *a, Vec3f *b, Vec3f *c ) const
+void TriMesh::getTriangleBitangents( size_t idx, Vec3f *a, Vec3f *b, Vec3f *c ) const
 {
-	assert( mBiTangentsDims == 3 );
-	*a = mBiTangents[mIndices[idx * 3 + 0]];
-	*b = mBiTangents[mIndices[idx * 3 + 1]];
-	*c = mBiTangents[mIndices[idx * 3 + 2]];
+	assert( mBitangentsDims == 3 );
+	*a = mBitangents[mIndices[idx * 3 + 0]];
+	*b = mBitangents[mIndices[idx * 3 + 1]];
+	*c = mBitangents[mIndices[idx * 3 + 2]];
 }
 
 AxisAlignedBox3f TriMesh::calcBoundingBox() const
@@ -572,19 +572,19 @@ bool TriMesh::recalculateTangents()
 	return true;
 }
 
-bool TriMesh::recalculateBiTangents()
+bool TriMesh::recalculateBitangents()
 {
 	// requires valid 3D tangents and normals
 	if( !(hasTangents() || recalculateTangents()) )
 		return false;
 
-	mBiTangents.assign( mNormals.size(), Vec3f::zero() );
+	mBitangents.assign( mNormals.size(), Vec3f::zero() );
 
 	size_t n = getNumVertices();
 	for( size_t i = 0; i < n; ++i )
-		mBiTangents[i] = mNormals[i].cross( mTangents[i] ).normalized();
+		mBitangents[i] = mNormals[i].cross( mTangents[i] ).normalized();
 
-	mBiTangentsDims = 3;
+	mBitangentsDims = 3;
 
 	return true;
 }
@@ -627,7 +627,7 @@ uint8_t TriMesh::getAttribDims( geom::Attrib attr ) const
 		case geom::Attrib::TEX_COORD_3: return mTexCoords3Dims;
 		case geom::Attrib::NORMAL: return mNormalsDims;
 		case geom::Attrib::TANGENT: return mTangentsDims;
-		case geom::Attrib::BITANGENT: return mBiTangentsDims;
+		case geom::Attrib::BITANGENT: return mBitangentsDims;
 		default:
 			return 0;
 	}
@@ -644,7 +644,7 @@ void TriMesh::getAttribPointer( geom::Attrib attr, const float **resultPtr, size
 		case geom::Attrib::TEX_COORD_3: *resultPtr = (const float*)mTexCoords3.data(); *resultStrideBytes = 0; *resultDims = mTexCoords3Dims; break;
 		case geom::Attrib::NORMAL: *resultPtr = (const float*)mNormals.data(); *resultStrideBytes = 0; *resultDims = mNormalsDims; break;
 		case geom::Attrib::TANGENT: *resultPtr = (const float*)mTangents.data(); *resultStrideBytes = 0; *resultDims = mTangentsDims; break;
-		case geom::Attrib::BITANGENT: *resultPtr = (const float*)mBiTangents.data(); *resultStrideBytes = 0; *resultDims = mBiTangentsDims; break;
+		case geom::Attrib::BITANGENT: *resultPtr = (const float*)mBitangents.data(); *resultStrideBytes = 0; *resultDims = mBitangentsDims; break;
 		default:
 			*resultPtr = nullptr; *resultStrideBytes = 0; *resultDims = 0;
 	}
@@ -683,7 +683,7 @@ void TriMesh::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const 
 			geom::copyData( dims, srcData, numPositions, 3, 0, (float*)mTangents.data() );
 		break;
 		case geom::Attrib::BITANGENT:
-			geom::copyData( dims, srcData, numPositions, 3, 0, (float*)mBiTangents.data() );
+			geom::copyData( dims, srcData, numPositions, 3, 0, (float*)mBitangents.data() );
 		break;
 		default:
 			throw geom::ExcMissingAttrib();

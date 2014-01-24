@@ -79,7 +79,7 @@ public:
 private:
 	/* Load the mesh and calculate normals and tangents if necessary. */
 	TriMesh			createMesh(const fs::path& mshFile);
-	/* Construct a mesh to visualize normals (blue), tangents (red) and bi-tangents (green). */
+	/* Construct a mesh to visualize normals (blue), tangents (red) and bitangents (green). */
 	gl::VboMeshRef	createDebugMesh(const TriMesh& mesh);
 
 private:

@@ -911,14 +911,14 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 void draw( const TextureRef &texture, const Rectf &rect )
 {
 	auto ctx = context();
-	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture( texture ).color() );
+	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture( texture ) );
 	GlslProgScope GlslProgScope( shader );
 	TextureBindScope texBindScope( texture );
 
 	shader->uniform( "uTex0", 0 );
 
-	GLfloat data[8+8+16]; // both verts, texCoords and colors
-	GLfloat *verts = data, *texCoords = data + 8, *colors = data + 16;
+	GLfloat data[8+8]; // both verts and texCoords
+	GLfloat *verts = data, *texCoords = data + 8;
 	
 	verts[0*2+0] = rect.getX2(); texCoords[0*2+0] = texture->getRight();
 	verts[0*2+1] = rect.getY1(); texCoords[0*2+1] = texture->getTop();
@@ -928,15 +928,8 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	verts[2*2+1] = rect.getY2(); texCoords[2*2+1] = texture->getBottom();
 	verts[3*2+0] = rect.getX1(); texCoords[3*2+0] = texture->getLeft();
 	verts[3*2+1] = rect.getY2(); texCoords[3*2+1] = texture->getBottom();
-
-	for(int i=0;i<4;++i) {
-		colors[i*4+0] = ctx->getCurrentColor().r;
-		colors[i*4+1] = ctx->getCurrentColor().g;
-		colors[i*4+2] = ctx->getCurrentColor().b;
-		colors[i*4+3] = ctx->getCurrentColor().a;
-	}
 	
-	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*32 );
+	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
 	BufferScope vboScp( defaultVbo );
 	ctx->pushVao();
 	ctx->getDefaultVao()->freshBindPre();
@@ -950,11 +943,6 @@ void draw( const TextureRef &texture, const Rectf &rect )
 		if( texLoc >= 0 ) {
 			enableVertexAttribArray( texLoc );
 			vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
-		}
-		int colorLoc = shader->getAttribSemanticLocation( geom::Attrib::COLOR );
-		if( colorLoc >= 0 ) {
-			enableVertexAttribArray( colorLoc );
-			vertexAttribPointer( colorLoc, 4, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*16) );
 		}
 	ctx->getDefaultVao()->freshBindPost();
 	
