@@ -259,6 +259,7 @@ GlslProg::AttribSemanticMap& GlslProg::getDefaultAttribNameToSemanticMap()
 		sDefaultAttribNameToSemanticMap["ciPosition"] = geom::Attrib::POSITION;
 		sDefaultAttribNameToSemanticMap["ciNormal"] = geom::Attrib::NORMAL;
 		sDefaultAttribNameToSemanticMap["ciTangent"] = geom::Attrib::TANGENT;
+		sDefaultAttribNameToSemanticMap["ciBiTangent"] = geom::Attrib::BITANGENT;
 		sDefaultAttribNameToSemanticMap["ciTexCoord0"] = geom::Attrib::TEX_COORD_0;
 		sDefaultAttribNameToSemanticMap["ciTexCoord1"] = geom::Attrib::TEX_COORD_1;
 		sDefaultAttribNameToSemanticMap["ciTexCoord2"] = geom::Attrib::TEX_COORD_2;
