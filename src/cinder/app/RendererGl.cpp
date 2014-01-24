@@ -31,7 +31,11 @@
 		#import "cinder/app/AppImplCocoaTouchRendererGl.h"
 	#endif
 #elif defined( CINDER_MSW )
-	#include "cinder/app/AppImplMswRendererGl.h"
+	#if defined( CINDER_GL_ANGLE )
+		#include "cinder/app/AppImplMswRendererAngle.h"
+	#else
+		#include "cinder/app/AppImplMswRendererGl.h"
+	#endif
 #endif
 
 namespace cinder { namespace app {
@@ -190,8 +194,11 @@ void RendererGl::setup( App *aApp, HWND wnd, HDC dc, RendererRef sharedRenderer 
 	mWnd = wnd;
 	mApp = aApp;
 	if( ! mImpl )
+#if defined( CINDER_GL_ANGLE )
+		mImpl = new AppImplMswRendererAngle( mApp, this );
+#else
 		mImpl = new AppImplMswRendererGl( mApp, this );
-
+#endif
 	if( ! mImpl->initialize( wnd, dc, sharedRenderer ) )
 		throw ExcRendererAllocation();
 }

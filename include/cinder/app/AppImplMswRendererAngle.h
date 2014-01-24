@@ -23,57 +23,46 @@
 
 #pragma once
 
-#include "cinder/app/Renderer.h"
-
-#if ! defined( CINDER_MSW )
-	#error "RendererAngle is only supported on Microsoft Windows"
-#endif
-
-#include "cinder/gl/gl.h"
-#include "cinder/gl/Context.h"
+#include "cinder/app/App.h"
+#include "cinder/app/AppImplMswRenderer.h"
 #include "EGL/egl.h"
+#include "EGL/eglext.h"
+#include "EGL/eglplatform.h"
+
+namespace cinder { namespace gl {
+	class Context;
+	typedef std::shared_ptr<Context>	ContextRef;
+} }
 
 namespace cinder { namespace app {
 
-typedef std::shared_ptr<class RendererAngle>	RendererAngleRef;
-
-class RendererAngle : public Renderer {
-  public:
-	RendererAngle() {}
-	static RendererAngleRef	create() { return RendererAngleRef( new RendererAngle() ); }
-	virtual RendererRef		clone() const { return RendererAngleRef( new RendererAngle( *this ) ); }
+class AppImplMswRendererAngle : public AppImplMswRenderer {
+ public:
+	AppImplMswRendererAngle( App *app, class RendererGl *renderer );
 	
-	virtual void setup( App *aApp, HWND wnd, HDC dc, RendererRef sharedRenderer );
-	virtual void kill();
-	
-	virtual HWND	getHwnd() { return mWnd; }
-	virtual HDC		getDc() { return mDC; }
-
+	virtual bool	initialize( HWND wnd, HDC dc, RendererRef sharedRenderer ) override;
 	virtual void	prepareToggleFullScreen() override;
 	virtual void	finishToggleFullScreen() override;
+	virtual void	kill() override;
+	virtual void	defaultResize() const override;
+	virtual void	swapBuffers() const override;
+	virtual void	makeCurrentContext() override;
 
-	virtual void startDraw() override;
-	virtual void finishDraw() override;
-	virtual void defaultResize() override;
-	virtual void makeCurrentContext() override;
-	virtual Surface	copyWindowSurface( const Area &area );
-
-  protected:
-	RendererAngle( const RendererAngle &renderer );
- 
-	HWND			mWnd;
-	HDC				mDC;
+ protected:
+	bool	initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC );
+	int		initMultisample( PIXELFORMATDESCRIPTOR pfd, int requestedLevelIdx, HDC dc );
 	
+	class RendererGl	*mRenderer;
+	gl::ContextRef		mCinderContext;
+
 	EGLContext		mContext;
 	EGLDisplay		mDisplay;
 	EGLSurface		mSurface;
 
-	gl::ContextRef		mCinderContext;
+	bool		mWasFullScreen;
+	bool		mWasVerticalSynced;
+	HGLRC		mRC, mPrevRC;
+	HDC			mDC;
 };
-
-EGLint getEglError();
-std::string getEglErrorString( EGLint err );
-
-void checkGlStatus();
 
 } } // namespace cinder::app

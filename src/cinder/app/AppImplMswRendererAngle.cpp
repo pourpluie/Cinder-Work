@@ -21,7 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "cinder/app/RendererAngle.h"
+#include "cinder/app/AppImplMswRendererAngle.h"
 
 #include "cinder/app/App.h"
 #include "cinder/gl/Environment.h"
@@ -36,38 +36,38 @@
 #define CI_BREAK() 
 #endif
 
-// TODO: these gl stubs should not be necessary once gl calls go through env()
 #if defined( CINDER_GL_ANGLE )
 
 namespace cinder { namespace app {
 
+void checkGlStatus();
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// RendererAngle
-RendererAngle::RendererAngle( const RendererAngle &renderer )
-	: Renderer( renderer )
+// AppImplMswRendererAngle
+AppImplMswRendererAngle::AppImplMswRendererAngle( App *app, RendererGl *renderer )
+	: AppImplMswRenderer( app )
 {
+	
 }
 
-void RendererAngle::setup( App *app, HWND wnd, HDC dc, RendererRef /*sharedRenderer*/ )
+bool AppImplMswRendererAngle::initialize( HWND wnd, HDC dc, RendererRef sharedRenderer )
 {
-	mApp = app;
 	mWnd = wnd;
 	
-	EGLint configAttribList[] =
-   {
-       EGL_RED_SIZE,       8,
-       EGL_GREEN_SIZE,     8,
-       EGL_BLUE_SIZE,      8,
-       EGL_ALPHA_SIZE,     EGL_DONT_CARE,
-       EGL_DEPTH_SIZE,     24,
-       EGL_STENCIL_SIZE,   EGL_DONT_CARE,
-       EGL_SAMPLE_BUFFERS, 0,
-       EGL_NONE
-   };
-   EGLint surfaceAttribList[] =
-   {
-       EGL_NONE, EGL_NONE
-   };
+	EGLint configAttribList[] = {
+		EGL_RED_SIZE,       8,
+		EGL_GREEN_SIZE,     8,
+		EGL_BLUE_SIZE,      8,
+		EGL_ALPHA_SIZE,     EGL_DONT_CARE,
+		EGL_DEPTH_SIZE,     24,
+		EGL_STENCIL_SIZE,   EGL_DONT_CARE,
+		EGL_SAMPLE_BUFFERS, 0,
+		EGL_NONE
+	};
+	EGLint surfaceAttribList[] =
+	{
+		EGL_NONE, EGL_NONE
+	};
 
 	//createEGLContext( wnd, &mDisplay, &mContext, &mSurface, configAttribList, surfaceAttribList );
 
@@ -125,39 +125,25 @@ void RendererAngle::setup( App *app, HWND wnd, HDC dc, RendererRef /*sharedRende
 
 	eglSwapInterval( mDisplay, 0 );
 	checkGlStatus();
+
+	return true;
 }
 
-void RendererAngle::kill()
+void AppImplMswRendererAngle::kill()
 {
 }
 
-void RendererAngle::prepareToggleFullScreen()
+void AppImplMswRendererAngle::prepareToggleFullScreen()
 {
 //	mImpl->prepareToggleFullScreen();
 }
 
-void RendererAngle::finishToggleFullScreen()
+void AppImplMswRendererAngle::finishToggleFullScreen()
 {
 //	mImpl->finishToggleFullScreen();
 }
 
-void RendererAngle::startDraw()
-{
-	checkGlStatus();
-
-//	mImpl->makeCurrentContext();
-}
-
-void RendererAngle::finishDraw()
-{
-	checkGlStatus();
-
-	eglSwapBuffers( mDisplay, mSurface );
-
-	checkGlStatus();
-}
-
-void RendererAngle::defaultResize()
+void AppImplMswRendererAngle::defaultResize() const
 {
 	checkGlStatus();
 
@@ -176,21 +162,14 @@ void RendererAngle::defaultResize()
 	checkGlStatus();
 }
 
-void RendererAngle::makeCurrentContext()
+void AppImplMswRendererAngle::swapBuffers() const
 {
-	checkGlStatus();
-
-	mCinderContext->makeCurrent();
-
-	checkGlStatus();
-
+	eglSwapBuffers( mDisplay, mSurface );
 }
 
-Surface	RendererAngle::copyWindowSurface( const Area &area )
+void AppImplMswRendererAngle::makeCurrentContext()
 {
-//	return mImpl->copyWindowContents( area );
-	assert( 0 && "not implemented" );
-	return Surface();
+	mCinderContext->makeCurrent();
 }
 
 EGLint getEglError()
