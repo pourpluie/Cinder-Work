@@ -291,7 +291,7 @@ void VertBatch::texCoord( const Vec4f &t )
 
 void VertBatch::vertex( const Vec4f &v )
 {
-	addVertex( Vec4f( v.x, v.y, v.z, v.w ) );
+	addVertex( v );
 }
 
 void VertBatch::vertex( const Vec4f &v, const ColorAf &c )
