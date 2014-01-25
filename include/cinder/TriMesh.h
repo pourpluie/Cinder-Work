@@ -1,6 +1,9 @@
 /*
  Copyright (c) 2010, The Barbarian Group
  All rights reserved.
+ 
+ Portions of this code (C) Paul Houx
+ All rights reserved.
 
  Redistribution and use in source and binary forms, with or without modification, are permitted provided that
  the following conditions are met:
@@ -253,6 +256,9 @@ class TriMesh : public geom::Source {
 
 	//! Adds or replaces normals by calculating them from the vertices and faces. Requires 3D vertices.
 	bool		recalculateNormals();
+	/*! Adds or replaces normals by calculating them from the vertices and faces. A thorough search for connected triangles is performed,
+		increasing the accuracy of the normals at the expense of performance. Requires 3D vertices. */
+	bool		recalculateNormalsHighQuality();
 	//! Adds or replaces tangents by calculating them from the normals and texture coordinates. Requires 3D normals and 2D texture coordinates.
 	bool		recalculateTangents();
 	//! Adds or replaces bitangents by calculating them from the normals and tangents. Requires 3D normals and tangents.
