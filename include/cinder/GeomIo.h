@@ -276,6 +276,7 @@ class Sphere : public Source {
   public:
 	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
 	Sphere();
+	virtual ~Sphere() {}
 
 	Sphere&		enable( Attrib attrib ) { Source::enable( attrib ); return *this; }
 	Sphere&		disable( Attrib attrib ) { Source::disable( attrib ); return *this; }	
@@ -289,13 +290,76 @@ class Sphere : public Source {
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
 	virtual void		loadInto( Target *target ) const override;
 	
+  protected:
+	virtual void		calculate() const;
+	virtual void		calculateImplUV( size_t segments, size_t rings ) const;
+
+	Vec3f		mCenter;
+	float		mRadius;
+	int			mNumSegments;
+
+	mutable bool						mCalculationsCached;
+	mutable std::vector<Vec3f>			mVertices;
+	mutable std::vector<Vec2f>			mTexCoords;
+	mutable std::vector<Vec3f>			mNormals;
+	mutable std::vector<Vec3f>			mColors;	
+	mutable std::vector<uint32_t>		mIndices;
+};
+
+class Capsule : public Sphere {
+  public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
+	Capsule();
+
+	Capsule&		enable( Attrib attrib ) { Source::enable( attrib ); return *this; }
+	Capsule&		disable( Attrib attrib ) { Source::disable( attrib ); return *this; }
+	Capsule&		center( const Vec3f &center ) { mCenter = center; mCalculationsCached = false; return *this; }
+	Capsule&		segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
+	Capsule&		radius( float radius ) { mRadius = math<float>::max(0.f, radius); mCalculationsCached = false; return *this; }
+	Capsule&		length( float length ) { mLength = math<float>::max(0.f, length); mCalculationsCached = false; return *this; }
+	Capsule&		direction( const Vec3f &direction ) { mDirection = direction.normalized(); mCalculationsCached = false; return *this; }
+
+	Capsule&		set( const Vec3f &from, const Vec3f &to );
+	
+  private:
+	virtual void	calculate() const override;
+	virtual void	calculateImplUV( size_t segments, size_t rings ) const override;
+	void			calculateRing( size_t segments, float ring, float offset ) const;
+
+	Vec3f		mDirection;
+	float		mLength;
+};
+
+class Cone : public Source {
+  public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
+	Cone();
+
+	Cone&		enable( Attrib attrib ) { Source::enable( attrib ); return *this; }
+	Cone&		disable( Attrib attrib ) { Source::disable( attrib ); return *this; }	
+	Cone&		center( const Vec3f &center ) { mCenter = center; mCalculationsCached = false; return *this; }
+	Cone&		direction( const Vec3f &direction ) { mDirection = direction.normalized(); mCalculationsCached = false; return *this; }
+	Cone&		radius( float radius ) { mRadiusBase = mRadiusTop = radius; mCalculationsCached = false; return *this; }
+	Cone&		radius( float base, float top = 0.0f ) { mRadiusBase = base; mRadiusTop = top; mCalculationsCached = false; return *this; }
+	Cone&		segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
+	Cone&		rings( int rings ) { mNumRings = rings; mCalculationsCached = false; return *this; }
+	
+	virtual size_t		getNumVertices() const override;
+	virtual size_t		getNumIndices() const override;
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
+	virtual uint8_t		getAttribDims( Attrib attr ) const override;
+	virtual void		loadInto( Target *target ) const override;
+	
   private:
 	void		calculate() const;
 	void		calculateImplUV( size_t segments, size_t rings ) const;
 
 	Vec3f		mCenter;
-	float		mRadius;
+	Vec3f		mDirection;
+	float		mRadiusBase;
+	float		mRadiusTop;
 	int			mNumSegments;
+	int			mNumRings;
 
 	mutable bool						mCalculationsCached;
 	mutable std::vector<Vec3f>			mVertices;

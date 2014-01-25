@@ -22,6 +22,7 @@
 */
 
 #include "cinder/GeomIo.h"
+#include "cinder/Quaternion.h"
 #include <algorithm>
 
 using namespace std;
@@ -361,7 +362,7 @@ float Cube::sColors[24*3]	={  1,0,0,	1,0,0,	1,0,0,	1,0,0,		// +X = red
 								
 float Cube::sTexCoords[24*2]={	0,0,	1,0,	1,1,	0,1,
 								1,0,	1,1,	0,1,	0,0,
-								0,0,	1,0,	1,1,	0,1,							
+								0,0,	1,0,	1,1,	0,1,
 								1,0,	1,1,	0,1,	0,0,
 								1,1,	0,1,	0,0,	1,0,
 								1,1,	0,1,	0,0,	1,0 };
@@ -807,10 +808,11 @@ void Sphere::calculate() const
 		return;
 
 	int numSegments = mNumSegments;
-	if( numSegments <= 0 )
+	if( numSegments < 4 )
 		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_PI * 2 ) );
 
-	calculateImplUV( numSegments, numSegments );
+	// numRings = (numSegments / 2) + 1 and should always be an even number
+	calculateImplUV( numSegments + 1, ((numSegments & 0xFFFFFFFE) >> 1) + 1 );
 	mCalculationsCached = true;
 }
 	
@@ -852,7 +854,7 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 				++texIt;
 			}
 			if( hasColors ) {
-				colorIt->set( x, y, z );
+				colorIt->set( x * 0.5f + 0.5f, y * 0.5f + 0.5f, z * 0.5f + 0.5f );
 				++colorIt;
 			}
 		}
@@ -861,12 +863,12 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 	auto indexIt = mIndices.begin();
 	for( size_t r = 0; r < rings - 1; r++ ) {
 		for( size_t s = 0; s < segments - 1 ; s++ ) {
-			*indexIt++ = r * segments + s;
 			*indexIt++ = r * segments + ( s + 1 );
+			*indexIt++ = r * segments + s;
 			*indexIt++ = ( r + 1 ) * segments + ( s + 1 );
 
-			*indexIt++ = ( r + 1 ) * segments + ( s + 1 );
 			*indexIt++ = ( r + 1 ) * segments + s;
+			*indexIt++ = ( r + 1 ) * segments + ( s + 1 );
 			*indexIt++ = r * segments + s;
 		}
 	}
@@ -910,6 +912,112 @@ void Sphere::loadInto( Target *target ) const
 
 	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );	
 }
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Capsule
+
+Capsule::Capsule()
+	: mDirection( 0, 1, 0 ), mLength( 1.0f )
+{
+	enable( Attrib::POSITION );
+	enable( Attrib::NORMAL );
+	enable( Attrib::TEX_COORD_0 );
+}
+
+Capsule& Capsule::set( const Vec3f &from, const Vec3f &to )
+{
+	const Vec3f axis = ( to - from );
+	mLength = axis.length();
+	mDirection = axis.normalized();
+	mCenter = from + 0.5f * axis;
+	mCalculationsCached = false;
+	return *this;
+}
+
+void Capsule::calculate() const
+{
+	if( mCalculationsCached )
+		return;
+
+	int numSegments = mNumSegments;
+	if( numSegments < 4 )
+		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_PI * 2 ) );
+
+	// numRings = (numSegments / 2) + 1 and should always be an even number
+	calculateImplUV( numSegments, ((numSegments & 0xFFFFFFFE) >> 1) + 1 );
+	mCalculationsCached = true;
+}
+	
+void Capsule::calculateImplUV( size_t segments, size_t rings ) const
+{
+	bool flipped = false;
+	size_t ringsOverTwo = rings / 2;
+
+	mVertices.clear();
+	mNormals.clear();
+	mTexCoords.clear();
+	mColors.clear();
+	mIndices.clear();
+
+	mVertices.reserve( segments * ( rings + 1 ) );
+	mNormals.reserve( segments * ( rings + 1 ) );
+	mTexCoords.reserve( segments * ( rings + 1 ) );
+	mColors.reserve( segments * ( rings + 1 ) );
+	mIndices.reserve( segments * ( rings + 1 ) * 6 );
+
+	float ringIncr = 1.0f / (float)( rings - 1 );
+	for( size_t r = 0; r <= ringsOverTwo; r++ )
+		calculateRing( segments, r * ringIncr, -0.5f * mLength );
+	for( size_t r = 0; r <= ringsOverTwo; r++ )
+		calculateRing( segments, ringsOverTwo * ringIncr, lerp(-0.5f, +0.5f, (float)r/ringsOverTwo) * mLength );
+	for( size_t r = ringsOverTwo; r < rings; r++ )
+		calculateRing( segments, r * ringIncr, +0.5f * mLength );
+
+	segments++;
+	for( size_t r = 0; r <= (rings + ringsOverTwo); r++ ) {
+		for( size_t s = 0; s < segments - 1 ; s++ ) {
+			mIndices.push_back( r * segments + ( s + !flipped ) );
+			mIndices.push_back( r * segments + ( s + flipped ) );
+			mIndices.push_back( ( r + 1 ) * segments + ( s + 1 ) );
+
+			mIndices.push_back( ( r + 1 ) * segments + ( s + flipped ) );
+			mIndices.push_back( ( r + 1 ) * segments + ( s + !flipped ) );
+			mIndices.push_back( r * segments + s );
+		}
+	}
+}
+
+void Capsule::calculateRing( size_t segments, float ring, float offset ) const
+{
+	const ci::Quatf quaternion( Vec3f::yAxis(), mDirection );
+
+	float segIncr = 1.0f / (float)( segments );
+
+	bool hasNormals = isEnabled( Attrib::NORMAL );
+	bool hasTexCoords = isEnabled( Attrib::TEX_COORD_0 );
+	bool hasColors = isEnabled( Attrib::COLOR );
+
+	for( size_t s = 0; s <= segments; s++ ) {
+		float x = math<float>::cos( 2 * M_PI * s * segIncr ) * math<float>::sin( M_PI * ring );
+		float y = math<float>::sin( -M_PI / 2 + M_PI * ring );
+		float z = math<float>::sin( 2 * M_PI * s * segIncr ) * math<float>::sin( M_PI * ring );
+
+		mVertices.push_back( mCenter + ( quaternion * Vec3f( mRadius * x, offset + mRadius * y, mRadius * z ) ) );
+
+		if( hasNormals ) {
+			mNormals.push_back( quaternion * Vec3f(x, y, z) );
+		}
+		if( hasTexCoords ) {
+			mTexCoords.push_back( Vec2f( s * segIncr, 1.0f - ring ) );
+		}
+		if( hasColors ) {
+			mColors.push_back( Vec3f( x * 0.5f + 0.5f, y * 0.5f + 0.5f, z * 0.5f + 0.5f ) );
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // SplineExtrusion
