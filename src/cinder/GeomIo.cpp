@@ -811,8 +811,11 @@ void Sphere::calculate() const
 	if( numSegments < 4 )
 		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_PI * 2 ) );
 
-	// numRings = (numSegments / 2) + 1 and should always be an even number
-	calculateImplUV( numSegments + 1, ((numSegments & 0xFFFFFFFE) >> 1) + 1 );
+	// numRings = numSegments / 2
+	int numRings = ( numSegments >> 1 );
+
+	// numRings = (numSegments / 2) and should always be an even number
+	calculateImplUV( numSegments + 1, numRings + 1 );
 	mCalculationsCached = true;
 }
 	
@@ -821,7 +824,7 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 	mVertices.resize( segments * rings );
 	mNormals.resize( segments * rings );
 	mTexCoords.resize( segments * rings );
-	mColors.resize( segments * rings );	
+	mColors.resize( segments * rings );
 	mIndices.resize( segments * rings * 6 );
 
 	float ringIncr = 1.0f / (float)( rings - 1 );
@@ -943,15 +946,17 @@ void Capsule::calculate() const
 	if( numSegments < 4 )
 		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_PI * 2 ) );
 
-	// numRings = (numSegments / 2) + 1 and should always be an even number
-	calculateImplUV( numSegments, ((numSegments & 0xFFFFFFFE) >> 1) + 1 );
+	// numRings = numSegments / 2 and should always be an even number
+	int numRings = ( numSegments >> 2 ) << 1;
+
+	calculateImplUV( numSegments + 1, numRings + 1 );
 	mCalculationsCached = true;
 }
 	
 void Capsule::calculateImplUV( size_t segments, size_t rings ) const
 {
-	bool flipped = false;
-	size_t ringsOverTwo = rings / 2;
+	size_t ringsBody = rings / 2;
+	size_t ringsTotal = rings + ringsBody;
 
 	mVertices.clear();
 	mNormals.clear();
@@ -959,56 +964,59 @@ void Capsule::calculateImplUV( size_t segments, size_t rings ) const
 	mColors.clear();
 	mIndices.clear();
 
-	mVertices.reserve( segments * ( rings + 1 ) );
-	mNormals.reserve( segments * ( rings + 1 ) );
-	mTexCoords.reserve( segments * ( rings + 1 ) );
-	mColors.reserve( segments * ( rings + 1 ) );
-	mIndices.reserve( segments * ( rings + 1 ) * 6 );
+	mVertices.reserve( segments * ringsTotal );
+	mNormals.reserve( segments * ringsTotal );
+	mTexCoords.reserve( segments * ringsTotal );
+	mColors.reserve( segments * ringsTotal );
+	mIndices.reserve( segments * ringsTotal * 6 );
 
+	float bodyIncr = 1.0f / (float)( ringsBody - 1 );
 	float ringIncr = 1.0f / (float)( rings - 1 );
-	for( size_t r = 0; r <= ringsOverTwo; r++ )
-		calculateRing( segments, r * ringIncr, -0.5f * mLength );
-	for( size_t r = 0; r <= ringsOverTwo; r++ )
-		calculateRing( segments, ringsOverTwo * ringIncr, lerp(-0.5f, +0.5f, (float)r/ringsOverTwo) * mLength );
-	for( size_t r = ringsOverTwo; r < rings; r++ )
-		calculateRing( segments, r * ringIncr, +0.5f * mLength );
+	for( size_t r = 0; r < rings / 2; r++ ) {
+		calculateRing( segments, math<float>::sin( M_PI * r * ringIncr), 
+			math<float>::sin( -M_PI / 2 + M_PI * r * ringIncr ), -0.5f );
+	}
+	for( size_t r = 0; r < ringsBody; r++ ) {
+		calculateRing( segments, 1.0f, 0.0f, r * bodyIncr - 0.5f );
+	}
+	for( size_t r = rings / 2; r < rings; r++ ) {
+		calculateRing( segments, math<float>::sin( M_PI * r * ringIncr),
+			math<float>::sin( -M_PI / 2 + M_PI * r * ringIncr ), +0.5f );
+	}
 
-	segments++;
-	for( size_t r = 0; r <= (rings + ringsOverTwo); r++ ) {
-		for( size_t s = 0; s < segments - 1 ; s++ ) {
-			mIndices.push_back( r * segments + ( s + !flipped ) );
-			mIndices.push_back( r * segments + ( s + flipped ) );
+	for( size_t r = 0; r < ringsTotal - 1; r++ ) {
+		for( size_t s = 0; s < segments - 1; s++ ) {
+			mIndices.push_back( r * segments + ( s + 1 ) );
+			mIndices.push_back( r * segments + ( s + 0 ) );
 			mIndices.push_back( ( r + 1 ) * segments + ( s + 1 ) );
 
-			mIndices.push_back( ( r + 1 ) * segments + ( s + flipped ) );
-			mIndices.push_back( ( r + 1 ) * segments + ( s + !flipped ) );
+			mIndices.push_back( ( r + 1 ) * segments + ( s + 0 ) );
+			mIndices.push_back( ( r + 1 ) * segments + ( s + 1 ) );
 			mIndices.push_back( r * segments + s );
 		}
 	}
 }
 
-void Capsule::calculateRing( size_t segments, float ring, float offset ) const
+void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) const
 {
 	const ci::Quatf quaternion( Vec3f::yAxis(), mDirection );
-
-	float segIncr = 1.0f / (float)( segments );
 
 	bool hasNormals = isEnabled( Attrib::NORMAL );
 	bool hasTexCoords = isEnabled( Attrib::TEX_COORD_0 );
 	bool hasColors = isEnabled( Attrib::COLOR );
 
-	for( size_t s = 0; s <= segments; s++ ) {
-		float x = math<float>::cos( 2 * M_PI * s * segIncr ) * math<float>::sin( M_PI * ring );
-		float y = math<float>::sin( -M_PI / 2 + M_PI * ring );
-		float z = math<float>::sin( 2 * M_PI * s * segIncr ) * math<float>::sin( M_PI * ring );
+	float segIncr = 1.0f / (float)( segments - 1 );
+	for( size_t s = 0; s < segments; s++ ) {
+		float x = math<float>::cos( 2 * M_PI * s * segIncr ) * radius;
+		float z = math<float>::sin( 2 * M_PI * s * segIncr ) * radius;
 
-		mVertices.push_back( mCenter + ( quaternion * Vec3f( mRadius * x, offset + mRadius * y, mRadius * z ) ) );
+		mVertices.push_back( mCenter + ( quaternion * Vec3f( mRadius * x, mRadius * y + mLength * dy, mRadius * z ) ) );
 
 		if( hasNormals ) {
-			mNormals.push_back( quaternion * Vec3f(x, y, z) );
+			mNormals.push_back( quaternion * Vec3f( x, y, z ) );
 		}
 		if( hasTexCoords ) {
-			mTexCoords.push_back( Vec2f( s * segIncr, 1.0f - ring ) );
+			mTexCoords.push_back( Vec2f( s * segIncr, 0.5f - dy ) );
 		}
 		if( hasColors ) {
 			mColors.push_back( Vec3f( x * 0.5f + 0.5f, y * 0.5f + 0.5f, z * 0.5f + 0.5f ) );

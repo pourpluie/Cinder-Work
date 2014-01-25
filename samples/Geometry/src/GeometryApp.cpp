@@ -50,7 +50,7 @@ private:
 
 void GeometryApp::setup()
 {
-	mSelected = Primitive::SPHERE;
+	mSelected = Primitive::CAPSULE;
 
 	//
 	gl::enableDepthRead();
@@ -95,23 +95,22 @@ void GeometryApp::draw()
 	gl::clear( Color::black() );
 	gl::setMatrices( mCamera );
 
-	if(mGrid)
-	{
-		gl::GlslProgScope glslProgScope( gl::context()->getStockShader( gl::ShaderDef().color() ) );		
-		mGrid->draw();
-	}
-
-	if(mOriginalNormals && mCalculatedNormals)
 	{
 		gl::GlslProgScope glslProgScope( gl::context()->getStockShader( gl::ShaderDef().color() ) );
-		gl::draw( mOriginalNormals );
-		gl::draw( mCalculatedNormals );
+		
+		if(mGrid)
+			mGrid->draw();
+
+		if(mOriginalNormals)
+			gl::draw( mOriginalNormals );
+
+		if(mCalculatedNormals)
+			gl::draw( mCalculatedNormals );
 	}
 
 	if(mPrimitive)
 	{
 		gl::GlslProgScope glslProgScope( mWireframeShader );
-		mWireframeShader->uniform( "uViewportSize", Vec2f( getWindowSize() ) );
 
 		gl::enableAlphaBlending();
 		gl::enable( GL_CULL_FACE );
@@ -142,6 +141,9 @@ void GeometryApp::mouseDrag( MouseEvent event )
 void GeometryApp::resize(void)
 {
 	mCamera.setAspectRatio( getWindowAspectRatio() );
+	
+	if(mWireframeShader)
+		mWireframeShader->uniform( "uViewportSize", Vec2f( getWindowSize() ) );
 }
 
 void GeometryApp::keyDown( KeyEvent event )
@@ -157,24 +159,27 @@ void GeometryApp::keyDown( KeyEvent event )
 
 void GeometryApp::createPrimitive(void)
 {
+	geom::SourceRef primitive;
+
 	switch( mSelected )
 	{
 	default:
-	case SPHERE:
 		mSelected = SPHERE;
-		mPrimitive = gl::VboMesh::create( geom::Sphere() );
+	case SPHERE:
+		primitive = geom::SourceRef( new geom::Sphere( geom::Sphere().segments(20) ) );
 		break;
 	case CAPSULE:
-		mPrimitive = gl::VboMesh::create( geom::Capsule().length(2.0f) );
+		primitive = geom::SourceRef( new geom::Capsule( geom::Capsule().segments(20).length(2.0f) ) );
 		break;
 	}
-/*
-	TriMesh mesh(primitive);
-	mOriginalNormals = gl::VboMesh::create( DebugMesh( mesh, Color(0,1,0) ) );
+	
+	mPrimitive = gl::VboMesh::create( *primitive );
 
-	mesh.recalculateNormals();
-	mCalculatedNormals = gl::VboMesh::create( DebugMesh( mesh, Color(1,0,1) ) );
-*/
+	//TriMesh mesh( *primitive );
+	//mOriginalNormals = gl::VboMesh::create( DebugMesh( mesh, Color(0,1,0) ) );
+
+	//mesh.recalculateNormals();
+	//mCalculatedNormals = gl::VboMesh::create( DebugMesh( mesh, Color(1,0,1) ) );
 }
 
 void GeometryApp::createShader(void)
@@ -239,7 +244,7 @@ void GeometryApp::createShader(void)
 			"	float fEdgeIntensity = exp2(-1.0*fNearest*fNearest);\n"
 			"\n"
 			"	// blend between edge color and face color\n"
-			"	const vec4 vFaceColor = vec4(0.2, 0.2, 0.2, 0.7);\n"
+			"	const vec4 vFaceColor = vec4(0.2, 0.2, 0.2, 0.8);\n"
 			"	const vec4 vEdgeColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
 			"	oColor = mix(vFaceColor, vEdgeColor, fEdgeIntensity);\n"
 			"}\n"

@@ -324,7 +324,7 @@ class Capsule : public Sphere {
   private:
 	virtual void	calculate() const override;
 	virtual void	calculateImplUV( size_t segments, size_t rings ) const override;
-	void			calculateRing( size_t segments, float ring, float offset ) const;
+	void			calculateRing( size_t segments, float radius, float y, float dy ) const;
 
 	Vec3f		mDirection;
 	float		mLength;
