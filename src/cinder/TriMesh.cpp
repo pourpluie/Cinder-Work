@@ -499,8 +499,16 @@ bool TriMesh::recalculateNormals()
 
 		Vec3f e0 = v1 - v0;
 		Vec3f e1 = v2 - v0;
-		Vec3f normal = e0.cross(e1).normalized();
+		Vec3f e2 = v2 - v1;
 
+		if( e0.lengthSquared() < FLT_EPSILON )
+			continue;
+		if( e1.lengthSquared() < FLT_EPSILON )
+			continue;
+		if( e2.lengthSquared() < FLT_EPSILON )
+			continue;
+
+		Vec3f normal = e0.cross(e1).normalized();
 		mNormals[ index0 ] += normal;
 		mNormals[ index1 ] += normal;
 		mNormals[ index2 ] += normal;
