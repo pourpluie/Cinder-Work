@@ -487,31 +487,26 @@ bool TriMesh::recalculateNormals()
 
 	mNormals.assign( mPositions.size() / 3, Vec3f::zero() );
 
-	size_t n = getNumTriangles();
-	for( size_t i = 0; i < n; ++i ) {
+	const size_t numTriangles = getNumTriangles();
+	for( size_t i = 0; i < numTriangles; ++i ) {
 		uint32_t index0 = mIndices[i * 3];
 		uint32_t index1 = mIndices[i * 3 + 1];
 		uint32_t index2 = mIndices[i * 3 + 2];
 
-		const Vec3f &v0 = *(const Vec3f*)(&mPositions[index0*3]);
-		const Vec3f &v1 = *(const Vec3f*)(&mPositions[index1*3]);
-		const Vec3f &v2 = *(const Vec3f*)(&mPositions[index2*3]);
+		const Vec3f &v0 = *(const Vec3f*)(&mPositions[index0 * 3]);
+		const Vec3f &v1 = *(const Vec3f*)(&mPositions[index1 * 3]);
+		const Vec3f &v2 = *(const Vec3f*)(&mPositions[index2 * 3]);
 
-		Vec3f e0 = v1 - v0;
-		Vec3f e1 = v2 - v0;
-		Vec3f e2 = v2 - v1;
+		const Vec3f e0 = v1 - v0;
+		const Vec3f e1 = v2 - v0;
+		const Vec3f e2 = v2 - v1;
 
-		if( e0.lengthSquared() < FLT_EPSILON )
-			continue;
-		if( e1.lengthSquared() < FLT_EPSILON )
-			continue;
-		if( e2.lengthSquared() < FLT_EPSILON )
-			continue;
-
-		Vec3f normal = e0.cross(e1).normalized();
-		mNormals[ index0 ] += normal;
-		mNormals[ index1 ] += normal;
-		mNormals[ index2 ] += normal;
+		if( e0.lengthSquared() > FLT_EPSILON && e1.lengthSquared() > FLT_EPSILON && e2.lengthSquared() > FLT_EPSILON ) {
+			Vec3f normal = e0.cross(e1).normalized();
+			mNormals[ index0 ] += normal;
+			mNormals[ index1 ] += normal;
+			mNormals[ index2 ] += normal;
+		}
 	}
 
 	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );
@@ -525,73 +520,55 @@ bool TriMesh::recalculateNormalsHighQuality()
 	if( mIndices.empty() || mPositions.empty() || mPositionsDims != 3 )
 		return false;
 
-	mNormals.assign( mPositions.size() / 3, Vec3f::zero() );
+	const size_t numPositions = mPositions.size() / 3;
+	mNormals.assign( numPositions, Vec3f::zero() );
 
 	// first, find all unique vertices and keep track of them
 	std::vector<size_t> uniquePositions;
-	uniquePositions.assign( mPositions.size() / 3, 0 );
+	uniquePositions.assign( numPositions, 0 );
 
-	size_t vn = mPositions.size() / 3;
-	for( size_t i = 0; i < vn; ++i ) {
-		if( uniquePositions[i] > 0 )
-			continue;
-
-		const Vec3f &v0 = *(const Vec3f*)(&mPositions[i * 3]);
-
-		for( size_t j = i + 1; j < vn; ++j ) {
-			const Vec3f &v1 = *(const Vec3f*)(&mPositions[j * 3]);
-			const Vec3f d = v1 - v0;
-
-			if( d.lengthSquared() < FLT_EPSILON ) {
-				if( uniquePositions[i] == 0 ) {
-					uniquePositions[i] = i + 1;
-					uniquePositions[j] = i + 1;
-				}
-				else if( uniquePositions[j] == 0 ) {
-					uniquePositions[j] = uniquePositions[i];
-				}
-			}
-		}
-
+	for( size_t i = 0; i < numPositions; ++i ) {
 		if( uniquePositions[i] == 0 ) {
 			uniquePositions[i] = i + 1;
+			const Vec3f &v0 = *(const Vec3f*)(&mPositions[i * 3]);
+			for( size_t j = i + 1; j < numPositions; ++j ) {
+				const Vec3f &v1 = *(const Vec3f*)(&mPositions[j * 3]);
+				if( (v1 - v0).lengthSquared() < FLT_EPSILON )
+					uniquePositions[j] = uniquePositions[i];
+			}
 		}
 	}
 
 	// next, perform normalization on unique vertices only
-	size_t n = getNumTriangles();
-	for( size_t i = 0; i < n; ++i ) {
+	const size_t numTriangles = getNumTriangles();
+	for( size_t i = 0; i < numTriangles; ++i ) {
 		uint32_t index0 = uniquePositions[mIndices[i * 3]] - 1;
 		uint32_t index1 = uniquePositions[mIndices[i * 3 + 1]] - 1;
 		uint32_t index2 = uniquePositions[mIndices[i * 3 + 2]] - 1;
 
-		const Vec3f &v0 = *(const Vec3f*)(&mPositions[index0*3]);
-		const Vec3f &v1 = *(const Vec3f*)(&mPositions[index1*3]);
-		const Vec3f &v2 = *(const Vec3f*)(&mPositions[index2*3]);
+		const Vec3f &v0 = *(const Vec3f*)(&mPositions[index0 * 3]);
+		const Vec3f &v1 = *(const Vec3f*)(&mPositions[index1 * 3]);
+		const Vec3f &v2 = *(const Vec3f*)(&mPositions[index2 * 3]);
 
-		Vec3f e0 = v1 - v0;
-		Vec3f e1 = v2 - v0;
-		Vec3f e2 = v2 - v1;
+		const Vec3f e0 = v1 - v0;
+		const Vec3f e1 = v2 - v0;
+		const Vec3f e2 = v2 - v1;
 
-		if( e0.lengthSquared() < FLT_EPSILON )
-			continue;
-		if( e1.lengthSquared() < FLT_EPSILON )
-			continue;
-		if( e2.lengthSquared() < FLT_EPSILON )
-			continue;
-
-		Vec3f normal = e0.cross(e1).normalized();
-		mNormals[ index0 ] += normal;
-		mNormals[ index1 ] += normal;
-		mNormals[ index2 ] += normal;
+		if( e0.lengthSquared() > FLT_EPSILON && e1.lengthSquared() > FLT_EPSILON && e2.lengthSquared() > FLT_EPSILON ) {
+			Vec3f normal = e0.cross(e1).normalized();
+			mNormals[ index0 ] += normal;
+			mNormals[ index1 ] += normal;
+			mNormals[ index2 ] += normal;
+		}
 	}
 
 	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );
 
 	// finally, copy normals to corresponding non-unique vertices
-	for( size_t i = 0; i < vn; ++i ) {
-		if( uniquePositions[i] != (i + 1) )
-			mNormals[i] = mNormals[uniquePositions[i] - 1];
+	for( size_t i = 0; i < numPositions; ++i ) {
+		size_t j = uniquePositions[i] - 1;
+		if( i != j )
+			mNormals[i] = mNormals[j];
 	}
 
 	return true;
