@@ -933,7 +933,7 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	BufferScope vboScp( defaultVbo );
 	ctx->pushVao();
 	ctx->getDefaultVao()->freshBindPre();
-		defaultVbo->bufferSubData( 0, sizeof(float)*32, data );
+		defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
 		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 		if( posLoc >= 0 ) {
 			enableVertexAttribArray( posLoc );
