@@ -487,7 +487,7 @@ bool TriMesh::recalculateNormals()
 
 	mNormals.assign( mPositions.size() / 3, Vec3f::zero() );
 
-	const size_t numTriangles = getNumTriangles();
+	size_t numTriangles = getNumTriangles();
 	for( size_t i = 0; i < numTriangles; ++i ) {
 		uint32_t index0 = mIndices[i * 3];
 		uint32_t index1 = mIndices[i * 3 + 1];
@@ -497,16 +497,21 @@ bool TriMesh::recalculateNormals()
 		const Vec3f &v1 = *(const Vec3f*)(&mPositions[index1 * 3]);
 		const Vec3f &v2 = *(const Vec3f*)(&mPositions[index2 * 3]);
 
-		const Vec3f e0 = v1 - v0;
-		const Vec3f e1 = v2 - v0;
-		const Vec3f e2 = v2 - v1;
+		Vec3f e0 = v1 - v0;
+		Vec3f e1 = v2 - v0;
+		Vec3f e2 = v2 - v1;
 
-		if( e0.lengthSquared() > FLT_EPSILON && e1.lengthSquared() > FLT_EPSILON && e2.lengthSquared() > FLT_EPSILON ) {
-			Vec3f normal = e0.cross(e1).normalized();
-			mNormals[ index0 ] += normal;
-			mNormals[ index1 ] += normal;
-			mNormals[ index2 ] += normal;
-		}
+		if( e0.lengthSquared() < FLT_EPSILON )
+			continue;
+		if( e1.lengthSquared() < FLT_EPSILON )
+			continue;
+		if( e2.lengthSquared() < FLT_EPSILON )
+			continue;
+
+		Vec3f normal = e0.cross(e1).normalized();
+		mNormals[ index0 ] += normal;
+		mNormals[ index1 ] += normal;
+		mNormals[ index2 ] += normal;
 	}
 
 	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );
@@ -520,7 +525,7 @@ bool TriMesh::recalculateNormalsHighQuality()
 	if( mIndices.empty() || mPositions.empty() || mPositionsDims != 3 )
 		return false;
 
-	const size_t numPositions = mPositions.size() / 3;
+	size_t numPositions = mPositions.size() / 3;
 	mNormals.assign( numPositions, Vec3f::zero() );
 
 	// first, find all unique vertices and keep track of them
@@ -540,7 +545,7 @@ bool TriMesh::recalculateNormalsHighQuality()
 	}
 
 	// next, perform normalization on unique vertices only
-	const size_t numTriangles = getNumTriangles();
+	size_t numTriangles = getNumTriangles();
 	for( size_t i = 0; i < numTriangles; ++i ) {
 		uint32_t index0 = uniquePositions[mIndices[i * 3]] - 1;
 		uint32_t index1 = uniquePositions[mIndices[i * 3 + 1]] - 1;
@@ -550,16 +555,21 @@ bool TriMesh::recalculateNormalsHighQuality()
 		const Vec3f &v1 = *(const Vec3f*)(&mPositions[index1 * 3]);
 		const Vec3f &v2 = *(const Vec3f*)(&mPositions[index2 * 3]);
 
-		const Vec3f e0 = v1 - v0;
-		const Vec3f e1 = v2 - v0;
-		const Vec3f e2 = v2 - v1;
+		Vec3f e0 = v1 - v0;
+		Vec3f e1 = v2 - v0;
+		Vec3f e2 = v2 - v1;
 
-		if( e0.lengthSquared() > FLT_EPSILON && e1.lengthSquared() > FLT_EPSILON && e2.lengthSquared() > FLT_EPSILON ) {
-			Vec3f normal = e0.cross(e1).normalized();
-			mNormals[ index0 ] += normal;
-			mNormals[ index1 ] += normal;
-			mNormals[ index2 ] += normal;
-		}
+		if( e0.lengthSquared() < FLT_EPSILON )
+			continue;
+		if( e1.lengthSquared() < FLT_EPSILON )
+			continue;
+		if( e2.lengthSquared() < FLT_EPSILON )
+			continue;
+
+		Vec3f normal = e0.cross(e1).normalized();
+		mNormals[ index0 ] += normal;
+		mNormals[ index1 ] += normal;
+		mNormals[ index2 ] += normal;
 	}
 
 	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );

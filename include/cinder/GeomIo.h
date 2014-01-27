@@ -49,32 +49,32 @@ enum DataType { FLOAT, INTEGER, DOUBLE };
 std::string attribToString( Attrib attrib );
 
 struct AttribInfo {
-	AttribInfo( const Attrib &attrib, uint8_t dims, size_t stride, size_t offset, uint32_t instanceDivisor = 0 )
+		AttribInfo( const Attrib &attrib, uint8_t dims, size_t stride, size_t offset, uint32_t instanceDivisor = 0 )
 		: mAttrib( attrib ), mDims( dims ), mDataType( DataType::FLOAT ), mStride( stride ), mOffset( offset ), mInstanceDivisor( instanceDivisor )
-	{}
+		{}
 	AttribInfo( const Attrib &attrib, DataType dataType, uint8_t dims, size_t stride, size_t offset, uint32_t instanceDivisor = 0 )
 		: mAttrib( attrib ), mDims( dims ), mDataType( dataType ), mStride( stride ), mOffset( offset ), mInstanceDivisor( instanceDivisor )
 	{}
 
-	Attrib		getAttrib() const { return mAttrib; }
-	uint8_t		getDims() const { return mDims; }
+		Attrib		getAttrib() const { return mAttrib; }
+		uint8_t		getDims() const { return mDims; }
 	DataType	getDataType() const { return mDataType; }
-	size_t		getStride() const { return mStride; }
-	size_t		getOffset() const { return mOffset;	}
-	uint32_t	getInstanceDivisor() const { return mInstanceDivisor; }
-	
+		size_t		getStride() const { return mStride; }
+		size_t		getOffset() const { return mOffset;	}
+		uint32_t	getInstanceDivisor() const { return mInstanceDivisor; }
+		
 	void		setStride( size_t stride ) { mStride = stride; }
 	void		setOffset( size_t offset ) { mOffset = offset; }
 	
 	uint8_t		getByteSize() const { if( mDataType == geom::DataType::DOUBLE ) return mDims * 8; else return mDims * 4; }
 	
-  protected:
-	Attrib		mAttrib;
+	  protected:
+		Attrib		mAttrib;
 	DataType	mDataType;
-	int32_t		mDims;
-	size_t		mStride;
-	size_t		mOffset;
-	uint32_t	mInstanceDivisor;
+		int32_t		mDims;
+		size_t		mStride;
+		size_t		mOffset;
+		uint32_t	mInstanceDivisor;
 }; 
 
 
@@ -183,14 +183,33 @@ class Cube : public Source {
 	Cube();
 	
 	virtual Cube&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
-	virtual Cube&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }		  
-	virtual size_t		getNumVertices() const override { return 24; }
-	virtual size_t		getNumIndices() const override { return 36; }	
-	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }	
+	virtual Cube&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
+	Cube&	subdivision( size_t sub ) { mCalculationsCached |= ( mSubdivision != sub ); mSubdivision = sub; return *this; }
+	Cube&	spherize( bool enable = true ) { mCalculationsCached |= ( mSpherize != enable ); mSpherize = enable; return *this; }
+
+	virtual size_t		getNumVertices() const override { 
+		size_t n = 24; for( size_t i = 0; i < mSubdivision; ++i ) n += 36 * math<size_t>::pow( 4, i ); return n; }
+	virtual size_t		getNumIndices() const override { 
+		return 36 * math<size_t>::pow( 4, mSubdivision ); }
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
 	virtual void		loadInto( Target *target ) const override;
 
-  protected:	
+  protected:
+	void			clear() const;
+	void			calculate() const;
+	void			subdivide() const;
+
+	size_t		mSubdivision;
+	bool		mSpherize;
+
+	mutable bool						mCalculationsCached;
+	mutable std::vector<Vec3f>			mPositions;
+	mutable std::vector<Vec2f>			mTexCoords;
+	mutable std::vector<Vec3f>			mNormals;
+	mutable std::vector<Vec3f>			mColors;	
+	mutable std::vector<uint32_t>		mIndices;
+
 	static float	sPositions[24*3];
 	static float	sColors[24*3];
 	static float	sTexCoords[24*2];
@@ -229,7 +248,8 @@ class Teapot : public Source {
 	static Vec3f	evaluateNormal( int gridU, int gridV, const float *B, const float *dB, const Vec3f patch[][4] );
 
 	int			mSubdivision;
-
+	
+	mutable bool						mCalculationsCached;
 	mutable	size_t						mNumVertices;
 	mutable size_t						mNumIndices;
 	mutable std::unique_ptr<float[]>	mPositions;

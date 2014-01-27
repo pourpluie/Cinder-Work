@@ -18,7 +18,7 @@ using namespace std;
 class GeometryApp : public AppNative
 {
 public:
-	typedef enum Primitive { SPHERE, CAPSULE, CONE, WEDGE, CUBE };
+	typedef enum Primitive { SPHERE, CAPSULE,/* CONE, WEDGE,*/ CUBE, TEAPOT };
 
 	void setup();
 	void update();
@@ -50,8 +50,6 @@ private:
 
 void GeometryApp::setup()
 {
-	mSelected = Primitive::CAPSULE;
-
 	//
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
@@ -59,13 +57,20 @@ void GeometryApp::setup()
 	//
 	mGrid = gl::VertBatch::create( GL_LINES );
 	mGrid->begin( GL_LINES );
-	mGrid->color( Color(1, 0, 0) ); mGrid->vertex( 0.0f, 0.0f, 0.0f ); 
-	mGrid->color( Color(1, 0, 0) ); mGrid->vertex( 10.0f, 0.0f, 0.0f ); 
-	mGrid->color( Color(0, 1, 0) ); mGrid->vertex( 0.0f, 0.0f, 0.0f ); 
-	mGrid->color( Color(0, 1, 0) ); mGrid->vertex( 0.0f, 10.0f, 0.0f ); 
-	mGrid->color( Color(0, 0, 1) ); mGrid->vertex( 0.0f, 0.0f, 0.0f ); 
-	mGrid->color( Color(0, 0, 1) ); mGrid->vertex( 0.0f, 0.0f, 10.0f ); 
+	mGrid->color( Color(0.5f, 0.5f, 0.5f) ); mGrid->vertex( -10.0f, 0.0f, 0.0f );
+	mGrid->color( Color(0.5f, 0.5f, 0.5f) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
+	mGrid->color( Color(1, 0, 0) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
+	mGrid->color( Color(1, 0, 0) ); mGrid->vertex( 20.0f, 0.0f, 0.0f );
+	mGrid->color( Color(0, 1, 0) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
+	mGrid->color( Color(0, 1, 0) ); mGrid->vertex( 0.0f, 20.0f, 0.0f );
+	mGrid->color( Color(0.5f, 0.5f, 0.5f) ); mGrid->vertex( 0.0f, 0.0f, -10.0f );
+	mGrid->color( Color(0.5f, 0.5f, 0.5f) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
+	mGrid->color( Color(0, 0, 1) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
+	mGrid->color( Color(0, 0, 1) ); mGrid->vertex( 0.0f, 0.0f, 20.0f );
 	for( int i = -10; i <= 10; ++i ) {
+		if( i == 0 )
+			continue;
+
 		mGrid->color( Color(0.5f, 0.5f, 0.5f) );
 		mGrid->color( Color(0.5f, 0.5f, 0.5f) );
 		mGrid->color( Color(0.5f, 0.5f, 0.5f) );
@@ -81,6 +86,9 @@ void GeometryApp::setup()
 	//
 	createShader();
 	createPrimitive();
+
+	mCamera.setEyePoint( Vec3f(0, 2, 4) );
+	mCamera.setCenterOfInterestPoint( Vec3f(0, 0, 0) );
 }
 
 void GeometryApp::update()
@@ -110,19 +118,24 @@ void GeometryApp::draw()
 
 	if(mPrimitive)
 	{
-		gl::GlslProgScope glslProgScope( mWireframeShader );
+		try {
+			gl::GlslProgScope glslProgScope( mWireframeShader );
 
-		gl::enableAlphaBlending();
-		gl::enable( GL_CULL_FACE );
+			gl::enableAlphaBlending();
+			gl::enable( GL_CULL_FACE );
 
-		glCullFace( GL_FRONT );
-		gl::draw( mPrimitive );
+			glCullFace( GL_FRONT );
+			gl::draw( mPrimitive );
 
-		glCullFace( GL_BACK );
-		gl::draw( mPrimitive );
+			glCullFace( GL_BACK );
+			gl::draw( mPrimitive );
 		
-		gl::disable( GL_CULL_FACE );
-		gl::disableAlphaBlending();
+			gl::disable( GL_CULL_FACE );
+			gl::disableAlphaBlending();
+		}
+		catch( const std::exception &e ) {
+			console() << e.what() << std::endl;
+		}
 	}
 }
 
@@ -161,25 +174,37 @@ void GeometryApp::createPrimitive(void)
 {
 	geom::SourceRef primitive;
 
-	switch( mSelected )
-	{
-	default:
-		mSelected = SPHERE;
-	case SPHERE:
-		primitive = geom::SourceRef( new geom::Sphere( geom::Sphere().segments(20) ) );
-		break;
-	case CAPSULE:
-		primitive = geom::SourceRef( new geom::Capsule( geom::Capsule().segments(20).length(2.0f) ) );
-		break;
-	}
+	try {
+		switch( mSelected )
+		{
+		default:
+			mSelected = SPHERE;
+		case SPHERE:
+			primitive = geom::SourceRef( new geom::Sphere( geom::Sphere().segments(40) ) );
+			break;
+		case CAPSULE:
+			primitive = geom::SourceRef( new geom::Capsule( geom::Capsule().segments(40).length(4.0f) ) );
+			break;
+		case CUBE:
+			primitive = geom::SourceRef( new geom::Cube( geom::Cube() ) );
+			break;
+		case TEAPOT:
+			primitive = geom::SourceRef( new geom::Teapot( geom::Teapot().subdivision(16) ) );
+			break;
+		}
 	
-	mPrimitive = gl::VboMesh::create( *primitive );
+		mPrimitive = gl::VboMesh::create( *primitive );
+		/*
+		TriMesh mesh( *primitive );
+		mOriginalNormals = gl::VboMesh::create( DebugMesh( mesh, Color(1,1,0) ) );
 
-	//TriMesh mesh( *primitive );
-	//mOriginalNormals = gl::VboMesh::create( DebugMesh( mesh, Color(0,1,0) ) );
-
-	//mesh.recalculateNormals();
-	//mCalculatedNormals = gl::VboMesh::create( DebugMesh( mesh, Color(1,0,1) ) );
+		mesh.recalculateNormalsHighQuality();
+		mCalculatedNormals = gl::VboMesh::create( DebugMesh( mesh, Color(0,1,1) ) );
+		*/
+	}
+	catch( const std::exception &e ) {
+		console() << e.what() << std::endl;
+	}
 }
 
 void GeometryApp::createShader(void)
@@ -191,8 +216,14 @@ void GeometryApp::createShader(void)
 			"\n"
 			"uniform mat4	ciModelViewProjection;\n"
 			"in vec4		ciPosition;\n"
+			"in vec4		ciColor;\n"
+			"\n"
+			"out VertexData {\n"
+			"	vec4 color;\n"
+			"} vVertexOut;\n"
 			"\n"
 			"void main(void) {\n"
+			"	vVertexOut.color = ciColor;\n"
 			"	gl_Position = ciModelViewProjection * ciPosition;\n"
 			"}\n"
 		) 
@@ -203,7 +234,15 @@ void GeometryApp::createShader(void)
 			"layout (triangle_strip, max_vertices = 3) out;\n"
 			"\n"
 			"uniform vec2 			uViewportSize;\n"
-			"noperspective out vec3	vDistance;\n"
+			"\n"
+			"in VertexData	{\n"
+			"	vec4 color;\n"
+			"} vVertexIn[];\n"
+			"\n"
+			"out VertexData	{\n"
+			"	noperspective vec3 distance;\n"
+			"	vec4 color;\n"
+			"} vVertexOut;\n"
 			"\n"
 			"void main(void)\n"
 			"{\n"
@@ -217,15 +256,18 @@ void GeometryApp::createShader(void)
 			"	vec2 v2 = p1-p0;\n"
 			"	float fArea = abs(v1.x*v2.y - v1.y * v2.x);\n"
 			"\n"
-			"	vDistance = vec3(fArea/length(v0),0,0);\n"
+			"	vVertexOut.distance = vec3(fArea/length(v0),0,0);\n"
+			"	vVertexOut.color = vVertexIn[0].color;\n"
 			"	gl_Position = gl_in[0].gl_Position;\n"
 			"	EmitVertex();\n"
 			"\n"
-			"	vDistance = vec3(0,fArea/length(v1),0);\n"
+			"	vVertexOut.distance = vec3(0,fArea/length(v1),0);\n"
+			"	vVertexOut.color = vVertexIn[1].color;\n"
 			"	gl_Position = gl_in[1].gl_Position;\n"
 			"	EmitVertex();\n"
 			"\n"
-			"	vDistance = vec3(0,0,fArea/length(v2));\n"
+			"	vVertexOut.distance = vec3(0,0,fArea/length(v2));\n"
+			"	vVertexOut.color = vVertexIn[2].color;\n"
 			"	gl_Position = gl_in[2].gl_Position;\n"
 			"	EmitVertex();\n"
 			"\n"
@@ -235,17 +277,21 @@ void GeometryApp::createShader(void)
 		.fragment(
 			"#version 150\n"
 			"\n"
-			"noperspective in vec3	vDistance;\n"
+			"in VertexData	{\n"
+			"	noperspective vec3 distance;\n"
+			"	vec4 color;\n"
+			"} vVertexIn;\n"
+			"\n"
 			"out vec4				oColor;\n"
 			"\n"
 			"void main(void) {\n"
 			"	// determine frag distance to closest edge\n"
-			"	float fNearest = min(min(vDistance[0],vDistance[1]),vDistance[2]);\n"
+			"	float fNearest = min(min(vVertexIn.distance[0],vVertexIn.distance[1]),vVertexIn.distance[2]);\n"
 			"	float fEdgeIntensity = exp2(-1.0*fNearest*fNearest);\n"
 			"\n"
 			"	// blend between edge color and face color\n"
-			"	const vec4 vFaceColor = vec4(0.2, 0.2, 0.2, 0.8);\n"
-			"	const vec4 vEdgeColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
+			"	vec4 vFaceColor; vFaceColor.rgb = vVertexIn.color.rgb * 0.25; vFaceColor.a = 0.8;\n"
+			"	vec4 vEdgeColor; vEdgeColor.rgb = vVertexIn.color.rgb; vEdgeColor.a = 1.0;\n"
 			"	oColor = mix(vFaceColor, vEdgeColor, fEdgeIntensity);\n"
 			"}\n"
 		)

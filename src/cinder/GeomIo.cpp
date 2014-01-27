@@ -376,10 +376,103 @@ float Cube::sNormals[24*3]=	{	1,0,0,	1,0,0,	1,0,0,	1,0,0,
 
 
 Cube::Cube()
+	: mSubdivision( 0 ), mSpherize( false ), mCalculationsCached( false )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::TEX_COORD_0 );
 	enable( Attrib::NORMAL );
+}
+
+void Cube::clear() const
+{
+	mCalculationsCached = false;
+	mPositions.clear();
+	mTexCoords.clear();
+	mNormals.clear();
+	mColors.clear();
+	mIndices.clear();
+}
+
+void Cube::calculate() const
+{
+	if( mCalculationsCached )
+		return;
+
+	clear();
+
+	mPositions.assign( reinterpret_cast<const Vec3f*>(sPositions), reinterpret_cast<const Vec3f*>(sPositions) + 24 );
+	mTexCoords.assign( reinterpret_cast<const Vec2f*>(sTexCoords), reinterpret_cast<const Vec2f*>(sTexCoords) + 24 );
+	mNormals.assign( reinterpret_cast<const Vec3f*>(sNormals), reinterpret_cast<const Vec3f*>(sNormals) + 24 );
+	mColors.assign( reinterpret_cast<const Vec3f*>(sColors), reinterpret_cast<const Vec3f*>(sColors) + 24 );
+	mIndices.assign( reinterpret_cast<const uint32_t*>(sIndices), reinterpret_cast<const uint32_t*>(sIndices) + 36 );
+
+	// perform subdivision
+	for( size_t i = 0; i < mSubdivision; ++i ) 
+		subdivide();
+
+	// spherize
+	if( mSpherize ) {
+		std::for_each( mPositions.begin(), mPositions.end(), std::mem_fun_ref( &Vec3f::normalize ) );
+		mNormals.assign( &mPositions.front(), &mPositions.front() + mPositions.size() );
+	}
+
+	mCalculationsCached = true;
+}
+
+void Cube::subdivide() const
+{
+	mPositions.reserve( mPositions.size() + mIndices.size() );
+	mNormals.reserve( mNormals.size() + mIndices.size() );
+	mTexCoords.reserve( mTexCoords.size() + mIndices.size() );
+	mColors.reserve( mColors.size() + mIndices.size() );
+	mIndices.reserve( mIndices.size() * 4 );
+
+	const size_t numTriangles = mIndices.size() / 3;
+	for( size_t i = 0; i < numTriangles; ++i ) {
+		uint32_t index0 = mIndices[i * 3 + 0];
+		uint32_t index1 = mIndices[i * 3 + 1];
+		uint32_t index2 = mIndices[i * 3 + 2];
+
+		// add new indices
+		uint32_t index3 = mPositions.size();
+		uint32_t index4 = index3 + 1;
+		uint32_t index5 = index4 + 1;
+
+		mIndices[i * 3 + 1] = index3;	// first triangle
+		mIndices[i * 3 + 2] = index5;
+
+		mIndices.push_back( index3 );	// second triangle
+		mIndices.push_back( index1 );
+		mIndices.push_back( index4 );
+
+		mIndices.push_back( index5 );	// third triangle
+		mIndices.push_back( index3 );
+		mIndices.push_back( index4 );
+
+		mIndices.push_back( index5 );	// fourth triangle
+		mIndices.push_back( index4 );
+		mIndices.push_back( index2 );
+
+		// add new positions
+		mPositions.push_back( 0.5f * (mPositions[index0] + mPositions[index1]) );
+		mPositions.push_back( 0.5f * (mPositions[index1] + mPositions[index2]) );
+		mPositions.push_back( 0.5f * (mPositions[index2] + mPositions[index0]) );
+
+		// add new normals
+		mNormals.push_back( 0.5f * (mNormals[index0] + mNormals[index1]) );
+		mNormals.push_back( 0.5f * (mNormals[index1] + mNormals[index2]) );
+		mNormals.push_back( 0.5f * (mNormals[index2] + mNormals[index0]) );
+
+		// add new tex coords
+		mTexCoords.push_back( 0.5f * (mTexCoords[index0] + mTexCoords[index1]) );
+		mTexCoords.push_back( 0.5f * (mTexCoords[index1] + mTexCoords[index2]) );
+		mTexCoords.push_back( 0.5f * (mTexCoords[index2] + mTexCoords[index0]) );
+
+		// add new colors
+		mColors.push_back( 0.5f * (mColors[index0] + mColors[index1]) );
+		mColors.push_back( 0.5f * (mColors[index1] + mColors[index2]) );
+		mColors.push_back( 0.5f * (mColors[index2] + mColors[index0]) );
+	}
 }
 
 uint8_t	Cube::getAttribDims( Attrib attr ) const
@@ -396,15 +489,28 @@ uint8_t	Cube::getAttribDims( Attrib attr ) const
 
 void Cube::loadInto( Target *target ) const
 {
-	target->copyAttrib( Attrib::POSITION, 3, 0, sPositions, 24 );
-	if( isEnabled( Attrib::COLOR ) )
-		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 24 );
-	if( isEnabled( Attrib::TEX_COORD_0 ) )
-		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sTexCoords, 24 );
-	if( isEnabled( Attrib::NORMAL ) )
-		target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 24 );
+	if( mSubdivision > 0 ) {
+		calculate();	// only safe to do here because getNumVertices() and getNumIndices() always return the correct value
+
+		target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );
+		if( isEnabled( Attrib::TEX_COORD_0 ) )
+			target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
+		if( isEnabled( Attrib::NORMAL ) )
+			target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
+
+		target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
+	}
+	else {
+		target->copyAttrib( Attrib::POSITION, 3, 0, sPositions, 24 );
+		if( isEnabled( Attrib::COLOR ) )
+			target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 24 );
+		if( isEnabled( Attrib::TEX_COORD_0 ) )
+			target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sTexCoords, 24 );
+		if( isEnabled( Attrib::NORMAL ) )
+			target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 24 );
 	
-	target->copyIndices( Primitive::TRIANGLES, sIndices, 36, 1 );
+		target->copyIndices( Primitive::TRIANGLES, sIndices, 36, 1 );
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -456,7 +562,7 @@ const float Teapot::sCurveData[][3] =
 	-1.5f, 0.075f}, {0.f, -1.425f, 0.f}, {1.5f, -0.84f, 0.075f}, {0.84f, -1.5f, 0.075f} };
 
 Teapot::Teapot()
-	: mSubdivision( 4 )
+	: mSubdivision( 4 ), mCalculationsCached( false )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::TEX_COORD_0 );
@@ -510,10 +616,14 @@ void Teapot::updateVertexCounts() const
 	int numFaces = mSubdivision * mSubdivision * 32;
 	mNumIndices = numFaces * 6;
 	mNumVertices = 32 * (mSubdivision + 1) * (mSubdivision + 1);
+	mCalculationsCached = false;
 }
 
 void Teapot::calculate() const
 {
+	if(mCalculationsCached)
+		return;
+
 	updateVertexCounts();
 
 	mPositions = unique_ptr<float[]>( new float[mNumVertices * 3] );
@@ -522,6 +632,8 @@ void Teapot::calculate() const
 	mIndices = unique_ptr<uint32_t[]>( new uint32_t[mNumIndices] );
 
 	generatePatches( mPositions.get(), mNormals.get(), mTexCoords.get(), mIndices.get(), mSubdivision );
+
+	mCalculationsCached = true;
 }
 
 void Teapot::generatePatches( float *v, float *n, float *tc, uint32_t *el, int grid )
@@ -840,10 +952,12 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 	auto texIt = mTexCoords.begin();
 	auto colorIt = mColors.begin();
 	for( size_t r = 0; r < rings; r++ ) {
+		float v = r * ringIncr;
 		for( size_t s = 0; s < segments; s++ ) {
-			float x = math<float>::cos( 2 * M_PI * s * segIncr ) * math<float>::sin( M_PI * r * ringIncr );
-			float y = math<float>::sin( -M_PI / 2 + M_PI * r * ringIncr );
-			float z = math<float>::sin( 2 * M_PI * s * segIncr ) * math<float>::sin( M_PI * r * ringIncr );
+			float u = s * segIncr;
+			float x = math<float>::cos( M_PI * 2 * u ) * math<float>::sin( M_PI * v );
+			float y = math<float>::sin( -M_PI / 2 + M_PI * v );
+			float z = math<float>::sin( M_PI * 2 * u ) * math<float>::sin( M_PI * v );
 
 			vertIt->set( x * radius + mCenter.x, y * radius + mCenter.y, z * radius + mCenter.z );
 			++vertIt;
@@ -853,7 +967,7 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 				++normIt;
 			}
 			if( hasTexCoords ) {
-				texIt->set( s * segIncr, 1.0f - r * ringIncr );
+				texIt->set( u, 1.0f - v );
 				++texIt;
 			}
 			if( hasColors ) {
