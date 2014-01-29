@@ -489,28 +489,207 @@ uint8_t	Cube::getAttribDims( Attrib attr ) const
 
 void Cube::loadInto( Target *target ) const
 {
-	if( mSubdivision > 0 ) {
-		calculate();	// only safe to do here because getNumVertices() and getNumIndices() always return the correct value
+	calculate();
 
-		target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );
-		if( isEnabled( Attrib::TEX_COORD_0 ) )
-			target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
-		if( isEnabled( Attrib::NORMAL ) )
-			target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
+	target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );		
+	if( isEnabled( Attrib::COLOR ) )
+		target->copyAttrib( Attrib::COLOR, 3, 0, mColors.data()->ptr(), mColors.size() );
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
+	if( isEnabled( Attrib::NORMAL ) )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
 
-		target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
+	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Icosahedron
+
+#define nmbr (1.0f / ((1.0f + math<float>::sqrt(5.0f)) / 2.0f))
+
+float Icosahedron::sPositions[12*3] = {  
+								-nmbr, 1.0f, 0.0f,   nmbr, 1.0f, 0.0f,  -nmbr,-1.0f, 0.0f,   nmbr,-1.0f, 0.0f,
+								 0.0f,-nmbr, 1.0f,   0.0f, nmbr, 1.0f,   0.0f,-nmbr,-1.0f,   0.0f, nmbr,-1.0f,
+								 1.0f, 0.0f,-nmbr,   1.0f, 0.0f, nmbr,  -1.0f, 0.0f,-nmbr,  -1.0f, 0.0f, nmbr };
+
+#undef nmbr
+
+uint32_t Icosahedron::sIndices[60] ={	
+								 0,11, 5, 0, 5, 1, 0, 1, 7, 0, 7,10, 0,10,11,
+								 1, 5, 9, 5,11, 4,11,10, 2,10, 7, 6, 7, 1, 8,
+								 3, 9, 4, 3, 4, 2, 3, 2, 6, 3, 6, 8, 3, 8, 9,
+								 4, 9, 5, 2, 4,11, 6, 2,10, 8, 6, 7, 9, 8, 1 };
+
+Icosahedron::Icosahedron()
+	: mSubdivision( 0 ), mCalculationsCached( false )
+{
+	enable( Attrib::POSITION );
+	enable( Attrib::TEX_COORD_0 );
+	enable( Attrib::NORMAL );
+}
+
+Icosahedron::Icosahedron( int subdivision )
+	: mSubdivision( subdivision ), mCalculationsCached( false )
+{
+	enable( Attrib::POSITION );
+	enable( Attrib::TEX_COORD_0 );
+	enable( Attrib::NORMAL );
+}
+
+void Icosahedron::clear() const
+{
+	mCalculationsCached = false;
+	mPositions.clear();
+	mTexCoords.clear();
+	mNormals.clear();
+	mIndices.clear();
+}
+
+void Icosahedron::calculate() const
+{
+	if( mCalculationsCached )
+		return;
+
+	clear();
+
+	//mPositions.assign( reinterpret_cast<const Vec3f*>(sPositions), reinterpret_cast<const Vec3f*>(sPositions) + 12 );
+	//mIndices.assign( reinterpret_cast<const uint32_t*>(sIndices), reinterpret_cast<const uint32_t*>(sIndices) + 60 );
+
+	for( size_t i = 0; i < 60; ++i ) {
+		mIndices.push_back( mPositions.size() );
+		mPositions.push_back( *reinterpret_cast<const Vec3f*>(&sPositions[sIndices[i]*3]) );
 	}
-	else {
-		target->copyAttrib( Attrib::POSITION, 3, 0, sPositions, 24 );
-		if( isEnabled( Attrib::COLOR ) )
-			target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 24 );
-		if( isEnabled( Attrib::TEX_COORD_0 ) )
-			target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sTexCoords, 24 );
-		if( isEnabled( Attrib::NORMAL ) )
-			target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 24 );
 	
-		target->copyIndices( Primitive::TRIANGLES, sIndices, 36, 1 );
+	mNormals.assign( mPositions.data(), mPositions.data() + mPositions.size() );
+	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );
+
+	// perform subdivision
+	for( size_t i = 0; i < mSubdivision; ++i ) 
+		subdivide();
+
+	// calculate texture coords
+	mTexCoords.assign( mNormals.size(), Vec2f::zero() );
+	size_t numTriangles = mIndices.size() / 3;
+	for( size_t i = 0; i < numTriangles; ++i ) {
+		uint32_t index0 = mIndices[i * 3 + 0];
+		uint32_t index1 = mIndices[i * 3 + 1];
+		uint32_t index2 = mIndices[i * 3 + 2];
+		
+		Vec2f uv0, uv1, uv2;
+		uv0.x = (math<float>::atan2( mNormals[index0].z, -mNormals[index0].x ) / M_PI) * 0.5f + 0.5f;
+		uv1.x = (math<float>::atan2( mNormals[index1].z, -mNormals[index1].x ) / M_PI) * 0.5f + 0.5f;
+		uv2.x = (math<float>::atan2( mNormals[index2].z, -mNormals[index2].x ) / M_PI) * 0.5f + 0.5f;
+		uv0.y = -mNormals[index0].y * 0.5f + 0.5f;
+		uv1.y = -mNormals[index1].y * 0.5f + 0.5f;
+		uv2.y = -mNormals[index2].y * 0.5f + 0.5f;
+
+		mTexCoords[index0] = uv0;
+
+		float dx = uv1.x - uv0.x;
+		if( math<float>::abs(dx) > 0.5f ) {
+			uv1.x += (dx < 0.0f) ? 1.0f : -1.0f;
+
+			// insert new vertex / normal / texcoord
+			mIndices[i * 3 + 1] = mPositions.size();
+			mPositions.push_back( mPositions[index1] );
+			mNormals.push_back( mNormals[index1] );
+			mTexCoords.push_back( uv1 );
+		}
+		else
+			mTexCoords[index1] = uv1;
+		
+		dx = uv2.x - uv0.x;
+		if( math<float>::abs(dx) > 0.5f ) {
+			uv2.x += (dx < 0.0f) ? 1.0f : -1.0f;
+
+			// insert new vertex / normal / texcoord
+			mIndices[i * 3 + 2] = mPositions.size();
+			mPositions.push_back( mPositions[index2] );
+			mNormals.push_back( mNormals[index2] );
+			mTexCoords.push_back( uv2 );
+		}
+		else
+			mTexCoords[index2] = uv2;
 	}
+
+	mCalculationsCached = true;
+}
+
+void Icosahedron::subdivide() const
+{
+	assert( ! ( mPositions.empty() || mIndices.empty() ) );
+	assert( mPositions.size() == mNormals.size() );
+
+	mPositions.reserve( mPositions.size() + mIndices.size() );
+	mNormals.reserve( mNormals.size() + mIndices.size() );
+	//mTexCoords.reserve( mTexCoords.size() + mIndices.size() );
+	mIndices.reserve( mIndices.size() * 4 );
+
+	const size_t numTriangles = mIndices.size() / 3;
+	for( size_t i = 0; i < numTriangles; ++i ) {
+		uint32_t index0 = mIndices[i * 3 + 0];
+		uint32_t index1 = mIndices[i * 3 + 1];
+		uint32_t index2 = mIndices[i * 3 + 2];
+
+		// add new indices
+		uint32_t index3 = mPositions.size();
+		uint32_t index4 = index3 + 1;
+		uint32_t index5 = index4 + 1;
+
+		mIndices[i * 3 + 1] = index3;	// first triangle
+		mIndices[i * 3 + 2] = index5;
+
+		mIndices.push_back( index3 );	// second triangle
+		mIndices.push_back( index1 );
+		mIndices.push_back( index4 );
+
+		mIndices.push_back( index5 );	// third triangle
+		mIndices.push_back( index3 );
+		mIndices.push_back( index4 );
+
+		mIndices.push_back( index5 );	// fourth triangle
+		mIndices.push_back( index4 );
+		mIndices.push_back( index2 );
+
+		// add new positions
+		mPositions.push_back( 0.5f * (mPositions[index0] + mPositions[index1]) );
+		mPositions.push_back( 0.5f * (mPositions[index1] + mPositions[index2]) );
+		mPositions.push_back( 0.5f * (mPositions[index2] + mPositions[index0]) );
+
+		// add new normals
+		mNormals.push_back( 0.5f * (mNormals[index0] + mNormals[index1]) );
+		mNormals.push_back( 0.5f * (mNormals[index1] + mNormals[index2]) );
+		mNormals.push_back( 0.5f * (mNormals[index2] + mNormals[index0]) );
+
+		// add new tex coords
+		//mTexCoords.push_back( 0.5f * (mTexCoords[index0] + mTexCoords[index1]) );
+		//mTexCoords.push_back( 0.5f * (mTexCoords[index1] + mTexCoords[index2]) );
+		//mTexCoords.push_back( 0.5f * (mTexCoords[index2] + mTexCoords[index0]) );
+	}
+}
+
+uint8_t	Icosahedron::getAttribDims( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION: return 3;
+		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+		default:
+			return 0;
+	}	
+}
+
+void Icosahedron::loadInto( Target *target ) const
+{
+	calculate();
+
+	target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
+	if( isEnabled( Attrib::NORMAL ) )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
+
+	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -922,11 +1101,9 @@ void Sphere::calculate() const
 	int numSegments = mNumSegments;
 	if( numSegments < 4 )
 		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_PI * 2 ) );
-
 	// numRings = numSegments / 2
 	int numRings = ( numSegments >> 1 );
 
-	// numRings = (numSegments / 2) and should always be an even number
 	calculateImplUV( numSegments + 1, numRings + 1 );
 	mCalculationsCached = true;
 }
@@ -954,10 +1131,10 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 	for( size_t r = 0; r < rings; r++ ) {
 		float v = r * ringIncr;
 		for( size_t s = 0; s < segments; s++ ) {
-			float u = s * segIncr;
-			float x = math<float>::cos( M_PI * 2 * u ) * math<float>::sin( M_PI * v );
+			float u = 1.0f - s * segIncr;
+			float x = math<float>::sin( M_PI * 2 * u ) * math<float>::sin( M_PI * v );
 			float y = math<float>::sin( -M_PI / 2 + M_PI * v );
-			float z = math<float>::sin( M_PI * 2 * u ) * math<float>::sin( M_PI * v );
+			float z = math<float>::cos( M_PI * 2 * u ) * math<float>::sin( M_PI * v );
 
 			vertIt->set( x * radius + mCenter.x, y * radius + mCenter.y, z * radius + mCenter.z );
 			++vertIt;
@@ -1059,7 +1236,6 @@ void Capsule::calculate() const
 	int numSegments = mNumSegments;
 	if( numSegments < 4 )
 		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_PI * 2 ) );
-
 	// numRings = numSegments / 2 and should always be an even number
 	int numRings = ( numSegments >> 2 ) << 1;
 
@@ -1139,6 +1315,30 @@ void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
+// IcoSphere
+
+IcoSphere::IcoSphere()
+	: Icosahedron(1) // need 1 subdivision to get a vertex at the poles
+{
+	enable( Attrib::POSITION );
+	enable( Attrib::TEX_COORD_0 );
+	enable( Attrib::NORMAL );
+}
+
+void IcoSphere::loadInto( Target *target ) const
+{
+	calculate();
+
+	std::for_each( mPositions.begin(), mPositions.end(), std::mem_fun_ref( &Vec3f::normalize ) );
+
+	target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
+	if( isEnabled( Attrib::NORMAL ) )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
+
+	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////

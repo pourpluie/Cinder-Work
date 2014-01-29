@@ -184,13 +184,11 @@ class Cube : public Source {
 	
 	virtual Cube&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
 	virtual Cube&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
-	Cube&	subdivision( size_t sub ) { mCalculationsCached |= ( mSubdivision != sub ); mSubdivision = sub; return *this; }
-	Cube&	spherize( bool enable = true ) { mCalculationsCached |= ( mSpherize != enable ); mSpherize = enable; return *this; }
+	Cube&	subdivision( size_t sub ) { mSubdivision = sub; mCalculationsCached = false; return *this; }
+	Cube&	spherize( bool enable = true ) { mSpherize = enable; mCalculationsCached = false; return *this; }
 
-	virtual size_t		getNumVertices() const override { 
-		size_t n = 24; for( size_t i = 0; i < mSubdivision; ++i ) n += 36 * math<size_t>::pow( 4, i ); return n; }
-	virtual size_t		getNumIndices() const override { 
-		return 36 * math<size_t>::pow( 4, mSubdivision ); }
+	virtual size_t		getNumVertices() const override { calculate(); return mPositions.size(); }
+	virtual size_t		getNumIndices() const override { calculate(); return mIndices.size(); }
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
 	virtual void		loadInto( Target *target ) const override;
@@ -218,13 +216,48 @@ class Cube : public Source {
 	static uint32_t	sIndices[36];
 };
 
+class Icosahedron : public Source {
+  public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL
+	Icosahedron();
+	virtual ~Icosahedron() {}
+	
+	virtual Icosahedron&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
+	virtual Icosahedron&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
+	Icosahedron&	subdivision( size_t sub ) { mSubdivision = sub > 0 ? sub : 1; mCalculationsCached = false; return *this; }
+
+	virtual size_t		getNumVertices() const override { calculate(); return mPositions.size(); }
+	virtual size_t		getNumIndices() const override { calculate(); return mIndices.size(); }
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
+	virtual uint8_t		getAttribDims( Attrib attr ) const override;
+	virtual void		loadInto( Target *target ) const override;
+
+  protected:
+	Icosahedron( int subdivision );
+
+	void			clear() const;
+	void			calculate() const;
+	void			subdivide() const;
+
+	size_t			mSubdivision;
+
+	mutable bool						mCalculationsCached;
+	mutable std::vector<Vec3f>			mPositions;
+	mutable std::vector<Vec2f>			mTexCoords;
+	mutable std::vector<Vec3f>			mNormals;
+	mutable std::vector<uint32_t>		mIndices;
+
+	static float	sPositions[12*3];
+	static uint32_t	sIndices[60];
+};
+
 class Teapot : public Source {
   public:
 	//! Defaults to having POSITION, TEX_COORD_0, NORMAL
 	Teapot();
 	
 	virtual Teapot&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
-	virtual Teapot&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }			
+	virtual Teapot&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
 	Teapot&		subdivision( int sub );
   
 	virtual size_t		getNumVertices() const override;
@@ -267,7 +300,7 @@ class Circle : public Source {
 	Circle();
 
 	virtual Circle&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
-	virtual Circle&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }			
+	virtual Circle&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
 	Circle&		center( const Vec2f &center ) { mCenter = center; return *this; }
 	Circle&		radius( float radius );	
 	Circle&		segments( int segments );
@@ -348,6 +381,18 @@ class Capsule : public Sphere {
 
 	Vec3f		mDirection;
 	float		mLength;
+};
+
+class IcoSphere : public Icosahedron {
+  public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL
+	IcoSphere();
+	
+	virtual IcoSphere&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
+	virtual IcoSphere&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
+	IcoSphere&	subdivision( size_t sub ) { mSubdivision = sub; mCalculationsCached = false; return *this; }
+
+	virtual void		loadInto( Target *target ) const override;
 };
 
 class Cone : public Source {

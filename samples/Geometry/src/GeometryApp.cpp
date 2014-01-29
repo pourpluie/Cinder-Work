@@ -1,5 +1,6 @@
 #include "cinder/Camera.h"
 #include "cinder/GeomIo.h"
+#include "cinder/ImageIo.h"
 #include "cinder/MayaCamUI.h"
 #include "cinder/app/AppNative.h"
 #include "cinder/app/RendererGl.h"
@@ -7,6 +8,7 @@
 #include "cinder/gl/Batch.h"
 #include "cinder/gl/Context.h"
 #include "cinder/gl/GlslProg.h"
+#include "cinder/gl/Texture.h"
 #include "cinder/gl/VboMesh.h"
 
 #include "DebugMesh.h"
@@ -18,7 +20,7 @@ using namespace std;
 class GeometryApp : public AppNative
 {
 public:
-	typedef enum Primitive { SPHERE, CAPSULE,/* CONE, WEDGE,*/ CUBE, TEAPOT };
+	typedef enum Primitive { SPHERE, CAPSULE, ICOSPHERE,/* CONE, WEDGE,*/ CUBE, TEAPOT };
 
 	void setup();
 	void update();
@@ -35,6 +37,8 @@ private:
 	void createPrimitive();
 
 	Primitive			mSelected;
+	uint8_t				mSubdivision;
+	bool				mWireframe;
 
 	CameraPersp			mCamera;
 	MayaCamUI			mMayaCam;
@@ -46,10 +50,21 @@ private:
 	gl::VboMeshRef		mCalculatedNormals;
 
 	gl::GlslProgRef		mWireframeShader;
+
+	gl::TextureRef		mTexture;
 };
 
 void GeometryApp::setup()
 {
+	mSelected = ICOSPHERE;
+	mSubdivision = 0;
+	mWireframe = true;
+
+	//
+	gl::Texture::Format fmt;
+	fmt.setWrap( GL_REPEAT, GL_CLAMP_TO_BORDER );
+	mTexture = gl::Texture::create( loadImage( loadAsset("stripes.jpg") ), fmt );
+
 	//
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
@@ -89,6 +104,8 @@ void GeometryApp::setup()
 
 	mCamera.setEyePoint( Vec3f(0, 2, 4) );
 	mCamera.setCenterOfInterestPoint( Vec3f(0, 0, 0) );
+
+	mWireframeShader->uniform( "uTexture", 0 );
 }
 
 void GeometryApp::update()
@@ -119,7 +136,10 @@ void GeometryApp::draw()
 	if(mPrimitive)
 	{
 		try {
-			gl::GlslProgScope glslProgScope( mWireframeShader );
+			gl::TextureBindScope textureBindScope( mTexture );
+
+			gl::GlslProgScope glslProgScope( mWireframe ? mWireframeShader :
+				gl::context()->getStockShader( gl::ShaderDef().texture( mTexture ) ) );
 
 			gl::enableAlphaBlending();
 			gl::enable( GL_CULL_FACE );
@@ -167,6 +187,18 @@ void GeometryApp::keyDown( KeyEvent event )
 		mSelected = static_cast<Primitive>( static_cast<int>(mSelected) + 1 );
 		createPrimitive();
 		break;
+	case KeyEvent::KEY_UP:
+		mSubdivision++;
+		createPrimitive();
+		break;
+	case KeyEvent::KEY_DOWN:
+		if( mSubdivision > 0 )
+			mSubdivision--;
+		createPrimitive();
+		break;
+	case KeyEvent::KEY_RETURN:
+		mWireframe = !mWireframe;
+		break;
 	}
 }
 
@@ -185,11 +217,14 @@ void GeometryApp::createPrimitive(void)
 		case CAPSULE:
 			primitive = geom::SourceRef( new geom::Capsule( geom::Capsule().segments(40).length(4.0f) ) );
 			break;
+		case ICOSPHERE:
+			primitive = geom::SourceRef( new geom::IcoSphere( geom::IcoSphere().subdivision( mSubdivision ) ) );
+			break;
 		case CUBE:
 			primitive = geom::SourceRef( new geom::Cube( geom::Cube() ) );
 			break;
 		case TEAPOT:
-			primitive = geom::SourceRef( new geom::Teapot( geom::Teapot().subdivision(16) ) );
+			primitive = geom::SourceRef( new geom::Teapot( geom::Teapot().subdivision( mSubdivision ) ) );
 			break;
 		}
 	
@@ -217,13 +252,16 @@ void GeometryApp::createShader(void)
 			"uniform mat4	ciModelViewProjection;\n"
 			"in vec4		ciPosition;\n"
 			"in vec4		ciColor;\n"
+			"in vec2		ciTexCoord0;\n"
 			"\n"
 			"out VertexData {\n"
 			"	vec4 color;\n"
+			"	vec2 texcoord;\n"
 			"} vVertexOut;\n"
 			"\n"
 			"void main(void) {\n"
 			"	vVertexOut.color = ciColor;\n"
+			"	vVertexOut.texcoord = ciTexCoord0;\n"
 			"	gl_Position = ciModelViewProjection * ciPosition;\n"
 			"}\n"
 		) 
@@ -237,11 +275,13 @@ void GeometryApp::createShader(void)
 			"\n"
 			"in VertexData	{\n"
 			"	vec4 color;\n"
+			"	vec2 texcoord;\n"
 			"} vVertexIn[];\n"
 			"\n"
 			"out VertexData	{\n"
 			"	noperspective vec3 distance;\n"
 			"	vec4 color;\n"
+			"	vec2 texcoord;\n"
 			"} vVertexOut;\n"
 			"\n"
 			"void main(void)\n"
@@ -258,16 +298,19 @@ void GeometryApp::createShader(void)
 			"\n"
 			"	vVertexOut.distance = vec3(fArea/length(v0),0,0);\n"
 			"	vVertexOut.color = vVertexIn[0].color;\n"
+			"	vVertexOut.texcoord = vVertexIn[0].texcoord;\n"
 			"	gl_Position = gl_in[0].gl_Position;\n"
 			"	EmitVertex();\n"
 			"\n"
 			"	vVertexOut.distance = vec3(0,fArea/length(v1),0);\n"
 			"	vVertexOut.color = vVertexIn[1].color;\n"
+			"	vVertexOut.texcoord = vVertexIn[1].texcoord;\n"
 			"	gl_Position = gl_in[1].gl_Position;\n"
 			"	EmitVertex();\n"
 			"\n"
 			"	vVertexOut.distance = vec3(0,0,fArea/length(v2));\n"
 			"	vVertexOut.color = vVertexIn[2].color;\n"
+			"	vVertexOut.texcoord = vVertexIn[2].texcoord;\n"
 			"	gl_Position = gl_in[2].gl_Position;\n"
 			"	EmitVertex();\n"
 			"\n"
@@ -277,9 +320,12 @@ void GeometryApp::createShader(void)
 		.fragment(
 			"#version 150\n"
 			"\n"
+			"uniform sampler2D uTexture;\n"
+			"\n"
 			"in VertexData	{\n"
 			"	noperspective vec3 distance;\n"
 			"	vec4 color;\n"
+			"	vec2 texcoord;\n"
 			"} vVertexIn;\n"
 			"\n"
 			"out vec4				oColor;\n"
@@ -290,7 +336,8 @@ void GeometryApp::createShader(void)
 			"	float fEdgeIntensity = exp2(-1.0*fNearest*fNearest);\n"
 			"\n"
 			"	// blend between edge color and face color\n"
-			"	vec4 vFaceColor; vFaceColor.rgb = vVertexIn.color.rgb * 0.25; vFaceColor.a = 0.8;\n"
+			"	vec4 vFaceColor = texture2D( uTexture, vVertexIn.texcoord );\n"
+			//"	vec4 vFaceColor = vec4( vVertexIn.texcoord.x, vVertexIn.texcoord.y, 0.0, 1.0 );\n"
 			"	vec4 vEdgeColor; vEdgeColor.rgb = vVertexIn.color.rgb; vEdgeColor.a = 1.0;\n"
 			"	oColor = mix(vFaceColor, vEdgeColor, fEdgeIntensity);\n"
 			"}\n"
