@@ -220,8 +220,11 @@ void GeometryApp::createPrimitive(void)
 		case ICOSPHERE:
 			primitive = geom::SourceRef( new geom::IcoSphere( geom::IcoSphere().subdivision( mSubdivision ) ) );
 			break;
+		/*case CONE:
+			primitive = geom::SourceRef( new geom::Cone( geom::Cone() ) );
+			break;*/
 		case CUBE:
-			primitive = geom::SourceRef( new geom::Cube( geom::Cube() ) );
+			primitive = geom::SourceRef( new geom::Cube( geom::Cube().subdivision( mSubdivision ) ) );
 			break;
 		case TEAPOT:
 			primitive = geom::SourceRef( new geom::Teapot( geom::Teapot().subdivision( mSubdivision ) ) );
@@ -336,9 +339,10 @@ void GeometryApp::createShader(void)
 			"	float fEdgeIntensity = exp2(-1.0*fNearest*fNearest);\n"
 			"\n"
 			"	// blend between edge color and face color\n"
-			"	vec4 vFaceColor = texture2D( uTexture, vVertexIn.texcoord );\n"
+			"	vec4 vFaceColor = texture2D( uTexture, vVertexIn.texcoord ); vFaceColor.a = 0.9;\n"
 			//"	vec4 vFaceColor = vec4( vVertexIn.texcoord.x, vVertexIn.texcoord.y, 0.0, 1.0 );\n"
-			"	vec4 vEdgeColor; vEdgeColor.rgb = vVertexIn.color.rgb; vEdgeColor.a = 1.0;\n"
+			//"	vec4 vEdgeColor; vEdgeColor.rgb = vVertexIn.color.rgb; vEdgeColor.a = 1.0;\n"
+			"	vec4 vEdgeColor = vec4(1.0, 1.0, 0.0, 1.0);\n"
 			"	oColor = mix(vFaceColor, vEdgeColor, fEdgeIntensity);\n"
 			"}\n"
 		)
