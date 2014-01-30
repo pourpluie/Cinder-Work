@@ -21,6 +21,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "cinder/App/App.h"
 #include "cinder/GeomIo.h"
 #include "cinder/Quaternion.h"
 #include <algorithm>
@@ -552,15 +553,11 @@ void Icosahedron::calculate() const
 
 	clear();
 
-	//mPositions.assign( reinterpret_cast<const Vec3f*>(sPositions), reinterpret_cast<const Vec3f*>(sPositions) + 12 );
-	//mIndices.assign( reinterpret_cast<const uint32_t*>(sIndices), reinterpret_cast<const uint32_t*>(sIndices) + 60 );
-
-	for( size_t i = 0; i < 60; ++i ) {
-		mIndices.push_back( mPositions.size() );
-		mPositions.push_back( *reinterpret_cast<const Vec3f*>(&sPositions[sIndices[i]*3]) );
-	}
+	// 
+	mPositions.assign( reinterpret_cast<const Vec3f*>(sPositions), reinterpret_cast<const Vec3f*>(sPositions) + 12 );
+	mNormals.assign( reinterpret_cast<const Vec3f*>(sPositions), reinterpret_cast<const Vec3f*>(sPositions) + 12 );
+	mIndices.assign( reinterpret_cast<const uint32_t*>(sIndices), reinterpret_cast<const uint32_t*>(sIndices) + 60 );
 	
-	mNormals.assign( mPositions.data(), mPositions.data() + mPositions.size() );
 	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );
 
 	// perform subdivision
@@ -569,49 +566,52 @@ void Icosahedron::calculate() const
 
 	// calculate texture coords
 	mTexCoords.assign( mNormals.size(), Vec2f::zero() );
+	for( size_t i = 0; i < mNormals.size(); ++i ) {
+		const Vec3f &normal = mNormals[i];
+		mTexCoords[i].x = (math<float>::atan2( normal.z, -normal.x ) / M_PI) * 0.5f + 0.5f;
+		mTexCoords[i].y = -normal.y * 0.5f + 0.5f;
+	}
+	
+	// fix texture seams
+	size_t numBefore = mPositions.size();
 	size_t numTriangles = mIndices.size() / 3;
 	for( size_t i = 0; i < numTriangles; ++i ) {
-		uint32_t index0 = mIndices[i * 3 + 0];
-		uint32_t index1 = mIndices[i * 3 + 1];
-		uint32_t index2 = mIndices[i * 3 + 2];
+		const Vec2f &uv0 = mTexCoords[ mIndices[i * 3 + 0] ];
+
+		/*// check if vertex is one of the poles & generate a more precise vertex for it
+		const Vec3f &normal = mNormals[ mIndices[i * 3 + 0] ];
+		if( math<float>::abs( normal.y ) >= 1.f ) {
+			const uint32_t index = mIndices[i * 3 + 0];
+			const Vec3f &n1 = mNormals[ mIndices[i * 3 + 1] ];
+			const Vec3f &n2 = mNormals[ mIndices[i * 3 + 2] ];
+			Vec3f n = normal + ((n1 - normal) + (n2 - normal)).normalized() * 0.001f;
+			Vec2f uv;
+			uv.x = (math<float>::atan2( n.z, -n.x ) / M_PI) * 0.5f + 0.5f;
+			uv.y = -n.y * 0.5f + 0.5f;
+			
+			mIndices[i * 3 + 0] = mPositions.size();
+			mPositions.push_back( mPositions[index] );
+			mNormals.push_back( mNormals[index] );
+			mTexCoords.push_back( uv );
+		} //*/
+
+		// check if triangle is crossing a texture seam & generate a new vertex for it
+		for( size_t j = 1; j < 3; ++j ) {
+			const uint32_t index = mIndices[i * 3 + j];
+			const Vec2f &uv = mTexCoords[index];
 		
-		Vec2f uv0, uv1, uv2;
-		uv0.x = (math<float>::atan2( mNormals[index0].z, -mNormals[index0].x ) / M_PI) * 0.5f + 0.5f;
-		uv1.x = (math<float>::atan2( mNormals[index1].z, -mNormals[index1].x ) / M_PI) * 0.5f + 0.5f;
-		uv2.x = (math<float>::atan2( mNormals[index2].z, -mNormals[index2].x ) / M_PI) * 0.5f + 0.5f;
-		uv0.y = -mNormals[index0].y * 0.5f + 0.5f;
-		uv1.y = -mNormals[index1].y * 0.5f + 0.5f;
-		uv2.y = -mNormals[index2].y * 0.5f + 0.5f;
-
-		mTexCoords[index0] = uv0;
-
-		float dx = uv1.x - uv0.x;
-		if( math<float>::abs(dx) > 0.5f ) {
-			uv1.x += (dx < 0.0f) ? 1.0f : -1.0f;
-
-			// insert new vertex / normal / texcoord
-			mIndices[i * 3 + 1] = mPositions.size();
-			mPositions.push_back( mPositions[index1] );
-			mNormals.push_back( mNormals[index1] );
-			mTexCoords.push_back( uv1 );
+			float dx = uv.x - uv0.x;
+			if( math<float>::abs(dx) > 0.5f ) {
+				mIndices[i * 3 + j] = mPositions.size();
+				mPositions.push_back( mPositions[index] );
+				mNormals.push_back( mNormals[index] );
+				mTexCoords.push_back( uv + Vec2f( (dx < 0.0f) ? 1.0f : -1.0f, 0.0f ) );
+			}
 		}
-		else
-			mTexCoords[index1] = uv1;
-		
-		dx = uv2.x - uv0.x;
-		if( math<float>::abs(dx) > 0.5f ) {
-			uv2.x += (dx < 0.0f) ? 1.0f : -1.0f;
-
-			// insert new vertex / normal / texcoord
-			mIndices[i * 3 + 2] = mPositions.size();
-			mPositions.push_back( mPositions[index2] );
-			mNormals.push_back( mNormals[index2] );
-			mTexCoords.push_back( uv2 );
-		}
-		else
-			mTexCoords[index2] = uv2;
 	}
-
+	ci::app::console() << "Extra vertices generated to avoid seams: " << mPositions.size() - numBefore << std::endl;
+	ci::app::console() << "Total number of vertices               : " << mPositions.size() << std::endl;
+	
 	mCalculationsCached = true;
 }
 

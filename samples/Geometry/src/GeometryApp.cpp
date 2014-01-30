@@ -224,7 +224,7 @@ void GeometryApp::createPrimitive(void)
 			primitive = geom::SourceRef( new geom::Cone( geom::Cone() ) );
 			break;*/
 		case CUBE:
-			primitive = geom::SourceRef( new geom::Cube( geom::Cube().subdivision( mSubdivision ) ) );
+			primitive = geom::SourceRef( new geom::Cube( geom::Cube().subdivision( mSubdivision ).spherize() ) );
 			break;
 		case TEAPOT:
 			primitive = geom::SourceRef( new geom::Teapot( geom::Teapot().subdivision( mSubdivision ) ) );
