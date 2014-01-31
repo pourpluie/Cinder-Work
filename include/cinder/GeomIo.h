@@ -184,47 +184,30 @@ class Cube : public Source {
 	
 	virtual Cube&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
 	virtual Cube&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
-	Cube&	subdivision( size_t sub ) { mSubdivision = sub; mCalculationsCached = false; return *this; }
-	Cube&	spherize( bool enable = true ) { mSpherize = enable; mCalculationsCached = false; return *this; }
 
-	virtual size_t		getNumVertices() const override { calculate(); return mPositions.size(); }
-	virtual size_t		getNumIndices() const override { calculate(); return mIndices.size(); }
+	virtual size_t		getNumVertices() const override { return 24; }
+	virtual size_t		getNumIndices() const override { return 36; }
 	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
 	virtual void		loadInto( Target *target ) const override;
 
   protected:
-	void			clear() const;
-	void			calculate() const;
-	void			subdivide() const;
-
-	size_t		mSubdivision;
-	bool		mSpherize;
-
-	mutable bool						mCalculationsCached;
-	mutable std::vector<Vec3f>			mPositions;
-	mutable std::vector<Vec2f>			mTexCoords;
-	mutable std::vector<Vec3f>			mNormals;
-	mutable std::vector<Vec3f>			mColors;	
-	mutable std::vector<uint32_t>		mIndices;
-
 	static float	sPositions[24*3];
 	static float	sColors[24*3];
 	static float	sTexCoords[24*2];
-	static float	sNormals[24*3];	
+	static float	sNormals[24*3];
 	
 	static uint32_t	sIndices[36];
 };
 
 class Icosahedron : public Source {
   public:
-	//! Defaults to having POSITION, TEX_COORD_0, NORMAL
+	//! Defaults to having POSITION and NORMAL. Supports COLOR
 	Icosahedron();
 	virtual ~Icosahedron() {}
 	
-	virtual Icosahedron&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
-	virtual Icosahedron&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
-	Icosahedron&	subdivision( size_t sub ) { mSubdivision = sub > 0 ? sub : 1; mCalculationsCached = false; return *this; }
+	virtual Icosahedron&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
+	virtual Icosahedron&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
 
 	virtual size_t		getNumVertices() const override { calculate(); return mPositions.size(); }
 	virtual size_t		getNumIndices() const override { calculate(); return mIndices.size(); }
@@ -233,21 +216,16 @@ class Icosahedron : public Source {
 	virtual void		loadInto( Target *target ) const override;
 
   protected:
-	Icosahedron( int subdivision );
-
-	void			clear() const;
-	void			calculate() const;
-	void			subdivide() const;
-
-	size_t			mSubdivision;
+	virtual void		calculate() const;
 
 	mutable bool						mCalculationsCached;
 	mutable std::vector<Vec3f>			mPositions;
-	mutable std::vector<Vec2f>			mTexCoords;
 	mutable std::vector<Vec3f>			mNormals;
+	mutable std::vector<Vec3f>			mColors;
 	mutable std::vector<uint32_t>		mIndices;
 
 	static float	sPositions[12*3];
+
 	static uint32_t	sIndices[60];
 };
 
@@ -256,8 +234,8 @@ class Teapot : public Source {
 	//! Defaults to having POSITION, TEX_COORD_0, NORMAL
 	Teapot();
 	
-	virtual Teapot&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
-	virtual Teapot&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
+	virtual Teapot&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
+	virtual Teapot&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
 	Teapot&		subdivision( int sub );
   
 	virtual size_t		getNumVertices() const override;
@@ -331,8 +309,8 @@ class Sphere : public Source {
 	Sphere();
 	virtual ~Sphere() {}
 
-	Sphere&		enable( Attrib attrib ) { Source::enable( attrib ); return *this; }
-	Sphere&		disable( Attrib attrib ) { Source::disable( attrib ); return *this; }	
+	virtual Sphere&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
+	virtual Sphere&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
 	Sphere&		center( const Vec3f &center ) { mCenter = center; mCalculationsCached = false; return *this; }
 	Sphere&		radius( float radius ) { mRadius = radius; mCalculationsCached = false; return *this; }
 	Sphere&		segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
@@ -352,26 +330,49 @@ class Sphere : public Source {
 	int			mNumSegments;
 
 	mutable bool						mCalculationsCached;
-	mutable std::vector<Vec3f>			mVertices;
+	mutable std::vector<Vec3f>			mPositions;
 	mutable std::vector<Vec2f>			mTexCoords;
 	mutable std::vector<Vec3f>			mNormals;
-	mutable std::vector<Vec3f>			mColors;	
+	mutable std::vector<Vec3f>			mColors;
 	mutable std::vector<uint32_t>		mIndices;
+};
+
+class Icosphere : public Icosahedron {
+  public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
+	Icosphere();
+	
+	virtual Icosphere&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
+	virtual Icosphere&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
+	Icosphere&			subdivision( int sub ) { mSubdivision = (sub > 0) ? (sub + 1) : 1; mCalculationsCached = false; return *this; }
+
+	virtual uint8_t		getAttribDims( Attrib attr ) const override;
+	virtual void		loadInto( Target *target ) const override;
+
+  protected:
+	virtual void		calculate() const;
+	virtual void		calculateImplUV() const;
+	virtual void		subdivide() const;
+
+	int			mSubdivision;
+
+	mutable bool						mCalculationsCached;
+	mutable std::vector<Vec2f>			mTexCoords;
 };
 
 class Capsule : public Sphere {
   public:
 	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
 	Capsule();
-
-	Capsule&		enable( Attrib attrib ) { Source::enable( attrib ); return *this; }
-	Capsule&		disable( Attrib attrib ) { Source::disable( attrib ); return *this; }
+	
+	virtual Capsule&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
+	virtual Capsule&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
 	Capsule&		center( const Vec3f &center ) { mCenter = center; mCalculationsCached = false; return *this; }
 	Capsule&		segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
 	Capsule&		radius( float radius ) { mRadius = math<float>::max(0.f, radius); mCalculationsCached = false; return *this; }
 	Capsule&		length( float length ) { mLength = math<float>::max(0.f, length); mCalculationsCached = false; return *this; }
 	Capsule&		direction( const Vec3f &direction ) { mDirection = direction.normalized(); mCalculationsCached = false; return *this; }
-
+	//! Conveniently sets center, length and direction
 	Capsule&		set( const Vec3f &from, const Vec3f &to );
 	
   private:
@@ -381,57 +382,6 @@ class Capsule : public Sphere {
 
 	Vec3f		mDirection;
 	float		mLength;
-};
-
-class IcoSphere : public Icosahedron {
-  public:
-	//! Defaults to having POSITION, TEX_COORD_0, NORMAL
-	IcoSphere();
-	
-	virtual IcoSphere&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); return *this; }
-	virtual IcoSphere&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); return *this; }
-	IcoSphere&	subdivision( size_t sub ) { mSubdivision = sub; mCalculationsCached = false; return *this; }
-
-	virtual void		loadInto( Target *target ) const override;
-};
-
-class Cone : public Source {
-  public:
-	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
-	Cone();
-
-	Cone&		enable( Attrib attrib ) { Source::enable( attrib ); return *this; }
-	Cone&		disable( Attrib attrib ) { Source::disable( attrib ); return *this; }	
-	Cone&		center( const Vec3f &center ) { mCenter = center; mCalculationsCached = false; return *this; }
-	Cone&		direction( const Vec3f &direction ) { mDirection = direction.normalized(); mCalculationsCached = false; return *this; }
-	Cone&		radius( float radius ) { mRadiusBase = mRadiusTop = radius; mCalculationsCached = false; return *this; }
-	Cone&		radius( float base, float top = 0.0f ) { mRadiusBase = base; mRadiusTop = top; mCalculationsCached = false; return *this; }
-	Cone&		segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
-	Cone&		rings( int rings ) { mNumRings = rings; mCalculationsCached = false; return *this; }
-	
-	virtual size_t		getNumVertices() const override;
-	virtual size_t		getNumIndices() const override;
-	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
-	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		loadInto( Target *target ) const override;
-	
-  private:
-	void		calculate() const;
-	void		calculateImplUV( size_t segments, size_t rings ) const;
-
-	Vec3f		mCenter;
-	Vec3f		mDirection;
-	float		mRadiusBase;
-	float		mRadiusTop;
-	int			mNumSegments;
-	int			mNumRings;
-
-	mutable bool						mCalculationsCached;
-	mutable std::vector<Vec3f>			mVertices;
-	mutable std::vector<Vec2f>			mTexCoords;
-	mutable std::vector<Vec3f>			mNormals;
-	mutable std::vector<Vec3f>			mColors;	
-	mutable std::vector<uint32_t>		mIndices;
 };
 
 #if 0
@@ -465,7 +415,7 @@ class SplineExtrusion : public Source {
 	mutable bool						mCalculationsCached;
 	mutable	int32_t						mNumVertices;
 	mutable int32_t						mNumIndices;
-	mutable std::unique_ptr<float[]>	mVertices;
+	mutable std::unique_ptr<float[]>	mPositions;
 	mutable std::unique_ptr<float[]>	mTexCoords;
 	mutable std::unique_ptr<float[]>	mNormals;	
 	mutable std::unique_ptr<uint32_t[]>	mIndices;

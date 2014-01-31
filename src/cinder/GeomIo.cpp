@@ -377,103 +377,10 @@ float Cube::sNormals[24*3]=	{	1,0,0,	1,0,0,	1,0,0,	1,0,0,
 
 
 Cube::Cube()
-	: mSubdivision( 0 ), mSpherize( false ), mCalculationsCached( false )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::TEX_COORD_0 );
 	enable( Attrib::NORMAL );
-}
-
-void Cube::clear() const
-{
-	mCalculationsCached = false;
-	mPositions.clear();
-	mTexCoords.clear();
-	mNormals.clear();
-	mColors.clear();
-	mIndices.clear();
-}
-
-void Cube::calculate() const
-{
-	if( mCalculationsCached )
-		return;
-
-	clear();
-
-	mPositions.assign( reinterpret_cast<const Vec3f*>(sPositions), reinterpret_cast<const Vec3f*>(sPositions) + 24 );
-	mTexCoords.assign( reinterpret_cast<const Vec2f*>(sTexCoords), reinterpret_cast<const Vec2f*>(sTexCoords) + 24 );
-	mNormals.assign( reinterpret_cast<const Vec3f*>(sNormals), reinterpret_cast<const Vec3f*>(sNormals) + 24 );
-	mColors.assign( reinterpret_cast<const Vec3f*>(sColors), reinterpret_cast<const Vec3f*>(sColors) + 24 );
-	mIndices.assign( reinterpret_cast<const uint32_t*>(sIndices), reinterpret_cast<const uint32_t*>(sIndices) + 36 );
-
-	// perform subdivision
-	for( size_t i = 0; i < mSubdivision; ++i ) 
-		subdivide();
-
-	// spherize
-	if( mSpherize ) {
-		std::for_each( mPositions.begin(), mPositions.end(), std::mem_fun_ref( &Vec3f::normalize ) );
-		mNormals.assign( &mPositions.front(), &mPositions.front() + mPositions.size() );
-	}
-
-	mCalculationsCached = true;
-}
-
-void Cube::subdivide() const
-{
-	mPositions.reserve( mPositions.size() + mIndices.size() );
-	mNormals.reserve( mNormals.size() + mIndices.size() );
-	mTexCoords.reserve( mTexCoords.size() + mIndices.size() );
-	mColors.reserve( mColors.size() + mIndices.size() );
-	mIndices.reserve( mIndices.size() * 4 );
-
-	const size_t numTriangles = mIndices.size() / 3;
-	for( size_t i = 0; i < numTriangles; ++i ) {
-		uint32_t index0 = mIndices[i * 3 + 0];
-		uint32_t index1 = mIndices[i * 3 + 1];
-		uint32_t index2 = mIndices[i * 3 + 2];
-
-		// add new indices
-		uint32_t index3 = mPositions.size();
-		uint32_t index4 = index3 + 1;
-		uint32_t index5 = index4 + 1;
-
-		mIndices[i * 3 + 1] = index3;	// first triangle
-		mIndices[i * 3 + 2] = index5;
-
-		mIndices.push_back( index3 );	// second triangle
-		mIndices.push_back( index1 );
-		mIndices.push_back( index4 );
-
-		mIndices.push_back( index5 );	// third triangle
-		mIndices.push_back( index3 );
-		mIndices.push_back( index4 );
-
-		mIndices.push_back( index5 );	// fourth triangle
-		mIndices.push_back( index4 );
-		mIndices.push_back( index2 );
-
-		// add new positions
-		mPositions.push_back( 0.5f * (mPositions[index0] + mPositions[index1]) );
-		mPositions.push_back( 0.5f * (mPositions[index1] + mPositions[index2]) );
-		mPositions.push_back( 0.5f * (mPositions[index2] + mPositions[index0]) );
-
-		// add new normals
-		mNormals.push_back( 0.5f * (mNormals[index0] + mNormals[index1]) );
-		mNormals.push_back( 0.5f * (mNormals[index1] + mNormals[index2]) );
-		mNormals.push_back( 0.5f * (mNormals[index2] + mNormals[index0]) );
-
-		// add new tex coords
-		mTexCoords.push_back( 0.5f * (mTexCoords[index0] + mTexCoords[index1]) );
-		mTexCoords.push_back( 0.5f * (mTexCoords[index1] + mTexCoords[index2]) );
-		mTexCoords.push_back( 0.5f * (mTexCoords[index2] + mTexCoords[index0]) );
-
-		// add new colors
-		mColors.push_back( 0.5f * (mColors[index0] + mColors[index1]) );
-		mColors.push_back( 0.5f * (mColors[index1] + mColors[index2]) );
-		mColors.push_back( 0.5f * (mColors[index2] + mColors[index0]) );
-	}
 }
 
 uint8_t	Cube::getAttribDims( Attrib attr ) const
@@ -490,30 +397,27 @@ uint8_t	Cube::getAttribDims( Attrib attr ) const
 
 void Cube::loadInto( Target *target ) const
 {
-	calculate();
-
-	target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );		
+	target->copyAttrib( Attrib::POSITION, 3, 0, sPositions, 24 );
 	if( isEnabled( Attrib::COLOR ) )
-		target->copyAttrib( Attrib::COLOR, 3, 0, mColors.data()->ptr(), mColors.size() );
+		target->copyAttrib( Attrib::COLOR, 3, 0, sColors, 24 );
 	if( isEnabled( Attrib::TEX_COORD_0 ) )
-		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, sTexCoords, 24 );
 	if( isEnabled( Attrib::NORMAL ) )
-		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
+		target->copyAttrib( Attrib::NORMAL, 3, 0, sNormals, 24 );
 
-	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
+	target->copyIndices( Primitive::TRIANGLES, sIndices, 36, 1 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Icosahedron
 
-#define nmbr (1.0f / ((1.0f + math<float>::sqrt(5.0f)) / 2.0f))
+#undef PHI	// take the reciprocal of phi, to obtain an icosahedron that fits a unit cube
+#define PHI (1.0f / ((1.0f + math<float>::sqrt(5.0f)) / 2.0f))
 
 float Icosahedron::sPositions[12*3] = {  
-								-nmbr, 1.0f, 0.0f,   nmbr, 1.0f, 0.0f,  -nmbr,-1.0f, 0.0f,   nmbr,-1.0f, 0.0f,
-								 0.0f,-nmbr, 1.0f,   0.0f, nmbr, 1.0f,   0.0f,-nmbr,-1.0f,   0.0f, nmbr,-1.0f,
-								 1.0f, 0.0f,-nmbr,   1.0f, 0.0f, nmbr,  -1.0f, 0.0f,-nmbr,  -1.0f, 0.0f, nmbr };
-
-#undef nmbr
+								 -PHI, 1.0f, 0.0f,    PHI, 1.0f, 0.0f,   -PHI,-1.0f, 0.0f,    PHI,-1.0f, 0.0f,
+								 0.0f, -PHI, 1.0f,   0.0f,  PHI, 1.0f,   0.0f, -PHI,-1.0f,   0.0f,  PHI,-1.0f,
+								 1.0f, 0.0f, -PHI,   1.0f, 0.0f,  PHI,  -1.0f, 0.0f, -PHI,  -1.0f, 0.0f,  PHI };
 
 uint32_t Icosahedron::sIndices[60] ={	
 								 0,11, 5, 0, 5, 1, 0, 1, 7, 0, 7,10, 0,10,11,
@@ -522,28 +426,10 @@ uint32_t Icosahedron::sIndices[60] ={
 								 4, 9, 5, 2, 4,11, 6, 2,10, 8, 6, 7, 9, 8, 1 };
 
 Icosahedron::Icosahedron()
-	: mSubdivision( 0 ), mCalculationsCached( false )
+	: mCalculationsCached( false )
 {
 	enable( Attrib::POSITION );
-	enable( Attrib::TEX_COORD_0 );
 	enable( Attrib::NORMAL );
-}
-
-Icosahedron::Icosahedron( int subdivision )
-	: mSubdivision( subdivision ), mCalculationsCached( false )
-{
-	enable( Attrib::POSITION );
-	enable( Attrib::TEX_COORD_0 );
-	enable( Attrib::NORMAL );
-}
-
-void Icosahedron::clear() const
-{
-	mCalculationsCached = false;
-	mPositions.clear();
-	mTexCoords.clear();
-	mNormals.clear();
-	mIndices.clear();
 }
 
 void Icosahedron::calculate() const
@@ -551,132 +437,57 @@ void Icosahedron::calculate() const
 	if( mCalculationsCached )
 		return;
 
-	clear();
+	// instead of copying the positions, we create 3 unique vertices per face
+	// to make sure the face is flat
+	mPositions.assign( 60, Vec3f::zero() );
+	mIndices.assign( 60, 0 );
+	mNormals.assign( 60, Vec3f::zero() );
 
-	// 
-	mPositions.assign( reinterpret_cast<const Vec3f*>(sPositions), reinterpret_cast<const Vec3f*>(sPositions) + 12 );
-	mNormals.assign( reinterpret_cast<const Vec3f*>(sPositions), reinterpret_cast<const Vec3f*>(sPositions) + 12 );
-	mIndices.assign( reinterpret_cast<const uint32_t*>(sIndices), reinterpret_cast<const uint32_t*>(sIndices) + 60 );
-	
-	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );
-
-	// perform subdivision
-	for( size_t i = 0; i < mSubdivision; ++i ) 
-		subdivide();
-
-	// calculate texture coords
-	mTexCoords.assign( mNormals.size(), Vec2f::zero() );
-	for( size_t i = 0; i < mNormals.size(); ++i ) {
-		const Vec3f &normal = mNormals[i];
-		mTexCoords[i].x = (math<float>::atan2( normal.z, -normal.x ) / M_PI) * 0.5f + 0.5f;
-		mTexCoords[i].y = -normal.y * 0.5f + 0.5f;
+	for( size_t i = 0; i < 60; ++i ) {
+		mPositions[i] = *reinterpret_cast<const Vec3f*>(&sPositions[sIndices[i]*3]);
+		mIndices[i] = (uint32_t) i;
 	}
-	
-	// fix texture seams
-	size_t numBefore = mPositions.size();
+
+	// calculate the face normal for each triangle
 	size_t numTriangles = mIndices.size() / 3;
 	for( size_t i = 0; i < numTriangles; ++i ) {
-		const Vec2f &uv0 = mTexCoords[ mIndices[i * 3 + 0] ];
+		const uint32_t index0 = mIndices[i*3+0];
+		const uint32_t index1 = mIndices[i*3+1];
+		const uint32_t index2 = mIndices[i*3+2];
 
-		/*// check if vertex is one of the poles & generate a more precise vertex for it
-		const Vec3f &normal = mNormals[ mIndices[i * 3 + 0] ];
-		if( math<float>::abs( normal.y ) >= 1.f ) {
-			const uint32_t index = mIndices[i * 3 + 0];
-			const Vec3f &n1 = mNormals[ mIndices[i * 3 + 1] ];
-			const Vec3f &n2 = mNormals[ mIndices[i * 3 + 2] ];
-			Vec3f n = normal + ((n1 - normal) + (n2 - normal)).normalized() * 0.001f;
-			Vec2f uv;
-			uv.x = (math<float>::atan2( n.z, -n.x ) / M_PI) * 0.5f + 0.5f;
-			uv.y = -n.y * 0.5f + 0.5f;
-			
-			mIndices[i * 3 + 0] = mPositions.size();
-			mPositions.push_back( mPositions[index] );
-			mNormals.push_back( mNormals[index] );
-			mTexCoords.push_back( uv );
-		} //*/
+		const Vec3f &v0 = mPositions[index0];
+		const Vec3f &v1 = mPositions[index1];
+		const Vec3f &v2 = mPositions[index2];
 
-		// check if triangle is crossing a texture seam & generate a new vertex for it
-		for( size_t j = 1; j < 3; ++j ) {
-			const uint32_t index = mIndices[i * 3 + j];
-			const Vec2f &uv = mTexCoords[index];
-		
-			float dx = uv.x - uv0.x;
-			if( math<float>::abs(dx) > 0.5f ) {
-				mIndices[i * 3 + j] = mPositions.size();
-				mPositions.push_back( mPositions[index] );
-				mNormals.push_back( mNormals[index] );
-				mTexCoords.push_back( uv + Vec2f( (dx < 0.0f) ? 1.0f : -1.0f, 0.0f ) );
-			}
+		Vec3f e0 = v1 - v0;
+		Vec3f e1 = v2 - v0;
+
+		mNormals[index0] = mNormals[index1] = mNormals[index2] = e0.cross(e1).normalized();
+	}
+
+	// add color if necessary
+	if( isEnabled( Attrib::COLOR ) ) {
+		size_t numPositions = mPositions.size();
+		mColors.assign( numPositions, Vec3f::zero() );
+		for( size_t i = 0; i < numPositions; ++i ) {
+			mColors[i].x = mPositions[i].x * 0.5f + 0.5f;
+			mColors[i].y = mPositions[i].y * 0.5f + 0.5f;
+			mColors[i].z = mPositions[i].z * 0.5f + 0.5f;
 		}
 	}
-	ci::app::console() << "Extra vertices generated to avoid seams: " << mPositions.size() - numBefore << std::endl;
-	ci::app::console() << "Total number of vertices               : " << mPositions.size() << std::endl;
-	
+
 	mCalculationsCached = true;
-}
-
-void Icosahedron::subdivide() const
-{
-	assert( ! ( mPositions.empty() || mIndices.empty() ) );
-	assert( mPositions.size() == mNormals.size() );
-
-	mPositions.reserve( mPositions.size() + mIndices.size() );
-	mNormals.reserve( mNormals.size() + mIndices.size() );
-	//mTexCoords.reserve( mTexCoords.size() + mIndices.size() );
-	mIndices.reserve( mIndices.size() * 4 );
-
-	const size_t numTriangles = mIndices.size() / 3;
-	for( size_t i = 0; i < numTriangles; ++i ) {
-		uint32_t index0 = mIndices[i * 3 + 0];
-		uint32_t index1 = mIndices[i * 3 + 1];
-		uint32_t index2 = mIndices[i * 3 + 2];
-
-		// add new indices
-		uint32_t index3 = mPositions.size();
-		uint32_t index4 = index3 + 1;
-		uint32_t index5 = index4 + 1;
-
-		mIndices[i * 3 + 1] = index3;	// first triangle
-		mIndices[i * 3 + 2] = index5;
-
-		mIndices.push_back( index3 );	// second triangle
-		mIndices.push_back( index1 );
-		mIndices.push_back( index4 );
-
-		mIndices.push_back( index5 );	// third triangle
-		mIndices.push_back( index3 );
-		mIndices.push_back( index4 );
-
-		mIndices.push_back( index5 );	// fourth triangle
-		mIndices.push_back( index4 );
-		mIndices.push_back( index2 );
-
-		// add new positions
-		mPositions.push_back( 0.5f * (mPositions[index0] + mPositions[index1]) );
-		mPositions.push_back( 0.5f * (mPositions[index1] + mPositions[index2]) );
-		mPositions.push_back( 0.5f * (mPositions[index2] + mPositions[index0]) );
-
-		// add new normals
-		mNormals.push_back( 0.5f * (mNormals[index0] + mNormals[index1]) );
-		mNormals.push_back( 0.5f * (mNormals[index1] + mNormals[index2]) );
-		mNormals.push_back( 0.5f * (mNormals[index2] + mNormals[index0]) );
-
-		// add new tex coords
-		//mTexCoords.push_back( 0.5f * (mTexCoords[index0] + mTexCoords[index1]) );
-		//mTexCoords.push_back( 0.5f * (mTexCoords[index1] + mTexCoords[index2]) );
-		//mTexCoords.push_back( 0.5f * (mTexCoords[index2] + mTexCoords[index0]) );
-	}
 }
 
 uint8_t	Icosahedron::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
 		case Attrib::POSITION: return 3;
-		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
 		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
 		default:
 			return 0;
-	}	
+	}
 }
 
 void Icosahedron::loadInto( Target *target ) const
@@ -684,12 +495,12 @@ void Icosahedron::loadInto( Target *target ) const
 	calculate();
 
 	target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );
-	if( isEnabled( Attrib::TEX_COORD_0 ) )
-		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
 	if( isEnabled( Attrib::NORMAL ) )
 		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
+	if( isEnabled( Attrib::COLOR ) )
+		target->copyAttrib( Attrib::COLOR, 3, 0, mColors.data()->ptr(), mColors.size() );
 
-	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
+	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 1 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -1101,6 +912,7 @@ void Sphere::calculate() const
 	int numSegments = mNumSegments;
 	if( numSegments < 4 )
 		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_PI * 2 ) );
+
 	// numRings = numSegments / 2
 	int numRings = ( numSegments >> 1 );
 
@@ -1110,7 +922,7 @@ void Sphere::calculate() const
 	
 void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 {
-	mVertices.resize( segments * rings );
+	mPositions.resize( segments * rings );
 	mNormals.resize( segments * rings );
 	mTexCoords.resize( segments * rings );
 	mColors.resize( segments * rings );
@@ -1124,7 +936,7 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 	bool hasTexCoords = isEnabled( Attrib::TEX_COORD_0 );
 	bool hasColors = isEnabled( Attrib::COLOR );
 
-	auto vertIt = mVertices.begin();
+	auto vertIt = mPositions.begin();
 	auto normIt = mNormals.begin();
 	auto texIt = mTexCoords.begin();
 	auto colorIt = mColors.begin();
@@ -1171,7 +983,7 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 size_t Sphere::getNumVertices() const
 {
 	calculate();
-	return mVertices.size();
+	return mPositions.size();
 }
 
 size_t Sphere::getNumIndices() const
@@ -1196,7 +1008,7 @@ void Sphere::loadInto( Target *target ) const
 {
 	calculate();
 	if( isEnabled( Attrib::POSITION ) )
-		target->copyAttrib( Attrib::POSITION, 3, 0, mVertices.data()->ptr(), mVertices.size() );
+		target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );
 	if( isEnabled( Attrib::TEX_COORD_0 ) )
 		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
 	if( isEnabled( Attrib::NORMAL ) )
@@ -1204,7 +1016,169 @@ void Sphere::loadInto( Target *target ) const
 	if( isEnabled( Attrib::COLOR ) )
 		target->copyAttrib( Attrib::COLOR, 3, 0, mColors.data()->ptr(), mColors.size() );
 
-	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );	
+	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Icosphere
+
+Icosphere::Icosphere()
+	: mSubdivision( 1 ), mCalculationsCached( false )
+{
+	enable( Attrib::POSITION );
+	enable( Attrib::TEX_COORD_0 );
+	enable( Attrib::NORMAL );
+}
+
+void Icosphere::calculate() const
+{
+	if( mCalculationsCached )
+		return;
+
+	// start by copying the base icosahedron in its entirety (vertices are shared among faces)
+	mPositions.assign( reinterpret_cast<Vec3f*>(sPositions), reinterpret_cast<Vec3f*>(sPositions) + 12 );
+	mNormals.assign( reinterpret_cast<Vec3f*>(sPositions), reinterpret_cast<Vec3f*>(sPositions) + 12 );
+	mIndices.assign( sIndices, sIndices + 60 );
+
+	// subdivide all triangles
+	subdivide();
+
+	// spherize
+	std::for_each( mPositions.begin(), mPositions.end(), std::mem_fun_ref( &Vec3f::normalize ) );
+	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );
+
+	// add color if necessary
+	if( isEnabled( Attrib::COLOR ) ) {
+		size_t numPositions = mPositions.size();
+		mColors.assign( numPositions, Vec3f::zero() );
+		for( size_t i = 0; i < numPositions; ++i ) {
+			mColors[i].x = mPositions[i].x * 0.5f + 0.5f;
+			mColors[i].y = mPositions[i].y * 0.5f + 0.5f;
+			mColors[i].z = mPositions[i].z * 0.5f + 0.5f;
+		}
+	}
+
+	// calculate texture coords based on equirectangular texture map
+	calculateImplUV();
+
+	mCalculationsCached = true;
+}
+
+void Icosphere::calculateImplUV() const
+{
+	// calculate texture coords
+	mTexCoords.assign( mNormals.size(), Vec2f::zero() );
+	for( size_t i = 0; i < mNormals.size(); ++i ) {
+		const Vec3f &normal = mNormals[i];
+		mTexCoords[i].x = (math<float>::atan2( normal.z, -normal.x ) / M_PI) * 0.5f + 0.5f;
+		mTexCoords[i].y = -normal.y * 0.5f + 0.5f;
+	}
+
+	// lambda closure to easily add a vertex with unique texture coordinate to our mesh
+	auto addVertex = [&] ( size_t i, const Vec2f &uv ) {
+		const uint32_t index = mIndices[i];
+		mIndices[i] = mPositions.size();
+		mPositions.push_back( mPositions[index] );
+		mNormals.push_back( mNormals[index] );
+		mTexCoords.push_back( uv );
+
+		if( isEnabled( Attrib::COLOR ) )
+			mColors.push_back( mColors[index] );
+	};
+	
+	// fix texture seams (this is where the magic happens)
+	size_t numTriangles = mIndices.size() / 3;
+	for( size_t i = 0; i < numTriangles; ++i ) {
+		const Vec2f &uv0 = mTexCoords[ mIndices[i * 3 + 0] ];
+		const Vec2f &uv1 = mTexCoords[ mIndices[i * 3 + 1] ];
+		const Vec2f &uv2 = mTexCoords[ mIndices[i * 3 + 2] ];
+
+		const float d1 = uv1.x - uv0.x;
+		const float d2 = uv2.x - uv0.x;
+
+		if( math<float>::abs(d1) > 0.5f && math<float>::abs(d2) > 0.5f ) {
+			addVertex( i * 3 + 0, uv0 + Vec2f( (d1 > 0.0f) ? 1.0f : -1.0f, 0.0f ) );
+		}
+		else if( math<float>::abs(d1) > 0.5f ) {
+			addVertex( i * 3 + 1, uv1 + Vec2f( (d1 < 0.0f) ? 1.0f : -1.0f, 0.0f ) );
+		}
+		else if( math<float>::abs(d2) > 0.5f ) {
+			addVertex( i * 3 + 2, uv2 + Vec2f( (d2 < 0.0f) ? 1.0f : -1.0f, 0.0f ) );
+		}
+	}
+}
+
+void Icosphere::subdivide() const
+{
+	for( size_t j = 0; j < mSubdivision; ++j ) {
+		mPositions.reserve( mPositions.size() + mIndices.size() );
+		mNormals.reserve( mNormals.size() + mIndices.size() );
+		mIndices.reserve( mIndices.size() * 4 );
+
+		const size_t numTriangles = mIndices.size() / 3;
+		for( size_t i = 0; i < numTriangles; ++i ) {
+			uint32_t index0 = mIndices[i * 3 + 0];
+			uint32_t index1 = mIndices[i * 3 + 1];
+			uint32_t index2 = mIndices[i * 3 + 2];
+
+			uint32_t index3 = mPositions.size();
+			uint32_t index4 = index3 + 1;
+			uint32_t index5 = index4 + 1;
+
+			// add new triangles
+			mIndices[i * 3 + 1] = index3;
+			mIndices[i * 3 + 2] = index5;
+			
+			mIndices.push_back( index3 );
+			mIndices.push_back( index1 );
+			mIndices.push_back( index4 );
+
+			mIndices.push_back( index5 );
+			mIndices.push_back( index3 );
+			mIndices.push_back( index4 );
+
+			mIndices.push_back( index5 );
+			mIndices.push_back( index4 );
+			mIndices.push_back( index2 );
+
+			// add new positions
+			mPositions.push_back( 0.5f * (mPositions[index0] + mPositions[index1]) );
+			mPositions.push_back( 0.5f * (mPositions[index1] + mPositions[index2]) );
+			mPositions.push_back( 0.5f * (mPositions[index2] + mPositions[index0]) );
+
+			// add new normals
+			mNormals.push_back( 0.5f * (mNormals[index0] + mNormals[index1]) );
+			mNormals.push_back( 0.5f * (mNormals[index1] + mNormals[index2]) );
+			mNormals.push_back( 0.5f * (mNormals[index2] + mNormals[index0]) );
+		}
+	}
+}
+
+uint8_t Icosphere::getAttribDims( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION: return 3;
+		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+		default:
+			return 0;
+	}
+}
+
+void Icosphere::loadInto( Target *target ) const
+{
+	calculate();
+
+	target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
+	if( isEnabled( Attrib::NORMAL ) )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
+	if( isEnabled( Attrib::COLOR ) )
+		target->copyAttrib( Attrib::COLOR, 3, 0, mColors.data()->ptr(), mColors.size() );
+
+	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -1236,6 +1210,7 @@ void Capsule::calculate() const
 	int numSegments = mNumSegments;
 	if( numSegments < 4 )
 		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_PI * 2 ) );
+
 	// numRings = numSegments / 2 and should always be an even number
 	int numRings = ( numSegments >> 2 ) << 1;
 
@@ -1248,13 +1223,13 @@ void Capsule::calculateImplUV( size_t segments, size_t rings ) const
 	size_t ringsBody = rings / 2;
 	size_t ringsTotal = rings + ringsBody;
 
-	mVertices.clear();
+	mPositions.clear();
 	mNormals.clear();
 	mTexCoords.clear();
 	mColors.clear();
 	mIndices.clear();
 
-	mVertices.reserve( segments * ringsTotal );
+	mPositions.reserve( segments * ringsTotal );
 	mNormals.reserve( segments * ringsTotal );
 	mTexCoords.reserve( segments * ringsTotal );
 	mColors.reserve( segments * ringsTotal );
@@ -1300,7 +1275,7 @@ void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) 
 		float x = math<float>::cos( 2 * M_PI * s * segIncr ) * radius;
 		float z = math<float>::sin( 2 * M_PI * s * segIncr ) * radius;
 
-		mVertices.push_back( mCenter + ( quaternion * Vec3f( mRadius * x, mRadius * y + mLength * dy, mRadius * z ) ) );
+		mPositions.push_back( mCenter + ( quaternion * Vec3f( mRadius * x, mRadius * y + mLength * dy, mRadius * z ) ) );
 
 		if( hasNormals ) {
 			mNormals.push_back( quaternion * Vec3f( x, y, z ) );
@@ -1312,32 +1287,6 @@ void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) 
 			mColors.push_back( Vec3f( x * 0.5f + 0.5f, y * 0.5f + 0.5f, z * 0.5f + 0.5f ) );
 		}
 	}
-}
-
-///////////////////////////////////////////////////////////////////////////////////////
-// IcoSphere
-
-IcoSphere::IcoSphere()
-	: Icosahedron(1) // need 1 subdivision to get a vertex at the poles
-{
-	enable( Attrib::POSITION );
-	enable( Attrib::TEX_COORD_0 );
-	enable( Attrib::NORMAL );
-}
-
-void IcoSphere::loadInto( Target *target ) const
-{
-	calculate();
-
-	std::for_each( mPositions.begin(), mPositions.end(), std::mem_fun_ref( &Vec3f::normalize ) );
-
-	target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );
-	if( isEnabled( Attrib::TEX_COORD_0 ) )
-		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
-	if( isEnabled( Attrib::NORMAL ) )
-		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
-
-	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
 }
 
 
@@ -1356,7 +1305,7 @@ void SplineExtrusion::calculateCurve( const std::function<Vec3f(float)> &pathCur
 	int numTriangles = ( pathSegments - 1 ) * radiusSegments * 2;
 	mNumIndices = numTriangles * 3;
 
-	mVertices = unique_ptr<float[]>( new float[mNumVertices * 3] );
+	mPositions = unique_ptr<float[]>( new float[mNumVertices * 3] );
 	mTexCoords = unique_ptr<float[]>( new float[mNumVertices * 2] );	
 	mNormals = unique_ptr<float[]>( new float[mNumVertices * 3] );
 	mIndices = unique_ptr<uint32_t[]>( new uint32_t[mNumIndices] );
@@ -1374,12 +1323,12 @@ void SplineExtrusion::calculate() const
 	mNumVertices = 32 * (mSubdivision + 1) * (mSubdivision + 1);
 	int numFaces = mSubdivision * mSubdivision * 32;
 	mNumIndices = numFaces * 6;
-	mVertices = unique_ptr<float[]>( new float[mNumVertices * 3] );
+	mPositions = unique_ptr<float[]>( new float[mNumVertices * 3] );
 	mTexCoords = unique_ptr<float[]>( new float[mNumVertices * 2] );	
 	mNormals = unique_ptr<float[]>( new float[mNumVertices * 3] );
 	mIndices = unique_ptr<uint32_t[]>( new uint32_t[mNumIndices] );
 
-	generatePatches( mVertices.get(), mNormals.get(), mTexCoords.get(), mIndices.get(), mSubdivision );
+	generatePatches( mPositions.get(), mNormals.get(), mTexCoords.get(), mIndices.get(), mSubdivision );
 	
 	mCalculationsCached = true;
 }
@@ -1435,7 +1384,7 @@ void SplineExtrusion::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride
 
 	switch( attr ) {
 		case Attrib::POSITION:
-			copyDataMultAdd( mVertices.get(), mNumVertices, dimensions, stride, dest, mScale, mPos );
+			copyDataMultAdd( mPositions.get(), mNumVertices, dimensions, stride, dest, mScale, mPos );
 		break;
 		case Attrib::TEX_COORD_0:
 			copyData( 2, mTexCoords.get(), mNumVertices, dimensions, stride, dest );

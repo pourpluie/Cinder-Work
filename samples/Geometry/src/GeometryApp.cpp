@@ -20,7 +20,7 @@ using namespace std;
 class GeometryApp : public AppNative
 {
 public:
-	typedef enum Primitive { SPHERE, CAPSULE, ICOSPHERE,/* CONE, WEDGE,*/ CUBE, TEAPOT };
+	typedef enum Primitive { SPHERE, ICOSPHERE, ICOSAHEDRON, CAPSULE,/* CONE, WEDGE,*/ CUBE, TEAPOT };
 
 	void setup();
 	void update();
@@ -56,7 +56,7 @@ private:
 
 void GeometryApp::setup()
 {
-	mSelected = ICOSPHERE;
+	mSelected = ICOSAHEDRON;
 	mSubdivision = 0;
 	mWireframe = true;
 
@@ -212,30 +212,33 @@ void GeometryApp::createPrimitive(void)
 		default:
 			mSelected = SPHERE;
 		case SPHERE:
-			primitive = geom::SourceRef( new geom::Sphere( geom::Sphere().segments(40) ) );
-			break;
-		case CAPSULE:
-			primitive = geom::SourceRef( new geom::Capsule( geom::Capsule().segments(40).length(4.0f) ) );
+			primitive = geom::SourceRef( new geom::Sphere( geom::Sphere().enable( geom::Attrib::COLOR ) ) );
 			break;
 		case ICOSPHERE:
-			primitive = geom::SourceRef( new geom::IcoSphere( geom::IcoSphere().subdivision( mSubdivision ) ) );
+			primitive = geom::SourceRef( new geom::Icosphere( geom::Icosphere().subdivision( mSubdivision ).enable( geom::Attrib::COLOR ) ) );
+			break;
+		case ICOSAHEDRON:
+			primitive = geom::SourceRef( new geom::Icosahedron( geom::Icosahedron().enable( geom::Attrib::COLOR ) ) );
+			break;
+		case CAPSULE:
+			primitive = geom::SourceRef( new geom::Capsule( geom::Capsule().enable( geom::Attrib::COLOR ) ) );
 			break;
 		/*case CONE:
-			primitive = geom::SourceRef( new geom::Cone( geom::Cone() ) );
+			primitive = geom::SourceRef( new geom::Cone( geom::Cone().enable( geom::Attrib::COLOR ) ) );
 			break;*/
 		case CUBE:
-			primitive = geom::SourceRef( new geom::Cube( geom::Cube().subdivision( mSubdivision ).spherize() ) );
+			primitive = geom::SourceRef( new geom::Cube( geom::Cube().enable( geom::Attrib::COLOR ) ) );
 			break;
 		case TEAPOT:
-			primitive = geom::SourceRef( new geom::Teapot( geom::Teapot().subdivision( mSubdivision ) ) );
+			primitive = geom::SourceRef( new geom::Teapot( geom::Teapot().enable( geom::Attrib::COLOR ) ) );
 			break;
 		}
 	
 		mPrimitive = gl::VboMesh::create( *primitive );
-		/*
+		
 		TriMesh mesh( *primitive );
 		mOriginalNormals = gl::VboMesh::create( DebugMesh( mesh, Color(1,1,0) ) );
-
+		/*
 		mesh.recalculateNormalsHighQuality();
 		mCalculatedNormals = gl::VboMesh::create( DebugMesh( mesh, Color(0,1,1) ) );
 		*/
@@ -341,8 +344,8 @@ void GeometryApp::createShader(void)
 			"	// blend between edge color and face color\n"
 			"	vec4 vFaceColor = texture2D( uTexture, vVertexIn.texcoord ); vFaceColor.a = 0.9;\n"
 			//"	vec4 vFaceColor = vec4( vVertexIn.texcoord.x, vVertexIn.texcoord.y, 0.0, 1.0 );\n"
-			//"	vec4 vEdgeColor; vEdgeColor.rgb = vVertexIn.color.rgb; vEdgeColor.a = 1.0;\n"
-			"	vec4 vEdgeColor = vec4(1.0, 1.0, 0.0, 1.0);\n"
+			"	vec4 vEdgeColor; vEdgeColor.rgb = vVertexIn.color.rgb; vEdgeColor.a = 1.0;\n"
+			//"	vec4 vEdgeColor = vec4(1.0, 1.0, 0.0, 1.0);\n"
 			"	oColor = mix(vFaceColor, vEdgeColor, fEdgeIntensity);\n"
 			"}\n"
 		)
