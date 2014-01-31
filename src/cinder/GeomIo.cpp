@@ -897,7 +897,7 @@ uint8_t	Circle::getAttribDims( Attrib attr ) const
 // Sphere
 
 Sphere::Sphere()
-	: mNumSegments( -1 ), mCenter( 0, 0, 0 ), mRadius( 1.0f ), mCalculationsCached( false )
+	: mNumSegments( 24 ), mCenter( 0, 0, 0 ), mRadius( 1.0f ), mCalculationsCached( false )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::NORMAL );
@@ -1185,7 +1185,7 @@ void Icosphere::loadInto( Target *target ) const
 // Capsule
 
 Capsule::Capsule()
-	: mDirection( 0, 1, 0 ), mLength( 1.0f )
+	: mDirection( 0, 1, 0 ), mLength( 2.0f )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::NORMAL );
@@ -1281,10 +1281,14 @@ void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) 
 			mNormals.push_back( quaternion * Vec3f( x, y, z ) );
 		}
 		if( hasTexCoords ) {
-			mTexCoords.push_back( Vec2f( s * segIncr, 0.5f - dy ) );
+			// perform cylindrical projection
+			float u = 1.0f - (s * segIncr);
+			float v = 0.5f - ((mRadius * y + mLength * dy) / (2.0f * mRadius + mLength));
+			mTexCoords.push_back( Vec2f( u, v ) );
 		}
 		if( hasColors ) {
-			mColors.push_back( Vec3f( x * 0.5f + 0.5f, y * 0.5f + 0.5f, z * 0.5f + 0.5f ) );
+			float g = 0.5f + ((mRadius * y + mLength * dy) / (2.0f * mRadius + mLength));
+			mColors.push_back( Vec3f( x * 0.5f + 0.5f, g, z * 0.5f + 0.5f ) );
 		}
 	}
 }
