@@ -175,12 +175,12 @@ void Context::makeCurrent() const
 		sThreadSpecificCurrentContextInitialized = true;
 	}
 	if( pthread_getspecific( sThreadSpecificCurrentContextKey ) != this ) {
-		pthread_setspecific( sThreadSpecificCurrentContextKey, this );
+	pthread_setspecific( sThreadSpecificCurrentContextKey, this );
 		env()->makeContextCurrent( this );
 	}
 #else
 	if( sThreadSpecificCurrentContext != this ) {
-		sThreadSpecificCurrentContext = const_cast<Context*>( this );
+	sThreadSpecificCurrentContext = const_cast<Context*>( this );
 		env()->makeContextCurrent( this );
 	}
 #endif
@@ -482,7 +482,7 @@ void Context::bufferDeleted( const BufferObj *buffer )
 				VaoRef vao = getVao();
 				if( vao )
 					vao->reflectBindBufferImpl( target, 0 );
-			}
+	}
 	}
 	else
 		mBufferBindingStack[target].push_back( 0 );
@@ -722,8 +722,8 @@ void Context::popTextureBinding( GLenum target, uint8_t textureUnit )
 			if( cached->second.back() != prevValue ) {
 				ScopedActiveTexture actScp( textureUnit );
 				glBindTexture( target, cached->second.back() );
-			}
 		}
+	}
 	}
 }
 
@@ -774,9 +774,9 @@ void Context::textureDeleted( const TextureBase *texture )
 	for( auto &unit : mTextureBindingStack ) {
 		auto cachedIt = unit.second.find( target );
 		if( cachedIt != unit.second.end() && ( ! cachedIt->second.empty() ) && ( cachedIt->second.back() != textureId ) ) {
-			// GL will have set the binding to 0 for target, so let's do the same
+		// GL will have set the binding to 0 for target, so let's do the same
 			unit.second[target].back() = 0;
-		}
+	}
 	}
 }
 

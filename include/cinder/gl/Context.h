@@ -386,11 +386,11 @@ class Context {
 	std::vector<GLint>			mReadFramebufferStack, mDrawFramebufferStack;
 #endif
 	
-	std::map<GLenum,std::vector<GLboolean>>					mBoolStateStack;
+	std::map<GLenum,std::vector<GLboolean>>	mBoolStateStack;
 	// map<TextureUnit,map<TextureTarget,vector<Binding ID Stack>>>
 	std::map<uint8_t,std::map<GLenum,std::vector<GLint>>>	mTextureBindingStack;
-	std::vector<uint8_t>									mActiveTextureStack;
-	GLenum													mCachedFrontPolygonMode, mCachedBackPolygonMode;
+	std::vector<uint8_t>					mActiveTextureStack;
+	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
 	
 	VaoRef						mDefaultVao;
 	VboRef						mDefaultArrayVbo[4], mDefaultElementVbo;
@@ -409,8 +409,8 @@ class Context {
 	std::vector<std::pair<Vec2i,Vec2i>>		mViewportStack;
 	std::vector<std::pair<Vec2i,Vec2i>>		mScissorStack;
 
-	VaoRef		mImmVao; // Immediate-mode VAO
-	VboRef		mImmVbo; // Immediate-mode VBO
+	VaoRef						mImmVao; // Immediate-mode VAO
+	VboRef						mImmVbo; // Immediate-mode VBO
 
 	ci::ColorAf					mColor;	
 	std::vector<Matrix44f>		mModelMatrixStack;
