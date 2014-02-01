@@ -182,7 +182,7 @@ void TriMesh::appendVertices( const Vec3f *verts, size_t num )
 	mPositions.insert( mPositions.end(), (const float*)verts, (const float*)verts + num * 3 );
 }
 
-void TriMesh::appendVertices( const Vec4d *verts, size_t num )
+void TriMesh::appendVertices( const Vec4f *verts, size_t num )
 {
 	assert( mPositionsDims == 4 );
 	mPositions.insert( mPositions.end(), (const float*)verts, (const float*)verts + num * 4 );
@@ -479,47 +479,7 @@ void TriMesh::write( DataTargetRef dataTarget ) const
 	}
 }
 
-bool TriMesh::recalculateNormals()
-{
-	// requires valid indices and 3D vertices
-	if( mIndices.empty() || mPositions.empty() || mPositionsDims != 3 )
-		return false;
-
-	mNormals.assign( mPositions.size() / 3, Vec3f::zero() );
-
-	size_t numTriangles = getNumTriangles();
-	for( size_t i = 0; i < numTriangles; ++i ) {
-		uint32_t index0 = mIndices[i * 3];
-		uint32_t index1 = mIndices[i * 3 + 1];
-		uint32_t index2 = mIndices[i * 3 + 2];
-
-		const Vec3f &v0 = *(const Vec3f*)(&mPositions[index0 * 3]);
-		const Vec3f &v1 = *(const Vec3f*)(&mPositions[index1 * 3]);
-		const Vec3f &v2 = *(const Vec3f*)(&mPositions[index2 * 3]);
-
-		Vec3f e0 = v1 - v0;
-		Vec3f e1 = v2 - v0;
-		Vec3f e2 = v2 - v1;
-
-		if( e0.lengthSquared() < FLT_EPSILON )
-			continue;
-		if( e1.lengthSquared() < FLT_EPSILON )
-			continue;
-		if( e2.lengthSquared() < FLT_EPSILON )
-			continue;
-
-		Vec3f normal = e0.cross(e1).normalized();
-		mNormals[ index0 ] += normal;
-		mNormals[ index1 ] += normal;
-		mNormals[ index2 ] += normal;
-	}
-
-	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );
-
-	return true;
-}
-
-bool TriMesh::recalculateNormalsHighQuality()
+bool TriMesh::recalculateNormals( bool smooth )
 {
 	// requires valid indices and 3D vertices
 	if( mIndices.empty() || mPositions.empty() || mPositionsDims != 3 )
@@ -528,28 +488,38 @@ bool TriMesh::recalculateNormalsHighQuality()
 	size_t numPositions = mPositions.size() / 3;
 	mNormals.assign( numPositions, Vec3f::zero() );
 
-	// first, find all unique vertices and keep track of them
+	// for smooth renormalization, we first find all unique vertices and keep track of them
 	std::vector<size_t> uniquePositions;
-	uniquePositions.assign( numPositions, 0 );
+	if( smooth ) {
+		uniquePositions.assign( numPositions, 0 );
 
-	for( size_t i = 0; i < numPositions; ++i ) {
-		if( uniquePositions[i] == 0 ) {
-			uniquePositions[i] = i + 1;
-			const Vec3f &v0 = *(const Vec3f*)(&mPositions[i * 3]);
-			for( size_t j = i + 1; j < numPositions; ++j ) {
-				const Vec3f &v1 = *(const Vec3f*)(&mPositions[j * 3]);
-				if( (v1 - v0).lengthSquared() < FLT_EPSILON )
-					uniquePositions[j] = uniquePositions[i];
+		for( size_t i = 0; i < numPositions; ++i ) {
+			if( uniquePositions[i] == 0 ) {
+				uniquePositions[i] = i + 1;
+				const Vec3f &v0 = *(const Vec3f*)(&mPositions[i * 3]);
+				for( size_t j = i + 1; j < numPositions; ++j ) {
+					const Vec3f &v1 = *(const Vec3f*)(&mPositions[j * 3]);
+					if( (v1 - v0).lengthSquared() < FLT_EPSILON )
+						uniquePositions[j] = uniquePositions[i];
+				}
 			}
 		}
 	}
 
-	// next, perform normalization on unique vertices only
+	// perform surface normalization
+	uint32_t index0, index1, index2;
 	size_t numTriangles = getNumTriangles();
 	for( size_t i = 0; i < numTriangles; ++i ) {
-		uint32_t index0 = uniquePositions[mIndices[i * 3]] - 1;
-		uint32_t index1 = uniquePositions[mIndices[i * 3 + 1]] - 1;
-		uint32_t index2 = uniquePositions[mIndices[i * 3 + 2]] - 1;
+		if( smooth ) {
+			index0 = uniquePositions[mIndices[i*3+0]] - 1;
+			index1 = uniquePositions[mIndices[i*3+1]] - 1;
+			index2 = uniquePositions[mIndices[i*3+2]] - 1;
+		}
+		else {
+			index0 = mIndices[i*3+0];
+			index1 = mIndices[i*3+1];
+			index2 = mIndices[i*3+2];
+		}
 
 		const Vec3f &v0 = *(const Vec3f*)(&mPositions[index0 * 3]);
 		const Vec3f &v1 = *(const Vec3f*)(&mPositions[index1 * 3]);
@@ -574,11 +544,11 @@ bool TriMesh::recalculateNormalsHighQuality()
 
 	std::for_each( mNormals.begin(), mNormals.end(), std::mem_fun_ref( &Vec3f::normalize ) );
 
-	// finally, copy normals to corresponding non-unique vertices
-	for( size_t i = 0; i < numPositions; ++i ) {
-		size_t j = uniquePositions[i] - 1;
-		if( i != j )
-			mNormals[i] = mNormals[j];
+	// copy normals to corresponding non-unique vertices
+	if( smooth ) {
+		for( size_t i = 0; i < numPositions; ++i ) {
+			mNormals[i] = mNormals[uniquePositions[i]-1];
+		}
 	}
 
 	return true;
@@ -660,6 +630,249 @@ bool TriMesh::recalculateBitangents()
 	mBitangentsDims = 3;
 
 	return true;
+}
+
+//! TODO: optimize memory allocations
+void TriMesh::subdivide( int division, bool normalize )
+{
+	if( division < 2 )
+		return;
+
+	// keep track of newly added vertices (enough for a single subdivided triangle)
+	const uint32_t numVerticesPerTriangle = (division + 2) * (division + 1) / 2;
+	std::vector<uint32_t> indices(numVerticesPerTriangle);
+
+	// subdivide a single triangle at a time
+	size_t numTriangles = getNumTriangles();
+	for( size_t t = 0; t < numTriangles; ++t ) {
+		// the original indices forming the triangle
+		const uint32_t index0 = mIndices[t*3+0];
+		const uint32_t index1 = mIndices[t*3+1];
+		const uint32_t index2 = mIndices[t*3+2];
+
+		// keep track of how many vertices we have added
+		size_t n = 0;
+
+		const float rcp = 1.f / division;
+		for( int j = 0; j <= division; ++j ) {
+			const float div = 1.f / (division - j);
+			for( int i = 0; i <= (division - j); ++i ) {
+				if( i == 0 && j == 0) {
+					indices[n++] = index0;
+				}
+				else if( i == division ) {
+					indices[n++] = index1;
+				}
+				else if( j == division ) {
+					indices[n++] = index2;
+				}
+				else {
+					indices[n++] = getNumVertices();
+
+					// lambda closures for bilinear interpolation
+					auto lerpBilinear2 = [&] (const Vec2f &a, const Vec2f &b, const Vec2f &c) {
+						const Vec2f d = a.lerp( j * rcp, c );
+						const Vec2f e = b.lerp( j * rcp, c );
+						return d.lerp( i * div, e );
+					};
+					
+					auto lerpBilinear3 = [&] (const Vec3f &a, const Vec3f &b, const Vec3f &c) {
+						const Vec3f d = a.lerp( j * rcp, c );
+						const Vec3f e = b.lerp( j * rcp, c );
+						return d.lerp( i * div, e );
+					};
+					
+					auto lerpBilinear4 = [&] (const Vec4f &a, const Vec4f &b, const Vec4f &c) {
+						const Vec4f d = a.lerp( j * rcp, c );
+						const Vec4f e = b.lerp( j * rcp, c );
+						return d.lerp( i * div, e );
+					};
+
+					// generate interpolated vertex and its attributes (warning: massive boilerplate code incoming!)
+					if( mPositionsDims == 2 ) {
+						const Vec2f &v0 = *(const Vec2f*)(&mPositions[index0*2]);
+						const Vec2f &v1 = *(const Vec2f*)(&mPositions[index1*2]);
+						const Vec2f &v2 = *(const Vec2f*)(&mPositions[index2*2]);
+						appendVertex( lerpBilinear2( v0, v1, v2 ) );
+					}
+					else if( mPositionsDims == 3 ) {
+						const Vec3f &v0 = *(const Vec3f*)(&mPositions[index0*3]);
+						const Vec3f &v1 = *(const Vec3f*)(&mPositions[index1*3]);
+						const Vec3f &v2 = *(const Vec3f*)(&mPositions[index2*3]);
+						appendVertex( lerpBilinear3( v0, v1, v2 ) );
+					}
+					else if( mPositionsDims == 4 ) {
+						const Vec4f &v0 = *(const Vec4f*)(&mPositions[index0*4]);
+						const Vec4f &v1 = *(const Vec4f*)(&mPositions[index1*4]);
+						const Vec4f &v2 = *(const Vec4f*)(&mPositions[index2*4]);
+						appendVertex( lerpBilinear4( v0, v1, v2 ) );
+					}
+
+					if( hasNormals() ) {
+						const Vec3f &v0 = mNormals[index0];
+						const Vec3f &v1 = mNormals[index1];
+						const Vec3f &v2 = mNormals[index2];
+						appendNormal( lerpBilinear3( v0, v1, v2 ) );
+					}
+
+					if( hasTangents() ) {
+						const Vec3f &v0 = mTangents[index0];
+						const Vec3f &v1 = mTangents[index1];
+						const Vec3f &v2 = mTangents[index2];
+						appendTangent( lerpBilinear3( v0, v1, v2 ) );
+					}
+
+					if( hasBitangents() ) {
+						const Vec3f &v0 = mBitangents[index0];
+						const Vec3f &v1 = mBitangents[index1];
+						const Vec3f &v2 = mBitangents[index2];
+						appendTangent( lerpBilinear3( v0, v1, v2 ) );
+					}
+
+					if( hasColorsRgb() ) {
+						const Vec3f &v0 = *(const Vec3f*)(&mColors[index0*3]);
+						const Vec3f &v1 = *(const Vec3f*)(&mColors[index1*3]);
+						const Vec3f &v2 = *(const Vec3f*)(&mColors[index2*3]);
+						const Vec3f c = lerpBilinear3( v0, v1, v2 );
+						appendColorRgb( Color( c.x, c.y, c.z ) );
+					}
+					else if( hasColorsRgba() ) {
+						const Vec4f &v0 = *(const Vec4f*)(&mColors[index0*4]);
+						const Vec4f &v1 = *(const Vec4f*)(&mColors[index1*4]);
+						const Vec4f &v2 = *(const Vec4f*)(&mColors[index2*4]);
+						const Vec4f c = lerpBilinear4( v0, v1, v2 );
+						appendColorRgba( ColorA( c.x, c.y, c.z, c.w ) );
+					}
+
+					if( hasTexCoords0() ) {
+						if( mTexCoords0Dims == 2 ) {
+							const Vec2f &v0 = *(const Vec2f*)(&mTexCoords0[index0*2]);
+							const Vec2f &v1 = *(const Vec2f*)(&mTexCoords0[index1*2]);
+							const Vec2f &v2 = *(const Vec2f*)(&mTexCoords0[index2*2]);
+							appendTexCoord0( lerpBilinear2( v0, v1, v2 ) );
+						}
+						else if( mTexCoords0Dims == 3 ) {
+							const Vec3f &v0 = *(const Vec3f*)(&mTexCoords0[index0*3]);
+							const Vec3f &v1 = *(const Vec3f*)(&mTexCoords0[index1*3]);
+							const Vec3f &v2 = *(const Vec3f*)(&mTexCoords0[index2*3]);
+							appendTexCoord0( lerpBilinear3( v0, v1, v2 ) );
+						}
+						else if( mTexCoords0Dims == 4 ) {
+							const Vec4f &v0 = *(const Vec4f*)(&mTexCoords0[index0*4]);
+							const Vec4f &v1 = *(const Vec4f*)(&mTexCoords0[index1*4]);
+							const Vec4f &v2 = *(const Vec4f*)(&mTexCoords0[index2*4]);
+							appendTexCoord0( lerpBilinear4( v0, v1, v2 ) );
+						}
+					}
+
+					if( hasTexCoords1() ) {
+						if( mTexCoords1Dims == 2 ) {
+							const Vec2f &v0 = *(const Vec2f*)(&mTexCoords1[index0*2]);
+							const Vec2f &v1 = *(const Vec2f*)(&mTexCoords1[index1*2]);
+							const Vec2f &v2 = *(const Vec2f*)(&mTexCoords1[index2*2]);
+							appendTexCoord1( lerpBilinear2( v0, v1, v2 ) );
+						}
+						else if( mTexCoords1Dims == 3 ) {
+							const Vec3f &v0 = *(const Vec3f*)(&mTexCoords1[index0*3]);
+							const Vec3f &v1 = *(const Vec3f*)(&mTexCoords1[index1*3]);
+							const Vec3f &v2 = *(const Vec3f*)(&mTexCoords1[index2*3]);
+							appendTexCoord1( lerpBilinear3( v0, v1, v2 ) );
+						}
+						else if( mTexCoords1Dims == 4 ) {
+							const Vec4f &v0 = *(const Vec4f*)(&mTexCoords1[index0*4]);
+							const Vec4f &v1 = *(const Vec4f*)(&mTexCoords1[index1*4]);
+							const Vec4f &v2 = *(const Vec4f*)(&mTexCoords1[index2*4]);
+							appendTexCoord1( lerpBilinear4( v0, v1, v2 ) );
+						}
+					}
+
+					if( hasTexCoords2() ) {
+						if( mTexCoords2Dims == 2 ) {
+							const Vec2f &v0 = *(const Vec2f*)(&mTexCoords2[index0*2]);
+							const Vec2f &v1 = *(const Vec2f*)(&mTexCoords2[index1*2]);
+							const Vec2f &v2 = *(const Vec2f*)(&mTexCoords2[index2*2]);
+							appendTexCoord2( lerpBilinear2( v0, v1, v2 ) );
+						}
+						else if( mTexCoords2Dims == 3 ) {
+							const Vec3f &v0 = *(const Vec3f*)(&mTexCoords2[index0*3]);
+							const Vec3f &v1 = *(const Vec3f*)(&mTexCoords2[index1*3]);
+							const Vec3f &v2 = *(const Vec3f*)(&mTexCoords2[index2*3]);
+							appendTexCoord2( lerpBilinear3( v0, v1, v2 ) );
+						}
+						else if( mTexCoords2Dims == 4 ) {
+							const Vec4f &v0 = *(const Vec4f*)(&mTexCoords2[index0*4]);
+							const Vec4f &v1 = *(const Vec4f*)(&mTexCoords2[index1*4]);
+							const Vec4f &v2 = *(const Vec4f*)(&mTexCoords2[index2*4]);
+							appendTexCoord2( lerpBilinear4( v0, v1, v2 ) );
+						}
+					}
+
+					if( hasTexCoords3() ) {
+						if( mTexCoords3Dims == 2 ) {
+							const Vec2f &v0 = *(const Vec2f*)(&mTexCoords3[index0*2]);
+							const Vec2f &v1 = *(const Vec2f*)(&mTexCoords3[index1*2]);
+							const Vec2f &v2 = *(const Vec2f*)(&mTexCoords3[index2*2]);
+							appendTexCoord3( lerpBilinear2( v0, v1, v2 ) );
+						}
+						else if( mTexCoords3Dims == 3 ) {
+							const Vec3f &v0 = *(const Vec3f*)(&mTexCoords3[index0*3]);
+							const Vec3f &v1 = *(const Vec3f*)(&mTexCoords3[index1*3]);
+							const Vec3f &v2 = *(const Vec3f*)(&mTexCoords3[index2*3]);
+							appendTexCoord3( lerpBilinear3( v0, v1, v2 ) );
+						}
+						else if( mTexCoords3Dims == 4 ) {
+							const Vec4f &v0 = *(const Vec4f*)(&mTexCoords3[index0*4]);
+							const Vec4f &v1 = *(const Vec4f*)(&mTexCoords3[index1*4]);
+							const Vec4f &v2 = *(const Vec4f*)(&mTexCoords3[index2*4]);
+							appendTexCoord3( lerpBilinear4( v0, v1, v2 ) );
+						}
+					}
+				}
+			}
+		}
+
+		// create new triangles by adding the newly generated vertices to the index buffer
+		int d = division, m = 0;
+		for( int j = 0; j < numVerticesPerTriangle; ++j ) {
+			if( j == 0 ) {
+				// adjust existing triangle indices now
+				mIndices[t*3+0] = indices[j];
+				mIndices[t*3+1] = indices[j+1];
+				mIndices[t*3+2] = indices[j+1+d];
+			}
+			else if( (j - m) < d ) {
+				appendTriangle( indices[j], indices[j+1], indices[j+1+d] );
+
+				if( (j - m) > 0 )
+					appendTriangle( indices[j], indices[j+1+d], indices[j+d] );
+			}
+			else {
+				m += (d + 1);
+				d--;
+			}
+		}
+	}
+
+	// normalize
+	size_t numVertices = getNumVertices();
+	if( mPositionsDims == 2 ) {
+		for( size_t i = 0; i < numVertices; ++i ) {
+			Vec2f &v = *(Vec2f*)(&mPositions[i*2]);
+			v.normalize();
+		}
+	}
+	else if( mPositionsDims == 3 ) {
+		for( size_t i = 0; i < numVertices; ++i ) {
+			Vec3f &v = *(Vec3f*)(&mPositions[i*3]);
+			v.normalize();
+		}
+	}
+	else if( mPositionsDims == 4 ) {
+		for( size_t i = 0; i < numVertices; ++i ) {
+			Vec4f &v = *(Vec4f*)(&mPositions[i*4]);
+			v.normalize();
+		}
+	}
 }
 
 /*TriMesh TriMesh::create( vector<uint32_t> &indices, const vector<ColorAf> &colors,
@@ -1399,105 +1612,6 @@ TriMesh TriMesh::createTorus( const Vec2i &resolution, float ratio )
 
 #endif
 /*
-TriMesh TriMesh::subdivide( vector<uint32_t> &indices, const vector<ColorAf>& colors, 
-						   const vector<Vec3f> &normals, const vector<Vec3f> &positions,
-						   const vector<Vec2f> &texCoords, uint32_t division, bool normalize )
-{
-	TriMesh mesh = create( indices, colors, normals, positions, texCoords );
-	return subdivide( mesh, division, normalize );
-}
-
-TriMesh TriMesh::subdivide( const ci::TriMesh &triMesh, uint32_t division, bool normalize )
-{
-	if ( division <= 1 || triMesh.getNumIndices() == 0 || triMesh.getNumVertices() == 0 ) {
-		return triMesh;
-	}
-	
-	vector<ColorAf> colors		= triMesh.getColorsRGBA();
-	vector<uint32_t> indices	= triMesh.getIndices();
-	vector<Vec3f> normals		= triMesh.getNormals();
-	vector<Vec3f> positions		= triMesh.getVertices();
-	vector<Vec2f> texCoords		= triMesh.getTexCoords();
-	
-	vector<uint32_t> indicesBuffer( indices );
-	indices.clear();
-	indices.reserve( indicesBuffer.size() * 4 );
-	
-	uint32_t index0;
-	uint32_t index1;
-	uint32_t index2;
-	uint32_t index3;
-	uint32_t index4;
-	uint32_t index5;
-	for ( vector<uint32_t>::const_iterator iter = indicesBuffer.begin(); iter != indicesBuffer.end(); ) {
-		index0 = *iter;
-		++iter;
-		index1 = *iter;
-		++iter;
-		index2 = *iter;
-		++iter;
-		
-		if ( normalize ) {
-			index3 = positions.size();
-			positions.push_back( positions.at( index0 ).lerp( 0.5f, positions.at( index1 ) ).normalized() * 0.5f );
-			index4 = positions.size();
-			positions.push_back( positions.at( index1 ).lerp( 0.5f, positions.at( index2 ) ).normalized() * 0.5f );
-			index5 = positions.size();
-			positions.push_back( positions.at( index2 ).lerp( 0.5f, positions.at( index0 ) ).normalized() * 0.5f );
-		} else {
-			index3 = positions.size();
-			positions.push_back( positions.at( index0 ).lerp( 0.5f, positions.at( index1 ) ) );
-			index4 = positions.size();
-			positions.push_back( positions.at( index1 ).lerp( 0.5f, positions.at( index2 ) ) );
-			index5 = positions.size();
-			positions.push_back( positions.at( index2 ).lerp( 0.5f, positions.at( index0 ) ) );
-		}
-		
-		if ( !normals.empty() ) {
-			normals.push_back( normals.at( index0 ).lerp( 0.5f, normals.at( index1 ) ) );
-			normals.push_back( normals.at( index1 ).lerp( 0.5f, normals.at( index2 ) ) );
-			normals.push_back( normals.at( index2 ).lerp( 0.5f, normals.at( index0 ) ) );
-		}
-		
-		if ( !texCoords.empty() ) {
-			texCoords.push_back( texCoords.at( index0 ).lerp( 0.5f, texCoords.at( index1 ) ) );
-			texCoords.push_back( texCoords.at( index1 ).lerp( 0.5f, texCoords.at( index2 ) ) );
-			texCoords.push_back( texCoords.at( index2 ).lerp( 0.5f, texCoords.at( index0 ) ) );
-		}
-		
-		indices.push_back( index0 ); 
-		indices.push_back( index3 ); 
-		indices.push_back( index5 );
-		
-		indices.push_back( index3 ); 
-		indices.push_back( index1 );
-		indices.push_back( index4 );
-		
-		indices.push_back( index5 ); 
-		indices.push_back( index4 ); 
-		indices.push_back( index2 );
-		
-		indices.push_back( index3 ); 
-		indices.push_back( index4 ); 
-		indices.push_back( index5 );
-	}
-	
-	ColorAf color = ColorAf::white();
-	for ( uint32_t i = 0; i < positions.size(); ++i ) {
-		colors.push_back( color );
-	}
-	
-	TriMesh mesh = TriMesh::create( indices, colors, normals, positions, texCoords );
-	
-	colors.clear();
-	indices.clear();
-	normals.clear();
-	positions.clear();
-	texCoords.clear();
-	
-	return subdivide( mesh, division - 1, normalize );
-}
-
 Rectf TriMesh2d::calcBoundingBox() const
 {
 	if( mPositions.empty() )
