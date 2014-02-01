@@ -236,7 +236,7 @@ void GeometryApp::createPrimitive(void)
 	
 		TriMesh mesh( *primitive );
 		mPrimitive = gl::VboMesh::create( mesh );
-mPrimitive->echoVertexRange( console(), 0, 10 );
+		
 		mOriginalNormals = gl::VboMesh::create( DebugMesh( mesh, Color(1,1,0) ) );
 		mesh.recalculateNormals(false);
 		mCalculatedNormals = gl::VboMesh::create( DebugMesh( mesh, Color(0,1,1) ) );
