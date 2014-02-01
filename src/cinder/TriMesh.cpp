@@ -854,23 +854,25 @@ void TriMesh::subdivide( int division, bool normalize )
 	}
 
 	// normalize
-	size_t numVertices = getNumVertices();
-	if( mPositionsDims == 2 ) {
-		for( size_t i = 0; i < numVertices; ++i ) {
-			Vec2f &v = *(Vec2f*)(&mPositions[i*2]);
-			v.normalize();
+	if( normalize ) {
+		size_t numVertices = getNumVertices();
+		if( mPositionsDims == 2 ) {
+			for( size_t i = 0; i < numVertices; ++i ) {
+				Vec2f &v = *(Vec2f*)(&mPositions[i*2]);
+				v.normalize();
+			}
 		}
-	}
-	else if( mPositionsDims == 3 ) {
-		for( size_t i = 0; i < numVertices; ++i ) {
-			Vec3f &v = *(Vec3f*)(&mPositions[i*3]);
-			v.normalize();
+		else if( mPositionsDims == 3 ) {
+			for( size_t i = 0; i < numVertices; ++i ) {
+				Vec3f &v = *(Vec3f*)(&mPositions[i*3]);
+				v.normalize();
+			}
 		}
-	}
-	else if( mPositionsDims == 4 ) {
-		for( size_t i = 0; i < numVertices; ++i ) {
-			Vec4f &v = *(Vec4f*)(&mPositions[i*4]);
-			v.normalize();
+		else if( mPositionsDims == 4 ) {
+			for( size_t i = 0; i < numVertices; ++i ) {
+				Vec4f &v = *(Vec4f*)(&mPositions[i*4]);
+				v.normalize();
+			}
 		}
 	}
 }

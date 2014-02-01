@@ -1293,6 +1293,113 @@ void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) 
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////
+// Torus
+
+Torus::Torus()
+	: mCenter( 0, 0, 0), mRadiusMajor( 0.75f ), mRadiusMinor( 0.25f ), mNumSegments( 24 )
+{
+	enable( Attrib::POSITION );
+	enable( Attrib::NORMAL );
+	enable( Attrib::TEX_COORD_0 );
+}
+
+void Torus::calculate() const
+{
+	if( mCalculationsCached )
+		return;
+
+	int numSegments = mNumSegments;
+	if( numSegments < 4 )
+		numSegments = std::max( 12, (int)math<double>::floor( mRadiusMajor * M_PI * 2 ) );
+
+	calculateImplUV( numSegments + 1, numSegments + 1 );
+	mCalculationsCached = true;
+}
+	
+void Torus::calculateImplUV( size_t segments, size_t rings ) const
+{
+	mPositions.assign( segments * rings, Vec3f::zero() );
+	mNormals.assign( segments * rings, Vec3f::zero() );
+	mTexCoords.assign( segments * rings, Vec2f::zero() );
+	mIndices.assign( (segments - 1) * (rings - 1) * 6, 0 );
+
+	if( isEnabled( Attrib::COLOR ) )
+		mColors.assign( segments * rings, Vec3f::zero() );
+	else
+		mColors.clear();
+
+	float majorIncr = 1.0f / (segments - 1);
+	float minorIncr = 1.0f / (rings - 1);
+
+	// vertex, normal, tex coord and color buffers
+	for( int i = 0; i < segments; ++i ) {
+		float cosPhi = -math<float>::cos( i * majorIncr * 2 * M_PI );
+		float sinPhi =  math<float>::sin( i * majorIncr * 2 * M_PI );
+
+		for( int j = 0; j < rings; ++j ) {
+			float cosTheta = -math<float>::cos( j * minorIncr * 2 * M_PI );
+			float sinTheta =  math<float>::sin( j * minorIncr * 2 * M_PI );
+
+			float r = mRadiusMajor + mRadiusMinor * cosTheta;
+			float x = r * cosPhi;
+			float y = sinTheta * mRadiusMinor;
+			float z = r * sinPhi;
+
+			const size_t k = i * segments + j;
+			mPositions[k] = mCenter + Vec3f( x, y, z );
+			mTexCoords[k] = Vec2f( i * majorIncr, j * minorIncr );
+			mNormals[k] = Vec3f( cosPhi * cosTheta, sinTheta, sinPhi * cosTheta );
+
+			if( isEnabled( Attrib::COLOR ) ) {
+				const Vec3f &n = mNormals[k];
+				mColors[k] = Vec3f( n.x * 0.5f + 0.5f, n.y * 0.5f + 0.5f, n.z * 0.5f + 0.5f );
+			}
+		}
+	}
+
+	// index buffer
+	size_t k = 0;
+	for( int i = 0; i < segments - 1; ++i ) {
+		for ( int j = 0; j < rings - 1; ++j ) {
+			mIndices[k++] = (i + 0) * rings + (j + 0);
+			mIndices[k++] = (i + 1) * rings + (j + 1);
+			mIndices[k++] = (i + 1) * rings + (j + 0);
+
+			mIndices[k++] = (i + 0) * rings + (j + 0);
+			mIndices[k++] = (i + 0) * rings + (j + 1);
+			mIndices[k++] = (i + 1) * rings + (j + 1);
+		}
+	}
+}
+
+uint8_t Torus::getAttribDims( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION: return 3;
+		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+		default:
+			return 0;
+	}
+}
+
+void Torus::loadInto( Target *target ) const
+{
+	calculate();
+
+	target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
+	if( isEnabled( Attrib::NORMAL ) )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
+	if( isEnabled( Attrib::COLOR ) )
+		target->copyAttrib( Attrib::COLOR, 3, 0, mColors.data()->ptr(), mColors.size() );
+
+	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // SplineExtrusion

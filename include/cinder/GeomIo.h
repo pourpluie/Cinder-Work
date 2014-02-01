@@ -384,6 +384,49 @@ class Capsule : public Sphere {
 	float		mLength;
 };
 
+class Torus : public Source {
+  public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
+	Torus();
+	
+	virtual Torus&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
+	virtual Torus&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
+	Torus&			center( const Vec3f &center ) { mCenter = center; mCalculationsCached = false; return *this; }
+	Torus&			segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
+	//! Specifies the major and minor radius as a ratio (minor : major). Resulting torus will fit unit cube.
+	Torus&			ratio( float ratio ) {
+						mRadiusMajor = math<float>::max(0.f, 1.0f / (1.0f + ratio)); 
+						mRadiusMinor = math<float>::max(0.f, mRadiusMajor * ratio); 
+						mCalculationsCached = false; return *this; }
+	//! Specifies the major and minor radius separately.
+	Torus&			radius( float major, float minor ) { 
+						mRadiusMajor = math<float>::max(0.f, major); 
+						mRadiusMinor = math<float>::max(0.f, minor); 
+						mCalculationsCached = false; return *this; }
+
+	virtual size_t		getNumVertices() const override { calculate(); return mPositions.size(); }
+	virtual size_t		getNumIndices() const override { calculate(); return mIndices.size(); }
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
+	virtual uint8_t		getAttribDims( Attrib attr ) const override;
+	virtual void		loadInto( Target *target ) const override;
+	
+  private:
+	void			calculate() const;
+	void			calculateImplUV( size_t segments, size_t rings ) const;
+	
+	Vec3f		mCenter;
+	float		mRadiusMajor;
+	float		mRadiusMinor;
+	int			mNumSegments;
+
+	mutable bool						mCalculationsCached;
+	mutable std::vector<Vec3f>			mPositions;
+	mutable std::vector<Vec2f>			mTexCoords;
+	mutable std::vector<Vec3f>			mNormals;
+	mutable std::vector<Vec3f>			mColors;
+	mutable std::vector<uint32_t>		mIndices;
+};
+
 #if 0
 class SplineExtrusion : public Source {
   public:
