@@ -20,7 +20,7 @@ using namespace std;
 class GeometryApp : public AppNative
 {
 public:
-	typedef enum Primitive { SPHERE, ICOSPHERE, ICOSAHEDRON, CAPSULE, TORUS, CUBE, TEAPOT };
+	typedef enum { SPHERE, ICOSPHERE, ICOSAHEDRON, CAPSULE, TORUS, CUBE, TEAPOT } Primitive;
 
 	void setup();
 	void update();
@@ -236,7 +236,7 @@ void GeometryApp::createPrimitive(void)
 	
 		TriMesh mesh( *primitive );
 		mPrimitive = gl::VboMesh::create( mesh );
-		
+mPrimitive->echoVertexRange( console(), 0, 10 );
 		mOriginalNormals = gl::VboMesh::create( DebugMesh( mesh, Color(1,1,0) ) );
 		mesh.recalculateNormals(false);
 		mCalculatedNormals = gl::VboMesh::create( DebugMesh( mesh, Color(0,1,1) ) );
@@ -340,7 +340,7 @@ void GeometryApp::createShader(void)
 			"	float fEdgeIntensity = exp2(-1.0*fNearest*fNearest);\n"
 			"\n"
 			"	// blend between edge color and face color\n"
-			"	vec4 vFaceColor = texture2D( uTexture, vVertexIn.texcoord ); vFaceColor.a = 0.9;\n"
+			"	vec4 vFaceColor = texture( uTexture, vVertexIn.texcoord ); vFaceColor.a = 0.9;\n"
 			//"	vec4 vFaceColor = vec4( vVertexIn.texcoord.x, vVertexIn.texcoord.y, 0.0, 1.0 );\n"
 			"	vec4 vEdgeColor; vEdgeColor.rgb = vVertexIn.color.rgb; vEdgeColor.a = 1.0;\n"
 			//"	vec4 vEdgeColor = vec4(1.0, 1.0, 0.0, 1.0);\n"
