@@ -668,8 +668,7 @@ void Teapot::buildPatchReflect( int patchNum, float *B, float *dB, float *v, flo
 
     // Patch reflected in x
     if( reflectX ) {
-        buildPatch( patchRevV, B, dB, v, n, tc, el,
-                   index, elIndex, tcIndex, grid, Matrix33f( Vec3f(-1.0f, 0.0f, 0.0f),
+        buildPatch( patchRevV, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(-1.0f, 0.0f, 0.0f),
                                               Vec3f(0.0f, 1.0f, 0.0f),
                                               Vec3f(0.0f, 0.0f, 1.0f) ), false );
     }
@@ -695,6 +694,8 @@ void Teapot::buildPatch( Vec3f patch[][4], float *B, float *dB, float *v, float 
 	int startIndex = index / 3;
 	float tcFactor = 1.0f / grid;
 
+	float scale = 2.0f / 6.42813f; // awful hack to keep it within unit cube
+
 	for( int i = 0; i <= grid; i++ ) {
 		for( int j = 0 ; j <= grid; j++) {
 			Vec3f pt = reflect * evaluate( i, j, B, patch );
@@ -705,7 +706,7 @@ void Teapot::buildPatch( Vec3f patch[][4], float *B, float *dB, float *v, float 
 			if( abs(pt.x) < 0.01f && abs(pt.y) < 0.01f )
 				norm = ( pt.z < 1 ) ? -Vec3f::zAxis() : Vec3f::zAxis();
 
-			v[index] = pt.x; v[index+1] = pt.z; v[index+2] = pt.y;
+			v[index] = pt.x * scale; v[index+1] = pt.z * scale; v[index+2] = pt.y * scale;
 			n[index] = norm.x; n[index+1] = norm.z; n[index+2] = norm.y;
 			tc[tcIndex] = i * tcFactor; tc[tcIndex+1] = j * tcFactor;
 			index += 3;
@@ -897,7 +898,7 @@ uint8_t	Circle::getAttribDims( Attrib attr ) const
 // Sphere
 
 Sphere::Sphere()
-	: mNumSegments( 24 ), mCenter( 0, 0, 0 ), mRadius( 1.0f ), mCalculationsCached( false )
+	: mNumSegments( 36 ), mCenter( 0, 0, 0 ), mRadius( 1.0f ), mCalculationsCached( false )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::NORMAL );
@@ -1185,8 +1186,10 @@ void Icosphere::loadInto( Target *target ) const
 // Capsule
 
 Capsule::Capsule()
-	: mDirection( 0, 1, 0 ), mLength( 2.0f )
+	: mDirection( 0, 1, 0 ), mLength( 1.0f )
 {
+	radius( 0.5f );
+
 	enable( Attrib::POSITION );
 	enable( Attrib::NORMAL );
 	enable( Attrib::TEX_COORD_0 );
@@ -1297,7 +1300,7 @@ void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) 
 // Torus
 
 Torus::Torus()
-	: mCenter( 0, 0, 0), mRadiusMajor( 0.75f ), mRadiusMinor( 0.25f ), mNumSegments( 24 )
+	: mCenter( 0, 0, 0), mRadiusMajor( 0.75f ), mRadiusMinor( 0.25f ), mNumSegments( 36 )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::NORMAL );
@@ -1346,7 +1349,7 @@ void Torus::calculateImplUV( size_t segments, size_t rings ) const
 			float y = sinTheta * mRadiusMinor;
 			float z = r * sinPhi;
 
-			const size_t k = i * segments + j;
+			const size_t k = i * rings + j;
 			mPositions[k] = mCenter + Vec3f( x, y, z );
 			mTexCoords[k] = Vec2f( i * majorIncr, j * minorIncr );
 			mNormals[k] = Vec3f( cosPhi * cosTheta, sinTheta, sinPhi * cosTheta );
@@ -1386,6 +1389,188 @@ uint8_t Torus::getAttribDims( Attrib attr ) const
 }
 
 void Torus::loadInto( Target *target ) const
+{
+	calculate();
+
+	target->copyAttrib( Attrib::POSITION, 3, 0, mPositions.data()->ptr(), mPositions.size() );
+	if( isEnabled( Attrib::TEX_COORD_0 ) )
+		target->copyAttrib( Attrib::TEX_COORD_0, 2, 0, mTexCoords.data()->ptr(), mTexCoords.size() );
+	if( isEnabled( Attrib::NORMAL ) )
+		target->copyAttrib( Attrib::NORMAL, 3, 0, mNormals.data()->ptr(), mNormals.size() );
+	if( isEnabled( Attrib::COLOR ) )
+		target->copyAttrib( Attrib::COLOR, 3, 0, mColors.data()->ptr(), mColors.size() );
+
+	target->copyIndices( Primitive::TRIANGLES, mIndices.data(), mIndices.size(), 4 );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Cone
+
+Cone::Cone()
+	: mOrigin( 0, 0, 0 )
+	, mHeight( 2.0f )
+	, mDirection( 0, 1, 0 )
+	, mRadiusBase( 1.0f )
+	, mRadiusApex( 0.0f )
+	, mNumSegments( 36 )
+{
+	enable( Attrib::POSITION );
+	enable( Attrib::NORMAL );
+	enable( Attrib::TEX_COORD_0 );
+}
+
+Cone& Cone::set( const Vec3f &from, const Vec3f &to )
+{
+	const Vec3f axis = ( to - from );
+	mHeight = axis.length();
+	mDirection = axis.normalized();
+	mOrigin = from;
+	mCalculationsCached = false;
+	return *this;
+}
+
+void Cone::calculate() const
+{
+	if( mCalculationsCached )
+		return;
+
+	int numSegments = mNumSegments;
+	if( numSegments < 4 ) {
+		float radius = math<float>::max( mRadiusBase, mRadiusApex );
+		numSegments = std::max( 12, (int)math<double>::floor( radius * M_PI * 2 ) );
+	}
+
+	calculateImplUV( numSegments + 1, (numSegments >> 1) + 1 );
+	mCalculationsCached = true;
+}
+	
+void Cone::calculateImplUV( size_t segments, size_t rings ) const
+{
+	mPositions.assign( segments * rings, Vec3f::zero() );
+	mNormals.assign( segments * rings, Vec3f::zero() );
+	mTexCoords.assign( segments * rings, Vec2f::zero() );
+	mIndices.assign( (segments - 1) * (rings - 1) * 6, 0 );
+
+	if( isEnabled( Attrib::COLOR ) )
+		mColors.assign( segments * rings, Vec3f::zero() );
+	else
+		mColors.clear();
+
+	const float segmentIncr = 1.0f / (segments - 1);
+	const float ringIncr = 1.0f / (rings - 1);
+	const Quatf axis( Vec3f::yAxis(), mDirection );
+
+	// vertex, normal, tex coord and color buffers
+	for( int j = 0; j < rings; ++j ) {
+		for( int i = 0; i < segments; ++i ) {
+			float cosPhi = -math<float>::cos( i * segmentIncr * 2 * M_PI );
+			float sinPhi =  math<float>::sin( i * segmentIncr * 2 * M_PI );
+
+			float r = lerp<float>( mRadiusBase, mRadiusApex, j * ringIncr );
+			float x = r * cosPhi;
+			float y = mHeight * j * ringIncr;
+			float z = r * sinPhi;
+			const Vec3f n = Vec3f( mHeight * cosPhi, mRadiusBase - mRadiusApex, mHeight * sinPhi ).normalized();
+
+			const size_t k = i * rings + j;
+			mPositions[k] = mOrigin + axis * Vec3f( x, y, z );
+			mTexCoords[k] = Vec2f( i * segmentIncr, 1.0f - j * ringIncr );
+			mNormals[k] = axis * n;
+
+			if( isEnabled( Attrib::COLOR ) ) {
+				mColors[k] = Vec3f( n.x * 0.5f + 0.5f, n.y * 0.5f + 0.5f, n.z * 0.5f + 0.5f );
+			}
+		}
+	}
+
+	// index buffer
+	size_t k = 0;
+	for ( int j = 0; j < rings - 1; ++j ) {
+		for( int i = 0; i < segments - 1; ++i ) {
+			mIndices[k++] = (i + 0) * rings + (j + 0);
+			mIndices[k++] = (i + 1) * rings + (j + 0);
+			mIndices[k++] = (i + 1) * rings + (j + 1);
+
+			mIndices[k++] = (i + 0) * rings + (j + 0);
+			mIndices[k++] = (i + 1) * rings + (j + 1);
+			mIndices[k++] = (i + 0) * rings + (j + 1);
+		}
+	}
+
+	// caps
+	if( mRadiusBase > 0.0f ) {
+		calculateCap( true, 0.0f, mRadiusBase, segments );
+	}
+	
+	if( mRadiusApex > 0.0f ) {
+		calculateCap( false, mHeight, mRadiusApex, segments );
+	}
+}
+
+void Cone::calculateCap( bool flip, float height, float radius, size_t segments ) const
+{
+	const size_t index = mPositions.size();
+
+	mPositions.resize( index + segments + 1, Vec3f::zero() );
+	mTexCoords.resize( index + segments + 1, Vec2f::zero() );
+	mNormals.resize( index + segments + 1, flip ? -mDirection : mDirection );
+	
+	if( isEnabled( Attrib::COLOR ) ) {
+		const Vec3f n = flip ? -mDirection : mDirection;
+		mColors.resize( index + segments + 1, 
+			Vec3f( n.x * 0.5f + 0.5f, n.y * 0.5f + 0.5f, n.z * 0.5f + 0.5f ) );
+	}
+
+	const Quatf axis( Vec3f::yAxis(), mDirection );
+	
+	// center point
+	mPositions[index] = mOrigin + mDirection * height;
+	mTexCoords[index] = Vec2f( 0.5f, 1.0f - height / mHeight );
+
+	// triangle fan
+	const float segmentIncr = 1.0f / (segments - 1);
+	for( size_t i = 0; i < segments; ++i ) {
+		float cosPhi = -math<float>::cos( i * segmentIncr * 2 * M_PI );
+		float sinPhi =  math<float>::sin( i * segmentIncr * 2 * M_PI );
+			
+		float x = radius * cosPhi;
+		float y = height;
+		float z = radius * sinPhi;
+
+		mPositions[index + i + 1] = mOrigin + axis * Vec3f( x, y, z );
+		mTexCoords[index + i + 1] = Vec2f( i * segmentIncr, 1.0f - height / mHeight );
+	}
+
+	// index buffer
+	size_t k = mIndices.size();
+	mIndices.resize( mIndices.size() + 3 * (segments - 1), 0 );
+
+	for( size_t i = 0; i < segments - 1; ++i ) {
+		mIndices[k++] = index;
+		if( flip ) {
+			mIndices[k++] = index + i + 2;
+			mIndices[k++] = index + i + 1;
+		}
+		else {
+			mIndices[k++] = index + i + 1;
+			mIndices[k++] = index + i + 2;
+		}
+	}
+}
+
+uint8_t Cone::getAttribDims( Attrib attr ) const
+{
+	switch( attr ) {
+		case Attrib::POSITION: return 3;
+		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+		default:
+			return 0;
+	}
+}
+
+void Cone::loadInto( Target *target ) const
 {
 	calculate();
 

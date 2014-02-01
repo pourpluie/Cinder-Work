@@ -20,7 +20,7 @@ using namespace std;
 class GeometryApp : public AppNative
 {
 public:
-	typedef enum { SPHERE, ICOSPHERE, ICOSAHEDRON, CAPSULE, TORUS, CUBE, TEAPOT } Primitive;
+	typedef enum { CAPSULE, CONE, CUBE, ICOSAHEDRON, ICOSPHERE, SPHERE, TEAPOT, TORUS } Primitive;
 
 	void setup();
 	void update();
@@ -39,6 +39,7 @@ private:
 	Primitive			mSelected;
 	uint8_t				mSubdivision;
 	bool				mWireframe;
+	bool				mColored;
 
 	CameraPersp			mCamera;
 	MayaCamUI			mMayaCam;
@@ -56,13 +57,14 @@ private:
 
 void GeometryApp::setup()
 {
-	mSelected = TORUS;
-	mSubdivision = 0;
+	mSelected = SPHERE;
+	mSubdivision = 1;
 	mWireframe = true;
+	mColored = false;
 
 	//
 	gl::Texture::Format fmt;
-	fmt.setWrap( GL_REPEAT, GL_CLAMP_TO_BORDER );
+	fmt.setWrap( GL_REPEAT, GL_CLAMP_TO_EDGE );
 	mTexture = gl::Texture::create( loadImage( loadAsset("stripes.jpg") ), fmt );
 
 	//
@@ -139,8 +141,8 @@ void GeometryApp::draw()
 			gl::TextureBindScope textureBindScope( mTexture );
 
 			gl::GlslProgScope glslProgScope( mWireframe ? mWireframeShader :
-				gl::context()->getStockShader( gl::ShaderDef().texture( mTexture ) ) );
-
+				gl::context()->getStockShader( gl::ShaderDef().color().texture( mTexture ) ) );
+			
 			gl::enableAlphaBlending();
 			gl::enable( GL_CULL_FACE );
 
@@ -185,6 +187,7 @@ void GeometryApp::keyDown( KeyEvent event )
 	{
 	case KeyEvent::KEY_SPACE:
 		mSelected = static_cast<Primitive>( static_cast<int>(mSelected) + 1 );
+		mSubdivision = 1;
 		createPrimitive();
 		break;
 	case KeyEvent::KEY_UP:
@@ -192,12 +195,16 @@ void GeometryApp::keyDown( KeyEvent event )
 		createPrimitive();
 		break;
 	case KeyEvent::KEY_DOWN:
-		if( mSubdivision > 0 )
+		if( mSubdivision > 1 )
 			mSubdivision--;
 		createPrimitive();
 		break;
-	case KeyEvent::KEY_RETURN:
+	case KeyEvent::KEY_w:
 		mWireframe = !mWireframe;
+		break;
+	case KeyEvent::KEY_c:
+		mColored = !mColored;
+		createPrimitive();
 		break;
 	}
 }
@@ -206,44 +213,57 @@ void GeometryApp::createPrimitive(void)
 {
 	geom::SourceRef primitive;
 
-	try {
-		switch( mSelected )
-		{
-		default:
-			mSelected = SPHERE;
-		case SPHERE:
-			primitive = geom::SourceRef( new geom::Sphere( geom::Sphere().enable( geom::Attrib::COLOR ) ) );
-			break;
-		case ICOSPHERE:
-			primitive = geom::SourceRef( new geom::Icosphere( geom::Icosphere().enable( geom::Attrib::COLOR ) ) );
-			break;
-		case ICOSAHEDRON:
-			primitive = geom::SourceRef( new geom::Icosahedron( geom::Icosahedron().enable( geom::Attrib::COLOR ) ) );
-			break;
-		case CAPSULE:
-			primitive = geom::SourceRef( new geom::Capsule( geom::Capsule().enable( geom::Attrib::COLOR ) ) );
-			break;
-		case CUBE:
-			primitive = geom::SourceRef( new geom::Cube( geom::Cube().enable( geom::Attrib::COLOR ) ) );
-			break;
-		case TEAPOT:
-			primitive = geom::SourceRef( new geom::Teapot( geom::Teapot().enable( geom::Attrib::COLOR ) ) );
-			break;
-		case TORUS:
-			primitive = geom::SourceRef( new geom::Torus( geom::Torus().enable( geom::Attrib::COLOR ) ) );
-			break;
-		}
+	switch( mSelected )
+	{
+	default:
+		mSelected = CAPSULE;
+	case CAPSULE:
+		primitive = geom::SourceRef( new geom::Capsule( geom::Capsule() ) );
+		break;
+	case CONE:
+		primitive = geom::SourceRef( new geom::Cone( geom::Cone() ) );
+		break;
+	case CUBE:
+		primitive = geom::SourceRef( new geom::Cube( geom::Cube() ) );
+		break;
+	case ICOSAHEDRON:
+		primitive = geom::SourceRef( new geom::Icosahedron( geom::Icosahedron() ) );
+		break;
+	case ICOSPHERE:
+		primitive = geom::SourceRef( new geom::Icosphere( geom::Icosphere().subdivision( mSubdivision ) ) );
+		break;
+	case SPHERE:
+		primitive = geom::SourceRef( new geom::Sphere( geom::Sphere() ) );
+		break;
+	case TEAPOT:
+		primitive = geom::SourceRef( new geom::Teapot( geom::Teapot() ) );
+		break;
+	case TORUS:
+		primitive = geom::SourceRef( new geom::Torus( geom::Torus() ) );
+		break;
+	}
+
+	if( mColored )
+		primitive->enable( geom::Attrib::COLOR );
 	
-		TriMesh mesh( *primitive );
-		mPrimitive = gl::VboMesh::create( mesh );
+	TriMesh mesh( *primitive );
+
+	if( mSubdivision > 0 && mSelected != ICOSPHERE ) {
+		if( mSelected == SPHERE )
+			mesh.subdivide( mSubdivision, true );
+		else
+			mesh.subdivide( mSubdivision, false );
+	}
+
+	mPrimitive = gl::VboMesh::create( mesh );
+/*
+	AxisAlignedBox3f bounds = mesh.calcBoundingBox();
+	console() << "WxHxD = " << bounds.getSize().x << "x" << bounds.getSize().y << "x" << bounds.getSize().z << std::endl;
 		
-		mOriginalNormals = gl::VboMesh::create( DebugMesh( mesh, Color(1,1,0) ) );
-		mesh.recalculateNormals(false);
-		mCalculatedNormals = gl::VboMesh::create( DebugMesh( mesh, Color(0,1,1) ) );
-	}
-	catch( const std::exception &e ) {
-		console() << e.what() << std::endl;
-	}
+	mOriginalNormals = gl::VboMesh::create( DebugMesh( mesh, Color(1,1,0) ) );
+	mesh.recalculateNormals(false);
+	mCalculatedNormals = gl::VboMesh::create( DebugMesh( mesh, Color(0,1,1) ) );
+*/
 }
 
 void GeometryApp::createShader(void)
@@ -340,10 +360,8 @@ void GeometryApp::createShader(void)
 			"	float fEdgeIntensity = exp2(-1.0*fNearest*fNearest);\n"
 			"\n"
 			"	// blend between edge color and face color\n"
-			"	vec4 vFaceColor = texture( uTexture, vVertexIn.texcoord ); vFaceColor.a = 0.9;\n"
-			//"	vec4 vFaceColor = vec4( vVertexIn.texcoord.x, vVertexIn.texcoord.y, 0.0, 1.0 );\n"
-			"	vec4 vEdgeColor; vEdgeColor.rgb = vVertexIn.color.rgb; vEdgeColor.a = 1.0;\n"
-			//"	vec4 vEdgeColor = vec4(1.0, 1.0, 0.0, 1.0);\n"
+			"	vec4 vFaceColor = texture( uTexture, vVertexIn.texcoord ) * vVertexIn.color; vFaceColor.a = 0.85;\n"
+			"	vec4 vEdgeColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
 			"	oColor = mix(vFaceColor, vEdgeColor, fEdgeIntensity);\n"
 			"}\n"
 		)
