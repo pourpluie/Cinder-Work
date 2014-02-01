@@ -206,6 +206,12 @@ VaoRef Context::getVao()
 		return VaoRef();
 }
 
+void Context::restoreInvalidatedVao()
+{
+	if( ! mVaoStack.empty() )
+		mVaoStack.back()->bindImpl( this );
+}
+
 //////////////////////////////////////////////////////////////////
 // Viewport
 void Context::viewport( const std::pair<Vec2i, Vec2i> &viewport )
@@ -394,6 +400,14 @@ void Context::invalidateBufferBindingCache( GLenum target )
 		mBufferBindingStack[target].back() = -1;
 }
 	
+void Context::restoreInvalidatedBufferBinding( GLenum target )
+{
+	if( mBufferBindingStack.find(target) != mBufferBindingStack.end() ) {
+		if( ! mBufferBindingStack[target].empty() )
+			glBindBuffer( target, mBufferBindingStack[target].back() );
+	}
+}
+
 #if ! defined( CINDER_GLES )
 void Context::bindBufferBase( GLenum target, int index, const BufferObjRef &buffer )
 {

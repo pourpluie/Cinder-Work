@@ -74,6 +74,8 @@ class Context {
 	void		popVao();
 	//! Returns the currently bound VAO
 	VaoRef		getVao();
+	//! Restores the VAO binding when code that is not caching aware has invalidated it. Not typically necessary.
+	void		restoreInvalidatedVao();
 
 	//! Analogous to glViewport(). Sets the viewport based on a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively
 	void					viewport( const std::pair<Vec2i, Vec2i> &viewport );
@@ -113,6 +115,8 @@ class Context {
 	void		bufferDeleted( GLenum target, GLuint id );
 	//! Marks the cache of \a target's buffer binding as invalid. Typically called when a VAO is unbound, against GL_ELEMENT_ARRAY_BUFFER.
 	void		invalidateBufferBindingCache( GLenum target );
+	//! Restores a buffer binding when code that is not caching aware has invalidated it. Not typically necessary.
+	void		restoreInvalidatedBufferBinding( GLenum target );
 
 	//! Binds GLSL program \a prog. Analogous to glUseProgram()
 	void			bindGlslProg( const GlslProgRef &prog );
