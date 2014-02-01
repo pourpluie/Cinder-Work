@@ -56,8 +56,8 @@ private:
 
 void GeometryApp::setup()
 {
-	mSelected = ICOSAHEDRON;
-	mSubdivision = 0;
+	mSelected = CUBE;
+	mSubdivision = 32;
 	mWireframe = true;
 
 	//
@@ -215,7 +215,7 @@ void GeometryApp::createPrimitive(void)
 			primitive = geom::SourceRef( new geom::Sphere( geom::Sphere().enable( geom::Attrib::COLOR ) ) );
 			break;
 		case ICOSPHERE:
-			primitive = geom::SourceRef( new geom::Icosphere( geom::Icosphere().subdivision( mSubdivision ).enable( geom::Attrib::COLOR ) ) );
+			primitive = geom::SourceRef( new geom::Icosphere( geom::Icosphere().enable( geom::Attrib::COLOR ) ) );
 			break;
 		case ICOSAHEDRON:
 			primitive = geom::SourceRef( new geom::Icosahedron( geom::Icosahedron().enable( geom::Attrib::COLOR ) ) );
@@ -223,9 +223,6 @@ void GeometryApp::createPrimitive(void)
 		case CAPSULE:
 			primitive = geom::SourceRef( new geom::Capsule( geom::Capsule().enable( geom::Attrib::COLOR ) ) );
 			break;
-		/*case CONE:
-			primitive = geom::SourceRef( new geom::Cone( geom::Cone().enable( geom::Attrib::COLOR ) ) );
-			break;*/
 		case CUBE:
 			primitive = geom::SourceRef( new geom::Cube( geom::Cube().enable( geom::Attrib::COLOR ) ) );
 			break;
@@ -234,14 +231,12 @@ void GeometryApp::createPrimitive(void)
 			break;
 		}
 	
-		mPrimitive = gl::VboMesh::create( *primitive );
-		
 		TriMesh mesh( *primitive );
+		mPrimitive = gl::VboMesh::create( mesh );
+		
 		mOriginalNormals = gl::VboMesh::create( DebugMesh( mesh, Color(1,1,0) ) );
-		/*
-		mesh.recalculateNormalsHighQuality();
+		mesh.recalculateNormals(false);
 		mCalculatedNormals = gl::VboMesh::create( DebugMesh( mesh, Color(0,1,1) ) );
-		*/
 	}
 	catch( const std::exception &e ) {
 		console() << e.what() << std::endl;
