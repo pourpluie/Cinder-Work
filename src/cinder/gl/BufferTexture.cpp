@@ -1,5 +1,5 @@
 
-#include "cinder/gl/Tbo.h"
+#include "cinder/gl/BufferTexture.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Context.h"
 
@@ -7,30 +7,30 @@ namespace cinder { namespace gl {
 	
 #if ! defined( CINDER_GLES )
 	
-TboRef Tbo::create( const BufferObjRef &buffer, GLenum internalFormat )
+BufferTextureRef BufferTexture::create( const BufferObjRef &buffer, GLenum internalFormat )
 {
-	return TboRef( new Tbo( buffer, internalFormat ) );
+	return BufferTextureRef( new BufferTexture( buffer, internalFormat ) );
 }
 
-TboRef Tbo::create( const void *data, size_t numBytes, GLenum internalFormat, GLenum usage )
+BufferTextureRef BufferTexture::create( const void *data, size_t numBytes, GLenum internalFormat, GLenum usage )
 {
 	gl::BufferObjRef buffer = BufferObj::create( GL_TEXTURE_BUFFER, numBytes, data, usage );
-	return Tbo::create( buffer, internalFormat );
+	return BufferTexture::create( buffer, internalFormat );
 }
 
-Tbo::Tbo( const BufferObjRef &buffer, GLenum internalFormat​ )
+BufferTexture::BufferTexture( const BufferObjRef &buffer, GLenum internalFormat​ )
 : mTarget( GL_TEXTURE_BUFFER )
 {
 	glGenTextures( 1, &mId );
 	setBuffer( buffer, internalFormat​ );
 }
 
-Tbo::~Tbo()
+BufferTexture::~BufferTexture()
 {
 	glDeleteTextures( 1, &mId );
 }
 
-void Tbo::setBuffer( const BufferObjRef &buffer, GLenum internalFormat )
+void BufferTexture::setBuffer( const BufferObjRef &buffer, GLenum internalFormat )
 {
 	mInternalFormat = internalFormat;
 	mBufferObj = buffer;
@@ -38,13 +38,13 @@ void Tbo::setBuffer( const BufferObjRef &buffer, GLenum internalFormat )
 	glTexBuffer( mTarget, mInternalFormat, buffer->getId() );
 }
 
-void Tbo::bindTexture( uint8_t textureUnit )
+void BufferTexture::bindTexture( uint8_t textureUnit )
 {
 	ActiveTextureScope activeTextureScope( textureUnit );
 	gl::context()->bindTexture( mTarget, mId );
 }
 
-void Tbo::unbindTexture( uint8_t textureUnit )
+void BufferTexture::unbindTexture( uint8_t textureUnit )
 {
 	ActiveTextureScope activeTextureScope( textureUnit );
 	gl::context()->bindTexture( mTarget, 0 );

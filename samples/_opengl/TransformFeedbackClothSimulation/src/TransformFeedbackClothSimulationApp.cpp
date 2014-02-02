@@ -7,7 +7,7 @@
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/TransformFeedbackObj.h"
 #include "cinder/gl/Texture.h"
-#include "cinder/gl/Tbo.h"
+#include "cinder/gl/BufferTexture.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -45,7 +45,7 @@ class TransformFeedbackClothSimulationApp : public AppNative {
 	PingPongBuffers				mBuffers;
 	gl::TransformFeedbackObjRef mFeedbackObjs[2];
 	gl::VboRef					mElementBuffer;
-	gl::TboRef					mPosTbos[2];
+	gl::BufferTextureRef		mPosBufferTextures[2];
 	int							mIterationsPerFrame, mIterationIndex;
 	bool						drawLines, drawPoints, mouseMoving;
 	Vec2f						currentMousePosition;
@@ -100,7 +100,7 @@ void TransformFeedbackClothSimulationApp::update()
 		}
 		
 		mBuffers[mIterationIndex & 1].first->bind();
-		mPosTbos[mIterationIndex & 1]->bindTexture();
+		mPosBufferTextures[mIterationIndex & 1]->bindTexture();
 		
 		mIterationIndex++;
 		
@@ -259,8 +259,8 @@ void TransformFeedbackClothSimulationApp::loadBuffers()
 	mFeedbackObjs[1]->unbind();
 	
 	// Create Texture buffers to be given lookup tables for calculations in the update shader
-	mPosTbos[0] = gl::Tbo::create( mBuffers[0].second[POSITION], GL_RGBA32F );
-	mPosTbos[1] = gl::Tbo::create( mBuffers[1].second[POSITION], GL_RGBA32F );
+	mPosBufferTextures[0] = gl::BufferTexture::create( mBuffers[0].second[POSITION], GL_RGBA32F );
+	mPosBufferTextures[1] = gl::BufferTexture::create( mBuffers[1].second[POSITION], GL_RGBA32F );
 	
 	int lines = (POINTS_X - 1) * POINTS_Y + (POINTS_Y - 1) * POINTS_X;
 	
