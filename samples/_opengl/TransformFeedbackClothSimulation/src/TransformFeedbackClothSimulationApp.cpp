@@ -53,7 +53,7 @@ class TransformFeedbackClothSimulationApp : public AppNative {
 
 void TransformFeedbackClothSimulationApp::setup()
 {
-	mIterationsPerFrame = 2;
+	mIterationsPerFrame = 32;
 	drawLines = drawPoints = 1;
 	mouseMoving = mIterationIndex = 0;
 	gl::viewport(0, 0, getWindowWidth()*2, getWindowHeight()*2);
