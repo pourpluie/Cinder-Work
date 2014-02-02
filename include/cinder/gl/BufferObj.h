@@ -10,7 +10,9 @@ typedef std::shared_ptr<class BufferObj>	BufferObjRef;
 class BufferObj {
   public:
 	~BufferObj();
-
+	
+	static BufferObjRef create( GLenum target, GLsizeiptr allocationSize, const void *data, GLenum usage );
+	
 	void		bind() const;
 	void		unbind() const;
 
