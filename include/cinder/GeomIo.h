@@ -427,10 +427,46 @@ class Torus : public Source {
 	mutable std::vector<uint32_t>		mIndices;
 };
 
-class Cone : public Source {
+//! The abstract class ConeBase can not be instantiated. Use Cone or Cylinder instead.
+class ConeBase abstract : public Source {
   public:
 	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
-	Cone();
+	ConeBase();
+	virtual ~ConeBase() {}
+
+	virtual ConeBase&	set( const Vec3f &from, const Vec3f &to );
+
+	virtual size_t		getNumVertices() const override { calculate(); return mPositions.size(); }
+	virtual size_t		getNumIndices() const override { calculate(); return mIndices.size(); }
+	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
+	virtual uint8_t		getAttribDims( Attrib attr ) const override;
+	virtual void		loadInto( Target *target ) const override;
+	
+  protected:
+	virtual void	calculate() const;
+	virtual void	calculateImplUV( size_t segments, size_t rings ) const;
+	virtual void	calculateCap( bool flip, float height, float radius, size_t segments ) const;
+	
+	Vec3f		mOrigin;
+	float		mHeight;
+	Vec3f		mDirection;
+	float		mRadiusBase;
+	float		mRadiusApex;
+	int			mNumSegments;
+
+	mutable bool						mCalculationsCached;
+	mutable std::vector<Vec3f>			mPositions;
+	mutable std::vector<Vec2f>			mTexCoords;
+	mutable std::vector<Vec3f>			mNormals;
+	mutable std::vector<Vec3f>			mColors;
+	mutable std::vector<uint32_t>		mIndices;
+};
+
+class Cone : public ConeBase {
+  public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
+	Cone() { radius( 1.0f, 0.0f ); }
+	virtual ~Cone() {}
 	
 	virtual Cone&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
 	virtual Cone&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
@@ -451,32 +487,25 @@ class Cone : public Source {
 	//!
 	Cone&			direction( const Vec3f &direction ) { mDirection = direction;  mCalculationsCached = false; return *this; }
 	//! Conveniently sets origin, height and direction.
-	Cone&			set( const Vec3f &from, const Vec3f &to );
+	Cone&			set( const Vec3f &from, const Vec3f &to ) { ConeBase::set( from, to ); return *this; }
+};
 
-	virtual size_t		getNumVertices() const override { calculate(); return mPositions.size(); }
-	virtual size_t		getNumIndices() const override { calculate(); return mIndices.size(); }
-	virtual Primitive	getPrimitive() const override { return Primitive::TRIANGLES; }
-	virtual uint8_t		getAttribDims( Attrib attr ) const override;
-	virtual void		loadInto( Target *target ) const override;
+class Cylinder : public ConeBase {
+  public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
+	Cylinder() { radius( 1.0f ); }
 	
-  private:
-	void			calculate() const;
-	void			calculateImplUV( size_t segments, size_t rings ) const;
-	void			calculateCap( bool flip, float height, float radius, size_t segments ) const;
-	
-	Vec3f		mOrigin;
-	float		mHeight;
-	Vec3f		mDirection;
-	float		mRadiusBase;
-	float		mRadiusApex;
-	int			mNumSegments;
-
-	mutable bool						mCalculationsCached;
-	mutable std::vector<Vec3f>			mPositions;
-	mutable std::vector<Vec2f>			mTexCoords;
-	mutable std::vector<Vec3f>			mNormals;
-	mutable std::vector<Vec3f>			mColors;
-	mutable std::vector<uint32_t>		mIndices;
+	virtual Cylinder&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
+	virtual Cylinder&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
+	Cylinder&			origin( const Vec3f &origin ) { mOrigin = origin; mCalculationsCached = false; return *this; }
+	Cylinder&			segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
+	Cylinder&			height( float height ) { mHeight = height; mCalculationsCached = false; return *this; }
+	//! Specifies the base and apex radius.
+	Cylinder&			radius( float radius ) { mRadiusBase = mRadiusApex = math<float>::max(0.f, radius); mCalculationsCached = false; return *this; }
+	//!
+	Cylinder&			direction( const Vec3f &direction ) { mDirection = direction;  mCalculationsCached = false; return *this; }
+	//! Conveniently sets origin, height and direction.
+	Cylinder&			set( const Vec3f &from, const Vec3f &to ) { ConeBase::set( from, to ); return *this; }
 };
 
 #if 0

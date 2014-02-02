@@ -20,7 +20,7 @@ using namespace std;
 class GeometryApp : public AppNative
 {
 public:
-	typedef enum { CAPSULE, CONE, CUBE, ICOSAHEDRON, ICOSPHERE, SPHERE, TEAPOT, TORUS } Primitive;
+	typedef enum { CAPSULE, CONE, CUBE, CYLINDER, ICOSAHEDRON, ICOSPHERE, SPHERE, TEAPOT, TORUS } Primitive;
 
 	void setup();
 	void update();
@@ -60,7 +60,7 @@ void GeometryApp::setup()
 	mSelected = SPHERE;
 	mSubdivision = 1;
 	mWireframe = true;
-	mColored = false;
+	mColored = true;
 
 	//
 	gl::Texture::Format fmt;
@@ -225,6 +225,9 @@ void GeometryApp::createPrimitive(void)
 		break;
 	case CUBE:
 		primitive = geom::SourceRef( new geom::Cube( geom::Cube() ) );
+		break;
+	case CYLINDER:
+		primitive = geom::SourceRef( new geom::Cylinder( geom::Cylinder() ) );
 		break;
 	case ICOSAHEDRON:
 		primitive = geom::SourceRef( new geom::Icosahedron( geom::Icosahedron() ) );

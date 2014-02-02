@@ -1406,7 +1406,7 @@ void Torus::loadInto( Target *target ) const
 ///////////////////////////////////////////////////////////////////////////////////////
 // Cone
 
-Cone::Cone()
+ConeBase::ConeBase()
 	: mOrigin( 0, 0, 0 )
 	, mHeight( 2.0f )
 	, mDirection( 0, 1, 0 )
@@ -1419,7 +1419,7 @@ Cone::Cone()
 	enable( Attrib::TEX_COORD_0 );
 }
 
-Cone& Cone::set( const Vec3f &from, const Vec3f &to )
+ConeBase& ConeBase::set( const Vec3f &from, const Vec3f &to )
 {
 	const Vec3f axis = ( to - from );
 	mHeight = axis.length();
@@ -1429,7 +1429,7 @@ Cone& Cone::set( const Vec3f &from, const Vec3f &to )
 	return *this;
 }
 
-void Cone::calculate() const
+void ConeBase::calculate() const
 {
 	if( mCalculationsCached )
 		return;
@@ -1444,7 +1444,7 @@ void Cone::calculate() const
 	mCalculationsCached = true;
 }
 	
-void Cone::calculateImplUV( size_t segments, size_t rings ) const
+void ConeBase::calculateImplUV( size_t segments, size_t rings ) const
 {
 	mPositions.assign( segments * rings, Vec3f::zero() );
 	mNormals.assign( segments * rings, Vec3f::zero() );
@@ -1507,29 +1507,30 @@ void Cone::calculateImplUV( size_t segments, size_t rings ) const
 	}
 }
 
-void Cone::calculateCap( bool flip, float height, float radius, size_t segments ) const
+void ConeBase::calculateCap( bool flip, float height, float radius, size_t segments ) const
 {
 	const size_t index = mPositions.size();
 
-	mPositions.resize( index + segments + 1, Vec3f::zero() );
-	mTexCoords.resize( index + segments + 1, Vec2f::zero() );
-	mNormals.resize( index + segments + 1, flip ? -mDirection : mDirection );
+	mPositions.resize( index + segments * 2, Vec3f::zero() );
+	mTexCoords.resize( index + segments * 2, Vec2f::zero() );
+	mNormals.resize( index + segments * 2, flip ? -mDirection : mDirection );
 	
 	if( isEnabled( Attrib::COLOR ) ) {
 		const Vec3f n = flip ? -mDirection : mDirection;
-		mColors.resize( index + segments + 1, 
+		mColors.resize( index + segments * 2, 
 			Vec3f( n.x * 0.5f + 0.5f, n.y * 0.5f + 0.5f, n.z * 0.5f + 0.5f ) );
 	}
 
 	const Quatf axis( Vec3f::yAxis(), mDirection );
-	
-	// center point
-	mPositions[index] = mOrigin + mDirection * height;
-	mTexCoords[index] = Vec2f( 0.5f, 1.0f - height / mHeight );
 
-	// triangle fan
+	// vertices
 	const float segmentIncr = 1.0f / (segments - 1);
-	for( size_t i = 0; i < segments; ++i ) {
+	for( size_t i = 0; i < segments; ++i ) {	
+		// center point
+		mPositions[index + i * 2 + 0] = mOrigin + mDirection * height;
+		mTexCoords[index + i * 2 + 0] = Vec2f( i * segmentIncr, 1.0f - height / mHeight );
+
+		// edge point
 		float cosPhi = -math<float>::cos( i * segmentIncr * 2 * M_PI );
 		float sinPhi =  math<float>::sin( i * segmentIncr * 2 * M_PI );
 			
@@ -1537,8 +1538,8 @@ void Cone::calculateCap( bool flip, float height, float radius, size_t segments 
 		float y = height;
 		float z = radius * sinPhi;
 
-		mPositions[index + i + 1] = mOrigin + axis * Vec3f( x, y, z );
-		mTexCoords[index + i + 1] = Vec2f( i * segmentIncr, 1.0f - height / mHeight );
+		mPositions[index + i * 2 + 1] = mOrigin + axis * Vec3f( x, y, z );
+		mTexCoords[index + i * 2 + 1] = Vec2f( i * segmentIncr, 1.0f - height / mHeight );
 	}
 
 	// index buffer
@@ -1546,19 +1547,19 @@ void Cone::calculateCap( bool flip, float height, float radius, size_t segments 
 	mIndices.resize( mIndices.size() + 3 * (segments - 1), 0 );
 
 	for( size_t i = 0; i < segments - 1; ++i ) {
-		mIndices[k++] = index;
+		mIndices[k++] = index + i * 2 + 0;
 		if( flip ) {
-			mIndices[k++] = index + i + 2;
-			mIndices[k++] = index + i + 1;
+			mIndices[k++] = index + i * 2 + 3;
+			mIndices[k++] = index + i * 2 + 1;
 		}
 		else {
-			mIndices[k++] = index + i + 1;
-			mIndices[k++] = index + i + 2;
+			mIndices[k++] = index + i * 2 + 1;
+			mIndices[k++] = index + i * 2 + 3;
 		}
 	}
 }
 
-uint8_t Cone::getAttribDims( Attrib attr ) const
+uint8_t ConeBase::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
 		case Attrib::POSITION: return 3;
@@ -1570,7 +1571,7 @@ uint8_t Cone::getAttribDims( Attrib attr ) const
 	}
 }
 
-void Cone::loadInto( Target *target ) const
+void ConeBase::loadInto( Target *target ) const
 {
 	calculate();
 
