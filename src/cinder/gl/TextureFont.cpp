@@ -21,6 +21,9 @@
 */
 
 #include "cinder/gl/TextureFont.h"
+#include "cinder/gl/Context.h"
+#include "cinder/gl/Vao.h"
+#include "cinder/gl/Vbo.h"
 
 #include "cinder/Text.h"
 #include "cinder/ip/Fill.h"
@@ -122,10 +125,11 @@ TextureFont::TextureFont( const Font &font, const string &supportedChars, const 
 			}
 			mTextures.push_back( gl::Texture( lumAlphaData.get(), GL_LUMINANCE_ALPHA, mFormat.getTextureWidth(), mFormat.getTextureHeight(), textureFormat ) );
 #else
-			textureFormat.setInternalFormat( GL_RG );
-			mTextures.push_back( gl::Texture( surface, textureFormat ) );
+			textureFormat.setInternalFormat( GL_RGBA );
+			textureFormat.setSwizzleMask( { GL_RED, GL_RED, GL_RED, GL_GREEN } );
 			if( mFormat.hasMipmapping() )
-				mTextures.back().setMinFilter( GL_LINEAR_MIPMAP_LINEAR );
+				mTextures.back()->setMinFilter( GL_LINEAR_MIPMAP_LINEAR );
+			mTextures.push_back( gl::Texture::create( surface, textureFormat ) );
 #endif
 			ip::fill( &surface, ColorA8u( 0, 0, 0, 0 ) );			
 			curOffset = Vec2i::zero();
@@ -299,11 +303,12 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 	if( ! colors.empty() )
 		assert( glyphMeasures.size() == colors.size() );
 
-	TextureBindScope texBindScp( mTextures[0].getTarget() );
-	auto shader = ShaderDef().texture( mTextures[0] );
+	TextureBindScope texBindScp( mTextures[0] );
+	auto shaderDef = ShaderDef().texture( mTextures[0] );
 	if( ! colors.empty() )
-		shader.colors();
-	GlslProgScope glslScp( gl::getStockShader( shader ) );
+		shaderDef.color();
+	GlslProgRef shader = gl::getStockShader( shaderDef );
+	GlslProgScope glslScp( shader );
 
 	Vec2f baseline = baselineIn;
 
@@ -311,7 +316,7 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 	for( size_t texIdx = 0; texIdx < mTextures.size(); ++texIdx ) {
 		vector<float> verts, texCoords;
 		vector<ColorA8u> vertColors;
-		const gl::Texture &curTex = mTextures[texIdx];
+		const gl::TextureRef &curTex = mTextures[texIdx];
 #if defined( CINDER_GLES )
 		vector<uint16_t> indices;
 		uint16_t curIdx = 0;
@@ -332,7 +337,7 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 			const GlyphInfo &glyphInfo = glyphInfoIt->second;
 			
 			Rectf destRect( glyphInfo.mTexCoords );
-			Rectf srcCoords = curTex.getAreaTexCoords( glyphInfo.mTexCoords );
+			Rectf srcCoords = curTex->getAreaTexCoords( glyphInfo.mTexCoords );
 			destRect -= destRect.getUpperLeft();
 			destRect.scale( scale );
 			destRect += glyphIt->second * scale;
@@ -364,32 +369,46 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 		if( curIdx == 0 )
 			continue;
 		
-		curTex.bind();
+		curTex->bind();
 		auto ctx = gl::context();
 		size_t dataSize = (verts.size() + texCoords.size()) * sizeof(float) + vertColors.size() * sizeof(ColorA8u);
-		VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
-		BufferScope vboScp( defaultVbo );
 		ctx->pushVao();
 		ctx->getDefaultVao()->freshBindPre();
-			defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
-			int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
-			if( posLoc >= 0 ) {
-				enableVertexAttribArray( posLoc );
-				vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
-			}
-			int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
-			if( texLoc >= 0 ) {
-				enableVertexAttribArray( texLoc );
-				vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
-			}
-		ctx->getDefaultVao()->freshBindPost();
+		VboRef defaultElementVbo = ctx->getDefaultElementVbo( indices.size() * sizeof(curIdx) );
+		VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( dataSize );
 
-		
-		glVertexPointer( 2, GL_FLOAT, 0, &verts[0] );
-		glTexCoordPointer( 2, GL_FLOAT, 0, &texCoords[0] );
-		if( ! colors.empty() )
-			glColorPointer( 4, GL_UNSIGNED_BYTE, 0, &vertColors[0] );
-		glDrawElements( GL_TRIANGLES, indices.size(), indexType, &indices[0] );
+		BufferScope vboArrayScp( defaultArrayVbo );
+		BufferScope vboElScp( defaultElementVbo );
+
+		size_t dataOffset = 0;
+		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+		if( posLoc >= 0 ) {
+			enableVertexAttribArray( posLoc );
+			vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+			defaultArrayVbo->bufferSubData( dataOffset, verts.size() * sizeof(float), verts.data() );
+			dataOffset += verts.size() * sizeof(float);
+		}
+		int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
+		if( texLoc >= 0 ) {
+			enableVertexAttribArray( texLoc );
+			vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)dataOffset );
+			defaultArrayVbo->bufferSubData( dataOffset, texCoords.size() * sizeof(float), texCoords.data() );
+			dataOffset += texCoords.size() * sizeof(float);
+		}
+		if( ! vertColors.empty() ) {
+			int colorLoc = shader->getAttribSemanticLocation( geom::Attrib::COLOR );
+			if( colorLoc >= 0 ) {
+				enableVertexAttribArray( colorLoc );
+				vertexAttribPointer( colorLoc, 4, GL_UNSIGNED_BYTE, GL_FALSE, 0, (void*)dataOffset );
+				defaultArrayVbo->bufferSubData( dataOffset, vertColors.size() * sizeof(ColorA8u), vertColors.data() );
+				dataOffset += vertColors.size() * sizeof(ColorA8u);				
+			}
+		}
+
+		defaultElementVbo->bufferSubData( 0, indices.size() * sizeof(curIdx), indices.data() );
+		ctx->getDefaultVao()->freshBindPost();
+		gl::setDefaultShaderVars();
+		ctx->drawElements( GL_TRIANGLES, indices.size(), indexType, 0 );
 	}
 }
 
