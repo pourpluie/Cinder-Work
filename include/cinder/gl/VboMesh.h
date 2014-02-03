@@ -68,16 +68,19 @@ class VboMesh {
 	
 	//! Echos all vertex data in range [\a startIndex, \a endIndex) to \a os. Inefficient - primarily useful for debugging.
 	void		echoVertexRange( std::ostream &os, size_t startIndex, size_t endIndex );
+	//! Echos all vertex data for the elements in range [\a startIndex, \a endIndex) to \a os. No-op for non-indexed geometry. Inefficient - primarily useful for debugging.
+	void		echoElementRange( std::ostream &os, size_t startIndex, size_t endIndex );
 #endif
 
   protected:
 	VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo );
 	VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo );
 
+	void	echoVertices( std::ostream &os, const std::vector<uint32_t> &elements, bool printElements );
+
 	uint32_t			mNumVertices, mNumIndices;
 	GLenum				mGlPrimitive;
 	GLenum				mIndexType;
-
 
 	std::vector<std::pair<geom::BufferLayout,VboRef>>	mVertexArrayVbos;
 	VboRef												mElements;

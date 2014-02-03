@@ -186,6 +186,7 @@ void VboMesh::buildVao( const GlslProgRef &shader, const AttributeMapping &attri
 
 void VboMesh::drawImpl()
 {
+context()->sanityCheck();
 	if( mNumIndices )
 		glDrawElements( mGlPrimitive, mNumIndices, mIndexType, (GLvoid*)( 0 ) );
 	else
@@ -237,7 +238,7 @@ void VboMesh::downloadIndices( uint32_t *dest ) const
 #else
 	const void *data = mElements->map( GL_READ_ONLY );
 #endif
-	if( mGlPrimitive == GL_UNSIGNED_SHORT ) {
+	if( mIndexType == GL_UNSIGNED_SHORT ) {
 		const uint16_t *source = reinterpret_cast<const uint16_t*>( data );
 		for( size_t e = 0; e < getNumIndices(); ++e )
 			dest[e] = source[e];
@@ -248,15 +249,53 @@ void VboMesh::downloadIndices( uint32_t *dest ) const
 	mElements->unmap();
 }
 
+void VboMesh::echoElementRange( std::ostream &os, size_t startIndex, size_t endIndex )
+{
+	if( ( mNumIndices == 0 ) || ( ! mElements ) )
+		return;
+
+	vector<uint32_t> elements;
+	startIndex = std::min<size_t>( startIndex, mNumIndices );
+	endIndex = std::min<size_t>( endIndex, mNumIndices );
+
+	const void *rawData = mElements->map( GL_READ_ONLY );
+	switch( mIndexType ) {
+		case GL_UNSIGNED_BYTE:
+			for( size_t v = startIndex; v < endIndex; ++v )
+				elements.push_back( reinterpret_cast<const uint8_t*>( rawData )[v] );
+		break;
+		case GL_UNSIGNED_SHORT:
+			for( size_t v = startIndex; v < endIndex; ++v )
+				elements.push_back( reinterpret_cast<const uint16_t*>( rawData )[v] );
+		break;
+		case GL_UNSIGNED_INT:
+			for( size_t v = startIndex; v < endIndex; ++v )
+				elements.push_back( reinterpret_cast<const uint32_t*>( rawData )[v] );
+		break;
+		default:
+			return;
+	}
+
+	echoVertices( os, elements, true );
+}
+
 void VboMesh::echoVertexRange( std::ostream &os, size_t startIndex, size_t endIndex )
+{
+	vector<uint32_t> elements;
+	startIndex = std::min<size_t>( startIndex, mNumVertices );
+	endIndex = std::min<size_t>( endIndex, mNumVertices );
+	elements.resize( endIndex - startIndex );
+	for( size_t s = 0; s < endIndex - startIndex; ++s )
+		elements[s] = s + startIndex;
+	echoVertices( os, elements, false );
+}
+
+void VboMesh::echoVertices( std::ostream &os, const vector<uint32_t> &elements, bool printElements )
 {
 	vector<string> attribSemanticNames;
 	vector<vector<string>> attribData;
 	vector<size_t> attribColLengths;
 	vector<string> attribColLeadingSpaceStrings;
-
-	startIndex = std::min<size_t>( startIndex, mNumVertices );
-	endIndex = std::min<size_t>( endIndex, mNumVertices );
 
 	// save the GL_ARRAY_BUFFER binding
 	auto prevBufferBinding = gl::context()->getBufferBinding( GL_ARRAY_BUFFER );
@@ -270,9 +309,9 @@ void VboMesh::echoVertexRange( std::ostream &os, size_t startIndex, size_t endIn
 			attribSemanticNames.push_back( geom::attribToString( attribInfo.getAttrib() ) );
 			attribData.push_back( vector<string>() );
 			size_t stride = ( attribInfo.getStride() == 0 ) ? attribInfo.getDims() * sizeof(float) : attribInfo.getStride();
-			for( size_t v = startIndex; v < endIndex; ++v ) {
+			for( size_t vIt : elements ) {
 				ostringstream ss;
-				const float *dataFloat = reinterpret_cast<const float*>( (const uint8_t*)rawData + attribInfo.getOffset() + v * stride );
+				const float *dataFloat = reinterpret_cast<const float*>( (const uint8_t*)rawData + attribInfo.getOffset() + vIt * stride );
 				for( uint8_t d = 0; d < attribInfo.getDims(); ++d ) {
 					ss << dataFloat[d];
 					if( d != attribInfo.getDims() - 1 )
@@ -291,11 +330,19 @@ void VboMesh::echoVertexRange( std::ostream &os, size_t startIndex, size_t endIn
 		vertArrayVbo.second->unmap();
 	}
 
+	// if we're printing indices then we need to determine the widest as a string
+	size_t rowStart = 0;
+	if( printElements ) {
+		for( uint32_t v : elements )
+			rowStart = std::max( rowStart, to_string( v ).length() );
+		rowStart += 2; // account for ": "
+	}
+
 	// print attrib semantic header
 	ostringstream ss;
 	for( size_t a = 0; a < attribSemanticNames.size(); ++a ) {
 		// character offset where we should be for this column
-		size_t colStartCharIndex = 0;
+		size_t colStartCharIndex = rowStart;
 		for( size_t sumA = 0; sumA < a; ++sumA )
 			colStartCharIndex += attribColLengths[sumA];
 		// offset relative to the previous
@@ -310,11 +357,19 @@ void VboMesh::echoVertexRange( std::ostream &os, size_t startIndex, size_t endIn
 	os << std::endl;
 
 	// print data rows
-	for( size_t v = 0; v < ( endIndex - startIndex ); ++v ) {
+	for( size_t v = 0; v < elements.size(); ++v ) {
 		ostringstream ss;
+		if( printElements ) {
+			string elementStr = to_string( elements[v] ) + ":";
+			for( size_t space = 0; space < rowStart - elementStr.length(); ++space )
+				ss << ' ';
+			ss << elementStr;
+			ss << ' ';
+		}
+
 		for( size_t a = 0; a < attribSemanticNames.size(); ++a ) {
 			// character offset where we should be for this column
-			size_t colStartCharIndex = 0;
+			size_t colStartCharIndex = rowStart;
 			for( size_t sumA = 0; sumA < a; ++sumA )
 				colStartCharIndex += attribColLengths[sumA];
 			// offset relative to the previous

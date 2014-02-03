@@ -104,6 +104,7 @@ void Vao::unbind() const
 void Vao::freshBindPre()
 {
 	mFreshBindPrevious = mLayout;
+	mLayout.clear();
 	bind();
 	// a fresh VAO would 
 	mCtx->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
