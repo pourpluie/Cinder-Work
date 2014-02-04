@@ -114,7 +114,8 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 			glTexParameteriv( mTarget, GL_TEXTURE_SWIZZLE_RGBA, format.mSwizzleMask.data() );
 	}
 #endif
-
+	mSwizzleMask = format.mSwizzleMask;
+	
 	mMipmapping = format.mMipmapping;
 }
 
@@ -289,7 +290,7 @@ bool TextureBase::supportsHardwareSwizzle()
 	#if defined( CINDER_GLES2 )
 		return false;
 	#else
-		return true;
+		return false;
 	#endif
 }
 

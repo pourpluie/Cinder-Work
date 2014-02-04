@@ -83,9 +83,7 @@ TextureFont::TextureFont( const Font &font, const string &supportedChars, const 
 	::CGContextSetFontSize( cgContext, font.getSize() );
 	::CGContextSetTextMatrix( cgContext, CGAffineTransformIdentity );
 
-#if defined( CINDER_GLES )
-	std::shared_ptr<uint8_t> lumAlphaData( new uint8_t[mFormat.getTextureWidth()*mFormat.getTextureHeight()*2], checked_array_deleter<uint8_t>() );
-#endif
+	std::unique_ptr<uint8_t> lumAlphaData( new uint8_t[mFormat.getTextureWidth()*mFormat.getTextureHeight()*2] );
 
 	for( set<Font::Glyph>::const_iterator glyphIt = glyphs.begin(); glyphIt != glyphs.end(); ) {
 		GlyphInfo newInfo;
@@ -111,8 +109,18 @@ TextureFont::TextureFont( const Font &font, const string &supportedChars, const 
 
 			gl::Texture::Format textureFormat = gl::Texture::Format();
 			textureFormat.enableMipmapping( mFormat.hasMipmapping() );
+			GLint dataFormat;
 #if defined( CINDER_GLES )
-			textureFormat.setInternalFormat( GL_LUMINANCE_ALPHA );
+			dataFormat = GL_LUMINANCE_ALPHA;
+			textureFormat.setInternalFormat( dataFormat );
+#else
+			dataFormat = GL_RG;
+			textureFormat.setInternalFormat( dataFormat );
+			textureFormat.setSwizzleMask( { GL_RED, GL_RED, GL_RED, GL_GREEN } );
+#endif
+			if( mFormat.hasMipmapping() )
+				mTextures.back()->setMinFilter( GL_LINEAR_MIPMAP_LINEAR );
+
 			// under iOS format and interalFormat must match, so let's make a block of LUMINANCE_ALPHA data
 			Surface8u::ConstIter iter( surface, surface.getBounds() );
 			size_t offset = 0;
@@ -123,14 +131,8 @@ TextureFont::TextureFont( const Font &font, const string &supportedChars, const 
 					offset += 2;
 				}
 			}
-			mTextures.push_back( gl::Texture( lumAlphaData.get(), GL_LUMINANCE_ALPHA, mFormat.getTextureWidth(), mFormat.getTextureHeight(), textureFormat ) );
-#else
-			textureFormat.setInternalFormat( GL_RGBA );
-			textureFormat.setSwizzleMask( { GL_RED, GL_RED, GL_RED, GL_GREEN } );
-			if( mFormat.hasMipmapping() )
-				mTextures.back()->setMinFilter( GL_LINEAR_MIPMAP_LINEAR );
-			mTextures.push_back( gl::Texture::create( surface, textureFormat ) );
-#endif
+			mTextures.push_back( gl::Texture::create( lumAlphaData.get(), dataFormat, mFormat.getTextureWidth(), mFormat.getTextureHeight(), textureFormat ) );
+
 			ip::fill( &surface, ColorA8u( 0, 0, 0, 0 ) );			
 			curOffset = Vec2i::zero();
 			curGlyphIndex = 0;

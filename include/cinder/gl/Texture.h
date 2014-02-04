@@ -68,6 +68,8 @@ class TextureBase {
 	static Vec2i	calcMipLevelSize( int level, GLint width, GLint height );
 	//! Returns the maximum anisotropic filtering maximum allowed by the hardware
 	static GLfloat	getMaxMaxAnisotropy();
+	
+	std::array<GLint,4>	getSwizzleMask() const { return mSwizzleMask; }
 	//! Returns whether this hardware supports texture swizzling (via \c GL_TEXTURE_SWIZZLE_RGBA)
 	static bool		supportsHardwareSwizzle();
 
@@ -166,11 +168,12 @@ class TextureBase {
 	
 	void			initParams( Format &format, GLint defaultInternalFormat );
 	
-  	GLenum			mTarget;
-	GLuint			mTextureId;
-	mutable GLint	mInternalFormat;
-	bool			mMipmapping;
-	bool			mDoNotDispose;	
+	GLenum				mTarget;
+	GLuint				mTextureId;
+	mutable GLint		mInternalFormat;
+	bool				mMipmapping;
+	bool				mDoNotDispose;
+	std::array<GLint,4>	mSwizzleMask;	
 };
 	
 class Texture : public TextureBase {

@@ -130,13 +130,18 @@ std::string	EnvironmentCore::generateFragmentShader( const ShaderDef &shader )
 				"{\n"
 				;
 	
-	if( shader.mTextureMapping && shader.mColor ) {
-		s +=	"	oColor = texture( uTex0, TexCoord.st ) * Color;\n"
-				;
-	}
-	else if( shader.mTextureMapping ) {
-		s +=	"	oColor = texture( uTex0, TexCoord.st );\n"
-				;
+	if( shader.mTextureMapping ) {
+		std::string textureSampleStr = "texture( uTex0, TexCoord.st )";
+		if( ! Texture::supportsHardwareSwizzle() && ! shader.isTextureSwizzleDefault() )
+			textureSampleStr += std::string(".") + shader.getTextureSwizzleString();
+		if( shader.mColor ) {
+			s +=	"	oColor = " + textureSampleStr + " * Color;\n"
+					;
+		}
+		else {
+			s +=	"	oColor = " + textureSampleStr + ";\n"
+					;
+		}
 	}
 	else if( shader.mColor ) {
 		s +=	"	oColor = Color;\n"

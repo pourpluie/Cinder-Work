@@ -13,11 +13,15 @@ class ShaderDef {
 	ShaderDef&		texture( const TextureRef &tex = TextureRef() );
 	ShaderDef&		texture( GLenum target );
 
+	bool			isTextureSwizzleDefault() const;
+	std::string		getTextureSwizzleString() const;	
+
 	bool operator<( const ShaderDef &rhs ) const;
 	
   protected:
-	bool			mTextureMapping;
-	bool			mTextureMappingRectangleArb;
+	bool					mTextureMapping;
+	bool					mTextureMappingRectangleArb;
+	std::array<GLint,4>		mTextureSwizzleMask;
 	
 	bool			mColor;
 	
