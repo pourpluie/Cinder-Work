@@ -1230,6 +1230,11 @@ void Context::setDefaultShaderVars()
 					glslProg->uniform( unifIt.first, gl::getProjection() ); break;
 				case UNIFORM_NORMAL_MATRIX:
 					glslProg->uniform( unifIt.first, gl::calcNormalMatrix() ); break;
+				case UNIFORM_WINDOW_SIZE:
+					glslProg->uniform( unifIt.first, app::getWindowSize() ); break;
+				case UNIFORM_ELAPSED_SECONDS:
+					glslProg->uniform( unifIt.first, float( app::getElapsedSeconds() ) );
+					break;
 			}
 		}
 
