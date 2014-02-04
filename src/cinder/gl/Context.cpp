@@ -1233,8 +1233,7 @@ void Context::setDefaultShaderVars()
 				case UNIFORM_WINDOW_SIZE:
 					glslProg->uniform( unifIt.first, app::getWindowSize() ); break;
 				case UNIFORM_ELAPSED_SECONDS:
-					glslProg->uniform( unifIt.first, float( app::getElapsedSeconds() ) );
-					break;
+					glslProg->uniform( unifIt.first, float( app::getElapsedSeconds() ) ); break;
 			}
 		}
 
