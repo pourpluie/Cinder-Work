@@ -4,6 +4,11 @@
 
 namespace cinder { namespace gl {
 
+BufferObjRef BufferObj::create( GLenum target, GLsizeiptr allocationSize, const void *data, GLenum usage )
+{
+	return BufferObjRef( new BufferObj( target, allocationSize, data, usage ) );
+}
+	
 BufferObj::BufferObj( GLenum target )
 	: mId( 0 ), mSize( 0 ), mTarget( target ),
 #if defined( CINDER_GLES )

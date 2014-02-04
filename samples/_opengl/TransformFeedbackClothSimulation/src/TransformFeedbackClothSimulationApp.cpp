@@ -7,6 +7,7 @@
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/TransformFeedbackObj.h"
 #include "cinder/gl/Texture.h"
+#include "cinder/gl/BufferTexture.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -44,8 +45,7 @@ class TransformFeedbackClothSimulationApp : public AppNative {
 	PingPongBuffers				mBuffers;
 	gl::TransformFeedbackObjRef mFeedbackObjs[2];
 	gl::VboRef					mElementBuffer;
-//	gl::TextureBaseRef			mTexBuffers[2];
-	GLuint						mPosTbo[2]; // Need to swap these out for ^ these
+	gl::BufferTextureRef		mPosBufferTextures[2];
 	int							mIterationsPerFrame, mIterationIndex;
 	bool						drawLines, drawPoints, mouseMoving;
 	Vec2f						currentMousePosition;
@@ -56,7 +56,7 @@ void TransformFeedbackClothSimulationApp::setup()
 	mIterationsPerFrame = 32;
 	drawLines = drawPoints = 1;
 	mouseMoving = mIterationIndex = 0;
-	gl::viewport(0, 0, getWindowWidth(), getWindowHeight());
+	gl::viewport(0, 0, getWindowWidth()*2, getWindowHeight()*2);
 	
 	loadShaders();
 	loadBuffers();
@@ -100,7 +100,7 @@ void TransformFeedbackClothSimulationApp::update()
 		}
 		
 		mBuffers[mIterationIndex & 1].first->bind();
-		glBindTexture( GL_TEXTURE_BUFFER, mPosTbo[mIterationIndex & 1] );
+		mPosBufferTextures[mIterationIndex & 1]->bindTexture();
 		
 		mIterationIndex++;
 		
@@ -259,11 +259,8 @@ void TransformFeedbackClothSimulationApp::loadBuffers()
 	mFeedbackObjs[1]->unbind();
 	
 	// Create Texture buffers to be given lookup tables for calculations in the update shader
-	glGenTextures(2, mPosTbo);
-	glBindTexture( GL_TEXTURE_BUFFER, mPosTbo[0] );
-	glTexBuffer( GL_TEXTURE_BUFFER, GL_RGBA32F, mBuffers[0].second[POSITION]->getId() );
-	glBindTexture( GL_TEXTURE_BUFFER, mPosTbo[1] );
-	glTexBuffer( GL_TEXTURE_BUFFER, GL_RGBA32F, mBuffers[1].second[POSITION]->getId() );
+	mPosBufferTextures[0] = gl::BufferTexture::create( mBuffers[0].second[POSITION], GL_RGBA32F );
+	mPosBufferTextures[1] = gl::BufferTexture::create( mBuffers[1].second[POSITION], GL_RGBA32F );
 	
 	int lines = (POINTS_X - 1) * POINTS_Y + (POINTS_Y - 1) * POINTS_X;
 	

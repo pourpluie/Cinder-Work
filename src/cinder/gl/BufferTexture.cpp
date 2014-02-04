@@ -20,61 +20,58 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "cinder/gl/TransformFeedbackObj.h"
+#include "cinder/gl/BufferTexture.h"
+#include "cinder/gl/gl.h"
 #include "cinder/gl/Context.h"
-#include "cinder/gl/Vbo.h"
 
 namespace cinder { namespace gl {
 	
 #if ! defined( CINDER_GLES )
 	
-class TransformFeedbackObjImplHardware : public TransformFeedbackObj {
-  public:
-	TransformFeedbackObjImplHardware();
-	~TransformFeedbackObjImplHardware();
-	
-	void bindImpl( Context *context );
-	void unbindImpl( Context *context );
-	void setIndex( int index, BufferObjRef buffer );
-	
-  private:
-	friend class Context;
-};
-
-TransformFeedbackObjRef createTransformFeedbackObjImplHardware()
+BufferTextureRef BufferTexture::create( const BufferObjRef &buffer, GLenum internalFormat )
 {
-	return TransformFeedbackObjRef( new TransformFeedbackObjImplHardware() );
+	return BufferTextureRef( new BufferTexture( buffer, internalFormat ) );
 }
 
-TransformFeedbackObjImplHardware::TransformFeedbackObjImplHardware()
+BufferTextureRef BufferTexture::create( const void *data, size_t numBytes, GLenum internalFormat, GLenum usage )
 {
-	glGenTransformFeedbacks( 1, &mId );
+	gl::BufferObjRef buffer = BufferObj::create( GL_TEXTURE_BUFFER, numBytes, data, usage );
+	return BufferTexture::create( buffer, internalFormat );
 }
 
-TransformFeedbackObjImplHardware::~TransformFeedbackObjImplHardware()
+BufferTexture::BufferTexture( const BufferObjRef &buffer, GLenum internalFormat )
+	: mTarget( GL_TEXTURE_BUFFER )
 {
-	glDeleteTransformFeedbacks( 1, &mId );
+	glGenTextures( 1, &mId );
+	setBuffer( buffer, internalFormat );
 }
 
-void TransformFeedbackObjImplHardware::bindImpl( Context *context )
+BufferTexture::~BufferTexture()
 {
-	glBindTransformFeedback( GL_TRANSFORM_FEEDBACK, mId );
+	glDeleteTextures( 1, &mId );
 }
 
-void TransformFeedbackObjImplHardware::unbindImpl( Context *context )
+void BufferTexture::setBuffer( const BufferObjRef &buffer, GLenum internalFormat )
 {
-	glBindTransformFeedback( GL_TRANSFORM_FEEDBACK, 0 );
+	mInternalFormat = internalFormat;
+	mBufferObj = buffer;
+	gl::context()->bindTexture( mTarget, mId );
+	glTexBuffer( mTarget, mInternalFormat, buffer->getId() );
 }
 
-void TransformFeedbackObjImplHardware::setIndex( int index, BufferObjRef buffer )
+void BufferTexture::bindTexture( uint8_t textureUnit )
 {
-	auto exists = mBufferBases.find( index );
-	if( exists == mBufferBases.end() ) {
-		mBufferBases.insert( std::pair<int, BufferObjRef>( index, buffer ) );
-		glBindBufferBase( GL_TRANSFORM_FEEDBACK_BUFFER, index, buffer->getId() );
-	}
+	ActiveTextureScope activeTextureScope( textureUnit );
+	gl::context()->bindTexture( mTarget, mId );
+}
+
+void BufferTexture::unbindTexture( uint8_t textureUnit )
+{
+	ActiveTextureScope activeTextureScope( textureUnit );
+	gl::context()->bindTexture( mTarget, 0 );
 }
 	
 #endif
 	
-}} // gl // cinder
+} }
+

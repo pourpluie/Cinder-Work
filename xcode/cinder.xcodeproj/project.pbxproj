@@ -756,6 +756,9 @@
 		43F78EF81516DAE200EB63B5 /* Json.h in Headers */ = {isa = PBXBuildFile; fileRef = 43F78EF51516DAE200EB63B5 /* Json.h */; };
 		5391FD680E957646002A13D5 /* KeyEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 5391FD670E957646002A13D5 /* KeyEvent.h */; };
 		5391FE660E95CB01002A13D5 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0867D6A5FE840307C02AAC07 /* AppKit.framework */; };
+		B38243A7189DC328008B94AC /* BufferTexture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B38243A6189DC328008B94AC /* BufferTexture.cpp */; };
+		B38243A8189DC328008B94AC /* BufferTexture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B38243A6189DC328008B94AC /* BufferTexture.cpp */; };
+		B38243A9189DC328008B94AC /* BufferTexture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B38243A6189DC328008B94AC /* BufferTexture.cpp */; };
 		B39A4BF31884CCD4002A63AF /* TransformFeedbackObj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B39A4BF21884CCD4002A63AF /* TransformFeedbackObj.cpp */; };
 		B39A4BF51884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B39A4BF41884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp */; };
 		C70E19FF106AA38700E63577 /* Buffer.h in Headers */ = {isa = PBXBuildFile; fileRef = C70E19FE106AA38700E63577 /* Buffer.h */; };
@@ -1122,6 +1125,8 @@
 		43F78EF11516DAB700EB63B5 /* Json.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Json.cpp; sourceTree = "<group>"; };
 		43F78EF51516DAE200EB63B5 /* Json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Json.h; sourceTree = "<group>"; };
 		5391FD670E957646002A13D5 /* KeyEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeyEvent.h; path = app/KeyEvent.h; sourceTree = "<group>"; };
+		B38243A6189DC328008B94AC /* BufferTexture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BufferTexture.cpp; path = gl/BufferTexture.cpp; sourceTree = "<group>"; };
+		B38243AA189DC347008B94AC /* BufferTexture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BufferTexture.h; path = gl/BufferTexture.h; sourceTree = "<group>"; };
 		B39A4BF11884CC23002A63AF /* TransformFeedbackObj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TransformFeedbackObj.h; path = gl/TransformFeedbackObj.h; sourceTree = "<group>"; };
 		B39A4BF21884CCD4002A63AF /* TransformFeedbackObj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformFeedbackObj.cpp; path = gl/TransformFeedbackObj.cpp; sourceTree = "<group>"; };
 		B39A4BF41884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformFeedbackObjImplSoftware.cpp; path = gl/TransformFeedbackObjImplSoftware.cpp; sourceTree = "<group>"; };
@@ -1677,6 +1682,7 @@
 				00A06FBE1760EFC500D8BE17 /* VboMesh.h */,
 				B39A4BF11884CC23002A63AF /* TransformFeedbackObj.h */,
 				005783E6189CBB4300D6FB4C /* TextureFont.h */,
+				B38243AA189DC347008B94AC /* BufferTexture.h */,
 			);
 			name = gl;
 			sourceTree = "<group>";
@@ -1707,6 +1713,7 @@
 				B39A4BF41884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp */,
 				00E7ECA5188F93B00029139A /* TransformFeedbackObjImplHardware.cpp */,
 				005783E2189CBB1600D6FB4C /* TextureFont.cpp */,
+				B38243A6189DC328008B94AC /* BufferTexture.cpp */,
 			);
 			name = gl;
 			sourceTree = "<group>";
@@ -2402,6 +2409,7 @@
 				007050A11114F93F003FCAE4 /* DataTarget.cpp in Sources */,
 				007050A41114F93F003FCAE4 /* Shape2d.cpp in Sources */,
 				007050A51114F93F003FCAE4 /* EdgeDetect.cpp in Sources */,
+				B38243A8189DC328008B94AC /* BufferTexture.cpp in Sources */,
 				007050A61114F93F003FCAE4 /* Fill.cpp in Sources */,
 				007050A71114F93F003FCAE4 /* Flip.cpp in Sources */,
 				007050A81114F93F003FCAE4 /* Grayscale.cpp in Sources */,
@@ -2521,6 +2529,7 @@
 				00CFD9CA1135C3520091E310 /* DataTarget.cpp in Sources */,
 				00CFD9CB1135C3520091E310 /* Shape2d.cpp in Sources */,
 				00CFD9CC1135C3520091E310 /* EdgeDetect.cpp in Sources */,
+				B38243A9189DC328008B94AC /* BufferTexture.cpp in Sources */,
 				00CFD9CD1135C3520091E310 /* Fill.cpp in Sources */,
 				00CFD9CE1135C3520091E310 /* Flip.cpp in Sources */,
 				00CFD9CF1135C3520091E310 /* Grayscale.cpp in Sources */,
@@ -2711,6 +2720,7 @@
 				0034C321151A5B9F003F2E30 /* linebreak.c in Sources */,
 				0034C327151A5B9F003F2E30 /* linebreakdata.c in Sources */,
 				0034C32A151A5B9F003F2E30 /* linebreakdef.c in Sources */,
+				B38243A7189DC328008B94AC /* BufferTexture.cpp in Sources */,
 				005B02FE152CD16E00F2C237 /* json_reader.cpp in Sources */,
 				005B0304152CD16E00F2C237 /* json_value.cpp in Sources */,
 				005B0307152CD16E00F2C237 /* json_writer.cpp in Sources */,
