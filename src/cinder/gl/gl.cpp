@@ -790,7 +790,7 @@ std::string uniformSemanticToString( UniformSemantic uniformSemantic )
 		case UNIFORM_PROJECTION: return "UNIFORM_PROJECTION";
 		case UNIFORM_NORMAL_MATRIX: return "UNIFORM_NORMAL_MATRIX";
 		case UNIFORM_WINDOW_SIZE: return "UNIFORM_WINDOW_SIZE";
-		case UNIFORM_ELAPSED_SECONDS: return "UNIFORM_WINDOW_SIZE";
+		case UNIFORM_ELAPSED_SECONDS: return "UNIFORM_ELAPSED_SECONDS";
 	}
 }
 
