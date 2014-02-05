@@ -280,8 +280,11 @@ TextureFont::TextureFont( const Font &font, const string &utf8Chars, const Forma
 			
 			gl::Texture::Format textureFormat = gl::Texture::Format();
 			textureFormat.enableMipmapping( mFormat.hasMipmapping() );
-			textureFormat.setInternalFormat( GL_LUMINANCE_ALPHA );
-			mTextures.push_back( gl::Texture( tempSurface, textureFormat ) );
+			textureFormat.setInternalFormat( GL_RG );
+			array<GLint,4> swizzleMask = { GL_RED, GL_RED, GL_RED, GL_GREEN }; 
+			textureFormat.setSwizzleMask( swizzleMask );
+			textureFormat.setInternalFormat( GL_RG );
+			mTextures.push_back( gl::Texture::create( tempSurface, textureFormat ) );
 			ip::fill<uint8_t>( &channel, 0 );			
 			curOffset = Vec2i::zero();
 			curGlyphIndex = 0;

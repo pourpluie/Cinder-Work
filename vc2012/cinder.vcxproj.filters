@@ -558,6 +558,9 @@
     <ClCompile Include="..\src\cinder\gl\BufferTexture.cpp">
       <Filter>Source Files\gl</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cinder\gl\TextureFont.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\AntTweakBar\AntPerfTimer.h">
@@ -1110,6 +1113,9 @@
       <Filter>Header Files\app</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cinder\gl\BufferTexture.h">
+      <Filter>Header Files\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\gl\TextureFont.h">
       <Filter>Header Files\gl</Filter>
     </ClInclude>
   </ItemGroup>

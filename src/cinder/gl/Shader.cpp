@@ -9,8 +9,12 @@ using namespace std;
 namespace cinder { namespace gl {
 
 ShaderDef::ShaderDef()
-	: mTextureMapping( false ), mTextureMappingRectangleArb( false ), mColor( false ), mTextureSwizzleMask( { GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA } )
+	: mTextureMapping( false ), mTextureMappingRectangleArb( false ), mColor( false )
 {
+	mTextureSwizzleMask[0] = GL_RED;
+	mTextureSwizzleMask[1] = GL_GREEN; 
+	mTextureSwizzleMask[2] = GL_BLUE; 
+	mTextureSwizzleMask[3] = GL_ALPHA;
 }
 
 ShaderDef& ShaderDef::texture( const TextureRef &texture )
