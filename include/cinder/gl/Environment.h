@@ -57,7 +57,8 @@ class Environment {
 	ContextRef				createSharedContext( const Context *sharedContext );
 	//! NULL for \a context deactivates the current context
 	void					makeContextCurrent( const Context *context );
-	
+
+	virtual bool			isExtensionAvailable( const std::string &extName ) = 0;
 	virtual bool			supportsHardwareVao() = 0;
 
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) = 0;

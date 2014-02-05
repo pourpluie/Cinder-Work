@@ -37,6 +37,7 @@ class EnvironmentEs2 : public Environment {
   public:
 	virtual void	initializeFunctionPointers() override;
 
+	virtual bool	isExtensionAvailable( const std::string &extName ) override;
 	virtual bool	supportsHardwareVao() override;
 	
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
@@ -51,6 +52,33 @@ Environment* allocateEnvironmentEs2()
 
 void EnvironmentEs2::initializeFunctionPointers()
 {
+}
+
+bool EnvironmentEs2::isExtensionAvailable( const std::string &extName )
+{
+	static const char *sExtStr = reinterpret_cast<const char*>( glGetString( GL_EXTENSIONS ) );
+	static std::map<std::string, bool> sExtMap;
+	
+	std::map<std::string,bool>::const_iterator extIt = sExtMap.find( extName );
+	if ( extIt == sExtMap.end() ) {
+		bool found		= false;
+		int extNameLen	= extName.size();
+		const char *p	= sExtStr;
+		const char *end = sExtStr + strlen( sExtStr );
+		while ( p < end ) {
+			int n = strcspn( p, " " );
+			if ( (extNameLen == n ) && ( strncmp( extName.c_str(), p, n) == 0 ) ) {
+				found = true;
+				break;
+			}
+			p += (n + 1);
+		}
+		sExtMap[extName] = found;
+		return found;
+	}
+	else {
+		return extIt->second;
+	}
 }
 
 bool EnvironmentEs2::supportsHardwareVao()

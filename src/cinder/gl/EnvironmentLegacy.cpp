@@ -39,6 +39,7 @@ namespace cinder { namespace gl {
 class EnvironmentLegacy : public Environment {
   public:
 	virtual void	initializeFunctionPointers() override;
+	virtual bool	isExtensionAvailable( const std::string &extName ) override;
 	virtual bool	supportsHardwareVao() override;
 	virtual bool	isCoreProfile() const override { return false; }
 
@@ -58,6 +59,33 @@ void EnvironmentLegacy::initializeFunctionPointers()
 	if( ! sInitialized ) {
 		ogl_LoadFunctions();
 		sInitialized = true;
+	}
+}
+
+bool EnvironmentLegacy::isExtensionAvailable( const std::string &extName )
+{
+	static const char *sExtStr = reinterpret_cast<const char*>( glGetString( GL_EXTENSIONS ) );
+	static std::map<std::string, bool> sExtMap;
+	
+	std::map<std::string,bool>::const_iterator extIt = sExtMap.find( extName );
+	if ( extIt == sExtMap.end() ) {
+		bool found		= false;
+		int extNameLen	= extName.size();
+		const char *p	= sExtStr;
+		const char *end = sExtStr + strlen( sExtStr );
+		while ( p < end ) {
+			int n = strcspn( p, " " );
+			if ( (extNameLen == n ) && ( strncmp( extName.c_str(), p, n) == 0 ) ) {
+				found = true;
+				break;
+			}
+			p += (n + 1);
+		}
+		sExtMap[extName] = found;
+		return found;
+	}
+	else {
+		return extIt->second;
 	}
 }
 
@@ -135,19 +163,19 @@ std::string	EnvironmentLegacy::generateFragmentShader( const ShaderDef &shader )
 				"{\n"
 				;
 	
-	if( shader.mColor && shader.mTextureMapping ) {
-		if( shader.mTextureMappingRectangleArb )
-			s +="	gl_FragColor = texture2DRect( uTex0, TexCoord.st ) * Color;\n";
-		else
-			s +="	gl_FragColor = texture2D( uTex0, TexCoord.st ) * Color;\n";
-	}
-	else if( shader.mTextureMapping ) {
-		if( shader.mTextureMappingRectangleArb )
-			s +="	gl_FragColor = texture2DRect( uTex0, TexCoord.st );\n";
-		else
-			s +="	gl_FragColor = texture2D( uTex0, TexCoord.st );\n";
-				;
-	}
+	if( shader.mTextureMapping ) {
+		std::string textureSampleStr = ( shader.mTextureMappingRectangleArb ) ? "texture2DRect( uTex0, TexCoord.st )" : "texture2D( uTex0, TexCoord.st )";
+		if( ! Texture::supportsHardwareSwizzle() && ! shader.isTextureSwizzleDefault() )
+			textureSampleStr += std::string(".") + shader.getTextureSwizzleString();
+		if( shader.mColor ) {
+			s +=	"	gl_FragColor = " + textureSampleStr + " * Color;\n"
+					;
+		}
+		else {
+			s +=	"	gl_FragColor = " + textureSampleStr + ";\n"
+					;
+		}
+	}	
 	else if( shader.mColor ) {
 		s +=	"	gl_FragColor = Color;\n"
 				;

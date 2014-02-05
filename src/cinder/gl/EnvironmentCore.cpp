@@ -38,6 +38,7 @@ class EnvironmentCore : public Environment {
 	virtual void	initializeFunctionPointers() override;
 
 	virtual bool	isCoreProfile() const override { return true; }
+	virtual bool	isExtensionAvailable( const std::string &extName ) override;
 	virtual bool	supportsHardwareVao() override;
 
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
@@ -57,6 +58,30 @@ void EnvironmentCore::initializeFunctionPointers()
 		ogl_LoadFunctions();
 		sInitialized = true;
 	}
+}
+
+bool EnvironmentCore::isExtensionAvailable( const std::string &extName )
+{	
+	static bool sInitialized = false;
+	static std::set<std::string> sExtensions;
+	if( ! sInitialized ) {
+		GLint loop;
+		GLint numExtensions = 0;
+		glGetIntegerv( GL_NUM_EXTENSIONS, &numExtensions );
+
+		for( loop = 0; loop < numExtensions; loop++) {
+			std::string s = (const char *)glGetStringi(GL_EXTENSIONS, loop );
+			std::transform( s.begin(), s.end(), s.begin(), static_cast<int(*)(int)>( tolower ) );
+			sExtensions.insert( s );
+		}
+		
+		sInitialized = true;
+	}
+
+	// convert to lower case
+	std::string extension = extName;
+	std::transform( extension.begin(), extension.end(), extension.begin(), static_cast<int(*)(int)>( tolower ) );	
+	return sExtensions.count( extension ) > 0;
 }
 
 bool EnvironmentCore::supportsHardwareVao()
