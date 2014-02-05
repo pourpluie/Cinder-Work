@@ -290,7 +290,8 @@ bool TextureBase::supportsHardwareSwizzle()
 	#if defined( CINDER_GLES2 )
 		return false;
 	#else
-		return false;
+		static bool supported = ( ( gl::isExtensionAvailable( "GL_EXT_texture_swizzle" ) || gl::getVersion() >= make_pair( 3, 3 ) ) );
+		return supported;
 	#endif
 }
 

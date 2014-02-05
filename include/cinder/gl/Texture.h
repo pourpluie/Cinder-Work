@@ -11,6 +11,12 @@
 #include <utility>
 #include <array>
 
+#if defined( CINDER_GLES )
+#define GL_BLUE		0x1905
+#define GL_GREEN	0x1904
+#define GL_RED		0x1903
+#endif
+
 namespace cinder { namespace gl {
 
 typedef std::shared_ptr<class TextureBase>		TextureBaseRef;
@@ -68,7 +74,8 @@ class TextureBase {
 	static Vec2i	calcMipLevelSize( int level, GLint width, GLint height );
 	//! Returns the maximum anisotropic filtering maximum allowed by the hardware
 	static GLfloat	getMaxMaxAnisotropy();
-	
+
+	//! Returns the Texture's swizzle mask (corresponding to \c GL_TEXTURE_SWIZZLE_RGBA)	
 	std::array<GLint,4>	getSwizzleMask() const { return mSwizzleMask; }
 	//! Returns whether this hardware supports texture swizzling (via \c GL_TEXTURE_SWIZZLE_RGBA)
 	static bool		supportsHardwareSwizzle();
@@ -140,7 +147,7 @@ class TextureBase {
 		//! Returns the texture anisotropic filtering amount
 		GLfloat getMaxAnisotropy() const { return mMaxAnisotropy; }
 		
-		//! Sets the swizzle mask corresponding to \c GL_TEXTURE_SWIZZLE_RGBA.
+		//! Sets the swizzle mask corresponding to \c GL_TEXTURE_SWIZZLE_RGBA. Expects \c GL_RED through \c GL_ALPHA, or \c GL_ONE or \c GL_ZERO
 		void	setSwizzleMask( const std::array<GLint,4> &swizzleMask ) { mSwizzleMask = swizzleMask; }
 		//! Returns the swizzle mask corresponding to \c GL_TEXTURE_SWIZZLE_RGBA.
 		const std::array<GLint,4>&	getSwizzleMask() const { return mSwizzleMask; }
