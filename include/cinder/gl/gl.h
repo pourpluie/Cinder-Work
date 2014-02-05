@@ -70,6 +70,7 @@ class Environment* env();
 
 void enableVerticalSync( bool enable = true );
 bool isVerticalSyncEnabled();
+//! Returns whether OpenGL Extension \a extName is implemented on the hardware. For example, \c "GL_EXT_texture_swizzle". Case insensitive.
 bool isExtensionAvailable( const std::string &extName );
 //! Returns the OpenGL version number as a pair<major,minor>
 std::pair<GLint,GLint>	getVersion();
