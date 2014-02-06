@@ -156,6 +156,12 @@
 		0053819A15A8CDF90019BA91 /* Event.h in Headers */ = {isa = PBXBuildFile; fileRef = 0053819915A8CDF90019BA91 /* Event.h */; };
 		0053819B15A8CDF90019BA91 /* Event.h in Headers */ = {isa = PBXBuildFile; fileRef = 0053819915A8CDF90019BA91 /* Event.h */; };
 		0053819C15A8CDF90019BA91 /* Event.h in Headers */ = {isa = PBXBuildFile; fileRef = 0053819915A8CDF90019BA91 /* Event.h */; };
+		005783E3189CBB1600D6FB4C /* TextureFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783E2189CBB1600D6FB4C /* TextureFont.cpp */; };
+		005783E4189CBB1600D6FB4C /* TextureFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783E2189CBB1600D6FB4C /* TextureFont.cpp */; };
+		005783E5189CBB1600D6FB4C /* TextureFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783E2189CBB1600D6FB4C /* TextureFont.cpp */; };
+		005783E7189CBB4300D6FB4C /* TextureFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 005783E6189CBB4300D6FB4C /* TextureFont.h */; };
+		005783E8189CBB4300D6FB4C /* TextureFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 005783E6189CBB4300D6FB4C /* TextureFont.h */; };
+		005783E9189CBB4300D6FB4C /* TextureFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 005783E6189CBB4300D6FB4C /* TextureFont.h */; };
 		0059BD33151CF5540063F095 /* ConcurrentCircularBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0059BD32151CF5540063F095 /* ConcurrentCircularBuffer.h */; };
 		0059BD34151CF5540063F095 /* ConcurrentCircularBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0059BD32151CF5540063F095 /* ConcurrentCircularBuffer.h */; };
 		0059BD35151CF5540063F095 /* ConcurrentCircularBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0059BD32151CF5540063F095 /* ConcurrentCircularBuffer.h */; };
@@ -922,6 +928,8 @@
 		0049C1B31010E5A40015B4B9 /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renderer.h; path = app/Renderer.h; sourceTree = "<group>"; };
 		0049C1B61010E5B10015B4B9 /* Renderer.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = Renderer.cpp; path = app/Renderer.cpp; sourceTree = "<group>"; };
 		0053819915A8CDF90019BA91 /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = app/Event.h; sourceTree = "<group>"; };
+		005783E2189CBB1600D6FB4C /* TextureFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureFont.cpp; path = gl/TextureFont.cpp; sourceTree = "<group>"; };
+		005783E6189CBB4300D6FB4C /* TextureFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureFont.h; path = gl/TextureFont.h; sourceTree = "<group>"; };
 		0059BD32151CF5540063F095 /* ConcurrentCircularBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConcurrentCircularBuffer.h; sourceTree = "<group>"; };
 		005B02F6152CD16E00F2C237 /* json_batchallocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = json_batchallocator.h; path = ../src/jsoncpp/json_batchallocator.h; sourceTree = "<group>"; };
 		005B02F7152CD16E00F2C237 /* json_reader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = json_reader.cpp; path = ../src/jsoncpp/json_reader.cpp; sourceTree = "<group>"; };
@@ -1673,6 +1681,7 @@
 				00A06FBD1760EFC500D8BE17 /* Vbo.h */,
 				00A06FBE1760EFC500D8BE17 /* VboMesh.h */,
 				B39A4BF11884CC23002A63AF /* TransformFeedbackObj.h */,
+				005783E6189CBB4300D6FB4C /* TextureFont.h */,
 				B38243AA189DC347008B94AC /* BufferTexture.h */,
 			);
 			name = gl;
@@ -1703,6 +1712,7 @@
 				B39A4BF21884CCD4002A63AF /* TransformFeedbackObj.cpp */,
 				B39A4BF41884CD6F002A63AF /* TransformFeedbackObjImplSoftware.cpp */,
 				00E7ECA5188F93B00029139A /* TransformFeedbackObjImplHardware.cpp */,
+				005783E2189CBB1600D6FB4C /* TextureFont.cpp */,
 				B38243A6189DC328008B94AC /* BufferTexture.cpp */,
 			);
 			name = gl;
@@ -1957,6 +1967,7 @@
 				00611D6A174AD72700BE54C2 /* RendererGl.h in Headers */,
 				00A06FC01760EFC500D8BE17 /* BufferObj.h in Headers */,
 				00A06FC31760EFC500D8BE17 /* Context.h in Headers */,
+				005783E8189CBB4300D6FB4C /* TextureFont.h in Headers */,
 				00A06FC61760EFC500D8BE17 /* Environment.h in Headers */,
 				00A06FC91760EFC500D8BE17 /* Fbo.h in Headers */,
 				00A06FCF1760EFC500D8BE17 /* gl.h in Headers */,
@@ -2060,6 +2071,7 @@
 				007CE1FB127BB13B00799071 /* rapidxml_print.hpp in Headers */,
 				007CE1FC127BB13B00799071 /* rapidxml.hpp in Headers */,
 				003FABA91290ED38002D6860 /* AppNative.h in Headers */,
+				005783E9189CBB4300D6FB4C /* TextureFont.h in Headers */,
 				003133A6129EB85D009DC098 /* Blend.h in Headers */,
 				00A113DB1355363B00081873 /* Triangulate.h in Headers */,
 				00A114241355369A00081873 /* bucketalloc.h in Headers */,
@@ -2158,6 +2170,7 @@
 				002DFD540FA5602900E45AE0 /* ObjLoader.h in Headers */,
 				0071BD050FB9F4AD0092E7D6 /* Display.h in Headers */,
 				00C071B30FF16261004801EA /* Font.h in Headers */,
+				005783E7189CBB4300D6FB4C /* TextureFont.h in Headers */,
 				000529010FFBE14900F19492 /* Text.h in Headers */,
 				0049C1B41010E5A40015B4B9 /* Renderer.h in Headers */,
 				EAC3D1A91011F2E700FFBC9E /* Serial.h in Headers */,
@@ -2374,6 +2387,7 @@
 				007050511114F93F003FCAE4 /* Rand.cpp in Sources */,
 				007050521114F93F003FCAE4 /* KeyEvent.cpp in Sources */,
 				007050531114F93F003FCAE4 /* Stream.cpp in Sources */,
+				005783E4189CBB1600D6FB4C /* TextureFont.cpp in Sources */,
 				007050571114F93F003FCAE4 /* Color.cpp in Sources */,
 				007050581114F93F003FCAE4 /* Rect.cpp in Sources */,
 				007050691114F93F003FCAE4 /* Utilities.cpp in Sources */,
@@ -2493,6 +2507,7 @@
 				00CFD9A21135C3520091E310 /* Rand.cpp in Sources */,
 				00CFD9A31135C3520091E310 /* KeyEvent.cpp in Sources */,
 				00CFD9A41135C3520091E310 /* Stream.cpp in Sources */,
+				005783E5189CBB1600D6FB4C /* TextureFont.cpp in Sources */,
 				00CFD9A51135C3520091E310 /* Color.cpp in Sources */,
 				00CFD9A61135C3520091E310 /* Rect.cpp in Sources */,
 				00CFD9B61135C3520091E310 /* Utilities.cpp in Sources */,
@@ -2733,6 +2748,7 @@
 				003C69F8178C9FED008C1643 /* gl_load_cpp.cpp in Sources */,
 				0087340E17958FBA00BC2063 /* Batch.cpp in Sources */,
 				0087343217A4769E00BC2063 /* VaoImplCore.cpp in Sources */,
+				005783E3189CBB1600D6FB4C /* TextureFont.cpp in Sources */,
 				0087343A17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
 				00E3914217A327BF00952CA0 /* QuickTimeGl.cpp in Sources */,
 				0087344A17B46F9600BC2063 /* EnvironmentLegacy.cpp in Sources */,

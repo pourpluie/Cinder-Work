@@ -6,6 +6,7 @@
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/Batch.h"
 #include "cinder/gl/Shader.h"
+#include "cinder/gl/Environment.h"
 
 #include "cinder/app/App.h"
 #include "cinder/Utilities.h"
@@ -54,30 +55,9 @@ bool isVerticalSyncEnabled()
 #endif
 }
 
-bool isExtensionAvailable( const std::string& extName )
+bool isExtensionAvailable( const std::string &extName )
 {
-	static const char *sExtStr = reinterpret_cast<const char*>( glGetString( GL_EXTENSIONS ) );
-	static std::map<std::string, bool> sExtMap;
-	
-	std::map<std::string,bool>::const_iterator extIt = sExtMap.find( extName );
-	if ( extIt == sExtMap.end() ) {
-		bool found		= false;
-		int extNameLen	= extName.size();
-		const char *p	= sExtStr;
-		const char *end = sExtStr + strlen( sExtStr );
-		while ( p < end ) {
-			int n = strcspn( p, " " );
-			if ( (extNameLen == n ) && ( strncmp( extName.c_str(), p, n) == 0 ) ) {
-				found = true;
-				break;
-			}
-			p += (n + 1);
-		}
-		sExtMap[ extName ] = found;
-		return found;
-	} else {
-		return extIt->second;
-	}
+	return env()->isExtensionAvailable( extName );
 }
 
 std::pair<GLint,GLint> getVersion()
@@ -86,37 +66,43 @@ std::pair<GLint,GLint> getVersion()
 #if defined( CINDER_GLES )
 	return std::make_pair( (GLint)2, (GLint)0 );
 #else
-	// adapted from LoadOGL
-	const char *strVersion = reinterpret_cast<const char*>( glGetString( GL_VERSION ) );
-	GLint major = 0, minor = 0;
-	const char *strDotPos = NULL;
-	int iLength = 0;
-	char strWorkBuff[10];
+	static bool	sInitialized = false;
+	static pair<GLint,GLint> sVersion;
+	if( ! sInitialized ) {
+		// adapted from LoadOGL
+		const char *strVersion = reinterpret_cast<const char*>( glGetString( GL_VERSION ) );
+		GLint major = 0, minor = 0;
+		const char *strDotPos = NULL;
+		int iLength = 0;
+		char strWorkBuff[10];
 
-	strDotPos = strchr( strVersion, '.' );
-	if( ! strDotPos )
-		return std::make_pair( 0, 0 );
+		strDotPos = strchr( strVersion, '.' );
+		if( ! strDotPos )
+			return std::make_pair( 0, 0 );
 
-	iLength = (int)((ptrdiff_t)strDotPos - (ptrdiff_t)strVersion);
-	strncpy(strWorkBuff, strVersion, iLength);
-	strWorkBuff[iLength] = '\0';
+		iLength = (int)((ptrdiff_t)strDotPos - (ptrdiff_t)strVersion);
+		strncpy(strWorkBuff, strVersion, iLength);
+		strWorkBuff[iLength] = '\0';
 
-	major = atoi(strWorkBuff);
-	strDotPos = strchr( strVersion + iLength + 1, ' ' );
-	if( ! strDotPos ) { // No extra data. Take the whole rest of the string.
-		strcpy( strWorkBuff, strVersion + iLength + 1 );
+		major = atoi(strWorkBuff);
+		strDotPos = strchr( strVersion + iLength + 1, ' ' );
+		if( ! strDotPos ) { // No extra data. Take the whole rest of the string.
+			strcpy( strWorkBuff, strVersion + iLength + 1 );
+		}
+		else {
+			// Copy only up until the space.
+			int iLengthMinor = (int)((ptrdiff_t)strDotPos - (ptrdiff_t)strVersion); 
+			iLengthMinor = iLengthMinor - (iLength + 1);
+			strncpy( strWorkBuff, strVersion + iLength + 1, iLengthMinor );
+			strWorkBuff[iLengthMinor] = '\0';
+		}
+
+		minor = atoi( strWorkBuff );
+		sVersion = std::make_pair( major, minor );
+		sInitialized = true;
 	}
-	else {
-		// Copy only up until the space.
-		int iLengthMinor = (int)((ptrdiff_t)strDotPos - (ptrdiff_t)strVersion); 
-		iLengthMinor = iLengthMinor - (iLength + 1);
-		strncpy( strWorkBuff, strVersion + iLength + 1, iLengthMinor );
-		strWorkBuff[iLengthMinor] = '\0';
-	}
 
-	minor = atoi( strWorkBuff );
-
-	return std::make_pair( major, minor );
+	return sVersion;
 #endif
 }
 
@@ -789,6 +775,8 @@ std::string uniformSemanticToString( UniformSemantic uniformSemantic )
 		case UNIFORM_MODELVIEWPROJECTION: return "UNIFORM_MODELVIEWPROJECTION";
 		case UNIFORM_PROJECTION: return "UNIFORM_PROJECTION";
 		case UNIFORM_NORMAL_MATRIX: return "UNIFORM_NORMAL_MATRIX";
+		case UNIFORM_WINDOW_SIZE: return "UNIFORM_WINDOW_SIZE";
+		case UNIFORM_ELAPSED_SECONDS: return "UNIFORM_ELAPSED_SECONDS";
 	}
 }
 

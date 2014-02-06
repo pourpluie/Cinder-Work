@@ -107,6 +107,15 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 	}
 #endif
 
+	// Swizzle mask
+#if ! defined( CINDER_GLES2 )
+	if( supportsHardwareSwizzle() ) {
+		if( format.mSwizzleMask[0] != GL_RED || format.mSwizzleMask[1] != GL_GREEN || format.mSwizzleMask[2] != GL_BLUE || format.mSwizzleMask[3] != GL_ALPHA )
+			glTexParameteriv( mTarget, GL_TEXTURE_SWIZZLE_RGBA, format.mSwizzleMask.data() );
+	}
+#endif
+	mSwizzleMask = format.mSwizzleMask;
+	
 	mMipmapping = format.mMipmapping;
 }
 
@@ -276,6 +285,16 @@ GLfloat TextureBase::getMaxMaxAnisotropy()
 	return maxMaxAnisotropy;
 }
 
+bool TextureBase::supportsHardwareSwizzle()
+{
+	#if defined( CINDER_GLES2 )
+		return false;
+	#else
+		static bool supported = ( ( gl::isExtensionAvailable( "GL_EXT_texture_swizzle" ) || gl::getVersion() >= make_pair( 3, 3 ) ) );
+		return supported;
+	#endif
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // Texture::Format
 TextureBase::Format::Format()
@@ -292,6 +311,7 @@ TextureBase::Format::Format()
 	mMaxAnisotropy = -1.0f;
 	mPixelDataFormat = -1;
 	mPixelDataType = GL_UNSIGNED_BYTE;
+	mSwizzleMask[0] = GL_RED; mSwizzleMask[1] = GL_GREEN; mSwizzleMask[2] = GL_BLUE; mSwizzleMask[3] = GL_ALPHA;	
 }
 
 /////////////////////////////////////////////////////////////////////////////////

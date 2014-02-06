@@ -246,6 +246,8 @@ GlslProg::UniformSemanticMap& GlslProg::getDefaultUniformNameToSemanticMap()
 		sDefaultUniformNameToSemanticMap["ciModelViewProjection"] = UNIFORM_MODELVIEWPROJECTION;
 		sDefaultUniformNameToSemanticMap["ciProjection"] = UNIFORM_PROJECTION;
 		sDefaultUniformNameToSemanticMap["ciNormalMatrix"] = UNIFORM_NORMAL_MATRIX;
+		sDefaultUniformNameToSemanticMap["ciWindowSize"] = UNIFORM_WINDOW_SIZE;
+		sDefaultUniformNameToSemanticMap["ciElapsedSeconds"] = UNIFORM_ELAPSED_SECONDS;
 		initialized = true;
 	}
 	

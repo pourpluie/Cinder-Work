@@ -1,4 +1,5 @@
 #include "cinder/app/AppNative.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/Text.h"
@@ -59,7 +60,7 @@ void TextureFontApp::mouseDown( MouseEvent event )
 void TextureFontApp::draw()
 {
 	gl::setMatricesWindow( getWindowSize() );
-	gl::enableAlphaBlending();
+	gl::enableAlphaBlending( false );
 	gl::clear( Color( 0, 0, 0 ) );
 	
 	std::string str( "Granted, then, that certain transformations do happen, it is essential that we should regard them in the philosophic manner of fairy tales, not in the unphilosophic manner of science and the \"Laws of Nature.\" When we are asked why eggs turn into birds or fruits fall in autumn, we must answer exactly as the fairy godmother would answer if Cinderella asked her why mice turned into horses or her clothes fell from her at twelve o'clock. We must answer that it is MAGIC. It is not a \"law,\" for we do not understand its general formula." );
@@ -78,5 +79,4 @@ void TextureFontApp::draw()
 	mTextureFont->drawString( mTextureFont->getName(), Vec2f( getWindowWidth() - fontNameWidth - 10, getWindowHeight() - mTextureFont->getDescent() ) );
 }
 
-
-CINDER_APP_NATIVE( TextureFontApp, RendererGl(0) )
+CINDER_APP_NATIVE( TextureFontApp, RendererGl )
