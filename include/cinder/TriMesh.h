@@ -258,8 +258,9 @@ class TriMesh : public geom::Source {
 
 	/*! Adds or replaces normals by calculating them from the vertices and faces. If \a smooth is TRUE,
 		similar vertices are grouped together to calculate their average. This will not change the mesh,
-		nor will it affect texture mapping. Renormalization requires 3D vertices. */
-	bool		recalculateNormals( bool smooth = false );
+		nor will it affect texture mapping. If \a weighted is TRUE, larger polygons contribute more to
+		the calculated normal. Renormalization requires 3D vertices. */
+	bool		recalculateNormals( bool smooth = false, bool weighted = false );
 	//! Adds or replaces tangents by calculating them from the normals and texture coordinates. Requires 3D normals and 2D texture coordinates.
 	bool		recalculateTangents();
 	//! Adds or replaces bitangents by calculating them from the normals and tangents. Requires 3D normals and tangents.
@@ -283,6 +284,9 @@ class TriMesh : public geom::Source {
   protected:
 	void		getAttribPointer( geom::Attrib attr, const float **resultPtr, size_t *resultStrideBytes, uint8_t *resultDims ) const;
 	void		copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const float *srcData, size_t count );
+
+	//! Returns whether or not the vertex, color etc. at both indices is the same.
+	bool		isEqual( uint32_t indexA, uint32_t indexB ) const;
 
 	uint8_t		mPositionsDims, mNormalsDims, mTangentsDims, mBitangentsDims, mColorsDims;
 	uint8_t		mTexCoords0Dims, mTexCoords1Dims, mTexCoords2Dims, mTexCoords3Dims;

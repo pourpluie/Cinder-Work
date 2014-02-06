@@ -1,4 +1,5 @@
 #include "cinder/TriMesh.h"
+#include "cinder/app/AppBasic.h"
 
 using std::vector;
 
@@ -479,7 +480,7 @@ void TriMesh::write( DataTargetRef dataTarget ) const
 	}
 }
 
-bool TriMesh::recalculateNormals( bool smooth )
+bool TriMesh::recalculateNormals( bool smooth, bool weighted )
 {
 	// requires valid indices and 3D vertices
 	if( mIndices.empty() || mPositions.empty() || mPositionsDims != 3 )
@@ -536,7 +537,7 @@ bool TriMesh::recalculateNormals( bool smooth )
 		if( e2.lengthSquared() < FLT_EPSILON )
 			continue;
 
-		Vec3f normal = e0.cross(e1).normalized();
+		Vec3f normal = weighted ? e0.cross(e1) : e0.cross(e1).normalized();
 		mNormals[ index0 ] += normal;
 		mNormals[ index1 ] += normal;
 		mNormals[ index2 ] += normal;
@@ -976,6 +977,145 @@ void TriMesh::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride, const 
 		default:
 			throw geom::ExcMissingAttrib();
 	}
+}
+
+bool TriMesh::isEqual( uint32_t indexA, uint32_t indexB ) const
+{
+	const size_t numPositions = getNumVertices();
+
+	if( indexA >= numPositions || indexB >= numPositions )
+		return false;
+
+	if( true ) {
+		const Vec3f &a = *reinterpret_cast<const Vec3f*>(&mPositions[indexA*mPositionsDims]);
+		const Vec3f &b = *reinterpret_cast<const Vec3f*>(&mPositions[indexB*mPositionsDims]);
+		if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+	}
+
+	if( isEnabled( geom::Attrib::COLOR ) ) {
+		if( mColorsDims == 3 ) {
+			const Vec3f &a = *reinterpret_cast<const Vec3f*>(&mColors[indexA*mColorsDims]);
+			const Vec3f &b = *reinterpret_cast<const Vec3f*>(&mColors[indexB*mColorsDims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+		else if( mColorsDims == 4 ) {
+			const Vec4f &a = *reinterpret_cast<const Vec4f*>(&mColors[indexA*mColorsDims]);
+			const Vec4f &b = *reinterpret_cast<const Vec4f*>(&mColors[indexB*mColorsDims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+	}
+
+	if( isEnabled( geom::Attrib::NORMAL ) ) {
+		const Vec3f &a = *reinterpret_cast<const Vec3f*>(&mNormals[indexA*mNormalsDims]);
+		const Vec3f &b = *reinterpret_cast<const Vec3f*>(&mNormals[indexB*mNormalsDims]);
+		if( a.distanceSquared( b ) > FLT_EPSILON )
+		return false;
+	}
+
+	if( isEnabled( geom::Attrib::TEX_COORD_0 ) ) {
+		if( mTexCoords0Dims == 2 ) {
+			const Vec2f &a = *reinterpret_cast<const Vec2f*>(&mTexCoords0[indexA*mTexCoords0Dims]);
+			const Vec2f &b = *reinterpret_cast<const Vec2f*>(&mTexCoords0[indexB*mTexCoords0Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+		else if( mTexCoords0Dims == 3 ) {
+			const Vec3f &a = *reinterpret_cast<const Vec3f*>(&mTexCoords0[indexA*mTexCoords0Dims]);
+			const Vec3f &b = *reinterpret_cast<const Vec3f*>(&mTexCoords0[indexB*mTexCoords0Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+		else if( mTexCoords0Dims == 4 ) {
+			const Vec4f &a = *reinterpret_cast<const Vec4f*>(&mTexCoords0[indexA*mTexCoords0Dims]);
+			const Vec4f &b = *reinterpret_cast<const Vec4f*>(&mTexCoords0[indexB*mTexCoords0Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+	}
+
+	if( isEnabled( geom::Attrib::TEX_COORD_1 ) ) {
+		if( mTexCoords1Dims == 2 ) {
+			const Vec2f &a = *reinterpret_cast<const Vec2f*>(&mTexCoords1[indexA*mTexCoords1Dims]);
+			const Vec2f &b = *reinterpret_cast<const Vec2f*>(&mTexCoords1[indexB*mTexCoords1Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+		else if( mTexCoords1Dims == 3 ) {
+			const Vec3f &a = *reinterpret_cast<const Vec3f*>(&mTexCoords1[indexA*mTexCoords1Dims]);
+			const Vec3f &b = *reinterpret_cast<const Vec3f*>(&mTexCoords1[indexB*mTexCoords1Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+		else if( mTexCoords1Dims == 4 ) {
+			const Vec4f &a = *reinterpret_cast<const Vec4f*>(&mTexCoords1[indexA*mTexCoords1Dims]);
+			const Vec4f &b = *reinterpret_cast<const Vec4f*>(&mTexCoords1[indexB*mTexCoords1Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+	}
+
+	if( isEnabled( geom::Attrib::TEX_COORD_2) ) {
+		if( mTexCoords2Dims == 2 ) {
+			const Vec2f &a = *reinterpret_cast<const Vec2f*>(&mTexCoords2[indexA*mTexCoords2Dims]);
+			const Vec2f &b = *reinterpret_cast<const Vec2f*>(&mTexCoords2[indexB*mTexCoords2Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+		else if( mTexCoords2Dims == 3 ) {
+			const Vec3f &a = *reinterpret_cast<const Vec3f*>(&mTexCoords2[indexA*mTexCoords2Dims]);
+			const Vec3f &b = *reinterpret_cast<const Vec3f*>(&mTexCoords2[indexB*mTexCoords2Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+		else if( mTexCoords2Dims == 4 ) {
+			const Vec4f &a = *reinterpret_cast<const Vec4f*>(&mTexCoords2[indexA*mTexCoords2Dims]);
+			const Vec4f &b = *reinterpret_cast<const Vec4f*>(&mTexCoords2[indexB*mTexCoords2Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+	}
+
+	if( isEnabled( geom::Attrib::TEX_COORD_3 ) ) {
+		if( mTexCoords3Dims == 2 ) {
+			const Vec2f &a = *reinterpret_cast<const Vec2f*>(&mTexCoords3[indexA*mTexCoords3Dims]);
+			const Vec2f &b = *reinterpret_cast<const Vec2f*>(&mTexCoords3[indexB*mTexCoords3Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+		else if( mTexCoords3Dims == 3 ) {
+			const Vec3f &a = *reinterpret_cast<const Vec3f*>(&mTexCoords3[indexA*mTexCoords3Dims]);
+			const Vec3f &b = *reinterpret_cast<const Vec3f*>(&mTexCoords3[indexB*mTexCoords3Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+		else if( mTexCoords3Dims == 4 ) {
+			const Vec4f &a = *reinterpret_cast<const Vec4f*>(&mTexCoords3[indexA*mTexCoords3Dims]);
+			const Vec4f &b = *reinterpret_cast<const Vec4f*>(&mTexCoords3[indexB*mTexCoords3Dims]);
+			if( a.distanceSquared( b ) > FLT_EPSILON )
+			return false;
+		}
+	}
+
+	if( isEnabled( geom::Attrib::TANGENT ) ) {
+		const Vec3f &a = *reinterpret_cast<const Vec3f*>(&mTangents[indexA*mTangentsDims]);
+		const Vec3f &b = *reinterpret_cast<const Vec3f*>(&mTangents[indexB*mTangentsDims]);
+		if( a.distanceSquared( b ) > FLT_EPSILON )
+		return false;
+	}
+
+	if( isEnabled( geom::Attrib::BITANGENT ) ) {
+		const Vec3f &a = *reinterpret_cast<const Vec3f*>(&mBitangents[indexA*mBitangentsDims]);
+		const Vec3f &b = *reinterpret_cast<const Vec3f*>(&mBitangents[indexB*mBitangentsDims]);
+		if( a.distanceSquared( b ) > FLT_EPSILON )
+		return false;
+	}
+
+	// TODO: bone index and weight
+
+	return true;
 }
 
 #if 0
