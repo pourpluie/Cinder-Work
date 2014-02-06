@@ -1329,13 +1329,15 @@ TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format forma
 
 		// load the mipmaps
 		for( int level = 0; level <= numMipMaps && (width || height); ++level ) { 
-			int levelWidth = std::max<int>( 1, ((width>>level)+blockSize-1)/blockSize );
-			int levelHeight = std::max<int>( 1, ((height>>level)+blockSize-1)/blockSize );
-			int rowBytes = levelWidth * blockSizeBytes;
+			int levelWidth = std::max<int>( 1, (width>>level) );
+			int levelHeight = std::max<int>( 1, (height>>level) );
+			int blockWidth = std::max<int>( 1, ((width>>level)+blockSize-1)/blockSize );
+			int blockHeight = std::max<int>( 1, ((height>>level)+blockSize-1)/blockSize );
+			int rowBytes = blockWidth * blockSizeBytes;
 
 			//int size = ( (width+3) / 4 ) * ( (height+3) / 4 ) * blockSize; 
-			ddsStream->readDataAvailable( pixels.get(), levelHeight * rowBytes );
-			glCompressedTexImage2D( result->mTarget, level, dataFormat, levelWidth, levelHeight, 0, levelHeight * rowBytes, pixels.get() );
+			ddsStream->readDataAvailable( pixels.get(), blockHeight * rowBytes );
+			glCompressedTexImage2D( result->mTarget, level, dataFormat, levelWidth, levelHeight, 0, blockHeight * rowBytes, pixels.get() );
 		}
 
 		return result;
