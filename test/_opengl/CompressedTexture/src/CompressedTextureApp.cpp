@@ -33,7 +33,7 @@ void CompressedTextureApp::setup()
 #endif
 
 	if( gl::isExtensionAvailable( "GL_ARB_texture_compression_bptc" ) )
-		mTextures.push_back( make_pair( "DXT5", gl::Texture::createFromDds( loadAsset( "compression_test_bc7.dds" ) ) ) );
+		mTextures.push_back( make_pair( "BC7", gl::Texture::createFromDds( loadAsset( "compression_test_bc7.dds" ) ) ) );
 	else
 		console() << "This GL implementation doesn't support BC7 textures" << std::endl;
 
