@@ -1153,6 +1153,198 @@ ImageTargetGLTexture<T>::~ImageTargetGLTexture()
 	delete [] mData;
 }
 
+#if ! defined( CINDER_GLES )
+TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format format )
+{
+	typedef struct { // DDCOLORKEY
+		uint32_t dw1;
+		uint32_t dw2;
+	} ddColorKey;
+
+	typedef struct  { // DDSCAPS2
+		uint32_t dwCaps1;
+		uint32_t dwCaps2;
+		uint32_t Reserved[2];
+	} ddCaps2;
+
+	typedef struct _DDPIXELFORMAT { // DDPIXELFORMAT
+		uint32_t  dwSize;
+		uint32_t  dwFlags;
+		uint32_t  dwFourCC;
+		union {
+			uint32_t  dwRGBBitCount;
+			uint32_t  dwYUVBitCount;
+			uint32_t  dwZBufferBitDepth;
+			uint32_t  dwAlphaBitDepth;
+			uint32_t  dwLuminanceBitCount;
+			uint32_t  dwBumpBitCount;
+			uint32_t  dwPrivateFormatBitCount;
+		} ;
+		union {
+			uint32_t  dwRBitMask;
+			uint32_t  dwYBitMask;
+			uint32_t  dwStencilBitDepth;
+			uint32_t  dwLuminanceBitMask;
+			uint32_t  dwBumpDuBitMask;
+			uint32_t  dwOperations;
+		} ;
+		union {
+			uint32_t  dwGBitMask;
+			uint32_t  dwUBitMask;
+			uint32_t  dwZBitMask;
+			uint32_t  dwBumpDvBitMask;
+			struct {
+				int32_t wFlipMSTypes;
+				int32_t wBltMSTypes;
+			} MultiSampleCaps;
+		};
+		union {
+			uint32_t  dwBBitMask;
+			uint32_t  dwVBitMask;
+			uint32_t  dwStencilBitMask;
+			uint32_t  dwBumpLuminanceBitMask;
+		};
+		union {
+			uint32_t  dwRGBAlphaBitMask;
+			uint32_t  dwYUVAlphaBitMask;
+			uint32_t  dwLuminanceAlphaBitMask;
+			uint32_t  dwRGBZBitMask;
+			uint32_t  dwYUVZBitMask;
+		} ;
+	} ddPixelFormat;
+
+	typedef struct ddSurface // this is lifted and adapted from DDSURFACEDESC2
+	{
+		uint32_t               dwSize;                 // size of the DDSURFACEDESC structure
+		uint32_t               dwFlags;                // determines what fields are valid
+		uint32_t               dwHeight;               // height of surface to be created
+		uint32_t               dwWidth;                // width of input surface
+		union
+		{
+			int32_t            lPitch;                 // distance to start of next line (return value only)
+			uint32_t           dwLinearSize;           // Formless late-allocated optimized surface size
+		};
+		union
+		{
+			uint32_t           dwBackBufferCount;      // number of back buffers requested
+			uint32_t           dwDepth;                // the depth if this is a volume texture 
+		};
+		union
+		{
+			uint32_t			dwMipMapCount;          // number of mip-map levels requestde
+													// dwZBufferBitDepth removed, use ddpfPixelFormat one instead
+			uint32_t			dwRefreshRate;          // refresh rate (used when display mode is described)
+			uint32_t			dwSrcVBHandle;          // The source used in VB::Optimize
+		};
+		uint32_t				dwAlphaBitDepth;        // depth of alpha buffer requested
+		uint32_t				dwReserved;             // reserved
+		uint32_t				lpSurface;              // pointer to the associated surface memory
+		union
+		{
+			ddColorKey			ddckCKDestOverlay;      // color key for destination overlay use
+			uint32_t			dwEmptyFaceColor;       // Physical color for empty cubemap faces
+		};
+		ddColorKey          ddckCKDestBlt;          // color key for destination blt use
+		ddColorKey          ddckCKSrcOverlay;       // color key for source overlay use
+		ddColorKey          ddckCKSrcBlt;           // color key for source blt use
+		union
+		{
+			ddPixelFormat		ddpfPixelFormat;        // pixel format description of the surface
+			uint32_t			dwFVF;                  // vertex format description of vertex buffers
+		};
+		ddCaps2			ddsCaps;                // direct draw surface capabilities
+		uint32_t		dwTextureStage;         // stage in multitexture cascade
+	} ddSurface;
+
+	enum { FOURCC_DXT1 = 0x31545844, FOURCC_DXT3 = 0x33545844, FOURCC_DXT5 = 0x35545844, FOURCC_DX10 = 0x30315844, DDPF_FOURCC = 0x4 };
+
+	try {
+		auto ddsStream = dataSource->createStream();
+		ddSurface ddsd;
+		char filecode[4];
+		ddsStream->readData( filecode, 4 );
+		if( strncmp( filecode, "DDS ", 4 ) != 0 ) { 
+			return nullptr;
+		}
+
+		ddsStream->readData( &ddsd, 124/*sizeof(ddsd)*/ );
+
+		// has header 10, so we need to skip 20 bytes
+		if( ( ddsd.ddpfPixelFormat.dwFlags & DDPF_FOURCC ) && ( ddsd.ddpfPixelFormat.dwFourCC == FOURCC_DX10 ) ) {
+			uint8_t temp[20];
+			ddsStream->readData( temp, 20 );
+		}
+
+		// how big (worst case) is it going to be including all mipmaps?
+		uint32_t bufSize = ( ddsd.dwMipMapCount > 1 ) ? ( ddsd.dwLinearSize * 2 ) : ( ddsd.dwLinearSize ); 
+		unique_ptr<uint8_t> pixels( new uint8_t[bufSize+1] );
+
+		uint32_t width = ddsd.dwWidth; 
+		uint32_t height = ddsd.dwHeight; 
+		//int numComponents  = (ddsd.ddpfPixelFormat.dwFourCC == FOURCC_DXT1) ? 3 : 4; 
+		int numMipMaps = ddsd.dwMipMapCount;
+		int dataFormat;
+		switch( ddsd.ddpfPixelFormat.dwFourCC ) { 
+			case FOURCC_DXT1: 
+				dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT; 
+			break; 
+			case FOURCC_DXT3: 
+				dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT; 
+			break; 
+			case FOURCC_DXT5: 
+				dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; 
+			break;
+			case FOURCC_DX10:
+				dataFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
+			break;
+			default:
+				return nullptr;
+			break;
+		} 
+
+		off_t offset   = 0; 
+		uint32_t blockSize = 1; 
+		uint32_t blockSizeBytes = ( ddsd.ddpfPixelFormat.dwRGBBitCount + 7 ) / 8;
+		if( ddsd.ddpfPixelFormat.dwFlags & DDPF_FOURCC ) {
+			blockSize = 4;
+			blockSizeBytes = ( ddsd.ddpfPixelFormat.dwFourCC == FOURCC_DXT1 ) ? 8 : 16;
+		}
+
+		// Create the texture
+		GLenum target = format.mTarget;
+		GLuint texID;
+		glGenTextures( 1, &texID );
+
+		TextureRef result = Texture::create( target, texID, width, height, false );
+		result->mWidth = width;
+		result->mHeight = height;
+		result->mInternalFormat = dataFormat;
+
+		if( numMipMaps > 0 )
+			format.mMipmapping = true;
+
+		TextureBindScope bindScope( result );
+		result->initParams( format, GL_RGB /*ignored*/ );
+		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+
+		// load the mipmaps
+		for( int level = 0; level <= numMipMaps && (width || height); ++level ) { 
+			int levelWidth = std::max<int>( 1, ((width>>level)+blockSize-1)/blockSize );
+			int levelHeight = std::max<int>( 1, ((height>>level)+blockSize-1)/blockSize );
+			int rowBytes = levelWidth * blockSizeBytes;
+
+			//int size = ( (width+3) / 4 ) * ( (height+3) / 4 ) * blockSize; 
+			ddsStream->readDataAvailable( pixels.get(), levelHeight * rowBytes );
+			glCompressedTexImage2D( result->mTarget, level, dataFormat, levelWidth, levelHeight, 0, levelHeight * rowBytes, pixels.get() );
+		}
+
+		return result;
+	}
+	catch( ... ) {
+		return nullptr;
+	}
+}
+#endif // ! defined( CINDER_GLES )
 
 TextureResizeExc::TextureResizeExc( const string &message, const Vec2i &updateSize, const Vec2i &textureSize )
 	 : TextureDataExc( "" )

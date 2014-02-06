@@ -6,6 +6,7 @@
 #include "cinder/Rect.h"
 #include "cinder/Stream.h"
 #include "cinder/Exception.h"
+#include "cinder/DataSource.h"
 
 #include <vector>
 #include <utility>
@@ -193,7 +194,7 @@ class Texture : public TextureBase {
 		friend Texture;
 	};
 	
-	/** \brief Constructs a texture of size(\a width, \a height), storing the data in internal format \a aInternalFormat. **/
+	//! Constructs a texture of size(\a width, \a height) and allocates storage.
 	static TextureRef	create( int width, int height, Format format = Format() );
 	/** \brief Constructs a texture of size(\a width, \a height), storing the data in internal format \a aInternalFormat. Pixel data is provided by \a data and is expected to be interleaved and in format \a dataFormat, for which \c GL_RGB or \c GL_RGBA would be typical values. **/
 	static TextureRef	create( const unsigned char *data, int dataFormat, int width, int height, Format format = Format() );
@@ -209,7 +210,11 @@ class Texture : public TextureBase {
 	static TextureRef	create( ImageSourceRef imageSource, Format format = Format() );
 	//! Constructs a Texture based on an externally initialized OpenGL texture. \a doNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
 	static TextureRef	create( GLenum aTarget, GLuint aTextureID, int width, int height, bool doNotDispose );
-	
+#if ! defined( CINDER_GLES )
+	//! Constructs a Texture from a DDS file. Returns a nullptr if the creation fails.
+	static TextureRef	createFromDds( const DataSourceRef &dataSource, Format format = Format() );
+#endif
+
 	/** Designed to accommodate texture where not all pixels are "clean", meaning the maximum texture coordinate value may not be 1.0 (or the texture's width in \c GL_TEXTURE_RECTANGLE_ARB) **/
 	void			setCleanTexCoords( float maxU, float maxV );
 	
@@ -260,9 +265,6 @@ class Texture : public TextureBase {
 	//!	Marks the texture as being flipped vertically or not
 	void			setFlipped( bool aFlipped = true ) { mFlipped = aFlipped; }
 	
-	//!	Creates a new Texture from raw DirectDraw Stream data
-	static Texture	loadDds( IStreamRef ddsStream, Format format );
-	
 	//! Returns an ImageSource pointing to this Texture
 	ImageSourceRef	createSource();
 	
@@ -285,11 +287,10 @@ class Texture : public TextureBase {
 	Texture( GLenum aTarget, GLuint aTextureID, int width, int height, bool doNotDispose );
 
   protected:
-	
 	void	initData( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format );
 	void	initData( const float *data, GLint dataFormat, const Format &format );
 	void	initData( ImageSourceRef imageSource, const Format &format );
-	
+
 	mutable GLint	mWidth, mHeight, mCleanWidth, mCleanHeight;
 	float			mMaxU, mMaxV;
 	bool			mFlipped;
