@@ -4,11 +4,17 @@
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/Context.h"
 #include "cinder/ip/Flip.h"
+	#include "cinder/app/App.h"
 #include <stdio.h>
 
 #if ! defined( CINDER_GLES )
 #define GL_LUMINANCE GL_RED
 #define GL_LUMINANCE_ALPHA GL_RG
+#endif
+
+#if defined( CINDER_GL_ANGLE )
+#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT	GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE
+#define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT	GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE
 #endif
 
 using namespace std;
@@ -1173,7 +1179,7 @@ ImageTargetGLTexture<T>::~ImageTargetGLTexture()
 	delete [] mData;
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format format )
 {
 	typedef struct { // DDCOLORKEY
@@ -1187,7 +1193,7 @@ TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format forma
 		uint32_t Reserved[2];
 	} ddCaps2;
 
-	typedef struct _DDPIXELFORMAT { // DDPIXELFORMAT
+	typedef struct { // DDPIXELFORMAT
 		uint32_t  dwSize;
 		uint32_t  dwFlags;
 		uint32_t  dwFourCC;
@@ -1231,9 +1237,9 @@ TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format forma
 			uint32_t  dwRGBZBitMask;
 			uint32_t  dwYUVZBitMask;
 		} ;
-	} ddPixelFormat;
+	} DdPixelFormat;
 
-	typedef struct ddSurface // this is lifted and adapted from DDSURFACEDESC2
+	typedef struct DdSurface // this is lifted and adapted from DDSURFACEDESC2
 	{
 		uint32_t               dwSize;                 // size of the DDSURFACEDESC structure
 		uint32_t               dwFlags;                // determines what fields are valid
@@ -1269,18 +1275,27 @@ TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format forma
 		ddColorKey          ddckCKSrcBlt;           // color key for source blt use
 		union
 		{
-			ddPixelFormat		ddpfPixelFormat;        // pixel format description of the surface
+			DdPixelFormat		ddpfPixelFormat;        // pixel format description of the surface
 			uint32_t			dwFVF;                  // vertex format description of vertex buffers
 		};
 		ddCaps2			ddsCaps;                // direct draw surface capabilities
 		uint32_t		dwTextureStage;         // stage in multitexture cascade
-	} ddSurface;
+	} DdSurface;
+
+	typedef struct {
+		uint32_t/*DXGI_FORMAT*/					dxgiFormat;
+		uint32_t/*D3D10_RESOURCE_DIMENSION*/	resourceDimension;
+		uint32_t								miscFlag;
+		uint32_t								arraySize;
+		uint32_t								reserved;
+	} DdsHeader10;
 
 	enum { FOURCC_DXT1 = 0x31545844, FOURCC_DXT3 = 0x33545844, FOURCC_DXT5 = 0x35545844, FOURCC_DX10 = 0x30315844, DDPF_FOURCC = 0x4 };
 
 	try {
 		auto ddsStream = dataSource->createStream();
-		ddSurface ddsd;
+		DdSurface ddsd;
+		DdsHeader10 ddsHeader10;
 		char filecode[4];
 		ddsStream->readData( filecode, 4 );
 		if( strncmp( filecode, "DDS ", 4 ) != 0 ) { 
@@ -1289,19 +1304,18 @@ TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format forma
 
 		ddsStream->readData( &ddsd, 124/*sizeof(ddsd)*/ );
 
-		// has header 10, so we need to skip 20 bytes
+		// has header 10
 		if( ( ddsd.ddpfPixelFormat.dwFlags & DDPF_FOURCC ) && ( ddsd.ddpfPixelFormat.dwFourCC == FOURCC_DX10 ) ) {
-			uint8_t temp[20];
-			ddsStream->readData( temp, 20 );
+			ddsStream->readData( &ddsHeader10, sizeof(DdsHeader10) );
 		}
-
-		// how big (worst case) is it going to be including all mipmaps?
-		uint32_t bufSize = ( ddsd.dwMipMapCount > 1 ) ? ( ddsd.dwLinearSize * 2 ) : ( ddsd.dwLinearSize ); 
-		unique_ptr<uint8_t> pixels( new uint8_t[bufSize+1] );
 
 		uint32_t width = ddsd.dwWidth; 
 		uint32_t height = ddsd.dwHeight; 
-		//int numComponents  = (ddsd.ddpfPixelFormat.dwFourCC == FOURCC_DXT1) ? 3 : 4; 
+
+		// how big (worst case) is it going to be including all mipmaps?
+		uint32_t maxBufSize = ( ddsd.dwMipMapCount > 1 ) ? ( width * height * 2 ) : ( width * height ); 
+		unique_ptr<uint8_t> pixels( new uint8_t[maxBufSize] );
+
 		int numMipMaps = ddsd.dwMipMapCount;
 		int dataFormat;
 		switch( ddsd.ddpfPixelFormat.dwFourCC ) { 
@@ -1309,26 +1323,49 @@ TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format forma
 				dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT; 
 			break; 
 			case FOURCC_DXT3: 
-				dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT; 
+				dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 			break; 
 			case FOURCC_DXT5: 
 				dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; 
 			break;
 			case FOURCC_DX10:
-				dataFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
+				switch( ddsHeader10.dxgiFormat ) {
+					case 70/*DXGI_FORMAT_BC1_TYPELESS*/:
+					case 71/*DXGI_FORMAT_BC1_UNORM*/:
+					case 72/*DXGI_FORMAT_BC1_UNORM_SRGB*/:
+						dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+					break;
+					case 73/*DXGI_FORMAT_BC2_TYPELESS*/:
+					case 74/*DXGI_FORMAT_BC2_UNORM*/:
+					case 75/*DXGI_FORMAT_BC2_UNORM_SRGB*/:
+						dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+					break;
+					case 76/*DXGI_FORMAT_BC3_TYPELESS*/:
+					case 77/*DXGI_FORMAT_BC3_UNORM*/:
+					case 78/*DXGI_FORMAT_BC3_UNORM_SRGB*/:
+						dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+					break;
+#if ! defined( CINDER_GL_ANGLE )
+					case 97/*DXGI_FORMAT_BC7_TYPELESS*/:
+					case 98/*DXGI_FORMAT_BC7_UNORM*/:
+					case 99/*DXGI_FORMAT_BC7_UNORM_SRGB*/:
+						dataFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
+					break;
+#endif
+					default:
+						return nullptr;
+				}
 			break;
 			default:
 				return nullptr;
 			break;
 		} 
 
-		off_t offset   = 0; 
-		uint32_t blockSize = 1; 
-		uint32_t blockSizeBytes = ( ddsd.ddpfPixelFormat.dwRGBBitCount + 7 ) / 8;
-		if( ddsd.ddpfPixelFormat.dwFlags & DDPF_FOURCC ) {
-			blockSize = 4;
-			blockSizeBytes = ( ddsd.ddpfPixelFormat.dwFourCC == FOURCC_DXT1 ) ? 8 : 16;
-		}
+		size_t blockSizeBytes;
+		if( ddsd.ddpfPixelFormat.dwFlags & DDPF_FOURCC )
+			blockSizeBytes = ( dataFormat == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ) ? 8 : 16;
+		else
+			blockSizeBytes = ( ddsd.ddpfPixelFormat.dwRGBBitCount + 7 ) / 8;
 
 		// Create the texture
 		GLenum target = format.mTarget;
@@ -1340,7 +1377,7 @@ TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format forma
 		result->mHeight = height;
 		result->mInternalFormat = dataFormat;
 
-		if( numMipMaps > 0 )
+		if( numMipMaps > 1 )
 			format.mMipmapping = true;
 
 		TextureBindScope bindScope( result );
@@ -1351,13 +1388,15 @@ TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format forma
 		for( int level = 0; level <= numMipMaps && (width || height); ++level ) { 
 			int levelWidth = std::max<int>( 1, (width>>level) );
 			int levelHeight = std::max<int>( 1, (height>>level) );
-			int blockWidth = std::max<int>( 1, ((width>>level)+blockSize-1)/blockSize );
-			int blockHeight = std::max<int>( 1, ((height>>level)+blockSize-1)/blockSize );
+			int blockWidth = std::max<int>( 1, (levelWidth+3) / 4 );
+			int blockHeight = std::max<int>( 1, (levelHeight+3) / 4 );
 			int rowBytes = blockWidth * blockSizeBytes;
 
-			//int size = ( (width+3) / 4 ) * ( (height+3) / 4 ) * blockSize; 
 			ddsStream->readDataAvailable( pixels.get(), blockHeight * rowBytes );
 			glCompressedTexImage2D( result->mTarget, level, dataFormat, levelWidth, levelHeight, 0, blockHeight * rowBytes, pixels.get() );
+int err = gl::getError();
+if( err )
+	app::console() << "Error: " << gl::getErrorString( err ) << std::endl;
 		}
 
 		return result;

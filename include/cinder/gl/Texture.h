@@ -228,8 +228,8 @@ class Texture : public TextureBase {
 	static TextureRef	create( ImageSourceRef imageSource, Format format = Format() );
 	//! Constructs a Texture based on an externally initialized OpenGL texture. \a doNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
 	static TextureRef	create( GLenum aTarget, GLuint aTextureID, int width, int height, bool doNotDispose );
-#if ! defined( CINDER_GLES )
-	//! Constructs a Texture from a DDS file. Returns a nullptr if the creation fails.
+#if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
+	//! Constructs a Texture from a DDS file. Returns a nullptr if the creation fails. Supports DXT1, DTX3, and DTX5. Supports BC7 in the presence of \c GL_ARB_texture_compression_bptc. ANGLE version requires textures to be a multiple of 4 due to DX limitation.
 	static TextureRef	createFromDds( const DataSourceRef &dataSource, Format format = Format() );
 #endif
 
