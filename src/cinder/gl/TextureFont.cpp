@@ -231,6 +231,7 @@ TextureFont::TextureFont( const Font &font, const string &utf8Chars, const Forma
 
 	Channel channel( mFormat.getTextureWidth(), mFormat.getTextureHeight() );
 	ip::fill<uint8_t>( &channel, 0 );
+	std::unique_ptr<uint8_t> lumAlphaData( new uint8_t[mFormat.getTextureWidth()*mFormat.getTextureHeight()*2] );
 
 	GLYPHMETRICS gm = { 0, };
 	MAT2 identityMatrix = { {0,1},{0,0},{0,0},{0,1} };
@@ -280,11 +281,25 @@ TextureFont::TextureFont( const Font &font, const string &utf8Chars, const Forma
 			
 			gl::Texture::Format textureFormat = gl::Texture::Format();
 			textureFormat.enableMipmapping( mFormat.hasMipmapping() );
+
+			Surface8u::ConstIter iter( tempSurface, tempSurface.getBounds() );
+			size_t offset = 0;
+			while( iter.line() ) {
+				while( iter.pixel() ) {
+					lumAlphaData.get()[offset+0] = iter.r();
+					lumAlphaData.get()[offset+1] = iter.a();
+					offset += 2;
+				}
+			}
+
+#if defined( CINDER_GLES )
+			textureFormat.setInternalFormat( GL_LUMINANCE_ALPHA );
+#else
 			textureFormat.setInternalFormat( GL_RG );
-			array<GLint,4> swizzleMask = { GL_RED, GL_RED, GL_RED, GL_GREEN }; 
+			array<GLint,4> swizzleMask = { GL_RED, GL_RED, GL_RED, GL_GREEN };
 			textureFormat.setSwizzleMask( swizzleMask );
-			textureFormat.setInternalFormat( GL_RG );
-			mTextures.push_back( gl::Texture::create( tempSurface, textureFormat ) );
+#endif
+			mTextures.push_back( gl::Texture::create( lumAlphaData.get(), textureFormat.getInternalFormat(), mFormat.getTextureWidth(), mFormat.getTextureHeight(), textureFormat ) );
 			ip::fill<uint8_t>( &channel, 0 );			
 			curOffset = Vec2i::zero();
 			curGlyphIndex = 0;
