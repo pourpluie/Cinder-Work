@@ -24,16 +24,16 @@ void CompressedTextureApp::setup()
 	mIndex = 0;
 	mZoom = 1.0f;
 
-	mTextures.push_back( make_pair( "Original", gl::Texture::create( loadImage( loadAsset( "photo_4.jpg" ) ) ) ) );
+	mTextures.push_back( make_pair( "Original", gl::Texture::create( loadImage( loadAsset( "compression_test.png" ) ) ) ) );
 
 #if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
-mTextures.push_back( make_pair( "DXT1 first", gl::Texture::createFromDds( loadAsset( "kueken1-dxt1.dds" ) ) ) );
-mTextures.push_back( make_pair( "DXT1 second", gl::Texture::createFromDds( loadAsset( "photo_4_dxt1.dds" ) ) ) );
-mTextures.push_back( make_pair( "DXT5", gl::Texture::createFromDds( loadAsset( "kueken1-dxt5.dds" ) ) ) );
-
+	mTextures.push_back( make_pair( "DXT1", gl::Texture::createFromDds( loadAsset( "compression_test_dxt1.dds" ) ) ) );
+	mTextures.push_back( make_pair( "DXT3", gl::Texture::createFromDds( loadAsset( "compression_test_dxt3.dds" ) ) ) );
+	mTextures.push_back( make_pair( "DXT5", gl::Texture::createFromDds( loadAsset( "compression_test_dxt5.dds" ) ) ) );
 #endif
+
 	if( gl::isExtensionAvailable( "GL_ARB_texture_compression_bptc" ) )
-		mTextures.push_back( make_pair( "BC7", gl::Texture::createFromDds( loadAsset( "photo_4_bc7.dds" ) ) ) );
+		mTextures.push_back( make_pair( "DXT5", gl::Texture::createFromDds( loadAsset( "compression_test_bc7.dds" ) ) ) );
 	else
 		console() << "This GL implementation doesn't support BC7 textures" << std::endl;
 
