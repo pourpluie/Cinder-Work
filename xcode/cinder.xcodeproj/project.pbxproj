@@ -162,6 +162,12 @@
 		005783E7189CBB4300D6FB4C /* TextureFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 005783E6189CBB4300D6FB4C /* TextureFont.h */; };
 		005783E8189CBB4300D6FB4C /* TextureFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 005783E6189CBB4300D6FB4C /* TextureFont.h */; };
 		005783E9189CBB4300D6FB4C /* TextureFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 005783E6189CBB4300D6FB4C /* TextureFont.h */; };
+		005783F318A5627600D6FB4C /* ConstantStrings.h in Headers */ = {isa = PBXBuildFile; fileRef = 005783F218A5627600D6FB4C /* ConstantStrings.h */; };
+		005783F418A5627600D6FB4C /* ConstantStrings.h in Headers */ = {isa = PBXBuildFile; fileRef = 005783F218A5627600D6FB4C /* ConstantStrings.h */; };
+		005783F518A5627600D6FB4C /* ConstantStrings.h in Headers */ = {isa = PBXBuildFile; fileRef = 005783F218A5627600D6FB4C /* ConstantStrings.h */; };
+		005783F818A562FB00D6FB4C /* ConstantStrings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783F718A562FB00D6FB4C /* ConstantStrings.cpp */; };
+		005783F918A562FB00D6FB4C /* ConstantStrings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783F718A562FB00D6FB4C /* ConstantStrings.cpp */; };
+		005783FA18A562FB00D6FB4C /* ConstantStrings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783F718A562FB00D6FB4C /* ConstantStrings.cpp */; };
 		0059BD33151CF5540063F095 /* ConcurrentCircularBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0059BD32151CF5540063F095 /* ConcurrentCircularBuffer.h */; };
 		0059BD34151CF5540063F095 /* ConcurrentCircularBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0059BD32151CF5540063F095 /* ConcurrentCircularBuffer.h */; };
 		0059BD35151CF5540063F095 /* ConcurrentCircularBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0059BD32151CF5540063F095 /* ConcurrentCircularBuffer.h */; };
@@ -930,6 +936,8 @@
 		0053819915A8CDF90019BA91 /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = app/Event.h; sourceTree = "<group>"; };
 		005783E2189CBB1600D6FB4C /* TextureFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureFont.cpp; path = gl/TextureFont.cpp; sourceTree = "<group>"; };
 		005783E6189CBB4300D6FB4C /* TextureFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureFont.h; path = gl/TextureFont.h; sourceTree = "<group>"; };
+		005783F218A5627600D6FB4C /* ConstantStrings.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = ConstantStrings.h; path = gl/ConstantStrings.h; sourceTree = "<group>"; };
+		005783F718A562FB00D6FB4C /* ConstantStrings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConstantStrings.cpp; path = gl/ConstantStrings.cpp; sourceTree = "<group>"; };
 		0059BD32151CF5540063F095 /* ConcurrentCircularBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConcurrentCircularBuffer.h; sourceTree = "<group>"; };
 		005B02F6152CD16E00F2C237 /* json_batchallocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = json_batchallocator.h; path = ../src/jsoncpp/json_batchallocator.h; sourceTree = "<group>"; };
 		005B02F7152CD16E00F2C237 /* json_reader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = json_reader.cpp; path = ../src/jsoncpp/json_reader.cpp; sourceTree = "<group>"; };
@@ -1683,6 +1691,7 @@
 				B39A4BF11884CC23002A63AF /* TransformFeedbackObj.h */,
 				005783E6189CBB4300D6FB4C /* TextureFont.h */,
 				B38243AA189DC347008B94AC /* BufferTexture.h */,
+				005783F218A5627600D6FB4C /* ConstantStrings.h */,
 			);
 			name = gl;
 			sourceTree = "<group>";
@@ -1714,6 +1723,7 @@
 				00E7ECA5188F93B00029139A /* TransformFeedbackObjImplHardware.cpp */,
 				005783E2189CBB1600D6FB4C /* TextureFont.cpp */,
 				B38243A6189DC328008B94AC /* BufferTexture.cpp */,
+				005783F718A562FB00D6FB4C /* ConstantStrings.cpp */,
 			);
 			name = gl;
 			sourceTree = "<group>";
@@ -1883,6 +1893,7 @@
 				0070500F1114F93F003FCAE4 /* Ray.h in Headers */,
 				007050101114F93F003FCAE4 /* Sphere.h in Headers */,
 				007050121114F93F003FCAE4 /* Arcball.h in Headers */,
+				005783F418A5627600D6FB4C /* ConstantStrings.h in Headers */,
 				007050131114F93F003FCAE4 /* FileDropEvent.h in Headers */,
 				007050141114F93F003FCAE4 /* MayaCamUI.h in Headers */,
 				007050151114F93F003FCAE4 /* TriMesh.h in Headers */,
@@ -2070,6 +2081,7 @@
 				C7FB1BC7124BE31E0045AFD2 /* PcmBuffer.h in Headers */,
 				007CE1FB127BB13B00799071 /* rapidxml_print.hpp in Headers */,
 				007CE1FC127BB13B00799071 /* rapidxml.hpp in Headers */,
+				005783F518A5627600D6FB4C /* ConstantStrings.h in Headers */,
 				003FABA91290ED38002D6860 /* AppNative.h in Headers */,
 				005783E9189CBB4300D6FB4C /* TextureFont.h in Headers */,
 				003133A6129EB85D009DC098 /* Blend.h in Headers */,
@@ -2246,6 +2258,7 @@
 				00A121E41362774F00081873 /* TimelineItem.h in Headers */,
 				00A121E51362774F00081873 /* Tween.h in Headers */,
 				277C2CF01366632B00178A29 /* Matrix22.h in Headers */,
+				005783F318A5627600D6FB4C /* ConstantStrings.h in Headers */,
 				277C2CF11366632B00178A29 /* Matrix33.h in Headers */,
 				277C2CF21366632B00178A29 /* Matrix44.h in Headers */,
 				277C2CF31366632B00178A29 /* MatrixAlgo.h in Headers */,
@@ -2411,6 +2424,7 @@
 				007050A51114F93F003FCAE4 /* EdgeDetect.cpp in Sources */,
 				B38243A8189DC328008B94AC /* BufferTexture.cpp in Sources */,
 				007050A61114F93F003FCAE4 /* Fill.cpp in Sources */,
+				005783F918A562FB00D6FB4C /* ConstantStrings.cpp in Sources */,
 				007050A71114F93F003FCAE4 /* Flip.cpp in Sources */,
 				007050A81114F93F003FCAE4 /* Grayscale.cpp in Sources */,
 				007050A91114F93F003FCAE4 /* Hdr.cpp in Sources */,
@@ -2531,6 +2545,7 @@
 				00CFD9CC1135C3520091E310 /* EdgeDetect.cpp in Sources */,
 				B38243A9189DC328008B94AC /* BufferTexture.cpp in Sources */,
 				00CFD9CD1135C3520091E310 /* Fill.cpp in Sources */,
+				005783FA18A562FB00D6FB4C /* ConstantStrings.cpp in Sources */,
 				00CFD9CE1135C3520091E310 /* Flip.cpp in Sources */,
 				00CFD9CF1135C3520091E310 /* Grayscale.cpp in Sources */,
 				00CFD9D01135C3520091E310 /* Hdr.cpp in Sources */,
@@ -2681,6 +2696,7 @@
 				00419C7611057CC6007EC9AD /* Trim.cpp in Sources */,
 				001E3561115D5EFA000C228C /* Xml.cpp in Sources */,
 				00B729E3115DABD800CD71B9 /* Timer.cpp in Sources */,
+				005783F818A562FB00D6FB4C /* ConstantStrings.cpp in Sources */,
 				00E7ECA6188F93B00029139A /* TransformFeedbackObjImplHardware.cpp in Sources */,
 				0049A349116EE655007DDFB0 /* AxisAlignedBox.cpp in Sources */,
 				C7A76E9F1176449F00A46655 /* Io.cpp in Sources */,

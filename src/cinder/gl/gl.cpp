@@ -728,46 +728,6 @@ geom::Primitive toGeomPrimitive( GLenum prim )
 	}
 }
 
-std::string typeToString( GLenum type )
-{
-	switch( type ) {
-		case GL_BYTE: return "BYTE";
-		case GL_UNSIGNED_BYTE: return "UNSIGNED_BYTE";
-		case GL_SHORT: return "SHORT";
-		case GL_UNSIGNED_SHORT: return "UNSIGNED_SHORT";
-		case GL_INT: return "INT";
-		case GL_UNSIGNED_INT: return "UNSIGNED_INT";
-		case GL_FIXED: return "FIXED";
-		case GL_FLOAT: return "FLOAT";
-		case GL_FLOAT_VEC2: return "FLOAT_VEC2";
-		case GL_FLOAT_VEC3: return "FLOAT_VEC3";
-		case GL_FLOAT_VEC4: return "FLOAT_VEC4";
-		case GL_INT_VEC2: return "INT_VEC2";
-		case GL_INT_VEC3: return "INT_VEC3";
-		case GL_INT_VEC4: return "INT_VEC4";
-		case GL_BOOL: return "BOOL";
-		case GL_BOOL_VEC2: return "BOOL_VEC2";
-		case GL_BOOL_VEC3: return "BOOL_VEC3";
-		case GL_BOOL_VEC4: return "BOOL_VEC4";
-		case GL_FLOAT_MAT2: return "FLOAT_MAT2";
-		case GL_FLOAT_MAT3: return "FLOAT_MAT3";
-		case GL_FLOAT_MAT4: return "FLOAT_MAT4";
-		case GL_SAMPLER_2D: return "SAMPLER_2D";
-		case GL_SAMPLER_CUBE: return "SAMPLER_CUBE";
-#if ! defined( CINDER_GLES )
-		case GL_SAMPLER_1D: return "SAMPLER_1D";
-		case GL_SAMPLER_3D: return "SAMPLER_3D";
-		case GL_SAMPLER_1D_SHADOW: return "SAMPLER_1D_SHADOW";
-		case GL_SAMPLER_2D_SHADOW: return "SAMPLER_2D_SHADOW";
-		case GL_HALF_FLOAT: return "HALF_FLOAT";
-		case GL_DOUBLE: return "DOUBLE";
-		case GL_INT_2_10_10_10_REV: return "INT_2_10_10_10_REV";
-		case GL_UNSIGNED_INT_2_10_10_10_REV: return "UNSIGNED_INT_2_10_10_10_REV";
-#endif
-		default: return "UNKNOWN";
-	}
-}
-
 std::string uniformSemanticToString( UniformSemantic uniformSemantic )
 {
 	switch( uniformSemantic ) {

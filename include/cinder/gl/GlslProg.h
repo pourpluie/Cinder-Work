@@ -225,8 +225,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 #endif
 
 	friend class Context;
-	friend std::ostream& operator<<( std::ostream &lhs, const GlslProgRef &rhs );
-	friend std::ostream& operator<<( std::ostream &lhs, const GlslProg &rhs );
+	friend std::ostream& operator<<( std::ostream &os, const GlslProg &rhs );
 };
 
 class GlslProgCompileExc : public std::exception {

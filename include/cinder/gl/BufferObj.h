@@ -24,6 +24,7 @@
 
 #include "cinder/gl/gl.h"
 #include <memory>
+#include <iosfwd>
 
 namespace cinder { namespace gl {
 
@@ -79,6 +80,10 @@ class BufferObj {
 	size_t				mSize;
 	GLenum				mTarget;
 	GLenum				mUsage;
+	
+	friend std::ostream& operator<<( std::ostream &os, const BufferObj &rhs );
 };
+
+std::ostream& operator<<( std::ostream &os, const BufferObj &rhs );
 	
 } }

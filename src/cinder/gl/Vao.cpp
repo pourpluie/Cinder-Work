@@ -42,6 +42,7 @@
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Environment.h"
+#include "cinder/gl/ConstantStrings.h"
 
 #include <set>
 
@@ -239,7 +240,7 @@ std::ostream& operator<<( std::ostream &lhs, const Vao::Layout &rhs )
 		lhs << " Loc: " << attrib.first << std::endl;
 		lhs << "        Enabled: " << ( attrib.second.mEnabled ? "TRUE" : "FALSE" ) << std::endl;
 		lhs << "           Size: " << attrib.second.mSize << std::endl;
-		lhs << "           Type: " << gl::typeToString( attrib.second.mType ) << "(" << attrib.second.mType << ")" << std::endl;
+		lhs << "           Type: " << gl::constantToString( attrib.second.mType ) << "(" << attrib.second.mType << ")" << std::endl;
 		lhs << "     Normalized: " << ( attrib.second.mNormalized ? "TRUE" : "FALSE" ) << std::endl;
 		lhs << "         Stride: " << attrib.second.mStride << std::endl;
 		lhs << "        Pointer: " << attrib.second.mPointer << "(" << (size_t)attrib.second.mPointer << ")" << std::endl;

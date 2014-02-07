@@ -22,6 +22,7 @@
 
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Context.h"
+#include "cinder/gl/ConstantStrings.h"
 
 using namespace std;
 
@@ -741,40 +742,34 @@ GLint GlslProg::getAttribLocation( const std::string &name ) const
 		return existing->second;
 }
 
-std::ostream& operator<<( std::ostream &lhs, const GlslProgRef &rhs )
+std::ostream& operator<<( std::ostream &os, const GlslProg &rhs )
 {
-	lhs << *rhs;
-	return lhs;
-}
-
-std::ostream& operator<<( std::ostream &lhs, const GlslProg &rhs )
-{
-	lhs << "ID: " << rhs.mHandle << std::endl;
-	lhs << " Uniforms: " << std::endl;
+	os << "ID: " << rhs.mHandle << std::endl;
+	os << " Uniforms: " << std::endl;
 	auto uniformTypes = rhs.getActiveUniformTypes();
-/*	for( auto &uni : uniformTypes ) {
-		lhs << "  \"" << uni.first << "\":" << std::endl;
-		lhs << "    Loc: " << rhs.getUniformLocation( uni.first ) << std::endl;
-		lhs << "    Type: " << gl::typeToString( uni.second ) << std::endl;
+	for( auto &uni : uniformTypes ) {
+		os << "  \"" << uni.first << "\":" << std::endl;
+		os << "    Loc: " << rhs.getUniformLocation( uni.first ) << std::endl;
+		os << "    Type: " << gl::constantToString( uni.second ) << std::endl;
 		auto semIt = rhs.getUniformSemantics().find( uni.first );
 		if( semIt != rhs.getUniformSemantics().end() ) {
-			lhs << "    Semantic: <" << gl::uniformSemanticToString( semIt->second ) << ">" << std::endl;
+			os << "    Semantic: <" << gl::uniformSemanticToString( semIt->second ) << ">" << std::endl;
 		}
 	}
 
 	auto attribTypes = rhs.getActiveAttribTypes();
-	lhs << " Attributes: " << std::endl;
+	os << " Attributes: " << std::endl;
 	for( auto &attrib : attribTypes ) {
-		lhs << "  \"" << attrib.first << "\":" << std::endl;
-		lhs << "    Loc: " << rhs.getAttribLocation( attrib.first ) << std::endl;
-		lhs << "    Type: " << gl::typeToString( attrib.second ) << std::endl;
+		os << "  \"" << attrib.first << "\":" << std::endl;
+		os << "    Loc: " << rhs.getAttribLocation( attrib.first ) << std::endl;
+		os << "    Type: " << gl::constantToString( attrib.second ) << std::endl;
 		auto semIt = rhs.getAttribSemantics().find( attrib.first );
 		if( semIt != rhs.getAttribSemantics().end() ) {
-			lhs << "    Semantic: <" << geom::attribToString( semIt->second ) << ">" << std::endl;
+			os << "    Semantic: <" << geom::attribToString( semIt->second ) << ">" << std::endl;
 		}
-	}*/
+	}
 
-	return lhs;
+	return os;
 }
 
 //////////////////////////////////////////////////////////////////////////
