@@ -795,7 +795,7 @@ void Texture::update( const PboRef &pbo, GLenum format, GLenum type, const Area 
 	CI_ASSERT_ERROR( pbo->getTarget() == GL_PIXEL_UNPACK_BUFFER )
 	*/
 	
-	BufferScope bufScp( pbo );
+	BufferScope bufScp( BufferObjRef( pbo ) );
 	TextureBindScope tbs( mTarget, mTextureId );
 	glTexSubImage2D( mTarget, mipLevel, destArea.getX1(), mHeight - destArea.getY2(), destArea.getWidth(), destArea.getHeight(), format, type, reinterpret_cast<const GLvoid*>( pboByteOffset ) );
 }

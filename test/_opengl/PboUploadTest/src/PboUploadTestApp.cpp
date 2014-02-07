@@ -9,9 +9,9 @@ using namespace ci::app;
 using namespace std;
 
 static const int IMAGE_WIDTH = 1920;
-static const int IMAGE_HEIGHT = 1080 * 6;
+static const int IMAGE_HEIGHT = 1080 * 12;
 static const int IMAGE_CHANNELS = 4;
-static const int NUM_BUFFERS = 3;
+static const int NUM_BUFFERS = 2;
 
 #define USE_PBO
 #define DOUBLE_BUFFER
@@ -77,9 +77,12 @@ void PboUploadTestApp::update()
 	
 //	mTexs[mCurrentTex]->update( mPbos[mCurrentPbo], (IMAGE_CHANNELS==4)?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE );
 	mTexs[mCurrentTex]->update( mPbos[mCurrentPbo], (IMAGE_CHANNELS==4)?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE );
+
+	#if defined( DOUBLE_BUFFER )
 	mCurrentPbo = ( mCurrentPbo + 1 ) % NUM_BUFFERS;
+	#endif
 #else
-	for( int row = 0; row < 10/*IMAGE_HEIGHT*/; ++row ) {
+	for( int row = 0; row < 30/*IMAGE_HEIGHT*/; ++row ) {
 		memcpy( surface.getData( Vec2i( 0, row ) ), rowData, IMAGE_WIDTH * IMAGE_CHANNELS );
 	}	
 	
