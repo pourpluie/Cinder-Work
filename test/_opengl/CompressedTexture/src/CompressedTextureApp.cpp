@@ -9,6 +9,7 @@ using namespace std;
 
 class CompressedTextureApp : public AppNative {
   public:
+	void prepareSettings( Settings *settings ) { settings->enableMultiTouch( false ); }
 	void setup();
 	void mouseDown( MouseEvent event );	
 	void keyDown( KeyEvent event );
@@ -22,7 +23,7 @@ class CompressedTextureApp : public AppNative {
 void CompressedTextureApp::setup()
 {
 	mIndex = 0;
-	mZoom = 1.0f;
+	mZoom = 2.0f;
 
 	mTextures.push_back( make_pair( "Original", gl::Texture::create( loadImage( loadAsset( "compression_test.png" ) ) ) ) );
 
@@ -30,7 +31,7 @@ void CompressedTextureApp::setup()
 	mTextures.push_back( make_pair( "DXT1", gl::Texture::createFromDds( loadAsset( "compression_test_dxt1.dds" ) ) ) );
 	mTextures.push_back( make_pair( "DXT3", gl::Texture::createFromDds( loadAsset( "compression_test_dxt3.dds" ) ) ) );
 	mTextures.push_back( make_pair( "DXT5", gl::Texture::createFromDds( loadAsset( "compression_test_dxt5.dds" ) ) ) );
-#endif
+
 	if( gl::isExtensionAvailable( "GL_ARB_texture_compression_bptc" ) )
 		mTextures.push_back( make_pair( "BC7", gl::Texture::createFromDds( loadAsset( "compression_test_bc7.dds" ) ) ) );
 	else
@@ -41,6 +42,13 @@ void CompressedTextureApp::setup()
 	}
 	else
 		console() << "This GL implementation doesn't support ETC1 textures" << std::endl;
+
+#elif defined( CINDER_GLES )
+	if( gl::isExtensionAvailable( "GL_IMG_texture_compression_pvrtc" ) ) {
+		mTextures.push_back( make_pair( "PVRTC: 2bit", gl::Texture::createFromKtx( loadAsset( "compression_test_pvrtc_2bit.ktx" ) ) ) );
+		mTextures.push_back( make_pair( "PVRTC: 4bit", gl::Texture::createFromKtx( loadAsset( "compression_test_pvrtc_4bit.ktx" ) ) ) );
+	}
+#endif
 }
 
 void CompressedTextureApp::mouseDown( MouseEvent event )

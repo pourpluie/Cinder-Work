@@ -1244,7 +1244,6 @@ void parseKtx( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 	ktxStream->seekRelative( header.bytesOfKeyValueData );
 
 	// clear output containers
-	size_t byteOffset = 0;
 	resultData->clear();
 	for( int level = 0; level < std::max<int>( 1, header.numberOfMipmapLevels ); ++level ) {
 		uint32_t imageSize;
@@ -1260,9 +1259,7 @@ void parseKtx( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 					resultData->back().height = std::max<int>( 1, header.pixelHeight >> level );
 					resultData->back().depth = zSlice;
 					resultData->back().level = level;
-					ktxStream->readData( resultData->back().data.get(), imageSize );
-					
-					byteOffset += imageSize;
+					ktxStream->readData( resultData->back().data.get(), imageSize );					
 				}
 				ktxStream->seekRelative( 3 - (ktxStream->tell() + 3) % 4 );
 			}
@@ -1287,7 +1284,6 @@ TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, Format forma
 	result->mWidth = width;
 	result->mHeight = height;
 	result->mInternalFormat = dataFormat;
-
 	if( mipmapLevels > 1 && ( format.mMipmapping || ( ! format.mMipmappingSpecified ) ) )
 		format.mMipmapping = true;
 
@@ -1299,10 +1295,10 @@ TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, Format forma
 		if( dataType != 0 )
 			glTexImage2D( result->mTarget, textureData.level, internalFormat, textureData.width, textureData.height, 0, dataFormat, dataType, textureData.data.get() );
 		else
-			glCompressedTexImage2D( result->mTarget, textureData.level, dataFormat, textureData.width, textureData.height, 0, textureData.dataSize, textureData.data.get() );
+			glCompressedTexImage2D( result->mTarget, textureData.level, internalFormat, textureData.width, textureData.height, 0, textureData.dataSize, textureData.data.get() );
 	}
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-	
+
 	return result;
 }
 
