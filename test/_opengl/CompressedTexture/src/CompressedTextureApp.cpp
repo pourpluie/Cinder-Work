@@ -37,11 +37,17 @@ void CompressedTextureApp::setup()
 	else
 		console() << "This GL implementation doesn't support BC7 textures" << std::endl;
 	
-	if( gl::isExtensionAvailable( "GL_OES_compressed_ETC1_RGB8_texture" ) || gl::getVersion() >= make_pair(4,3) ) {
+	if( gl::isExtensionAvailable( "GL_OES_compressed_ETC1_RGB8_texture" ) ) {
 		mTextures.push_back( make_pair( "ETC1", gl::Texture::createFromKtx( loadAsset( "compression_test_etc1.ktx" ) ) ) );
 	}
 	else
 		console() << "This GL implementation doesn't support ETC1 textures" << std::endl;
+
+	if( gl::getVersion() >= make_pair(4,3) ) {
+		mTextures.push_back( make_pair( "ETC2", gl::Texture::createFromKtx( loadAsset( "compression_test_etc2.ktx" ) ) ) );
+	}
+	else
+		console() << "This GL implementation doesn't support ETC2 textures" << std::endl;
 
 #elif defined( CINDER_GLES )
 	if( gl::isExtensionAvailable( "GL_IMG_texture_compression_pvrtc" ) ) {
@@ -77,4 +83,8 @@ void CompressedTextureApp::draw()
 	gl::draw( mTextures[mIndex].second, Rectf( mTextures[mIndex].second->getBounds() ) * mZoom );
 }
 
+#if defined( CINDER_MSW )
 CINDER_APP_NATIVE( CompressedTextureApp, RendererGl( RendererGl::Options().version( 4, 3 ) ) )
+#else
+CINDER_APP_NATIVE( CompressedTextureApp, RendererGl )
+#endif
