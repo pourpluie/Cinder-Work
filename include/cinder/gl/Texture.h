@@ -49,6 +49,10 @@ typedef std::shared_ptr<Texture2d>				Texture2dRef;
 typedef std::shared_ptr<class Texture3d>		Texture3dRef;
 typedef std::shared_ptr<class TextureCubeMap>	TextureCubeMapRef;
 
+// Forward-declared from cinder/gl/Pbo.h
+class Pbo;
+typedef std::shared_ptr<Pbo>					PboRef;
+
 class TextureBase {
   public:
 	virtual ~TextureBase();
@@ -260,17 +264,21 @@ class Texture : public TextureBase {
 	/** Designed to accommodate texture where not all pixels are "clean", meaning the maximum texture coordinate value may not be 1.0 (or the texture's width in \c GL_TEXTURE_RECTANGLE_ARB) **/
 	void			setCleanTexCoords( float maxU, float maxV );
 	
-	//! Replaces the pixels of a texture with contents of \a surface. Expects \a surface's size to match the Texture's.
+	//! Replaces the pixels of a Texture with contents of \a surface. Expects \a surface's size to match the Texture's.
 	void			update( const Surface &surface, int mipLevel = 0 );
-	//! Replaces the pixels of a texture with contents of \a surface. Expects \a surface's size to match the Texture's.
+	//! Replaces the pixels of a Texture with contents of \a surface. Expects \a surface's size to match the Texture's.
 	void			update( const Surface32f &surface, int mipLevel = 0 );
 	/** \brief Replaces the pixels of a texture with contents of \a surface. Expects \a area's size to match the Texture's.
 	 \todo Method for updating a subrectangle with an offset into the source **/
 	void			update( const Surface &surface, const Area &area, int mipLevel = 0 );
-	//! Replaces the pixels of a texture with contents of \a channel. Expects \a channel's size to match the Texture's.
+	//! Replaces the pixels of a Texture with contents of \a channel. Expects \a channel's size to match the Texture's.
 	void			update( const Channel32f &channel, int mipLevel = 0 );
-	//! Replaces the pixels of a texture with contents of \a channel. Expects \a area's size to match the Texture's.
+	//! Replaces the pixels of a Texture with contents of \a channel. Expects \a area's size to match the Texture's.
 	void			update( const Channel8u &channel, const Area &area, int mipLevel = 0 );
+	//! Replaces the pixels of a Texture with the contents of a PBO (whose target must be \c GL_PIXEL_UNPACK_BUFFER) at mipmap level \a mipLevel. \a format and \a type correspond to parameters of glTexSubImage2D, and would often be GL_RGB and GL_UNSIGNED_BYTE respectively. Reads from the PBO starting at \a pboByteOffset.
+	void			update( const PboRef &pbo, GLenum format, GLenum type, int mipLevel = 0, size_t pboByteOffset = 0 );
+	//! Replaces a subregion (measured as origin upper-left) of the pixels of a Texture with the contents of a PBO (whose target must be \c GL_PIXEL_UNPACK_BUFFER) at mipmap level \a mipLevel.  \a format and \a type correspond to parameters of glTexSubImage2D, and would often be GL_RGB and GL_UNSIGNED_BYTE respectively. Reads from the PBO starting at \a pboByteOffset.
+	void			update( const PboRef &pbo, GLenum format, GLenum type, const Area &destArea, int mipLevel = 0, size_t pboByteOffset = 0 );
 	
 	//! calculates and sets the total levels of mipmap
 	GLint			getNumMipLevels() const;

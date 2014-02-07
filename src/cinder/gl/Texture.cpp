@@ -22,6 +22,7 @@
 
 #include "cinder/gl/gl.h" // has to be first
 #include "cinder/gl/Fbo.h"
+#include "cinder/gl/Pbo.h"
 #include "cinder/ImageIo.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/Context.h"
@@ -780,6 +781,23 @@ void Texture::update( const Channel8u &channel, const Area &area, int mipLevel )
 			glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), mipMapSize.x, mipMapSize.y, GL_LUMINANCE, GL_UNSIGNED_BYTE, channel.getData( area.getUL() ) );
 		}
 	}
+}
+
+void Texture::update( const PboRef &pbo, GLenum format, GLenum type, int mipLevel, size_t pboByteOffset )
+{
+	update( pbo, format, type, getBounds(), mipLevel, pboByteOffset );
+}
+
+void Texture::update( const PboRef &pbo, GLenum format, GLenum type, const Area &destArea, int mipLevel, size_t pboByteOffset )
+{
+	// TODO: warn if PBO's target is wrong
+	/*
+	CI_ASSERT_ERROR( pbo->getTarget() == GL_PIXEL_UNPACK_BUFFER )
+	*/
+	
+	BufferScope bufScp( pbo );
+	TextureBindScope tbs( mTarget, mTextureId );
+	glTexSubImage2D( mTarget, mipLevel, destArea.getX1(), mHeight - destArea.getY2(), destArea.getWidth(), destArea.getHeight(), format, type, reinterpret_cast<const GLvoid*>( pboByteOffset ) );
 }
 
 int Texture::getNumMipLevels() const

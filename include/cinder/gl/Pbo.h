@@ -22,23 +22,37 @@
 
 #pragma once
 
-// For 
-#if defined( GL_PIXEL_UNPACK_BUFFER )
+#if ! defined( CINDER_GLES )
 
 #include "cinder/gl/BufferObj.h"
 
 namespace cinder { namespace gl {
 	
-typedef std::shared_ptr<class Pbo> PboRef;
+typedef std::shared_ptr<class Pbo>			PboRef;
 
-class Pbo : public BufferObj
-{
-public:
-	static PboRef	create( GLenum target = GL_PIXEL_UNPACK_BUFFER );
-protected:
-	explicit Pbo( GLenum target );
+//! Represents an OpenGL Pixel Buffer Object
+class Pbo : public BufferObj {
+  public:
+	//! Creates a PBO with no memory allocated
+	static PboRef	create( GLenum target );
+	//! Creates a PBO at \a target (generally \c GL_PIXEL_PACK_BUFFER or GL_PIXEL_UNPACK_BUFFER), with storage for \a allocationSize bytes, and filled with data \a data if it is not NULL.
+	static PboRef	create( GLenum target, GLsizeiptr allocationSize, const void *data = nullptr, GLenum usage = GL_STATIC_DRAW );
+
+  protected:
+	Pbo( GLenum target );
+	Pbo( GLenum target, GLsizeiptr allocationSize, const void *data = nullptr, GLenum usage = GL_STATIC_DRAW );
 };
-	
+
+//! Represents an OpenGL Pixel Buffer Object with ci::Surface mapping capabilities
+template<typename T>
+class PboSurface : public BufferObj {
+	/** Creates a PboSurface which can represent a 2D image of \a width X \a height pixels **/
+	static PboRef	create( GLint width, GLint height, bool alpha );
+};
+
+typedef PboSurface<uint8_t>	PboSurface8u;
+typedef PboSurface<float>	PboSurface32f;
+
 } }
 
-#endif
+#endif // defined( CINDER_GLES )
