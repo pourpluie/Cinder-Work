@@ -90,7 +90,7 @@ class TextureBase {
 #endif
 		
 		//! Enables or disables mipmapping. Default is disabled.
-		void	enableMipmapping( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; }
+		void	enableMipmapping( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; mMipmappingSpecified = true; }
 			
 		//! Sets the Texture's internal format. A value of -1 implies selecting the best format for the context.
 		void	setInternalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; }
@@ -159,7 +159,7 @@ class TextureBase {
 		GLenum				mTarget;
 		GLenum				mWrapS, mWrapT, mWrapR;
 		GLenum				mMinFilter, mMagFilter;
-		bool				mMipmapping;
+		bool				mMipmapping, mMipmappingSpecified = false;;
 		bool				mMinFilterSpecified;
 		GLfloat				mMaxAnisotropy;
 		GLint				mInternalFormat;
@@ -228,8 +228,10 @@ class Texture : public TextureBase {
 	static TextureRef	create( ImageSourceRef imageSource, Format format = Format() );
 	//! Constructs a Texture based on an externally initialized OpenGL texture. \a doNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
 	static TextureRef	create( GLenum aTarget, GLuint aTextureID, int width, int height, bool doNotDispose );
+	//! Constructs a Texture from an optionally compressed KTX file. Enables mipmapping if KTX file contains mipmaps and Format has not specified \c false for mipmapping. (http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/)
+	static TextureRef	createFromKtx( const DataSourceRef &dataSource, Format format = Format() );
 #if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
-	//! Constructs a Texture from a DDS file. Returns a nullptr if the creation fails. Supports DXT1, DTX3, and DTX5. Supports BC7 in the presence of \c GL_ARB_texture_compression_bptc. ANGLE version requires textures to be a multiple of 4 due to DX limitation.
+	//! Constructs a Texture from a DDS file. Supports DXT1, DTX3, and DTX5. Supports BC7 in the presence of \c GL_ARB_texture_compression_bptc. Enables mipmapping if DDS contains mipmaps and Format has not specified \c false for mipmapping. ANGLE version requires textures to be a multiple of 4 due to DX limitation.
 	static TextureRef	createFromDds( const DataSourceRef &dataSource, Format format = Format() );
 #endif
 
@@ -427,6 +429,25 @@ class TextureCache
 	std::vector<std::pair<int,TextureRef>>	mTextures;
 };
 
+class KtxParseExc : public Exception {
+  public:	
+	KtxParseExc( const std::string &message ) : mMessage( message )	{}
+
+	virtual const char* what() const throw()	{ return mMessage.c_str(); }
+	
+  protected:
+	std::string		mMessage;
+};
+
+class DdsParseExc : public Exception {
+  public:	
+	DdsParseExc( const std::string &message ) : mMessage( message )	{}
+
+	virtual const char* what() const throw()	{ return mMessage.c_str(); }
+	
+  protected:
+	std::string		mMessage;
+};
 
 class SurfaceConstraintsGLTexture : public SurfaceConstraints
 {

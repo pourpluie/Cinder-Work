@@ -31,12 +31,16 @@ void CompressedTextureApp::setup()
 	mTextures.push_back( make_pair( "DXT3", gl::Texture::createFromDds( loadAsset( "compression_test_dxt3.dds" ) ) ) );
 	mTextures.push_back( make_pair( "DXT5", gl::Texture::createFromDds( loadAsset( "compression_test_dxt5.dds" ) ) ) );
 #endif
-
 	if( gl::isExtensionAvailable( "GL_ARB_texture_compression_bptc" ) )
 		mTextures.push_back( make_pair( "BC7", gl::Texture::createFromDds( loadAsset( "compression_test_bc7.dds" ) ) ) );
 	else
 		console() << "This GL implementation doesn't support BC7 textures" << std::endl;
-
+	
+	if( gl::isExtensionAvailable( "GL_OES_compressed_ETC1_RGB8_texture" ) || gl::getVersion() >= make_pair(4,3) ) {
+		mTextures.push_back( make_pair( "ETC1", gl::Texture::createFromKtx( loadAsset( "compression_test_etc1.ktx" ) ) ) );
+	}
+	else
+		console() << "This GL implementation doesn't support ETC1 textures" << std::endl;
 }
 
 void CompressedTextureApp::mouseDown( MouseEvent event )

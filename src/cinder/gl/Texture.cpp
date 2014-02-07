@@ -4,8 +4,8 @@
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/Context.h"
 #include "cinder/ip/Flip.h"
-	#include "cinder/app/App.h"
 #include <stdio.h>
+#include <algorithm>
 
 #if ! defined( CINDER_GLES )
 #define GL_LUMINANCE GL_RED
@@ -313,6 +313,7 @@ TextureBase::Format::Format()
 	mMinFilter = GL_LINEAR;
 	mMagFilter = GL_LINEAR;
 	mMipmapping = false;
+	mMipmappingSpecified = false;
 	mInternalFormat = -1;
 	mMaxAnisotropy = -1.0f;
 	mPixelDataFormat = -1;
@@ -1179,6 +1180,133 @@ ImageTargetGLTexture<T>::~ImageTargetGLTexture()
 	delete [] mData;
 }
 
+namespace {
+struct KtxTextureData {
+	size_t					dataSize;
+	unique_ptr<uint8_t>		data;
+	size_t					width, height, depth;
+	uint32_t				level;
+};
+
+void parseKtx( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t *resultHeight,
+	uint32_t *resultDepth, uint32_t *resultInternalFormat, uint32_t *resultDataFormat, uint32_t *resultDataType, uint32_t *resultMipmapLevels, vector<KtxTextureData> *resultData )
+{
+	typedef struct {
+		uint8_t		identifier[12];
+		uint32_t	endianness;
+		uint32_t	glType;
+		uint32_t	glTypeSize;
+		uint32_t	glFormat;
+		uint32_t	glInternalFormat;
+		uint32_t	glBaseInternalFormat;
+		uint32_t	pixelWidth;
+		uint32_t	pixelHeight;
+		uint32_t	pixelDepth;
+		uint32_t	numberOfArrayElements;
+		uint32_t	numberOfFaces;
+		uint32_t	numberOfMipmapLevels;
+		uint32_t	bytesOfKeyValueData;
+	} KtxHeader;
+
+	static const uint8_t FileIdentifier[12] = {
+		0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A
+	};
+	
+	KtxHeader header;
+	auto ktxStream = dataSource->createStream();
+	ktxStream->readData( &header, sizeof(header) );
+	
+	for( int i = 0; i < sizeof(FileIdentifier); ++i ) {
+		if( header.identifier[i] != FileIdentifier[i] )
+			throw KtxParseExc( "File identifier mismatch" );
+	}
+	
+	if( header.endianness != 0x04030201 )
+		throw KtxParseExc( "Only little endian currently supported" );
+	
+	if( header.numberOfArrayElements != 0 )
+		throw KtxParseExc( "Array textures not currently supported" );
+
+	if( header.numberOfFaces != 1 )
+		throw KtxParseExc( "Cube maps not currently supported" );
+
+	if( header.pixelDepth != 0 )
+		throw KtxParseExc( "3D textures not currently supported" );
+	
+	*resultWidth = header.pixelWidth;
+	*resultHeight = header.pixelHeight;
+	*resultDepth = header.pixelDepth;
+	*resultInternalFormat = header.glInternalFormat;
+	*resultDataFormat = header.glFormat;
+	*resultDataType = header.glType;
+	*resultMipmapLevels = header.numberOfMipmapLevels;
+	
+	ktxStream->seekRelative( header.bytesOfKeyValueData );
+
+	// clear output containers
+	size_t byteOffset = 0;
+	resultData->clear();
+	for( int level = 0; level < std::max<int>( 1, header.numberOfMipmapLevels ); ++level ) {
+		uint32_t imageSize;
+		ktxStream->readData( &imageSize, sizeof(imageSize) );
+		// currently always 0 -> 1
+		for( int arrayElement = 0; arrayElement < std::max<int>( 1, header.numberOfArrayElements ); ++arrayElement ) {
+			for( int face = 0; face < header.numberOfFaces; ++face ) { // currently always 1
+				for( int zSlice = 0; zSlice < header.pixelDepth + 1; ++zSlice ) { // curently always 0 -> 1
+					resultData->push_back( KtxTextureData() );
+					resultData->back().dataSize = imageSize;
+					resultData->back().data = unique_ptr<uint8_t>( new uint8_t[imageSize] );
+					resultData->back().width = std::max<int>( 1, header.pixelWidth >> level );
+					resultData->back().height = std::max<int>( 1, header.pixelHeight >> level );
+					resultData->back().depth = zSlice;
+					resultData->back().level = level;
+					ktxStream->readData( resultData->back().data.get(), imageSize );
+					
+					byteOffset += imageSize;
+				}
+				ktxStream->seekRelative( 3 - (ktxStream->tell() + 3) % 4 );
+			}
+		}
+		ktxStream->seekRelative( 3 - (imageSize + 3) % 4 );
+	}
+}
+} // anonymous namespace
+
+TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, Format format )
+{
+	uint32_t width, height, depth, mipmapLevels, internalFormat, dataFormat, dataType;
+	vector<KtxTextureData> textureData;
+	parseKtx( dataSource, &width, &height, &depth, &internalFormat, &dataFormat, &dataType, &mipmapLevels, &textureData );
+	
+	
+	GLenum target = format.mTarget;
+	GLuint texId;
+	glGenTextures( 1, &texId );
+
+	TextureRef result = Texture::create( target, texId, width, height, false );
+	result->mWidth = width;
+	result->mHeight = height;
+	result->mInternalFormat = dataFormat;
+
+	if( mipmapLevels > 1 && ( format.mMipmapping || ( ! format.mMipmappingSpecified ) ) )
+		format.mMipmapping = true;
+
+	TextureBindScope bindScope( result );
+	result->initParams( format, dataFormat /*ignored*/ );
+	
+	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+	for( const auto &textureData : textureData ) {
+		if( dataType != 0 )
+			glTexImage2D( result->mTarget, textureData.level, internalFormat, textureData.width, textureData.height, 0, dataFormat, dataType, textureData.data.get() );
+		else
+			glCompressedTexImage2D( result->mTarget, textureData.level, dataFormat, textureData.width, textureData.height, 0, textureData.dataSize, textureData.data.get() );
+	}
+	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+	
+	return result;
+}
+
+
 #if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format format )
 {
@@ -1292,118 +1420,110 @@ TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format forma
 
 	enum { FOURCC_DXT1 = 0x31545844, FOURCC_DXT3 = 0x33545844, FOURCC_DXT5 = 0x35545844, FOURCC_DX10 = 0x30315844, DDPF_FOURCC = 0x4 };
 
-	try {
-		auto ddsStream = dataSource->createStream();
-		DdSurface ddsd;
-		DdsHeader10 ddsHeader10;
-		char filecode[4];
-		ddsStream->readData( filecode, 4 );
-		if( strncmp( filecode, "DDS ", 4 ) != 0 ) { 
-			return nullptr;
-		}
+	auto ddsStream = dataSource->createStream();
+	DdSurface ddsd;
+	DdsHeader10 ddsHeader10;
+	char filecode[4];
+	ddsStream->readData( filecode, 4 );
+	if( strncmp( filecode, "DDS ", 4 ) != 0 ) { 
+		throw DdsParseExc( "File identifier mismatch" );
+	}
 
-		ddsStream->readData( &ddsd, 124/*sizeof(ddsd)*/ );
+	ddsStream->readData( &ddsd, 124/*sizeof(ddsd)*/ );
 
-		// has header 10
-		if( ( ddsd.ddpfPixelFormat.dwFlags & DDPF_FOURCC ) && ( ddsd.ddpfPixelFormat.dwFourCC == FOURCC_DX10 ) ) {
-			ddsStream->readData( &ddsHeader10, sizeof(DdsHeader10) );
-		}
+	// has header 10
+	if( ( ddsd.ddpfPixelFormat.dwFlags & DDPF_FOURCC ) && ( ddsd.ddpfPixelFormat.dwFourCC == FOURCC_DX10 ) ) {
+		ddsStream->readData( &ddsHeader10, sizeof(DdsHeader10) );
+	}
 
-		uint32_t width = ddsd.dwWidth; 
-		uint32_t height = ddsd.dwHeight; 
+	uint32_t width = ddsd.dwWidth; 
+	uint32_t height = ddsd.dwHeight; 
 
-		// how big (worst case) is it going to be including all mipmaps?
-		uint32_t maxBufSize = ( ddsd.dwMipMapCount > 1 ) ? ( width * height * 2 ) : ( width * height ); 
-		unique_ptr<uint8_t> pixels( new uint8_t[maxBufSize] );
+	// how big (worst case) is it going to be including all mipmaps?
+	uint32_t maxBufSize = ( ddsd.dwMipMapCount > 1 ) ? ( width * height * 2 ) : ( width * height ); 
+	unique_ptr<uint8_t> pixels( new uint8_t[maxBufSize] );
 
-		int numMipMaps = ddsd.dwMipMapCount;
-		int dataFormat;
-		switch( ddsd.ddpfPixelFormat.dwFourCC ) { 
-			case FOURCC_DXT1: 
-				dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT; 
-			break; 
-			case FOURCC_DXT3: 
-				dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-			break; 
-			case FOURCC_DXT5: 
-				dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; 
-			break;
-			case FOURCC_DX10:
-				switch( ddsHeader10.dxgiFormat ) {
-					case 70/*DXGI_FORMAT_BC1_TYPELESS*/:
-					case 71/*DXGI_FORMAT_BC1_UNORM*/:
-					case 72/*DXGI_FORMAT_BC1_UNORM_SRGB*/:
-						dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-					break;
-					case 73/*DXGI_FORMAT_BC2_TYPELESS*/:
-					case 74/*DXGI_FORMAT_BC2_UNORM*/:
-					case 75/*DXGI_FORMAT_BC2_UNORM_SRGB*/:
-						dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-					break;
-					case 76/*DXGI_FORMAT_BC3_TYPELESS*/:
-					case 77/*DXGI_FORMAT_BC3_UNORM*/:
-					case 78/*DXGI_FORMAT_BC3_UNORM_SRGB*/:
-						dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-					break;
+	int numMipMaps = ddsd.dwMipMapCount;
+	int dataFormat;
+	switch( ddsd.ddpfPixelFormat.dwFourCC ) { 
+		case FOURCC_DXT1: 
+			dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT; 
+		break; 
+		case FOURCC_DXT3: 
+			dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+		break; 
+		case FOURCC_DXT5: 
+			dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; 
+		break;
+		case FOURCC_DX10:
+			switch( ddsHeader10.dxgiFormat ) {
+				case 70/*DXGI_FORMAT_BC1_TYPELESS*/:
+				case 71/*DXGI_FORMAT_BC1_UNORM*/:
+				case 72/*DXGI_FORMAT_BC1_UNORM_SRGB*/:
+					dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+				break;
+				case 73/*DXGI_FORMAT_BC2_TYPELESS*/:
+				case 74/*DXGI_FORMAT_BC2_UNORM*/:
+				case 75/*DXGI_FORMAT_BC2_UNORM_SRGB*/:
+					dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+				break;
+				case 76/*DXGI_FORMAT_BC3_TYPELESS*/:
+				case 77/*DXGI_FORMAT_BC3_UNORM*/:
+				case 78/*DXGI_FORMAT_BC3_UNORM_SRGB*/:
+					dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+				break;
 #if ! defined( CINDER_GL_ANGLE )
-					case 97/*DXGI_FORMAT_BC7_TYPELESS*/:
-					case 98/*DXGI_FORMAT_BC7_UNORM*/:
-					case 99/*DXGI_FORMAT_BC7_UNORM_SRGB*/:
-						dataFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
-					break;
+				case 97/*DXGI_FORMAT_BC7_TYPELESS*/:
+				case 98/*DXGI_FORMAT_BC7_UNORM*/:
+				case 99/*DXGI_FORMAT_BC7_UNORM_SRGB*/:
+					dataFormat = GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
+				break;
 #endif
-					default:
-						return nullptr;
-				}
-			break;
-			default:
-				return nullptr;
-			break;
-		} 
+				default:
+					throw DdsParseExc( "Unsupported image format" );
+			}
+		break;
+		default:
+			throw DdsParseExc( "Unsupported image format" );
+		break;
+	} 
 
-		size_t blockSizeBytes;
-		if( ddsd.ddpfPixelFormat.dwFlags & DDPF_FOURCC )
-			blockSizeBytes = ( dataFormat == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ) ? 8 : 16;
-		else
-			blockSizeBytes = ( ddsd.ddpfPixelFormat.dwRGBBitCount + 7 ) / 8;
+	size_t blockSizeBytes;
+	if( ddsd.ddpfPixelFormat.dwFlags & DDPF_FOURCC )
+		blockSizeBytes = ( dataFormat == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ) ? 8 : 16;
+	else
+		blockSizeBytes = ( ddsd.ddpfPixelFormat.dwRGBBitCount + 7 ) / 8;
 
-		// Create the texture
-		GLenum target = format.mTarget;
-		GLuint texID;
-		glGenTextures( 1, &texID );
+	// Create the texture
+	GLenum target = format.mTarget;
+	GLuint texID;
+	glGenTextures( 1, &texID );
 
-		TextureRef result = Texture::create( target, texID, width, height, false );
-		result->mWidth = width;
-		result->mHeight = height;
-		result->mInternalFormat = dataFormat;
+	TextureRef result = Texture::create( target, texID, width, height, false );
+	result->mWidth = width;
+	result->mHeight = height;
+	result->mInternalFormat = dataFormat;
 
-		if( numMipMaps > 1 )
-			format.mMipmapping = true;
+	if( numMipMaps > 1 && ( format.mMipmapping || ( ! format.mMipmappingSpecified ) ) )
+		format.mMipmapping = true;
 
-		TextureBindScope bindScope( result );
-		result->initParams( format, GL_RGB /*ignored*/ );
-		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+	TextureBindScope bindScope( result );
+	result->initParams( format, GL_RGB /*ignored*/ );
+	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 
-		// load the mipmaps
-		for( int level = 0; level <= numMipMaps && (width || height); ++level ) { 
-			int levelWidth = std::max<int>( 1, (width>>level) );
-			int levelHeight = std::max<int>( 1, (height>>level) );
-			int blockWidth = std::max<int>( 1, (levelWidth+3) / 4 );
-			int blockHeight = std::max<int>( 1, (levelHeight+3) / 4 );
-			int rowBytes = blockWidth * blockSizeBytes;
+	// load the mipmaps
+	for( int level = 0; level <= numMipMaps && (width || height); ++level ) { 
+		int levelWidth = std::max<int>( 1, (width>>level) );
+		int levelHeight = std::max<int>( 1, (height>>level) );
+		int blockWidth = std::max<int>( 1, (levelWidth+3) / 4 );
+		int blockHeight = std::max<int>( 1, (levelHeight+3) / 4 );
+		int rowBytes = blockWidth * blockSizeBytes;
 
-			ddsStream->readDataAvailable( pixels.get(), blockHeight * rowBytes );
-			glCompressedTexImage2D( result->mTarget, level, dataFormat, levelWidth, levelHeight, 0, blockHeight * rowBytes, pixels.get() );
-int err = gl::getError();
-if( err )
-	app::console() << "Error: " << gl::getErrorString( err ) << std::endl;
-		}
-
-		return result;
+		ddsStream->readDataAvailable( pixels.get(), blockHeight * rowBytes );
+		glCompressedTexImage2D( result->mTarget, level, dataFormat, levelWidth, levelHeight, 0, blockHeight * rowBytes, pixels.get() );
 	}
-	catch( ... ) {
-		return nullptr;
-	}
+
+	return result;
 }
 #endif // ! defined( CINDER_GLES )
 
