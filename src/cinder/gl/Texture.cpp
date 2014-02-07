@@ -6,6 +6,7 @@
 #include "cinder/ip/Flip.h"
 #include <stdio.h>
 #include <algorithm>
+#include <memory>
 
 #if ! defined( CINDER_GLES )
 #define GL_LUMINANCE GL_RED
@@ -1183,7 +1184,7 @@ ImageTargetGLTexture<T>::~ImageTargetGLTexture()
 namespace {
 struct KtxTextureData {
 	size_t					dataSize;
-	unique_ptr<uint8_t>		data;
+	shared_ptr<uint8_t>		data;
 	size_t					width, height, depth;
 	uint32_t				level;
 };
@@ -1255,7 +1256,7 @@ void parseKtx( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 				for( int zSlice = 0; zSlice < header.pixelDepth + 1; ++zSlice ) { // curently always 0 -> 1
 					resultData->push_back( KtxTextureData() );
 					resultData->back().dataSize = imageSize;
-					resultData->back().data = unique_ptr<uint8_t>( new uint8_t[imageSize] );
+					resultData->back().data = shared_ptr<uint8_t>( new uint8_t[imageSize] );
 					resultData->back().width = std::max<int>( 1, header.pixelWidth >> level );
 					resultData->back().height = std::max<int>( 1, header.pixelHeight >> level );
 					resultData->back().depth = zSlice;

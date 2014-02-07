@@ -159,7 +159,7 @@ class TextureBase {
 		GLenum				mTarget;
 		GLenum				mWrapS, mWrapT, mWrapR;
 		GLenum				mMinFilter, mMagFilter;
-		bool				mMipmapping, mMipmappingSpecified = false;;
+		bool				mMipmapping, mMipmappingSpecified;
 		bool				mMinFilterSpecified;
 		GLfloat				mMaxAnisotropy;
 		GLint				mInternalFormat;
