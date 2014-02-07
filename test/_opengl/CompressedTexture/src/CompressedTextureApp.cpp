@@ -69,4 +69,4 @@ void CompressedTextureApp::draw()
 	gl::draw( mTextures[mIndex].second, Rectf( mTextures[mIndex].second->getBounds() ) * mZoom );
 }
 
-CINDER_APP_NATIVE( CompressedTextureApp, RendererGl )
+CINDER_APP_NATIVE( CompressedTextureApp, RendererGl( RendererGl::Options().version( 4, 3 ) ) )
