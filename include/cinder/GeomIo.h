@@ -392,11 +392,17 @@ class Torus : public Source {
 	virtual Torus&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
 	virtual Torus&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
 	Torus&			center( const Vec3f &center ) { mCenter = center; mCalculationsCached = false; return *this; }
-	Torus&			segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
+	Torus&			segmentsAxis( int value ) { mNumSegmentsAxis = value; mCalculationsCached = false; return *this; }
+	Torus&			segmentsRing( int value ) { mNumSegmentsRing = value; mCalculationsCached = false; return *this; }
+	//! Allows you to twist the torus along the ring.
+	Torus&			twist( unsigned twist ) { mTwist = twist; mCalculationsCached = false; return *this; }
+	//! Allows you to twist the torus along the ring. The \a offset is in radians.
+	Torus&			twist( unsigned twist, float offset ) { mTwist = twist; mTwistOffset = offset; mCalculationsCached = false; return *this; }
 	//! Specifies the major and minor radius as a ratio (minor : major). Resulting torus will fit unit cube.
 	Torus&			ratio( float ratio ) {
-						mRadiusMajor = math<float>::max(0.f, 1.0f / (1.0f + ratio)); 
-						mRadiusMinor = math<float>::max(0.f, mRadiusMajor * ratio); 
+						ratio = math<float>::clamp( ratio );
+						mRadiusMajor = 1.f;
+						mRadiusMinor = 1.f - ratio;
 						mCalculationsCached = false; return *this; }
 	//! Specifies the major and minor radius separately.
 	Torus&			radius( float major, float minor ) { 
@@ -417,7 +423,10 @@ class Torus : public Source {
 	Vec3f		mCenter;
 	float		mRadiusMajor;
 	float		mRadiusMinor;
-	int			mNumSegments;
+	int			mNumSegmentsAxis;
+	int			mNumSegmentsRing;
+	unsigned	mTwist;
+	float		mTwistOffset;
 
 	mutable bool						mCalculationsCached;
 	mutable std::vector<Vec3f>			mPositions;

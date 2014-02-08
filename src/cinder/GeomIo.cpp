@@ -830,7 +830,7 @@ Circle&	Circle::radius( float radius )
 void Circle::updateVertexCounts()
 {
 	if( mRequestedSegments <= 0 )
-		mNumSegments = (int)math<double>::floor( mRadius * M_PI * 2 );
+		mNumSegments = (int)math<double>::floor( mRadius * M_TWO_PI );
 	else
 		mNumSegments = mRequestedSegments;
 	
@@ -912,7 +912,7 @@ void Sphere::calculate() const
 
 	int numSegments = mNumSegments;
 	if( numSegments < 4 )
-		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_PI * 2 ) );
+		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_TWO_PI ) );
 
 	// numRings = numSegments / 2
 	int numRings = ( numSegments >> 1 );
@@ -945,9 +945,9 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 		float v = r * ringIncr;
 		for( size_t s = 0; s < segments; s++ ) {
 			float u = 1.0f - s * segIncr;
-			float x = math<float>::sin( M_PI * 2 * u ) * math<float>::sin( M_PI * v );
+			float x = math<float>::sin( M_TWO_PI * u ) * math<float>::sin( M_PI * v );
 			float y = math<float>::sin( -M_PI / 2 + M_PI * v );
-			float z = math<float>::cos( M_PI * 2 * u ) * math<float>::sin( M_PI * v );
+			float z = math<float>::cos( M_TWO_PI * u ) * math<float>::sin( M_PI * v );
 
 			vertIt->set( x * radius + mCenter.x, y * radius + mCenter.y, z * radius + mCenter.z );
 			++vertIt;
@@ -1212,7 +1212,7 @@ void Capsule::calculate() const
 
 	int numSegments = mNumSegments;
 	if( numSegments < 4 )
-		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_PI * 2 ) );
+		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_TWO_PI ) );
 
 	// numRings = numSegments / 2 and should always be an even number
 	int numRings = ( numSegments >> 2 ) << 1;
@@ -1275,8 +1275,8 @@ void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) 
 
 	float segIncr = 1.0f / (float)( segments - 1 );
 	for( size_t s = 0; s < segments; s++ ) {
-		float x = math<float>::cos( 2 * M_PI * s * segIncr ) * radius;
-		float z = math<float>::sin( 2 * M_PI * s * segIncr ) * radius;
+		float x = math<float>::cos( M_TWO_PI * s * segIncr ) * radius;
+		float z = math<float>::sin( M_TWO_PI * s * segIncr ) * radius;
 
 		mPositions.push_back( mCenter + ( quaternion * Vec3f( mRadius * x, mRadius * y + mLength * dy, mRadius * z ) ) );
 
@@ -1300,7 +1300,13 @@ void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) 
 // Torus
 
 Torus::Torus()
-	: mCenter( 0, 0, 0), mRadiusMajor( 0.75f ), mRadiusMinor( 0.25f ), mNumSegments( 36 )
+	: mCenter( 0, 0, 0)
+	, mRadiusMajor( 1.0f )
+	, mRadiusMinor( 0.75f )
+	, mNumSegmentsAxis( 36 )
+	, mNumSegmentsRing( 36 )
+	, mTwist( 0 )
+	, mTwistOffset( 0 )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::NORMAL );
@@ -1312,11 +1318,15 @@ void Torus::calculate() const
 	if( mCalculationsCached )
 		return;
 
-	int numSegments = mNumSegments;
-	if( numSegments < 4 )
-		numSegments = std::max( 12, (int)math<double>::floor( mRadiusMajor * M_PI * 2 ) );
+	int numAxis = mNumSegmentsAxis;
+	if( numAxis < 4 )
+		numAxis = std::max( 12, (int)math<double>::floor( mRadiusMajor * M_TWO_PI ) );
 
-	calculateImplUV( numSegments + 1, numSegments + 1 );
+	int numRing = mNumSegmentsRing;
+	if( numRing < 3 )
+		numRing = std::max( 12, (int)math<double>::floor( mRadiusMajor * M_TWO_PI ) );
+
+	calculateImplUV( numAxis + 1, numRing + 1 );
 	mCalculationsCached = true;
 }
 	
@@ -1334,19 +1344,23 @@ void Torus::calculateImplUV( size_t segments, size_t rings ) const
 
 	float majorIncr = 1.0f / (segments - 1);
 	float minorIncr = 1.0f / (rings - 1);
+	float radiusDiff = mRadiusMajor - mRadiusMinor;
+	float twist = M_TWO_PI * mTwist * minorIncr * majorIncr;
 
 	// vertex, normal, tex coord and color buffers
 	for( int i = 0; i < segments; ++i ) {
-		float cosPhi = -math<float>::cos( i * majorIncr * 2 * M_PI );
-		float sinPhi =  math<float>::sin( i * majorIncr * 2 * M_PI );
+		float phi = i * majorIncr * M_TWO_PI;
+		float cosPhi = -math<float>::cos( phi );
+		float sinPhi =  math<float>::sin( phi );
 
 		for( int j = 0; j < rings; ++j ) {
-			float cosTheta = -math<float>::cos( j * minorIncr * 2 * M_PI );
-			float sinTheta =  math<float>::sin( j * minorIncr * 2 * M_PI );
+			float theta = j * minorIncr * M_TWO_PI + i * twist + mTwistOffset;
+			float cosTheta = -math<float>::cos( theta );
+			float sinTheta =  math<float>::sin( theta );
 
-			float r = mRadiusMajor + mRadiusMinor * cosTheta;
+			float r = mRadiusMinor + cosTheta * radiusDiff;
 			float x = r * cosPhi;
-			float y = sinTheta * mRadiusMinor;
+			float y = sinTheta * radiusDiff;
 			float z = r * sinPhi;
 
 			const size_t k = i * rings + j;
@@ -1437,7 +1451,7 @@ void ConeBase::calculate() const
 	int numSegments = mNumSegments;
 	if( numSegments < 4 ) {
 		float radius = math<float>::max( mRadiusBase, mRadiusApex );
-		numSegments = std::max( 12, (int)math<double>::floor( radius * M_PI * 2 ) );
+		numSegments = std::max( 12, (int)math<double>::floor( radius * M_TWO_PI ) );
 	}
 
 	calculateImplUV( numSegments + 1, (numSegments >> 1) + 1 );
@@ -1463,8 +1477,8 @@ void ConeBase::calculateImplUV( size_t segments, size_t rings ) const
 	// vertex, normal, tex coord and color buffers
 	for( int j = 0; j < rings; ++j ) {
 		for( int i = 0; i < segments; ++i ) {
-			float cosPhi = -math<float>::cos( i * segmentIncr * 2 * M_PI );
-			float sinPhi =  math<float>::sin( i * segmentIncr * 2 * M_PI );
+			float cosPhi = -math<float>::cos( i * segmentIncr * M_TWO_PI );
+			float sinPhi =  math<float>::sin( i * segmentIncr * M_TWO_PI );
 
 			float r = lerp<float>( mRadiusBase, mRadiusApex, j * ringIncr );
 			float x = r * cosPhi;
@@ -1531,8 +1545,8 @@ void ConeBase::calculateCap( bool flip, float height, float radius, size_t segme
 		mTexCoords[index + i * 2 + 0] = Vec2f( i * segmentIncr, 1.0f - height / mHeight );
 
 		// edge point
-		float cosPhi = -math<float>::cos( i * segmentIncr * 2 * M_PI );
-		float sinPhi =  math<float>::sin( i * segmentIncr * 2 * M_PI );
+		float cosPhi = -math<float>::cos( i * segmentIncr * M_TWO_PI );
+		float sinPhi =  math<float>::sin( i * segmentIncr * M_TWO_PI );
 			
 		float x = radius * cosPhi;
 		float y = height;

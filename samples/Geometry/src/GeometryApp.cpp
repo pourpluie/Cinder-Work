@@ -41,6 +41,7 @@ private:
 	bool				mWireframe;
 	bool				mColored;
 	bool				mShowNormals;
+	unsigned			mTwist;
 
 	CameraPersp			mCamera;
 	MayaCamUI			mMayaCam;
@@ -61,7 +62,8 @@ void GeometryApp::setup()
 	mSubdivision = 1;
 	mWireframe = true;
 	mColored = true;
-	mShowNormals = false;
+	mShowNormals = true;
+	mTwist = 0;
 
 	//
 	gl::Texture::Format fmt;
@@ -173,6 +175,8 @@ void GeometryApp::resize(void)
 
 void GeometryApp::keyDown( KeyEvent event )
 {
+	char str[1024];
+
 	switch( event.getCode() )
 	{
 	case KeyEvent::KEY_SPACE:
@@ -198,6 +202,18 @@ void GeometryApp::keyDown( KeyEvent event )
 		break;
 	case KeyEvent::KEY_w:
 		mWireframe = !mWireframe;
+		break;
+	case KeyEvent::KEY_RIGHT:
+		mTwist++;
+		sprintf_s(str, 1024, "Geometry - Twist: %d", mTwist);
+		getWindow()->setTitle( std::string(str) );
+		createPrimitive();
+		break;
+	case KeyEvent::KEY_LEFT:
+		if(mTwist > 0) mTwist--;
+		sprintf_s(str, 1024, "Geometry - Twist: %d", mTwist);
+		getWindow()->setTitle( std::string(str) );
+		createPrimitive();
 		break;
 	}
 }
@@ -235,7 +251,7 @@ void GeometryApp::createPrimitive(void)
 		primitive = geom::SourceRef( new geom::Teapot( geom::Teapot() ) );
 		break;
 	case TORUS:
-		primitive = geom::SourceRef( new geom::Torus( geom::Torus() ) );
+		primitive = geom::SourceRef( new geom::Torus( geom::Torus().segmentsRing(4).twist(mTwist) ) );
 		break;
 	}
 
