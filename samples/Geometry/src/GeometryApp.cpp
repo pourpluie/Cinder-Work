@@ -20,7 +20,7 @@ using namespace std;
 class GeometryApp : public AppNative
 {
 public:
-	typedef enum { CAPSULE, CONE, CUBE, CYLINDER, ICOSAHEDRON, ICOSPHERE, SPHERE, TEAPOT, TORUS } Primitive;
+	typedef enum { CAPSULE, CONE, CUBE, CYLINDER, HELIX, ICOSAHEDRON, ICOSPHERE, SPHERE, TEAPOT, TORUS } Primitive;
 
 	void setup();
 	void update();
@@ -42,6 +42,7 @@ private:
 	bool				mColored;
 	bool				mShowNormals;
 	unsigned			mTwist;
+	float				mHeight;
 
 	CameraPersp			mCamera;
 	MayaCamUI			mMayaCam;
@@ -115,6 +116,11 @@ void GeometryApp::setup()
 
 void GeometryApp::update()
 {
+	mHeight = 5.0f + 3.0f * math<float>::sin( (float) getElapsedSeconds() );
+
+	if( mSelected == HELIX ) {
+		createPrimitive();
+	}
 }
 
 void GeometryApp::draw()
@@ -237,6 +243,9 @@ void GeometryApp::createPrimitive(void)
 		break;
 	case CYLINDER:
 		primitive = geom::SourceRef( new geom::Cylinder( geom::Cylinder() ) );
+		break;
+	case HELIX:
+		primitive = geom::SourceRef( new geom::Helix( geom::Helix().coils(1.5f).height(2) ) );
 		break;
 	case ICOSAHEDRON:
 		primitive = geom::SourceRef( new geom::Icosahedron( geom::Icosahedron() ) );

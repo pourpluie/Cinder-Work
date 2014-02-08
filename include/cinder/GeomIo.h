@@ -388,24 +388,25 @@ class Torus : public Source {
   public:
 	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
 	Torus();
+	virtual ~Torus() {}
 	
-	virtual Torus&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
-	virtual Torus&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
-	Torus&			center( const Vec3f &center ) { mCenter = center; mCalculationsCached = false; return *this; }
-	Torus&			segmentsAxis( int value ) { mNumSegmentsAxis = value; mCalculationsCached = false; return *this; }
-	Torus&			segmentsRing( int value ) { mNumSegmentsRing = value; mCalculationsCached = false; return *this; }
+	virtual Torus&	enable( Attrib attrib ) override { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
+	virtual Torus&	disable( Attrib attrib ) override { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
+	virtual Torus&	center( const Vec3f &center ) { mCenter = center; mCalculationsCached = false; return *this; }
+	virtual Torus&	segmentsAxis( int value ) { mNumSegmentsAxis = value; mCalculationsCached = false; return *this; }
+	virtual Torus&	segmentsRing( int value ) { mNumSegmentsRing = value; mCalculationsCached = false; return *this; }
 	//! Allows you to twist the torus along the ring.
-	Torus&			twist( unsigned twist ) { mTwist = twist; mCalculationsCached = false; return *this; }
+	virtual Torus&	twist( unsigned twist ) { mTwist = twist; mCalculationsCached = false; return *this; }
 	//! Allows you to twist the torus along the ring. The \a offset is in radians.
-	Torus&			twist( unsigned twist, float offset ) { mTwist = twist; mTwistOffset = offset; mCalculationsCached = false; return *this; }
+	virtual Torus&	twist( unsigned twist, float offset ) { mTwist = twist; mTwistOffset = offset; mCalculationsCached = false; return *this; }
 	//! Specifies the major and minor radius as a ratio (minor : major). Resulting torus will fit unit cube.
-	Torus&			ratio( float ratio ) {
+	virtual Torus&	ratio( float ratio ) {
 						ratio = math<float>::clamp( ratio );
 						mRadiusMajor = 1.f;
 						mRadiusMinor = 1.f - ratio;
 						mCalculationsCached = false; return *this; }
 	//! Specifies the major and minor radius separately.
-	Torus&			radius( float major, float minor ) { 
+	virtual Torus&	radius( float major, float minor ) { 
 						mRadiusMajor = math<float>::max(0.f, major); 
 						mRadiusMinor = math<float>::max(0.f, minor); 
 						mCalculationsCached = false; return *this; }
@@ -416,7 +417,7 @@ class Torus : public Source {
 	virtual uint8_t		getAttribDims( Attrib attr ) const override;
 	virtual void		loadInto( Target *target ) const override;
 	
-  private:
+  protected:
 	void			calculate() const;
 	void			calculateImplUV( size_t segments, size_t rings ) const;
 	
@@ -425,6 +426,8 @@ class Torus : public Source {
 	float		mRadiusMinor;
 	int			mNumSegmentsAxis;
 	int			mNumSegmentsRing;
+	float		mHeight;
+	float		mCoils;
 	unsigned	mTwist;
 	float		mTwistOffset;
 
@@ -434,6 +437,24 @@ class Torus : public Source {
 	mutable std::vector<Vec3f>			mNormals;
 	mutable std::vector<Vec3f>			mColors;
 	mutable std::vector<uint32_t>		mIndices;
+};
+
+class Helix : public Torus {
+  public:
+	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
+	Helix() {}
+	
+	virtual Helix&	enable( Attrib attrib ) override { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
+	virtual Helix&	disable( Attrib attrib ) override { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
+	virtual Helix&	center( const Vec3f &center ) override { Torus::center( center ); return *this; }
+	virtual Helix&	segmentsAxis( int value ) override { Torus::segmentsAxis( value ); return *this; }
+	virtual Helix&	segmentsRing( int value ) override { Torus::segmentsRing( value ); return *this; }
+	Helix&			height( float height ) { mHeight = height; mCalculationsCached = false; return *this; }
+	Helix&			coils( float coils ) { mCoils = math<float>::max(0.f, coils); mCalculationsCached = false; return *this; }
+	//! Allows you to twist the helix along the ring.
+	virtual Helix&	twist( unsigned twist ) override { Torus::twist( twist ); return *this; }
+	//! Allows you to twist the helix along the ring. The \a offset is in radians.
+	virtual Helix&	twist( unsigned twist, float offset ) override { Torus::twist( twist, offset ); return *this; }
 };
 
 class Cylinder : public Source {
@@ -447,6 +468,8 @@ class Cylinder : public Source {
 	virtual Cylinder&	origin( const Vec3f &origin ) { mOrigin = origin; mCalculationsCached = false; return *this; }
 	virtual Cylinder&	segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
 	virtual Cylinder&	height( float height ) { mHeight = height; mCalculationsCached = false; return *this; }
+	//! Allows you to specify a \a thickness.
+	virtual Cylinder&	thickness( float thickness ) { mThickness = thickness; mCalculationsCached = false; return *this; }
 	//! Specifies the base and apex radius.
 	virtual Cylinder&	radius( float radius ) { mRadiusBase = mRadiusApex = math<float>::max(0.f, radius); mCalculationsCached = false; return *this; }
 	//! Specifies the axis of the cylinder.
@@ -467,6 +490,7 @@ class Cylinder : public Source {
 	
 	Vec3f		mOrigin;
 	float		mHeight;
+	float		mThickness;
 	Vec3f		mDirection;
 	float		mRadiusBase;
 	float		mRadiusApex;
@@ -491,6 +515,10 @@ class Cone : public Cylinder {
 	virtual Cone&	origin( const Vec3f &origin ) override { Cylinder::origin( origin ); return *this; }
 	virtual Cone&	segments( int segments ) override { Cylinder::segments( segments ); return *this; }
 	virtual Cone&	height( float height ) override { Cylinder::height( height ); return *this; }
+	//! Allows you to specify a \a thickness.
+	virtual Cone&	thickness( float thickness ) override {  Cylinder::thickness( thickness ); return *this; }
+	//! Specifies the base and apex radius.
+	virtual Cone&	radius( float radius ) override {  Cylinder::radius( radius ); return *this; }
 	//! Specifies the base radius.
 	Cone&	base( float base ) { mRadiusBase = base; mCalculationsCached = false; return *this; }
 	//! Specifies the apex radius.

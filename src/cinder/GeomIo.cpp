@@ -1303,6 +1303,8 @@ Torus::Torus()
 	: mCenter( 0, 0, 0)
 	, mRadiusMajor( 1.0f )
 	, mRadiusMinor( 0.75f )
+	, mCoils( 1 )
+	, mHeight( 0 )
 	, mNumSegmentsAxis( 36 )
 	, mNumSegmentsRing( 36 )
 	, mTwist( 0 )
@@ -1318,7 +1320,7 @@ void Torus::calculate() const
 	if( mCalculationsCached )
 		return;
 
-	int numAxis = mNumSegmentsAxis;
+	int numAxis = (int) math<float>::ceil( mNumSegmentsAxis * mCoils );
 	if( numAxis < 4 )
 		numAxis = std::max( 12, (int)math<double>::floor( mRadiusMajor * (float)M_TWO_PI ) );
 
@@ -1345,11 +1347,12 @@ void Torus::calculateImplUV( size_t segments, size_t rings ) const
 	float majorIncr = 1.0f / (segments - 1);
 	float minorIncr = 1.0f / (rings - 1);
 	float radiusDiff = mRadiusMajor - mRadiusMinor;
-	float twist = (float)M_TWO_PI * mTwist * minorIncr * majorIncr;
+	float angle = (float)M_TWO_PI * mCoils;
+	float twist = angle * mTwist * minorIncr * majorIncr;
 
 	// vertex, normal, tex coord and color buffers
 	for( size_t i = 0; i < segments; ++i ) {
-		float phi = i * majorIncr * (float)M_TWO_PI;
+		float phi = i * majorIncr * angle;
 		float cosPhi = -math<float>::cos( phi );
 		float sinPhi =  math<float>::sin( phi );
 
@@ -1360,7 +1363,7 @@ void Torus::calculateImplUV( size_t segments, size_t rings ) const
 
 			float r = mRadiusMinor + cosTheta * radiusDiff;
 			float x = r * cosPhi;
-			float y = sinTheta * radiusDiff;
+			float y = i * majorIncr * mHeight + sinTheta * radiusDiff;
 			float z = r * sinPhi;
 
 			const size_t k = i * rings + j;
@@ -1424,6 +1427,7 @@ Cylinder::Cylinder()
 	: mOrigin( 0, 0, 0 )
 	, mHeight( 2.0f )
 	, mDirection( 0, 1, 0 )
+	, mThickness( 0 )
 	, mRadiusBase( 1.0f )
 	, mRadiusApex( 0.0f )
 	, mNumSegments( 36 )
