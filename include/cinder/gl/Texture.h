@@ -174,6 +174,11 @@ class TextureBase {
 		//! Returns the texture anisotropic filtering amount
 		GLfloat getMaxAnisotropy() const { return mMaxAnisotropy; }
 		
+		//! Supplies an intermediate PBO that Texture constructors optionally make use of. A PBO of an inadequate size results in an error.
+		void			setIntermediatePbo( const PboRef &intermediatePbo ) { mIntermediatePbo = intermediatePbo; }
+		//! Returns the optional intermediate PBO that Texture constructors may make use of.
+		const PboRef&	getIntermediatePbo() const { return mIntermediatePbo; }
+
 		//! Sets the swizzle mask corresponding to \c GL_TEXTURE_SWIZZLE_RGBA. Expects \c GL_RED through \c GL_ALPHA, or \c GL_ONE or \c GL_ZERO
 		void	setSwizzleMask( const std::array<GLint,4> &swizzleMask ) { mSwizzleMask = swizzleMask; }
 		//! Returns the swizzle mask corresponding to \c GL_TEXTURE_SWIZZLE_RGBA.
@@ -193,6 +198,8 @@ class TextureBase {
 		GLenum				mPixelDataType;
 		std::array<GLint,4>	mSwizzleMask;
 		
+		PboRef				mIntermediatePbo;
+
 		friend class TextureBase;
 	};
 
@@ -234,6 +241,8 @@ class Texture : public TextureBase {
 		Format& pixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; return *this; }
 		//! Corresponds to the 'type' parameter of glTexImage*(). Defaults to \c GL_UNSIGNED_BYTE
 		Format& pixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; return *this; }
+		Format& swizzleMask( const std::array<GLint,4> &swizzleMask ) { setSwizzleMask( swizzleMask ); return *this; }
+		Format& intermediatePbo( const PboRef &intermediatePbo ) { setIntermediatePbo( intermediatePbo ); return *this; }
 		
 		friend Texture;
 	};
@@ -254,7 +263,7 @@ class Texture : public TextureBase {
 	static TextureRef	create( ImageSourceRef imageSource, Format format = Format() );
 	//! Constructs a Texture based on an externally initialized OpenGL texture. \a doNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
 	static TextureRef	create( GLenum aTarget, GLuint aTextureID, int width, int height, bool doNotDispose );
-	//! Constructs a Texture from an optionally compressed KTX file. Enables mipmapping if KTX file contains mipmaps and Format has not specified \c false for mipmapping. (http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/)
+	//! Constructs a Texture from an optionally compressed KTX file. Enables mipmapping if KTX file contains mipmaps and Format has not specified \c false for mipmapping. Uses Format's intermediate PBO if supplied; requires it to be large enough to hold all MIP levels. (http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/)
 	static TextureRef	createFromKtx( const DataSourceRef &dataSource, Format format = Format() );
 #if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 	//! Constructs a Texture from a DDS file. Supports DXT1, DTX3, and DTX5. Supports BC7 in the presence of \c GL_ARB_texture_compression_bptc. Enables mipmapping if DDS contains mipmaps and Format has not specified \c false for mipmapping. ANGLE version requires textures to be a multiple of 4 due to DX limitation.
@@ -501,5 +510,11 @@ class TextureResizeExc : public TextureDataExc {
 	TextureResizeExc( const std::string &message, const Vec2i &updateSize, const Vec2i &textureSize );
 };
 
+class TextureIntermediatePboTooSmallExc : public Exception {
+  public:
+	TextureIntermediatePboTooSmallExc() {}
+
+	virtual const char* what() const throw()	{ return "PBO supplied in Texture::Format is too small to use as intermediate storage"; }
+};
 	
 } } // namespace cinder::gl

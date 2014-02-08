@@ -1224,12 +1224,13 @@ ImageTargetGLTexture<T>::~ImageTargetGLTexture()
 namespace {
 struct KtxTextureData {
 	size_t					dataSize;
+	GLvoid					*pboOffset;
 	shared_ptr<uint8_t>		data;
 	size_t					width, height, depth;
 	uint32_t				level;
 };
 
-void parseKtx( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t *resultHeight,
+void parseKtx( const DataSourceRef &dataSource, void *intermediatePboPtr, size_t intermediatePboSize, uint32_t *resultWidth, uint32_t *resultHeight,
 	uint32_t *resultDepth, uint32_t *resultInternalFormat, uint32_t *resultDataFormat, uint32_t *resultDataType, uint32_t *resultMipmapLevels, vector<KtxTextureData> *resultData )
 {
 	typedef struct {
@@ -1286,6 +1287,7 @@ void parseKtx( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 
 	// clear output containers
 	resultData->clear();
+	size_t byteOffset = 0;
 	for( int level = 0; level < std::max<int>( 1, header.numberOfMipmapLevels ); ++level ) {
 		uint32_t imageSize;
 		ktxStream->readData( &imageSize, sizeof(imageSize) );
@@ -1295,12 +1297,22 @@ void parseKtx( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 				for( int zSlice = 0; zSlice < header.pixelDepth + 1; ++zSlice ) { // curently always 0 -> 1
 					resultData->push_back( KtxTextureData() );
 					resultData->back().dataSize = imageSize;
-					resultData->back().data = shared_ptr<uint8_t>( new uint8_t[imageSize] );
+					if( ! intermediatePboPtr ) {
+						resultData->back().data = shared_ptr<uint8_t>( new uint8_t[imageSize] );
+						ktxStream->readData( resultData->back().data.get(), imageSize );
+					}
+					else {
+						resultData->back().pboOffset = (GLvoid*)byteOffset;
+						if( byteOffset + imageSize <= intermediatePboSize )
+							ktxStream->readData( (uint8_t*)intermediatePboPtr + byteOffset, imageSize );
+						else
+							throw TextureIntermediatePboTooSmallExc();
+					}
 					resultData->back().width = std::max<int>( 1, header.pixelWidth >> level );
 					resultData->back().height = std::max<int>( 1, header.pixelHeight >> level );
 					resultData->back().depth = zSlice;
 					resultData->back().level = level;
-					ktxStream->readData( resultData->back().data.get(), imageSize );					
+					byteOffset += imageSize;
 				}
 				ktxStream->seekRelative( 3 - (ktxStream->tell() + 3) % 4 );
 			}
@@ -1312,10 +1324,30 @@ void parseKtx( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 
 TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, Format format )
 {
+	auto ctx = gl::context();
 	uint32_t width, height, depth, mipmapLevels, internalFormat, dataFormat, dataType;
 	vector<KtxTextureData> textureData;
-	parseKtx( dataSource, &width, &height, &depth, &internalFormat, &dataFormat, &dataType, &mipmapLevels, &textureData );
-	
+
+	void *intermediatePboPtr = nullptr;
+	size_t intermediatePtrSize = 0;
+#if ! defined( CINDER_GLES )
+	// if the user has supplied a PBO, we'll use that as intermediate storage rather than CPU memory.
+	// in that case the KtxTextureData's 'data' member will be ignored and instead we'll use its 'pboOffset' member
+	PboRef intermediatePbo = format.getIntermediatePbo();
+	if( intermediatePbo ) {
+		ctx->pushBufferBinding( GL_PIXEL_UNPACK_BUFFER, intermediatePbo->getId() );
+		intermediatePboPtr = intermediatePbo->map( GL_WRITE_ONLY );
+		intermediatePtrSize = intermediatePbo->getSize();
+	}
+#endif
+
+	parseKtx( dataSource, intermediatePboPtr, intermediatePtrSize, &width, &height, &depth, &internalFormat, &dataFormat, &dataType, &mipmapLevels, &textureData );
+
+#if ! defined( CINDER_GLES )
+	if( intermediatePbo ) {
+		intermediatePbo->unmap();
+	}
+#endif		
 	
 	GLenum target = format.mTarget;
 	GLuint texId;
@@ -1332,13 +1364,18 @@ TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, Format forma
 	result->initParams( format, dataFormat /*ignored*/ );
 	
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
-	for( const auto &textureData : textureData ) {
+	for( const auto &textureData : textureData ) {		
 		if( dataType != 0 )
-			glTexImage2D( result->mTarget, textureData.level, internalFormat, textureData.width, textureData.height, 0, dataFormat, dataType, textureData.data.get() );
+			glTexImage2D( result->mTarget, textureData.level, internalFormat, textureData.width, textureData.height, 0, dataFormat, dataType, ( intermediatePboPtr ) ? textureData.pboOffset : textureData.data.get() );
 		else
-			glCompressedTexImage2D( result->mTarget, textureData.level, internalFormat, textureData.width, textureData.height, 0, textureData.dataSize, textureData.data.get() );
+			glCompressedTexImage2D( result->mTarget, textureData.level, internalFormat, textureData.width, textureData.height, 0, textureData.dataSize, ( intermediatePboPtr ) ? textureData.pboOffset : textureData.data.get() );
 	}
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+
+#if ! defined( CINDER_GLES )
+	if( intermediatePbo )
+		ctx->popBufferBinding( GL_PIXEL_UNPACK_BUFFER );
+#endif
 
 	return result;
 }

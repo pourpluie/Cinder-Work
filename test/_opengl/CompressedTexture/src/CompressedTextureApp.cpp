@@ -2,6 +2,7 @@
 #include "cinder/app/RendererGl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Pbo.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -26,25 +27,32 @@ void CompressedTextureApp::setup()
 	mZoom = 2.0f;
 
 	mTextures.push_back( make_pair( "Original", gl::Texture::create( loadImage( loadAsset( "compression_test.png" ) ) ) ) );
+	Vec2i textureSize = mTextures.back().second->getSize();
+
+	gl::Texture::Format		format;
+#if ! defined( CINDER_GLES ) // use an intermediate PBO for non-ES
+	gl::PboRef pbo = gl::Pbo::create( GL_PIXEL_UNPACK_BUFFER, textureSize.x * textureSize.y * 4, nullptr, GL_STREAM_DRAW );
+	format.intermediatePbo( pbo );
+#endif
 
 #if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
-	mTextures.push_back( make_pair( "DXT1", gl::Texture::createFromDds( loadAsset( "compression_test_dxt1.dds" ) ) ) );
-	mTextures.push_back( make_pair( "DXT3", gl::Texture::createFromDds( loadAsset( "compression_test_dxt3.dds" ) ) ) );
-	mTextures.push_back( make_pair( "DXT5", gl::Texture::createFromDds( loadAsset( "compression_test_dxt5.dds" ) ) ) );
+	mTextures.push_back( make_pair( "DXT1", gl::Texture::createFromDds( loadAsset( "compression_test_dxt1.dds" ), format ) ) );
+	mTextures.push_back( make_pair( "DXT3", gl::Texture::createFromDds( loadAsset( "compression_test_dxt3.dds" ), format ) ) );
+	mTextures.push_back( make_pair( "DXT5", gl::Texture::createFromDds( loadAsset( "compression_test_dxt5.dds" ), format ) ) );
 
 	if( gl::isExtensionAvailable( "GL_ARB_texture_compression_bptc" ) )
-		mTextures.push_back( make_pair( "BC7", gl::Texture::createFromDds( loadAsset( "compression_test_bc7.dds" ) ) ) );
+		mTextures.push_back( make_pair( "BC7", gl::Texture::createFromDds( loadAsset( "compression_test_bc7.dds" ), format ) ) );
 	else
 		console() << "This GL implementation doesn't support BC7 textures" << std::endl;
 	
 	if( gl::isExtensionAvailable( "GL_OES_compressed_ETC1_RGB8_texture" ) ) {
-		mTextures.push_back( make_pair( "ETC1", gl::Texture::createFromKtx( loadAsset( "compression_test_etc1.ktx" ) ) ) );
+		mTextures.push_back( make_pair( "ETC1", gl::Texture::createFromKtx( loadAsset( "compression_test_etc1.ktx" ), format ) ) );
 	}
 	else
 		console() << "This GL implementation doesn't support ETC1 textures" << std::endl;
 
 	if( gl::getVersion() >= make_pair(4,3) ) {
-		mTextures.push_back( make_pair( "ETC2", gl::Texture::createFromKtx( loadAsset( "compression_test_etc2.ktx" ) ) ) );
+		mTextures.push_back( make_pair( "ETC2", gl::Texture::createFromKtx( loadAsset( "compression_test_etc2.ktx" ), format ) ) );
 	}
 	else
 		console() << "This GL implementation doesn't support ETC2 textures" << std::endl;
