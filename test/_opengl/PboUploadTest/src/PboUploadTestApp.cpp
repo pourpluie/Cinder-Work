@@ -4,16 +4,22 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Pbo.h"
 
+// NOTE: this will only fill top ROWS_TO_FILL lines of each Texture in order to reduce CPU load.
+// The full Texture is still being replaced each frame.
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
 static const int IMAGE_WIDTH = 1920;
 static const int IMAGE_HEIGHT = 1080 * 12;
-static const int IMAGE_CHANNELS = 4;
+static const int IMAGE_CHANNELS = 4; // set to 3 to experiment with no alpha channel
 static const int NUM_BUFFERS = 2;
+static const int ROWS_TO_FILL = 50;
 
-#define USE_PBO
+// Enable or disable this to experiment with PBOs on or off
+//#define USE_PBO
+// Enable or disable to experiment with double buffering the Texture and PBOs
 #define DOUBLE_BUFFER
 
 class PboUploadTestApp : public AppNative {
@@ -51,7 +57,7 @@ void PboUploadTestApp::update()
 {
 	static uint8_t rowData[IMAGE_WIDTH * IMAGE_CHANNELS];
 #if ! defined( USE_PBO )
-	static Surface8u surface( IMAGE_WIDTH, IMAGE_HEIGHT, false );
+	static Surface8u surface( IMAGE_WIDTH, IMAGE_HEIGHT, (IMAGE_CHANNELS==4)?true:false );
 #endif
 	// fill current PBO with new color
 	float hue = sin( getElapsedSeconds() ) / 2 + 0.5f;
@@ -70,19 +76,18 @@ void PboUploadTestApp::update()
 	// why does this slow things down on the Mac?
 //	mPbos[mCurrentPbo]->bufferData( mPbos[mCurrentPbo]->getSize(), nullptr, GL_STREAM_DRAW );
 	void *pboData = mPbos[mCurrentPbo]->map( GL_WRITE_ONLY );
-	for( int row = 0; row < 30/*IMAGE_HEIGHT*/; ++row ) {
-		memcpy( (uint8_t*)pboData + IMAGE_WIDTH * IMAGE_CHANNELS * row * 2, rowData, IMAGE_WIDTH * IMAGE_CHANNELS );
+	for( int row = 0; row < ROWS_TO_FILL; ++row ) {
+		memcpy( (uint8_t*)pboData + IMAGE_WIDTH * IMAGE_CHANNELS * row, rowData, IMAGE_WIDTH * IMAGE_CHANNELS );
 	}
 	mPbos[mCurrentPbo]->unmap();
 	
-//	mTexs[mCurrentTex]->update( mPbos[mCurrentPbo], (IMAGE_CHANNELS==4)?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE );
 	mTexs[mCurrentTex]->update( mPbos[mCurrentPbo], (IMAGE_CHANNELS==4)?GL_RGBA:GL_RGB, GL_UNSIGNED_BYTE );
 
-	#if defined( DOUBLE_BUFFER )
+  #if defined( DOUBLE_BUFFER )
 	mCurrentPbo = ( mCurrentPbo + 1 ) % NUM_BUFFERS;
-	#endif
+  #endif
 #else
-	for( int row = 0; row < 30/*IMAGE_HEIGHT*/; ++row ) {
+	for( int row = 0; row < ROWS_TO_FILL; ++row ) {
 		memcpy( surface.getData( Vec2i( 0, row ) ), rowData, IMAGE_WIDTH * IMAGE_CHANNELS );
 	}	
 	
