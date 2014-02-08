@@ -114,6 +114,9 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	mProjectionStack.push_back( Matrix44f() );
 	mProjectionStack.back().setToIdentity();
 	mGlslProgStack.push_back( GlslProgRef() );
+
+	// set default shader
+	pushGlslProg( getStockShader( ShaderDef().color() ) );
 }
 
 Context::~Context()
