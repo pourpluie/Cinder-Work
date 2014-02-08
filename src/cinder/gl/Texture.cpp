@@ -23,13 +23,13 @@
 #include "cinder/gl/gl.h" // has to be first
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Pbo.h"
-#include "cinder/ImageIo.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/Context.h"
 #include "cinder/ip/Flip.h"
 #include <stdio.h>
 #include <algorithm>
 #include <memory>
+#include <type_traits>
 
 #if defined( CINDER_GL_ANGLE )
 #define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT	GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE
@@ -49,12 +49,15 @@ class ImageSourceTexture;
 class ImageTargetTexture;
 
 /////////////////////////////////////////////////////////////////////////////////
-// ImageTargetGLTexture
+// ImageTargetGlTexture
 template<typename T>
-class ImageTargetGLTexture : public ImageTarget {
+class ImageTargetGlTexture : public ImageTarget {
   public:
-	static shared_ptr<ImageTargetGLTexture> createRef( const Texture *aTexture, ImageIo::ChannelOrder &aChannelOrder, bool aIsGray, bool aHasAlpha );
-	~ImageTargetGLTexture();
+	static shared_ptr<ImageTargetGlTexture> create( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha );
+#if ! defined( CINDER_GLES )
+	// receives a pointer to an intermediate data store, presumably a mapped PBO
+	static shared_ptr<ImageTargetGlTexture> create( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha, void *data );
+#endif
 	
 	virtual bool	hasAlpha() const { return mHasAlpha; }
 	virtual void*	getRowPointer( int32_t row ) { return mData + row * mRowInc; }
@@ -62,12 +65,13 @@ class ImageTargetGLTexture : public ImageTarget {
 	const void*		getData() const { return mData; }
 	
   private:
-	ImageTargetGLTexture( const Texture *aTexture, ImageIo::ChannelOrder &aChannelOrder, bool aIsGray, bool aHasAlpha );
+	ImageTargetGlTexture( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha, void *intermediateData );
+	
 	const Texture		*mTexture;
-	bool				mIsGray;
 	bool				mHasAlpha;
 	uint8_t				mPixelInc;
 	T					*mData;
+	unique_ptr<T>		mDataStore; // may be NULL
 	int					mRowInc;
 };
 
@@ -495,6 +499,8 @@ Texture::Texture( const ImageSourceRef &imageSource, Format format )
 #else
 			defaultInternalFormat = ( imageSource->hasAlpha() ) ?  GL_RG : GL_RED;
 			std::array<int,4> swizzleMask = { GL_RED, GL_RED, GL_RED, GL_GREEN };
+			if( defaultInternalFormat == GL_RED )
+				swizzleMask[3] = GL_ONE;
 			format.setSwizzleMask( swizzleMask );
 #endif
 		} break;
@@ -568,6 +574,64 @@ void Texture::initData( const float *data, GLint dataFormat, const Format &forma
 		glGenerateMipmap( mTarget );
 }
 
+#if ! defined( CINDER_GLES )
+// Called by initData( ImageSourceRef ) when the user has supplied an intermediate PBO via Format
+// We map the PBO after resizing it if necessary, and then use that as a data store for the ImageTargetGlTexture
+void Texture::initDataImageSourceWithPboImpl( const ImageSourceRef &imageSource, const Format &format, GLint dataFormat, ImageIo::ChannelOrder channelOrder, bool isGray, const PboRef &pbo )
+{
+	auto ctx = gl::context();
+
+	ctx->pushBufferBinding( GL_PIXEL_UNPACK_BUFFER, pbo->getId() );
+	// resize the PBO if necessary
+	if( pbo->getSize() < imageSource->getRowBytes() * imageSource->getHeight() )
+		pbo->bufferData( imageSource->getRowBytes() * imageSource->getHeight(), nullptr, GL_STREAM_DRAW );
+	void *pboData = pbo->map( GL_WRITE_ONLY );
+	
+	if( imageSource->getDataType() == ImageIo::UINT8 ) {
+		auto target = ImageTargetGlTexture<uint8_t>::create( this, channelOrder, isGray, imageSource->hasAlpha(), pboData );
+		imageSource->load( target );
+		pbo->unmap();
+		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_UNSIGNED_BYTE, nullptr );
+	}
+	else if( imageSource->getDataType() == ImageIo::UINT16 ) {
+		auto target = ImageTargetGlTexture<uint16_t>::create( this, channelOrder, isGray, imageSource->hasAlpha(), pboData );
+		imageSource->load( target );
+		pbo->unmap();
+		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_UNSIGNED_SHORT, nullptr );
+		
+	}
+	else {
+		auto target = ImageTargetGlTexture<float>::create( this, channelOrder, isGray, imageSource->hasAlpha(), pboData );
+		imageSource->load( target );
+		pbo->unmap();		
+		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_FLOAT, nullptr );
+	}
+	
+	ctx->popBufferBinding( GL_PIXEL_UNPACK_BUFFER );
+}
+#endif
+
+// Called by initData( ImageSourceRef ) when the user has NOT supplied an intermediate PBO
+void Texture::initDataImageSourceImpl( const ImageSourceRef &imageSource, const Format &format, GLint dataFormat, ImageIo::ChannelOrder channelOrder, bool isGray )
+{
+	if( imageSource->getDataType() == ImageIo::UINT8 ) {
+		auto target = ImageTargetGlTexture<uint8_t>::create( this, channelOrder, isGray, imageSource->hasAlpha() );
+		imageSource->load( target );
+		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_UNSIGNED_BYTE, target->getData() );
+	}
+	else if( imageSource->getDataType() == ImageIo::UINT16 ) {
+		auto target = ImageTargetGlTexture<uint16_t>::create( this, channelOrder, isGray, imageSource->hasAlpha() );
+		imageSource->load( target );
+		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_UNSIGNED_SHORT, target->getData() );
+		
+	}
+	else {
+		auto target = ImageTargetGlTexture<float>::create( this, channelOrder, isGray, imageSource->hasAlpha() );
+		imageSource->load( target );
+		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_FLOAT, target->getData() );
+	}
+}
+
 void Texture::initData( const ImageSourceRef &imageSource, const Format &format )
 {
 	mWidth = mCleanWidth = imageSource->getWidth();
@@ -581,16 +645,16 @@ void Texture::initData( const ImageSourceRef &imageSource, const Format &format 
 		case ImageSource::CM_RGB:
 			dataFormat = ( imageSource->hasAlpha() ) ? GL_RGBA : GL_RGB;
 			channelOrder = ( imageSource->hasAlpha() ) ? ImageIo::RGBA : ImageIo::RGB;
-			break;
+		break;
 		case ImageSource::CM_GRAY:
 			dataFormat = ( imageSource->hasAlpha() ) ? GL_LUMINANCE_ALPHA : GL_LUMINANCE;
 			channelOrder = ( imageSource->hasAlpha() ) ? ImageIo::YA : ImageIo::Y;
 			isGray = true;
-			break;
+		break;
 		default: // if this is some other color space, we'll have to punt and go w/ RGB
 			dataFormat = ( imageSource->hasAlpha() ) ? GL_RGBA : GL_RGB;
 			channelOrder = ( imageSource->hasAlpha() ) ? ImageIo::RGBA : ImageIo::RGB;
-			break;
+		break;
 	}
 	
 	TextureBindScope tbs( mTarget, mTextureId );	
@@ -603,26 +667,20 @@ void Texture::initData( const ImageSourceRef &imageSource, const Format &format 
 	}
 	
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-	if( imageSource->getDataType() == ImageIo::UINT8 ) {
-		shared_ptr<ImageTargetGLTexture<uint8_t> > target = ImageTargetGLTexture<uint8_t>::createRef( this, channelOrder, isGray, imageSource->hasAlpha() );
-		imageSource->load( target );
-		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_UNSIGNED_BYTE, target->getData() );
-	}
-	else if( imageSource->getDataType() == ImageIo::UINT16 ) {
-		shared_ptr<ImageTargetGLTexture<uint16_t> > target = ImageTargetGLTexture<uint16_t>::createRef( this, channelOrder, isGray, imageSource->hasAlpha() );
-		imageSource->load( target );
-		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_UNSIGNED_SHORT, target->getData() );
-		
-	}
+#if ! defined( CINDER_GLES )
+	auto pbo = format.getIntermediatePbo();
+	if( pbo )
+		initDataImageSourceWithPboImpl( imageSource, format, dataFormat, channelOrder, isGray, pbo );
 	else {
-		shared_ptr<ImageTargetGLTexture<float> > target = ImageTargetGLTexture<float>::createRef( this, channelOrder, isGray, imageSource->hasAlpha() );
-		imageSource->load( target );
-		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, GL_FLOAT, target->getData() );
-	}
-	
+		initDataImageSourceImpl( imageSource, format, dataFormat, channelOrder, isGray );
+	}	
+#else
+	initDataImageSourceImpl( imageSource, format, dataFormat, channelOrder, isGray );
+#endif	
     if( format.mMipmapping )
 		glGenerateMipmap( mTarget );
 }
+
 
 void Texture::update( const Surface &surface, int mipLevel )
 {
@@ -1163,42 +1221,54 @@ TextureCubeMap::TextureCubeMap( const Surface8u images[6], Format format )
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-// ImageTargetGLTexture
+// ImageTargetGlTexture
 template<typename T>
-shared_ptr<ImageTargetGLTexture<T> > ImageTargetGLTexture<T>::createRef( const Texture *aTexture, ImageIo::ChannelOrder &aChannelOrder, bool aIsGray, bool aHasAlpha )
+shared_ptr<ImageTargetGlTexture<T>> ImageTargetGlTexture<T>::create( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha )
 {
-	return shared_ptr<ImageTargetGLTexture<T> >( new ImageTargetGLTexture<T>( aTexture, aChannelOrder, aIsGray, aHasAlpha ) );
+	return shared_ptr<ImageTargetGlTexture<T>>( new ImageTargetGlTexture<T>( texture, channelOrder, isGray, hasAlpha, nullptr ) );
 }
 
+#if ! defined( CINDER_GLES )
+// create method receives an existing pointer which presumably is a mapped PBO
 template<typename T>
-ImageTargetGLTexture<T>::ImageTargetGLTexture( const Texture *aTexture, ImageIo::ChannelOrder &aChannelOrder, bool aIsGray, bool aHasAlpha )
-: ImageTarget(), mTexture( aTexture ), mIsGray( aIsGray ), mHasAlpha( aHasAlpha )
+shared_ptr<ImageTargetGlTexture<T>> ImageTargetGlTexture<T>::create( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha, void *intermediateDataStore )
 {
-	if ( mIsGray ) {
+	return shared_ptr<ImageTargetGlTexture<T>>( new ImageTargetGlTexture<T>( texture, channelOrder, isGray, hasAlpha, intermediateDataStore ) );
+}
+#endif
+
+template<typename T>
+ImageTargetGlTexture<T>::ImageTargetGlTexture( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha, void *intermediateDataStore )
+	: ImageTarget(), mTexture( texture ), mHasAlpha( hasAlpha )
+{
+	if( isGray ) {
 		mPixelInc = mHasAlpha ? 2 : 1;
-	} else {
+	}
+	else {
 		mPixelInc = mHasAlpha ? 4 : 3;
 	}
 	mRowInc = mTexture->getWidth() * mPixelInc;
-	// allocate enough room to hold all these pixels
-	mData = new T[mTexture->getHeight() * mRowInc];
 	
-	if ( boost::is_same<T,uint8_t>::value ) {
+	// allocate enough room to hold all these pixels if we haven't been passed a data*
+	if( ! intermediateDataStore ) {
+		mDataStore = std::unique_ptr<T>( new T[mTexture->getHeight() * mRowInc] );
+		mData = mDataStore.get();
+	}
+	else
+		mData = reinterpret_cast<T*>( intermediateDataStore );
+	
+	if( std::is_same<T,uint8_t>::value ) {
 		setDataType( ImageIo::UINT8 );
-	} else if ( boost::is_same<T,uint16_t>::value ) {
+	}
+	else if( std::is_same<T,uint16_t>::value ) {
 		setDataType( ImageIo::UINT16 );
-	} else if ( boost::is_same<T,float>::value ) {
+	}
+	else if( std::is_same<T,float>::value ) {
 		setDataType( ImageIo::FLOAT32 );
 	}
 	
-	setChannelOrder( aChannelOrder );
-	setColorModel( mIsGray ? ImageIo::CM_GRAY : ImageIo::CM_RGB );
-}
-
-template<typename T>
-ImageTargetGLTexture<T>::~ImageTargetGLTexture()
-{
-	delete [] mData;
+	setChannelOrder( channelOrder );
+	setColorModel( isGray ? ImageIo::CM_GRAY : ImageIo::CM_RGB );
 }
 
 namespace {

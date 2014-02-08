@@ -29,6 +29,7 @@
 #include "cinder/Stream.h"
 #include "cinder/Exception.h"
 #include "cinder/DataSource.h"
+#include "cinder/ImageIo.h"
 
 #include <vector>
 #include <utility>
@@ -170,7 +171,7 @@ class TextureBase {
 		//! Returns the texture anisotropic filtering amount
 		GLfloat getMaxAnisotropy() const { return mMaxAnisotropy; }
 		
-		//! Supplies an intermediate PBO that Texture constructors optionally make use of. A PBO of an inadequate size results in an error.
+		//! Supplies an intermediate PBO that Texture constructors optionally make use of. A PBO of an inadequate size may result in an exception.
 		void			setIntermediatePbo( const PboRef &intermediatePbo ) { mIntermediatePbo = intermediatePbo; }
 		//! Returns the optional intermediate PBO that Texture constructors may make use of.
 		const PboRef&	getIntermediatePbo() const { return mIntermediatePbo; }
@@ -255,11 +256,11 @@ class Texture : public TextureBase {
 	static TextureRef	create( const Channel8u &channel, Format format = Format() );
 	/** \brief Constructs a texture based on the contents of \a channel. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
 	static TextureRef	create( const Channel32f &channel, Format format = Format() );
-	/** \brief Constructs a texture based on \a imageSource. A default value of -1 for \a internalFormat chooses an appropriate internal format based on the contents of \a imageSource. **/
+	//! Constructs a Texture based on \a imageSource. A default value of -1 for \a internalFormat chooses an appropriate internal format based on the contents of \a imageSource. Uses a Format's intermediate PBO when available, which is resized as necessary.
 	static TextureRef	create( ImageSourceRef imageSource, Format format = Format() );
 	//! Constructs a Texture based on an externally initialized OpenGL texture. \a doNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
 	static TextureRef	create( GLenum aTarget, GLuint aTextureID, int width, int height, bool doNotDispose );
-	//! Constructs a Texture from an optionally compressed KTX file. Enables mipmapping if KTX file contains mipmaps and Format has not specified \c false for mipmapping. Uses Format's intermediate PBO if supplied; requires it to be large enough to hold all MIP levels. (http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/)
+	//! Constructs a Texture from an optionally compressed KTX file. Enables mipmapping if KTX file contains mipmaps and Format has not specified \c false for mipmapping. Uses Format's intermediate PBO if supplied; requires it to be large enough to hold all MIP levels and throws if it is not. (http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/)
 	static TextureRef	createFromKtx( const DataSourceRef &dataSource, Format format = Format() );
 #if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 	//! Constructs a Texture from a DDS file. Supports DXT1, DTX3, and DTX5. Supports BC7 in the presence of \c GL_ARB_texture_compression_bptc. Enables mipmapping if DDS contains mipmaps and Format has not specified \c false for mipmapping. ANGLE version requires textures to be a multiple of 4 due to DX limitation.
@@ -345,6 +346,10 @@ class Texture : public TextureBase {
 	void	initData( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format );
 	void	initData( const float *data, GLint dataFormat, const Format &format );
 	void	initData( const ImageSourceRef &imageSource, const Format &format );
+#if ! defined( CINDER_GLES )
+	void	initDataImageSourceWithPboImpl( const ImageSourceRef &imageSource, const Format &format, GLint dataFormat, ImageIo::ChannelOrder channelOrder, bool isGray, const PboRef &pbo );
+#endif
+	void	initDataImageSourceImpl( const ImageSourceRef &imageSource, const Format &format, GLint dataFormat, ImageIo::ChannelOrder channelOrder, bool isGray );
 
 	mutable GLint	mWidth, mHeight, mCleanWidth, mCleanHeight;
 	float			mMaxU, mMaxV;

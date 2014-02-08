@@ -87,7 +87,7 @@ std::string ShaderDef::getTextureSwizzleString() const
 			result += "g";
 		else if( mTextureSwizzleMask[i] == GL_BLUE )
 			result += "b";
-		else if( mTextureSwizzleMask[i] == GL_GREEN )
+		else
 			result += "a";
 	}
 	
