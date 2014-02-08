@@ -393,7 +393,7 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 		auto ctx = gl::context();
 		size_t dataSize = (verts.size() + texCoords.size()) * sizeof(float) + vertColors.size() * sizeof(ColorA8u);
 		ctx->pushVao();
-		ctx->getDefaultVao()->freshBindPre();
+		ctx->getDefaultVao()->replacementBindBegin();
 		VboRef defaultElementVbo = ctx->getDefaultElementVbo( indices.size() * sizeof(curIdx) );
 		VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( dataSize );
 
@@ -426,7 +426,7 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 		}
 
 		defaultElementVbo->bufferSubData( 0, indices.size() * sizeof(curIdx), indices.data() );
-		ctx->getDefaultVao()->freshBindPost();
+		ctx->getDefaultVao()->replacementBindEnd();
 		gl::setDefaultShaderVars();
 		ctx->drawElements( GL_TRIANGLES, indices.size(), indexType, 0 );
 	}
@@ -529,7 +529,7 @@ void TextureFont::drawGlyphs( const std::vector<std::pair<uint16_t,Vec2f> > &gly
 		auto ctx = gl::context();
 		size_t dataSize = (verts.size() + texCoords.size()) * sizeof(float) + vertColors.size() * sizeof(ColorA8u);
 		ctx->pushVao();
-		ctx->getDefaultVao()->freshBindPre();
+		ctx->getDefaultVao()->replacementBindBegin();
 		VboRef defaultElementVbo = ctx->getDefaultElementVbo( indices.size() * sizeof(curIdx) );
 		VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( dataSize );
 
@@ -562,7 +562,7 @@ void TextureFont::drawGlyphs( const std::vector<std::pair<uint16_t,Vec2f> > &gly
 		}
 
 		defaultElementVbo->bufferSubData( 0, indices.size() * sizeof(curIdx), indices.data() );
-		ctx->getDefaultVao()->freshBindPost();
+		ctx->getDefaultVao()->replacementBindEnd();
 		gl::setDefaultShaderVars();
 		ctx->drawElements( GL_TRIANGLES, indices.size(), indexType, 0 );
 	}

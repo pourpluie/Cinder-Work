@@ -1,7 +1,9 @@
 #include "cinder/Cinder.h"
 #include "cinder/app/AppNative.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/System.h"
 #include "cinder/Rand.h"
+#include "cinder/PolyLine.h"
 using namespace ci;
 using namespace ci::app;
 

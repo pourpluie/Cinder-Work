@@ -634,9 +634,9 @@ void draw( const VboMeshRef& mesh )
 		return;
 	
 	ctx->pushVao();
-	ctx->getDefaultVao()->freshBindPre();
+	ctx->getDefaultVao()->replacementBindBegin();
 	mesh->buildVao( curShader );
-	ctx->getDefaultVao()->freshBindPost();
+	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	mesh->drawImpl();
 	ctx->popVao();
@@ -880,7 +880,7 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
 	BufferScope vboScp( defaultVbo );
 	ctx->pushVao();
-	ctx->getDefaultVao()->freshBindPre();
+	ctx->getDefaultVao()->replacementBindBegin();
 		defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
 		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 		if( posLoc >= 0 ) {
@@ -892,7 +892,7 @@ void draw( const TextureRef &texture, const Rectf &rect )
 			enableVertexAttribArray( texLoc );
 			vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 		}
-	ctx->getDefaultVao()->freshBindPost();
+	ctx->getDefaultVao()->replacementBindEnd();
 	
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
@@ -1027,10 +1027,10 @@ void drawSphere( const Vec3f &center, float radius, int segments )
 	
 	
 	ctx->pushVao();
-	ctx->getDefaultVao()->freshBindPre();
+	ctx->getDefaultVao()->replacementBindBegin();
 	gl::VboMeshRef mesh = gl::VboMesh::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).enable( geom::Attrib::NORMAL ).enable( geom::Attrib::TEX_COORD_0 ), ctx->getDefaultArrayVbo(), ctx->getDefaultElementVbo() );
 	mesh->buildVao( glslProg );
-	ctx->getDefaultVao()->freshBindPost();	
+	ctx->getDefaultVao()->replacementBindEnd();	
 	ctx->setDefaultShaderVars();
 	mesh->drawImpl();
 	ctx->popVao();
@@ -1060,7 +1060,7 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 	texCoordsOut[3*2+0] = texCoords.getX2(); texCoordsOut[3*2+1] = texCoords.getY2();
 	
 	ctx->pushVao();
-	ctx->getDefaultVao()->freshBindPre();
+	ctx->getDefaultVao()->replacementBindBegin();
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*20 );
 	BufferScope bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, sizeof(float)*20, data );
@@ -1076,7 +1076,7 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*12) );
 	}
 	
-	ctx->getDefaultVao()->freshBindPost();
+	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 	ctx->popVao();

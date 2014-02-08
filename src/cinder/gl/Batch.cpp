@@ -381,7 +381,7 @@ void VertBatch::setupBuffers()
 	// Setup the VAO
 	ctx->pushVao();
 	if( ! mOwnsBuffers )
-		mVao->freshBindPre();
+		mVao->replacementBindBegin();
 	else {
 		mVao = gl::Vao::create();
 		mVao->bind();
@@ -417,7 +417,7 @@ void VertBatch::setupBuffers()
 	}
 	
 	if( ! mOwnsBuffers )
-		mVao->freshBindPost();
+		mVao->replacementBindEnd();
 }
 
 } } // namespace cinder::gl

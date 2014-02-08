@@ -102,19 +102,19 @@ void Vao::unbind() const
 	mCtx->bindVao( nullptr );
 }
 
-void Vao::freshBindPre()
+void Vao::replacementBindBegin()
 {
-	mFreshBindPrevious = mLayout;
+	mReplacementBindPrevious = mLayout;
 	mLayout.clear();
 	bind();
 	// a fresh VAO would 
 	mCtx->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 }
 
-void Vao::freshBindPost()
+void Vao::replacementBindEnd()
 {
 	// disable any attributes which were enabled in the previous layout
-	for( auto &attrib : mFreshBindPrevious.mVertexAttribs ) {
+	for( auto &attrib : mReplacementBindPrevious.mVertexAttribs ) {
 		auto existing = mLayout.mVertexAttribs.find( attrib.first );
 		if( attrib.second.mEnabled && ( ( existing == mLayout.mVertexAttribs.end() ) || ( ! existing->second.mEnabled) ) )
 			disableVertexAttribArrayImpl( attrib.first );

@@ -47,9 +47,10 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	GLuint			getId() const { return mId; }
 	const Layout&	getLayout() const { return mLayout; }
 
-	void	freshBindPre();
-	//! Assumes freshBindPre() was called previously and that \a this is the currently bound VAO.
-	void	freshBindPost();
+	//! An efficiency to prevent creating new VAOs. Call this, then operate as if a new VAO has been bound, and then before drawing against the VAO, call replacementBindEnd().
+	void	replacementBindBegin();
+	//! Assumes replacementBindBegin() was called previously and that \a this is the currently bound VAO.
+	void	replacementBindEnd();
 
 
 	struct VertexAttrib {
@@ -132,7 +133,7 @@ class Vao : public std::enable_shared_from_this<Vao> {
 
 	GLuint							mId;
 	Context							*mCtx;
-	Layout							mLayout, mFreshBindPrevious;
+	Layout							mLayout, mReplacementBindPrevious;
 
 	friend Context;
 	friend std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs );
