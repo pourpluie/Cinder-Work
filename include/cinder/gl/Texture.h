@@ -170,11 +170,13 @@ class TextureBase {
 		GLenum	getMagFilter() const { return mMagFilter; }
 		//! Returns the texture anisotropic filtering amount
 		GLfloat getMaxAnisotropy() const { return mMaxAnisotropy; }
-		
+
+#if ! defined( CINDER_GLES )
 		//! Supplies an intermediate PBO that Texture constructors optionally make use of. A PBO of an inadequate size may result in an exception.
 		void			setIntermediatePbo( const PboRef &intermediatePbo ) { mIntermediatePbo = intermediatePbo; }
 		//! Returns the optional intermediate PBO that Texture constructors may make use of.
 		const PboRef&	getIntermediatePbo() const { return mIntermediatePbo; }
+#endif
 
 		//! Sets the swizzle mask corresponding to \c GL_TEXTURE_SWIZZLE_RGBA. Expects \c GL_RED through \c GL_ALPHA, or \c GL_ONE or \c GL_ZERO
 		void	setSwizzleMask( const std::array<GLint,4> &swizzleMask ) { mSwizzleMask = swizzleMask; }
@@ -194,9 +196,10 @@ class TextureBase {
 		GLint				mPixelDataFormat;
 		GLenum				mPixelDataType;
 		std::array<GLint,4>	mSwizzleMask;
-		
-		PboRef				mIntermediatePbo;
 
+#if ! defined( CINDER_GLES )		
+		PboRef				mIntermediatePbo;
+#endif
 		friend class TextureBase;
 	};
 
@@ -239,8 +242,9 @@ class Texture : public TextureBase {
 		//! Corresponds to the 'type' parameter of glTexImage*(). Defaults to \c GL_UNSIGNED_BYTE
 		Format& pixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; return *this; }
 		Format& swizzleMask( const std::array<GLint,4> &swizzleMask ) { setSwizzleMask( swizzleMask ); return *this; }
+#if ! defined( CINDER_GLES )
 		Format& intermediatePbo( const PboRef &intermediatePbo ) { setIntermediatePbo( intermediatePbo ); return *this; }
-		
+#endif		
 		friend Texture;
 	};
 	
@@ -281,10 +285,12 @@ class Texture : public TextureBase {
 	void			update( const Channel32f &channel, int mipLevel = 0 );
 	//! Replaces the pixels of a Texture with contents of \a channel. Expects \a area's size to match the Texture's.
 	void			update( const Channel8u &channel, const Area &area, int mipLevel = 0 );
+#if ! defined( CINDER_GLES )
 	//! Replaces the pixels of a Texture with the contents of a PBO (whose target must be \c GL_PIXEL_UNPACK_BUFFER) at mipmap level \a mipLevel. \a format and \a type correspond to parameters of glTexSubImage2D, and would often be GL_RGB and GL_UNSIGNED_BYTE respectively. Reads from the PBO starting at \a pboByteOffset.
 	void			update( const PboRef &pbo, GLenum format, GLenum type, int mipLevel = 0, size_t pboByteOffset = 0 );
 	//! Replaces a subregion (measured as origin upper-left) of the pixels of a Texture with the contents of a PBO (whose target must be \c GL_PIXEL_UNPACK_BUFFER) at mipmap level \a mipLevel.  \a format and \a type correspond to parameters of glTexSubImage2D, and would often be GL_RGB and GL_UNSIGNED_BYTE respectively. Reads from the PBO starting at \a pboByteOffset.
 	void			update( const PboRef &pbo, GLenum format, GLenum type, const Area &destArea, int mipLevel = 0, size_t pboByteOffset = 0 );
+#endif
 	
 	//! calculates and sets the total levels of mipmap
 	GLint			getNumMipLevels() const;

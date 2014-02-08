@@ -7,7 +7,7 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-//#define USE_PBO
+#define USE_PBO
 
 static const int IMAGE_WIDTH = 1920;
 static const int IMAGE_HEIGHT = 1080 * 12;

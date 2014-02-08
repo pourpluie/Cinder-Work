@@ -821,6 +821,7 @@ void Texture::update( const Channel8u &channel, const Area &area, int mipLevel )
 	}
 }
 
+#if ! defined( CINDER_GLES )
 void Texture::update( const PboRef &pbo, GLenum format, GLenum type, int mipLevel, size_t pboByteOffset )
 {
 	update( pbo, format, type, getBounds(), mipLevel, pboByteOffset );
@@ -837,6 +838,7 @@ void Texture::update( const PboRef &pbo, GLenum format, GLenum type, const Area 
 	TextureBindScope tbs( mTarget, mTextureId );
 	glTexSubImage2D( mTarget, mipLevel, destArea.getX1(), mHeight - destArea.getY2(), destArea.getWidth(), destArea.getHeight(), format, type, reinterpret_cast<const GLvoid*>( pboByteOffset ) );
 }
+#endif
 
 int Texture::getNumMipLevels() const
 {
