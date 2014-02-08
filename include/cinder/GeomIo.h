@@ -436,14 +436,23 @@ class Torus : public Source {
 	mutable std::vector<uint32_t>		mIndices;
 };
 
-//! The abstract class ConeBase can not be instantiated. Use Cone or Cylinder instead.
-class ConeBase abstract : public Source {
+class Cylinder : public Source {
   public:
 	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
-	ConeBase();
-	virtual ~ConeBase() {}
-
-	virtual ConeBase&	set( const Vec3f &from, const Vec3f &to );
+	Cylinder();
+	virtual ~Cylinder() {}
+	
+	virtual Cylinder&	enable( Attrib attrib ) override { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
+	virtual Cylinder&	disable( Attrib attrib ) override { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
+	virtual Cylinder&	origin( const Vec3f &origin ) { mOrigin = origin; mCalculationsCached = false; return *this; }
+	virtual Cylinder&	segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
+	virtual Cylinder&	height( float height ) { mHeight = height; mCalculationsCached = false; return *this; }
+	//! Specifies the base and apex radius.
+	virtual Cylinder&	radius( float radius ) { mRadiusBase = mRadiusApex = math<float>::max(0.f, radius); mCalculationsCached = false; return *this; }
+	//! Specifies the axis of the cylinder.
+	virtual Cylinder&	direction( const Vec3f &direction ) { mDirection = direction;  mCalculationsCached = false; return *this; }
+	//! Conveniently sets origin, height and direction.
+	virtual Cylinder&	set( const Vec3f &from, const Vec3f &to );
 
 	virtual size_t		getNumVertices() const override { calculate(); return mPositions.size(); }
 	virtual size_t		getNumIndices() const override { calculate(); return mIndices.size(); }
@@ -471,50 +480,32 @@ class ConeBase abstract : public Source {
 	mutable std::vector<uint32_t>		mIndices;
 };
 
-class Cone : public ConeBase {
+class Cone : public Cylinder {
   public:
 	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
 	Cone() { radius( 1.0f, 0.0f ); }
 	virtual ~Cone() {}
 	
-	virtual Cone&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
-	virtual Cone&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
-	Cone&			origin( const Vec3f &origin ) { mOrigin = origin; mCalculationsCached = false; return *this; }
-	Cone&			segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
-	Cone&			height( float height ) { mHeight = height; mCalculationsCached = false; return *this; }
+	virtual Cone&	enable( Attrib attrib ) override { Cylinder::enable( attrib ); return *this; }
+	virtual Cone&	disable( Attrib attrib ) override { Cylinder::disable( attrib ); return *this; }
+	virtual Cone&	origin( const Vec3f &origin ) override { Cylinder::origin( origin ); return *this; }
+	virtual Cone&	segments( int segments ) override { Cylinder::segments( segments ); return *this; }
+	virtual Cone&	height( float height ) override { Cylinder::height( height ); return *this; }
 	//! Specifies the base radius.
-	Cone&			base( float base ) { mRadiusBase = base; mCalculationsCached = false; return *this; }
+	Cone&	base( float base ) { mRadiusBase = base; mCalculationsCached = false; return *this; }
 	//! Specifies the apex radius.
-	Cone&			apex( float apex ) { mRadiusApex = apex; mCalculationsCached = false; return *this; }
+	Cone&	apex( float apex ) { mRadiusApex = apex; mCalculationsCached = false; return *this; }
 	//! Specifies the apex radius as a \a ratio of the height. A value of 1.0f yields a cone angle of 45 degrees.
-	Cone&			ratio( float ratio ) { mRadiusApex = mRadiusBase + ratio * mHeight; mCalculationsCached = false; return *this; }
+	Cone&	ratio( float ratio ) { mRadiusApex = mRadiusBase + ratio * mHeight; mCalculationsCached = false; return *this; }
 	//! Specifies the base and apex radius separately.
-	Cone&			radius( float base, float apex ) { 
+	Cone&	radius( float base, float apex ) { 
 						mRadiusBase = math<float>::max(0.f, base); 
 						mRadiusApex = math<float>::max(0.f, apex); 
 						mCalculationsCached = false; return *this; }
 	//!
-	Cone&			direction( const Vec3f &direction ) { mDirection = direction;  mCalculationsCached = false; return *this; }
+	virtual Cone&	direction( const Vec3f &direction ) override { Cylinder::direction( direction ); return *this; }
 	//! Conveniently sets origin, height and direction.
-	Cone&			set( const Vec3f &from, const Vec3f &to ) { ConeBase::set( from, to ); return *this; }
-};
-
-class Cylinder : public ConeBase {
-  public:
-	//! Defaults to having POSITION, TEX_COORD_0, NORMAL. Supports COLOR
-	Cylinder() { radius( 1.0f ); }
-	
-	virtual Cylinder&	enable( Attrib attrib ) { mEnabledAttribs.insert( attrib ); mCalculationsCached = false; return *this; }
-	virtual Cylinder&	disable( Attrib attrib ) { mEnabledAttribs.erase( attrib ); mCalculationsCached = false; return *this; }
-	Cylinder&			origin( const Vec3f &origin ) { mOrigin = origin; mCalculationsCached = false; return *this; }
-	Cylinder&			segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
-	Cylinder&			height( float height ) { mHeight = height; mCalculationsCached = false; return *this; }
-	//! Specifies the base and apex radius.
-	Cylinder&			radius( float radius ) { mRadiusBase = mRadiusApex = math<float>::max(0.f, radius); mCalculationsCached = false; return *this; }
-	//!
-	Cylinder&			direction( const Vec3f &direction ) { mDirection = direction;  mCalculationsCached = false; return *this; }
-	//! Conveniently sets origin, height and direction.
-	Cylinder&			set( const Vec3f &from, const Vec3f &to ) { ConeBase::set( from, to ); return *this; }
+	virtual Cone&	set( const Vec3f &from, const Vec3f &to ) override { Cylinder::set( from, to ); return *this; }
 };
 
 #if 0

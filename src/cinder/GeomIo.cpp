@@ -830,7 +830,7 @@ Circle&	Circle::radius( float radius )
 void Circle::updateVertexCounts()
 {
 	if( mRequestedSegments <= 0 )
-		mNumSegments = (int)math<double>::floor( mRadius * M_TWO_PI );
+		mNumSegments = (int)math<double>::floor( mRadius * (float)M_TWO_PI );
 	else
 		mNumSegments = mRequestedSegments;
 	
@@ -912,7 +912,7 @@ void Sphere::calculate() const
 
 	int numSegments = mNumSegments;
 	if( numSegments < 4 )
-		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_TWO_PI ) );
+		numSegments = std::max( 12, (int)math<double>::floor( mRadius * (float)M_TWO_PI ) );
 
 	// numRings = numSegments / 2
 	int numRings = ( numSegments >> 1 );
@@ -945,9 +945,9 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 		float v = r * ringIncr;
 		for( size_t s = 0; s < segments; s++ ) {
 			float u = 1.0f - s * segIncr;
-			float x = math<float>::sin( M_TWO_PI * u ) * math<float>::sin( M_PI * v );
-			float y = math<float>::sin( -M_PI / 2 + M_PI * v );
-			float z = math<float>::cos( M_TWO_PI * u ) * math<float>::sin( M_PI * v );
+			float x = math<float>::sin( (float)M_TWO_PI * u ) * math<float>::sin( (float)M_PI * v );
+			float y = math<float>::sin( (float)M_PI * (v - 0.5f) );
+			float z = math<float>::cos( (float)M_TWO_PI * u ) * math<float>::sin( (float)M_PI * v );
 
 			vertIt->set( x * radius + mCenter.x, y * radius + mCenter.y, z * radius + mCenter.z );
 			++vertIt;
@@ -1071,7 +1071,7 @@ void Icosphere::calculateImplUV() const
 	mTexCoords.assign( mNormals.size(), Vec2f::zero() );
 	for( size_t i = 0; i < mNormals.size(); ++i ) {
 		const Vec3f &normal = mNormals[i];
-		mTexCoords[i].x = (math<float>::atan2( normal.z, -normal.x ) / M_PI) * 0.5f + 0.5f;
+		mTexCoords[i].x = (math<float>::atan2( normal.z, -normal.x ) / (float)M_PI) * 0.5f + 0.5f;
 		mTexCoords[i].y = -normal.y * 0.5f + 0.5f;
 	}
 
@@ -1111,13 +1111,13 @@ void Icosphere::calculateImplUV() const
 
 void Icosphere::subdivide() const
 {
-	for( size_t j = 0; j < mSubdivision; ++j ) {
+	for( int j = 0; j < mSubdivision; ++j ) {
 		mPositions.reserve( mPositions.size() + mIndices.size() );
 		mNormals.reserve( mNormals.size() + mIndices.size() );
 		mIndices.reserve( mIndices.size() * 4 );
 
-		const size_t numTriangles = mIndices.size() / 3;
-		for( size_t i = 0; i < numTriangles; ++i ) {
+		const int numTriangles = mIndices.size() / 3;
+		for( int i = 0; i < numTriangles; ++i ) {
 			uint32_t index0 = mIndices[i * 3 + 0];
 			uint32_t index1 = mIndices[i * 3 + 1];
 			uint32_t index2 = mIndices[i * 3 + 2];
@@ -1212,7 +1212,7 @@ void Capsule::calculate() const
 
 	int numSegments = mNumSegments;
 	if( numSegments < 4 )
-		numSegments = std::max( 12, (int)math<double>::floor( mRadius * M_TWO_PI ) );
+		numSegments = std::max( 12, (int)math<double>::floor( mRadius * (float)M_TWO_PI ) );
 
 	// numRings = numSegments / 2 and should always be an even number
 	int numRings = ( numSegments >> 2 ) << 1;
@@ -1241,15 +1241,15 @@ void Capsule::calculateImplUV( size_t segments, size_t rings ) const
 	float bodyIncr = 1.0f / (float)( ringsBody - 1 );
 	float ringIncr = 1.0f / (float)( rings - 1 );
 	for( size_t r = 0; r < rings / 2; r++ ) {
-		calculateRing( segments, math<float>::sin( M_PI * r * ringIncr), 
-			math<float>::sin( -M_PI / 2 + M_PI * r * ringIncr ), -0.5f );
+		calculateRing( segments, math<float>::sin( (float)M_PI * r * ringIncr),
+			math<float>::sin( (float)M_PI * ( r * ringIncr - 0.5f ) ), -0.5f );
 	}
 	for( size_t r = 0; r < ringsBody; r++ ) {
 		calculateRing( segments, 1.0f, 0.0f, r * bodyIncr - 0.5f );
 	}
 	for( size_t r = rings / 2; r < rings; r++ ) {
-		calculateRing( segments, math<float>::sin( M_PI * r * ringIncr),
-			math<float>::sin( -M_PI / 2 + M_PI * r * ringIncr ), +0.5f );
+		calculateRing( segments, math<float>::sin( (float)M_PI * r * ringIncr),
+			math<float>::sin( (float)M_PI * ( r * ringIncr - 0.5f ) ), +0.5f );
 	}
 
 	for( size_t r = 0; r < ringsTotal - 1; r++ ) {
@@ -1275,8 +1275,8 @@ void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) 
 
 	float segIncr = 1.0f / (float)( segments - 1 );
 	for( size_t s = 0; s < segments; s++ ) {
-		float x = math<float>::cos( M_TWO_PI * s * segIncr ) * radius;
-		float z = math<float>::sin( M_TWO_PI * s * segIncr ) * radius;
+		float x = math<float>::cos( (float)M_TWO_PI * s * segIncr ) * radius;
+		float z = math<float>::sin( (float)M_TWO_PI * s * segIncr ) * radius;
 
 		mPositions.push_back( mCenter + ( quaternion * Vec3f( mRadius * x, mRadius * y + mLength * dy, mRadius * z ) ) );
 
@@ -1320,11 +1320,11 @@ void Torus::calculate() const
 
 	int numAxis = mNumSegmentsAxis;
 	if( numAxis < 4 )
-		numAxis = std::max( 12, (int)math<double>::floor( mRadiusMajor * M_TWO_PI ) );
+		numAxis = std::max( 12, (int)math<double>::floor( mRadiusMajor * (float)M_TWO_PI ) );
 
 	int numRing = mNumSegmentsRing;
 	if( numRing < 3 )
-		numRing = std::max( 12, (int)math<double>::floor( mRadiusMajor * M_TWO_PI ) );
+		numRing = std::max( 12, (int)math<double>::floor( mRadiusMajor * (float)M_TWO_PI ) );
 
 	calculateImplUV( numAxis + 1, numRing + 1 );
 	mCalculationsCached = true;
@@ -1345,16 +1345,16 @@ void Torus::calculateImplUV( size_t segments, size_t rings ) const
 	float majorIncr = 1.0f / (segments - 1);
 	float minorIncr = 1.0f / (rings - 1);
 	float radiusDiff = mRadiusMajor - mRadiusMinor;
-	float twist = M_TWO_PI * mTwist * minorIncr * majorIncr;
+	float twist = (float)M_TWO_PI * mTwist * minorIncr * majorIncr;
 
 	// vertex, normal, tex coord and color buffers
-	for( int i = 0; i < segments; ++i ) {
-		float phi = i * majorIncr * M_TWO_PI;
+	for( size_t i = 0; i < segments; ++i ) {
+		float phi = i * majorIncr * (float)M_TWO_PI;
 		float cosPhi = -math<float>::cos( phi );
 		float sinPhi =  math<float>::sin( phi );
 
-		for( int j = 0; j < rings; ++j ) {
-			float theta = j * minorIncr * M_TWO_PI + i * twist + mTwistOffset;
+		for( size_t j = 0; j < rings; ++j ) {
+			float theta = j * minorIncr * (float)M_TWO_PI + i * twist + mTwistOffset;
 			float cosTheta = -math<float>::cos( theta );
 			float sinTheta =  math<float>::sin( theta );
 
@@ -1377,8 +1377,8 @@ void Torus::calculateImplUV( size_t segments, size_t rings ) const
 
 	// index buffer
 	size_t k = 0;
-	for( int i = 0; i < segments - 1; ++i ) {
-		for ( int j = 0; j < rings - 1; ++j ) {
+	for( size_t i = 0; i < segments - 1; ++i ) {
+		for ( size_t j = 0; j < rings - 1; ++j ) {
 			mIndices[k++] = (i + 0) * rings + (j + 0);
 			mIndices[k++] = (i + 1) * rings + (j + 1);
 			mIndices[k++] = (i + 1) * rings + (j + 0);
@@ -1418,9 +1418,9 @@ void Torus::loadInto( Target *target ) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// Cone
+// Cylinder
 
-ConeBase::ConeBase()
+Cylinder::Cylinder()
 	: mOrigin( 0, 0, 0 )
 	, mHeight( 2.0f )
 	, mDirection( 0, 1, 0 )
@@ -1433,7 +1433,7 @@ ConeBase::ConeBase()
 	enable( Attrib::TEX_COORD_0 );
 }
 
-ConeBase& ConeBase::set( const Vec3f &from, const Vec3f &to )
+Cylinder& Cylinder::set( const Vec3f &from, const Vec3f &to )
 {
 	const Vec3f axis = ( to - from );
 	mHeight = axis.length();
@@ -1443,7 +1443,7 @@ ConeBase& ConeBase::set( const Vec3f &from, const Vec3f &to )
 	return *this;
 }
 
-void ConeBase::calculate() const
+void Cylinder::calculate() const
 {
 	if( mCalculationsCached )
 		return;
@@ -1451,14 +1451,14 @@ void ConeBase::calculate() const
 	int numSegments = mNumSegments;
 	if( numSegments < 4 ) {
 		float radius = math<float>::max( mRadiusBase, mRadiusApex );
-		numSegments = std::max( 12, (int)math<double>::floor( radius * M_TWO_PI ) );
+		numSegments = std::max( 12, (int)math<double>::floor( radius * (float)M_TWO_PI ) );
 	}
 
 	calculateImplUV( numSegments + 1, (numSegments >> 1) + 1 );
 	mCalculationsCached = true;
 }
 	
-void ConeBase::calculateImplUV( size_t segments, size_t rings ) const
+void Cylinder::calculateImplUV( size_t segments, size_t rings ) const
 {
 	mPositions.assign( segments * rings, Vec3f::zero() );
 	mNormals.assign( segments * rings, Vec3f::zero() );
@@ -1475,10 +1475,10 @@ void ConeBase::calculateImplUV( size_t segments, size_t rings ) const
 	const Quatf axis( Vec3f::yAxis(), mDirection );
 
 	// vertex, normal, tex coord and color buffers
-	for( int j = 0; j < rings; ++j ) {
-		for( int i = 0; i < segments; ++i ) {
-			float cosPhi = -math<float>::cos( i * segmentIncr * M_TWO_PI );
-			float sinPhi =  math<float>::sin( i * segmentIncr * M_TWO_PI );
+	for( size_t j = 0; j < rings; ++j ) {
+		for( size_t i = 0; i < segments; ++i ) {
+			float cosPhi = -math<float>::cos( i * segmentIncr * (float)M_TWO_PI );
+			float sinPhi =  math<float>::sin( i * segmentIncr * (float)M_TWO_PI );
 
 			float r = lerp<float>( mRadiusBase, mRadiusApex, j * ringIncr );
 			float x = r * cosPhi;
@@ -1499,8 +1499,8 @@ void ConeBase::calculateImplUV( size_t segments, size_t rings ) const
 
 	// index buffer
 	size_t k = 0;
-	for ( int j = 0; j < rings - 1; ++j ) {
-		for( int i = 0; i < segments - 1; ++i ) {
+	for ( size_t j = 0; j < rings - 1; ++j ) {
+		for( size_t i = 0; i < segments - 1; ++i ) {
 			mIndices[k++] = (i + 0) * rings + (j + 0);
 			mIndices[k++] = (i + 1) * rings + (j + 0);
 			mIndices[k++] = (i + 1) * rings + (j + 1);
@@ -1521,7 +1521,7 @@ void ConeBase::calculateImplUV( size_t segments, size_t rings ) const
 	}
 }
 
-void ConeBase::calculateCap( bool flip, float height, float radius, size_t segments ) const
+void Cylinder::calculateCap( bool flip, float height, float radius, size_t segments ) const
 {
 	const size_t index = mPositions.size();
 
@@ -1545,8 +1545,8 @@ void ConeBase::calculateCap( bool flip, float height, float radius, size_t segme
 		mTexCoords[index + i * 2 + 0] = Vec2f( i * segmentIncr, 1.0f - height / mHeight );
 
 		// edge point
-		float cosPhi = -math<float>::cos( i * segmentIncr * M_TWO_PI );
-		float sinPhi =  math<float>::sin( i * segmentIncr * M_TWO_PI );
+		float cosPhi = -math<float>::cos( i * segmentIncr * (float)M_TWO_PI );
+		float sinPhi =  math<float>::sin( i * segmentIncr * (float)M_TWO_PI );
 			
 		float x = radius * cosPhi;
 		float y = height;
@@ -1573,7 +1573,7 @@ void ConeBase::calculateCap( bool flip, float height, float radius, size_t segme
 	}
 }
 
-uint8_t ConeBase::getAttribDims( Attrib attr ) const
+uint8_t Cylinder::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
 		case Attrib::POSITION: return 3;
@@ -1585,7 +1585,7 @@ uint8_t ConeBase::getAttribDims( Attrib attr ) const
 	}
 }
 
-void ConeBase::loadInto( Target *target ) const
+void Cylinder::loadInto( Target *target ) const
 {
 	calculate();
 
