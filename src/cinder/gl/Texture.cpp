@@ -31,14 +31,14 @@
 #include <algorithm>
 #include <memory>
 
-#if ! defined( CINDER_GLES )
-#define GL_LUMINANCE GL_RED
-#define GL_LUMINANCE_ALPHA GL_RG
-#endif
-
 #if defined( CINDER_GL_ANGLE )
 #define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT	GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE
 #define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT	GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE
+#endif
+
+#if ! defined( CINDER_GLES )
+#define GL_LUMINANCE						GL_RED
+#define GL_LUMINANCE_ALPHA					GL_RG
 #endif
 
 using namespace std;
@@ -275,31 +275,6 @@ void TextureBase::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOr
 	}
 }
 
-bool TextureBase::dataFormatHasAlpha( GLint dataFormat )
-{
-	switch( dataFormat ) {
-		case GL_RGBA:
-		case GL_ALPHA:
-		case GL_LUMINANCE_ALPHA:
-			return true;
-		break;
-		default:
-			return false;
-	}
-}
-
-bool TextureBase::dataFormatHasColor( GLint dataFormat )
-{
-	switch( dataFormat ) {
-		case GL_ALPHA:
-		case GL_LUMINANCE:
-		case GL_LUMINANCE_ALPHA:
-			return false;
-	}
-	
-	return true;
-}
-
 Vec2i TextureBase::calcMipLevelSize( int mipLevel, GLint width, GLint height )
 {
 	width = max( 1, (int)floor( width >> mipLevel ) );
@@ -504,7 +479,7 @@ Texture::Texture( const Channel32f &channel, Format format )
 	}
 }
 
-Texture::Texture( ImageSourceRef imageSource, Format format )
+Texture::Texture( const ImageSourceRef &imageSource, Format format )
 	: mWidth( -1 ), mHeight( -1 ), mCleanWidth( -1 ), mCleanHeight( -1 ),
 	mFlipped( false )
 {
@@ -514,11 +489,17 @@ Texture::Texture( ImageSourceRef imageSource, Format format )
 		case ImageIo::CM_RGB:
 			defaultInternalFormat = ( imageSource->hasAlpha() ) ? GL_RGBA : GL_RGB;
 		break;
-		case ImageIo::CM_GRAY:
+		case ImageIo::CM_GRAY: {
+#if defined( CINDER_GLES )
 			defaultInternalFormat = ( imageSource->hasAlpha() ) ? GL_LUMINANCE_ALPHA : GL_LUMINANCE;
-		break;
+#else
+			defaultInternalFormat = ( imageSource->hasAlpha() ) ?  GL_RG : GL_RED;
+			std::array<int,4> swizzleMask = { GL_RED, GL_RED, GL_RED, GL_GREEN };
+			format.setSwizzleMask( swizzleMask );
+#endif
+		} break;
 		default:
-			throw ImageIoExceptionIllegalColorModel( "Illegal color model." );
+			throw ImageIoExceptionIllegalColorModel( "Unsupported color model for gl::Texture construction." );
 		break;
 	}
 
@@ -587,11 +568,10 @@ void Texture::initData( const float *data, GLint dataFormat, const Format &forma
 		glGenerateMipmap( mTarget );
 }
 
-void Texture::initData( ImageSourceRef imageSource, const Format &format )
+void Texture::initData( const ImageSourceRef &imageSource, const Format &format )
 {
 	mWidth = mCleanWidth = imageSource->getWidth();
 	mHeight = mCleanHeight = imageSource->getHeight();
-	
 	
 	// setup an appropriate dataFormat/ImageTargetTexture based on the image's color space
 	GLint dataFormat;
@@ -795,7 +775,7 @@ void Texture::update( const PboRef &pbo, GLenum format, GLenum type, const Area 
 	CI_ASSERT_ERROR( pbo->getTarget() == GL_PIXEL_UNPACK_BUFFER )
 	*/
 	
-	BufferScope bufScp( BufferObjRef( pbo ) );
+	BufferScope bufScp( (BufferObjRef)( pbo ) );
 	TextureBindScope tbs( mTarget, mTextureId );
 	glTexSubImage2D( mTarget, mipLevel, destArea.getX1(), mHeight - destArea.getY2(), destArea.getWidth(), destArea.getHeight(), format, type, reinterpret_cast<const GLvoid*>( pboByteOffset ) );
 }
@@ -1324,13 +1304,13 @@ void parseKtx( const DataSourceRef &dataSource, void *intermediatePboPtr, size_t
 
 TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, Format format )
 {
-	auto ctx = gl::context();
 	uint32_t width, height, depth, mipmapLevels, internalFormat, dataFormat, dataType;
 	vector<KtxTextureData> textureData;
 
 	void *intermediatePboPtr = nullptr;
 	size_t intermediatePtrSize = 0;
 #if ! defined( CINDER_GLES )
+	auto ctx = gl::context();
 	// if the user has supplied a PBO, we'll use that as intermediate storage rather than CPU memory.
 	// in that case the KtxTextureData's 'data' member will be ignored and instead we'll use its 'pboOffset' member
 	PboRef intermediatePbo = format.getIntermediatePbo();

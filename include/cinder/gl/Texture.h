@@ -93,10 +93,6 @@ class TextureBase {
 	static GLenum	getBindingConstantForTarget( GLenum target );
 	//! Converts a SurfaceChannelOrder into an appropriate OpenGL dataFormat and type
 	static void		SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type );
-	//! Returns whether a given OpenGL dataFormat contains an alpha channel
-	static bool		dataFormatHasAlpha( GLint dataFormat );
-	//! Returns whether a give OpenGL dataFormat contains color channels
-	static bool		dataFormatHasColor( GLint dataFormat );
 	//! calculate the size of mipMap for the corresponding level
 	static Vec2i	calcMipLevelSize( int level, GLint width, GLint height );
 	//! Returns the maximum anisotropic filtering maximum allowed by the hardware
@@ -341,14 +337,14 @@ class Texture : public TextureBase {
 	/** Consider Texture::create() instead. Constructs a texture based on the contents of \a channel. A default value of -1 for \a internalFormat chooses an appropriate internal format automatically. **/
 	Texture( const Channel32f &channel, Format format = Format() );
 	/** Consider Texture::create() instead. Constructs a texture based on \a imageSource. A default value of -1 for \a internalFormat chooses an appropriate internal format based on the contents of \a imageSource. **/
-	Texture( ImageSourceRef imageSource, Format format = Format() );
+	Texture( const ImageSourceRef &imageSource, Format format = Format() );
 	//! Consider Texture::create() instead. Constructs a Texture based on an externally initialized OpenGL texture. \a aDoNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
 	Texture( GLenum aTarget, GLuint aTextureID, int width, int height, bool doNotDispose );
 
   protected:
 	void	initData( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format );
 	void	initData( const float *data, GLint dataFormat, const Format &format );
-	void	initData( ImageSourceRef imageSource, const Format &format );
+	void	initData( const ImageSourceRef &imageSource, const Format &format );
 
 	mutable GLint	mWidth, mHeight, mCleanWidth, mCleanHeight;
 	float			mMaxU, mMaxV;
