@@ -169,7 +169,7 @@ Matrix44f getModelViewProjection();
 Matrix33f calcNormalMatrix();
 
 void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 1000.0f, bool originUpperLeft = true );
-void setMatricesWindowPersp( const ci::Vec2i &screenSize, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 1000.0f, bool originUpperLeft = true );
+void setMatricesWindowPersp( const ci::Vec2i &screenSize, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 10000.0f, bool originUpperLeft = true );
 void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft = true );
 void setMatricesWindow( const ci::Vec2i &screenSize, bool originUpperLeft = true );
 
