@@ -69,7 +69,7 @@ void AppImplMswRendererGl::defaultResize() const
 	int width = clientRect.right - clientRect.left;
 	int height = clientRect.bottom - clientRect.top;
 
-	glViewport( 0, 0, width, height );
+	gl::viewport( 0, 0, width, height );
 	gl::setMatricesWindowPersp( width, height );
 }
 
