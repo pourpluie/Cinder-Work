@@ -1432,6 +1432,52 @@ TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, Format forma
 	return result;
 }
 
+#if defined( CINDER_GLES )
+void Texture::updateFromKtx( const DataSourceRef &dataSource )
+#else
+void Texture::updateFromKtx( const DataSourceRef &dataSource, const PboRef &intermediatePbo )
+#endif
+{
+	uint32_t width, height, depth, mipmapLevels, internalFormat, dataFormat, dataType;
+	vector<KtxTextureData> textureData;
+
+	void *intermediatePboPtr = nullptr;
+	size_t intermediatePtrSize = 0;
+#if ! defined( CINDER_GLES )
+	auto ctx = gl::context();
+	// if the user has supplied a PBO, we'll use that as intermediate storage rather than CPU memory.
+	// in that case the KtxTextureData's 'data' member will be ignored and instead we'll use its 'pboOffset' member
+	if( intermediatePbo ) {
+		ctx->pushBufferBinding( GL_PIXEL_UNPACK_BUFFER, intermediatePbo->getId() );
+		intermediatePboPtr = intermediatePbo->map( GL_WRITE_ONLY );
+		intermediatePtrSize = intermediatePbo->getSize();
+	}
+#endif
+
+	parseKtx( dataSource, intermediatePboPtr, intermediatePtrSize, &width, &height, &depth, &internalFormat, &dataFormat, &dataType, &mipmapLevels, &textureData );
+
+#if ! defined( CINDER_GLES )
+	if( intermediatePbo ) {
+		intermediatePbo->unmap();
+	}
+#endif		
+	
+	TextureBindScope bindScope( mTarget, mTextureId );
+	
+	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+	for( const auto &textureData : textureData ) {		
+		if( dataType != 0 )
+			glTexSubImage2D( mTarget, textureData.level, 0, 0, textureData.width, textureData.height, dataFormat, dataType, ( intermediatePboPtr ) ? textureData.pboOffset : textureData.data.get() );
+		else
+			glCompressedTexSubImage2D( mTarget, textureData.level, 0, 0, textureData.width, textureData.height, internalFormat, textureData.dataSize, ( intermediatePboPtr ) ? textureData.pboOffset : textureData.data.get() );
+	}
+	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+
+#if ! defined( CINDER_GLES )
+	if( intermediatePbo )
+		ctx->popBufferBinding( GL_PIXEL_UNPACK_BUFFER );
+#endif
+}
 
 #if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format format )
