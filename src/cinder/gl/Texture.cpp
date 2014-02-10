@@ -1302,6 +1302,9 @@ TextureData::~TextureData()
 
 void TextureData::allocateDataStore( size_t requireBytes )
 {
+#if defined( CINDER_GLES )
+	mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[requireBytes] );
+#else
 	if( mPbo ) {
 		if( mPbo->getSize() < requireBytes )
 			mPbo->bufferData( requireBytes, nullptr, GL_STREAM_DRAW );
@@ -1309,31 +1312,36 @@ void TextureData::allocateDataStore( size_t requireBytes )
 	else {
 		mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[requireBytes] );
 	}
-
+#endif
 	mDataStoreSize = requireBytes;
 }
 
 void TextureData::mapDataStore()
 {
+#if ! defined( CINDER_GLES )
 	if( mPbo )
 		mPboMappedPtr = mPbo->map( GL_WRITE_ONLY );
+#endif
 }
 
 void TextureData::unmapDataStore()
 {
+#if ! defined( CINDER_GLES )
 	if( mPbo )
 		mPbo->unmap();
 	mPboMappedPtr = nullptr;
+#endif
 }
 
 void* TextureData::getDataStorePtr( size_t offset )
 {
+#if ! defined( CINDER_GLES )
 	if( mPbo ) {
 		return ((uint8_t*)mPboMappedPtr) + offset;
 	}
-	else {
+	else
+#endif
 		return mDataStoreMem.get() + offset;
-	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
