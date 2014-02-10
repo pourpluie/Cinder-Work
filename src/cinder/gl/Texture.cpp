@@ -1507,6 +1507,7 @@ void Texture::updateFromKtx( const DataSourceRef &dataSource, const PboRef &inte
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 }
 
+#if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 namespace {
 void parseDds( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t *resultHeight,
 	uint32_t *resultDepth, uint32_t *resultInternalFormat, uint32_t *resultDataFormat, uint32_t *resultDataType, uint32_t *resultMipmapLevels, TextureData *resultData )
@@ -1726,7 +1727,6 @@ void parseDds( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 }
 } // anonymous namespace
 
-#if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format format )
 {
 	uint32_t width, height, depth, mipmapLevels, internalFormat, dataFormat, dataType;
@@ -1794,7 +1794,7 @@ void Texture::updateFromDds( const DataSourceRef &dataSource, const PboRef &inte
 	}
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 }
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 
 TextureResizeExc::TextureResizeExc( const string &message, const Vec2i &updateSize, const Vec2i &textureSize )
 	 : TextureDataExc( "" )
