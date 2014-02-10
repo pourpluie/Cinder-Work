@@ -216,7 +216,48 @@ class TextureBase {
 	bool				mDoNotDispose;
 	std::array<GLint,4>	mSwizzleMask;	
 };
-	
+
+class TextureData {
+  public:
+	struct Level {
+  		size_t						dataSize;
+		size_t						offset;
+		std::shared_ptr<uint8_t>	dataStore;
+		size_t						width, height, depth;
+	};
+
+#if defined( CINDER_GLES )
+	TextureData();
+#else
+	//! Binds the pbo if it's not nullptr
+	TextureData( const PboRef &pbo = PboRef() );
+#endif
+	//! Unbinds the pbo if it is not nullptr
+	~TextureData();
+
+	size_t						getNumLevels() const { return mLevels.size(); }
+	const Level&				getLevel( size_t index ) const { return mLevels.at( index ); }
+	const std::vector<Level>&	getLevels() const { return mLevels; }
+	Level&						back() { return mLevels.back(); }
+	void						push_back( const Level &level ) { mLevels.push_back( level ); }
+	void						clear() { mLevels.clear(); }
+
+	void	allocateDataStore( size_t requireBytes );
+	size_t	getDataStoreSize() const { return mDataStoreSize; }
+	void*	getDataStorePtr( size_t offset );
+	void	mapDataStore();
+	void	unmapDataStore();
+
+  #if ! defined( CINDER_GLES )
+	PboRef						mPbo;
+	void*						mPboMappedPtr;
+  #endif
+	std::shared_ptr<uint8_t>	mDataStoreMem;
+	size_t						mDataStoreSize;
+
+	std::vector<Level>			mLevels;
+};
+
 class Texture : public TextureBase {
   public:
 	struct Format : public TextureBase::Format {
@@ -292,11 +333,13 @@ class Texture : public TextureBase {
 	void			update( const PboRef &pbo, GLenum format, GLenum type, const Area &destArea, int mipLevel = 0, size_t pboByteOffset = 0 );
 	//! Updates a Texture from a KTX file. Uses \a intermediatePbo if supplied; requires it to be large enough to hold all MIP levels and throws if it is not.
 	void			updateFromKtx( const DataSourceRef &dataSource, const PboRef &intermediatePbo = PboRef() );
+	//! Updates a Texture from a DDS file. Uses \a intermediatePbo if supplied; requires it to be large enough to hold all MIP levels and throws if it is not.
+	void			updateFromDds( const DataSourceRef &dataSource, const PboRef &intermediatePbo = PboRef() );
 #else
 	//! Updates a Texture from a KTX file.
 	void			updateFromKtx( const DataSourceRef &dataSource );
 #endif
-	
+
 	//! calculates and sets the total levels of mipmap
 	GLint			getNumMipLevels() const;
 	//! the width of the texture in pixels
@@ -522,11 +565,11 @@ class TextureResizeExc : public TextureDataExc {
 	TextureResizeExc( const std::string &message, const Vec2i &updateSize, const Vec2i &textureSize );
 };
 
-class TextureIntermediatePboTooSmallExc : public Exception {
+class TextureDataStoreTooSmallExc : public Exception {
   public:
-	TextureIntermediatePboTooSmallExc() {}
+	TextureDataStoreTooSmallExc() {}
 
-	virtual const char* what() const throw()	{ return "PBO supplied in Texture::Format is too small to use as intermediate storage"; }
+	virtual const char* what() const throw()	{ return "The data store allocated for a TextureData is too small"; }
 };
 	
 } } // namespace cinder::gl
