@@ -1765,6 +1765,35 @@ TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format forma
 
 	return result;
 }
+
+#if defined( CINDER_GL_ANGLE )
+void Texture::updateFromDds( const DataSourceRef &dataSource )
+#else
+void Texture::updateFromDds( const DataSourceRef &dataSource, const PboRef &intermediatePbo )
+#endif
+{
+	uint32_t width, height, depth, mipmapLevels, internalFormat, dataFormat, dataType;
+#if defined( CINDER_GLES )
+	TextureData textureData;
+#else
+	TextureData textureData( intermediatePbo );
+#endif
+
+	parseDds( dataSource, &width, &height, &depth, &internalFormat, &dataFormat, &dataType, &mipmapLevels, &textureData );
+	
+	TextureBindScope bindScope( mTarget, mTextureId );
+	
+	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+	int curLevel = 0;
+	for( const auto &textureDataLevel : textureData.getLevels() ) {		
+		if( dataType != 0 )
+			glTexSubImage2D( mTarget, curLevel, 0, 0, textureDataLevel.width, textureDataLevel.height, dataFormat, dataType, textureData.getDataStorePtr( textureDataLevel.offset ) );
+		else
+			glCompressedTexSubImage2D( mTarget, curLevel, 0, 0, textureDataLevel.width, textureDataLevel.height, internalFormat, textureDataLevel.dataSize, textureData.getDataStorePtr( textureDataLevel.offset ) );
+		++curLevel;
+	}
+	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+}
 #endif // ! defined( CINDER_GLES )
 
 TextureResizeExc::TextureResizeExc( const string &message, const Vec2i &updateSize, const Vec2i &textureSize )

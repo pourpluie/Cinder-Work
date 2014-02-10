@@ -336,8 +336,12 @@ class Texture : public TextureBase {
 	//! Updates a Texture from a DDS file. Uses \a intermediatePbo if supplied; requires it to be large enough to hold all MIP levels and throws if it is not.
 	void			updateFromDds( const DataSourceRef &dataSource, const PboRef &intermediatePbo = PboRef() );
 #else
-	//! Updates a Texture from a KTX file.
+	//! Updates a Texture from a KTX file. Assumes sizes match.
 	void			updateFromKtx( const DataSourceRef &dataSource );
+  #if defined( CINDER_GL_ANGLE )
+	//! Updates a Texture from a KTX file. Assumes sizes match.
+	void			updateFromDds( const DataSourceRef &dataSource );
+  #endif
 #endif
 
 	//! calculates and sets the total levels of mipmap
