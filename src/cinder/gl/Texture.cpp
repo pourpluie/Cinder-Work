@@ -1529,8 +1529,7 @@ void Texture::replace( const TextureData &textureData )
 
 #if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 namespace {
-void parseDds( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t *resultHeight,
-	uint32_t *resultDepth, uint32_t *resultInternalFormat, uint32_t *resultDataFormat, uint32_t *resultDataType, uint32_t *resultMipmapLevels, TextureData *resultData )
+void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 {
 	typedef struct { // DDCOLORKEY
 		uint32_t dw1;
@@ -1658,14 +1657,15 @@ void parseDds( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 		ddsStream->readData( &ddsHeader10, sizeof(DdsHeader10) );
 	}
 
-	uint32_t width = *resultWidth = ddsd.dwWidth; 
-	uint32_t height = *resultHeight = ddsd.dwHeight; 
+	resultData->setWidth( ddsd.dwWidth );
+	resultData->setHeight( ddsd.dwHeight );
+	resultData->setDepth( 1 );
 
 	// how big (worst case) is it going to be including all mipmaps?
-	uint32_t maxBufSize = ( ddsd.dwMipMapCount > 1 ) ? ( width * height * 4 * 2 ) : ( width * height * 4 ); 
+	uint32_t maxBufSize = ( ddsd.dwMipMapCount > 1 ) ? ( ddsd.dwWidth * ddsd.dwHeight * 4 * 2 ) : ( ddsd.dwWidth * ddsd.dwHeight * 4 ); 
 	resultData->allocateDataStore( maxBufSize );
 
-	int numMipMaps = *resultMipmapLevels = ddsd.dwMipMapCount;
+	int numMipMaps = ddsd.dwMipMapCount;
 	int dataFormat;
 	switch( ddsd.ddpfPixelFormat.dwFourCC ) { 
 		case FOURCC_DXT1: 
@@ -1717,14 +1717,16 @@ void parseDds( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 		blockSizeBytes = ( ddsd.ddpfPixelFormat.dwRGBBitCount + 7 ) / 8;
 
 	// Create the texture
-	*resultDataFormat = *resultInternalFormat = dataFormat;
-	*resultDataType = 0;
+	resultData->setUnpackAlignment( 4 );
+	resultData->setDataFormat( dataFormat );
+	resultData->setInternalFormat( dataFormat );
+	resultData->setDataType( 0 ); // implies compressed
 
 	resultData->mapDataStore();
 	size_t byteOffset = 0;
-	for( int level = 0; level <= numMipMaps && (width || height); ++level ) { 
-		int levelWidth = std::max<int>( 1, (width>>level) );
-		int levelHeight = std::max<int>( 1, (height>>level) );
+	for( int level = 0; level <= numMipMaps && (ddsd.dwWidth || ddsd.dwHeight); ++level ) { 
+		int levelWidth = std::max<int>( 1, (ddsd.dwWidth>>level) );
+		int levelHeight = std::max<int>( 1, (ddsd.dwHeight>>level) );
 		int blockWidth = std::max<int>( 1, (levelWidth+3) / 4 );
 		int blockHeight = std::max<int>( 1, (levelHeight+3) / 4 );
 		int rowBytes = blockWidth * blockSizeBytes;
@@ -1749,39 +1751,28 @@ void parseDds( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 
 TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format format )
 {
-	uint32_t width, height, depth, mipmapLevels, internalFormat, dataFormat, dataType;
 #if ! defined( CINDER_GLES )
 	TextureData textureData( format.getIntermediatePbo() );
 #else
 	TextureData textureData;
 #endif
 
-	parseDds( dataSource, &width, &height, &depth, &internalFormat, &dataFormat, &dataType, &mipmapLevels, &textureData );
+	parseDds( dataSource, &textureData );
 
 	GLenum target = format.mTarget;
 	GLuint texId;
 	glGenTextures( 1, &texId );
 
-	TextureRef result = Texture::create( target, texId, width, height, false );
-	result->mWidth = width;
-	result->mHeight = height;
-	result->mInternalFormat = dataFormat;
-	if( mipmapLevels > 1 && ( format.mMipmapping || ( ! format.mMipmappingSpecified ) ) )
+	TextureRef result = Texture::create( target, texId, textureData.getWidth(), textureData.getHeight(), false );
+	result->mWidth = textureData.getWidth();
+	result->mHeight = textureData.getHeight();
+	result->mInternalFormat = textureData.getInternalFormat();
+	if( textureData.getLevels().size() > 1 && ( format.mMipmapping || ( ! format.mMipmappingSpecified ) ) )
 		format.mMipmapping = true;
 
 	TextureBindScope bindScope( result );
-	result->initParams( format, dataFormat /*ignored*/ );
-
-	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
-	int curLevel = 0;
-	for( const auto &textureDataLevel : textureData.getLevels() ) {		
-		if( dataType != 0 )
-			glTexImage2D( result->mTarget, curLevel, internalFormat, textureDataLevel.width, textureDataLevel.height, 0, dataFormat, dataType, textureData.getDataStorePtr( textureDataLevel.offset ) );
-		else
-			glCompressedTexImage2D( result->mTarget, curLevel, internalFormat, textureDataLevel.width, textureDataLevel.height, 0, textureDataLevel.dataSize, textureData.getDataStorePtr( textureDataLevel.offset ) );
-		++curLevel;
-	}
-	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+	result->initParams( format, 0 /*ignored*/ );
+	result->replace( textureData );
 
 	return result;
 }
@@ -1792,27 +1783,14 @@ void Texture::updateFromDds( const DataSourceRef &dataSource )
 void Texture::updateFromDds( const DataSourceRef &dataSource, const PboRef &intermediatePbo )
 #endif
 {
-	uint32_t width, height, depth, mipmapLevels, internalFormat, dataFormat, dataType;
 #if defined( CINDER_GLES )
 	TextureData textureData;
 #else
 	TextureData textureData( intermediatePbo );
 #endif
 
-	parseDds( dataSource, &width, &height, &depth, &internalFormat, &dataFormat, &dataType, &mipmapLevels, &textureData );
-	
-	TextureBindScope bindScope( mTarget, mTextureId );
-	
-	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
-	int curLevel = 0;
-	for( const auto &textureDataLevel : textureData.getLevels() ) {		
-		if( dataType != 0 )
-			glTexSubImage2D( mTarget, curLevel, 0, 0, textureDataLevel.width, textureDataLevel.height, dataFormat, dataType, textureData.getDataStorePtr( textureDataLevel.offset ) );
-		else
-			glCompressedTexSubImage2D( mTarget, curLevel, 0, 0, textureDataLevel.width, textureDataLevel.height, internalFormat, textureDataLevel.dataSize, textureData.getDataStorePtr( textureDataLevel.offset ) );
-		++curLevel;
-	}
-	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+	parseDds( dataSource, &textureData );
+	update( textureData );
 }
 #endif // ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 
