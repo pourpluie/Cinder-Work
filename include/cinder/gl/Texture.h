@@ -226,14 +226,30 @@ class TextureData {
 		size_t						width, height, depth;
 	};
 
-#if defined( CINDER_GLES )
 	TextureData();
-#else
+#if ! defined( CINDER_GLES )
 	//! Binds the pbo if it's not nullptr
-	TextureData( const PboRef &pbo = PboRef() );
+	TextureData( const PboRef &pbo );
 #endif
 	//! Unbinds the pbo if it is not nullptr
 	~TextureData();
+
+	GLint				getWidth() const { return mWidth; }
+	void				setWidth( GLint width ) { mWidth = width; }
+	GLint				getHeight() const { return mHeight; }
+	void				setHeight( GLint height ) { mHeight = height; }
+	GLint				getDepth() const { return mDepth; }
+	void				setDepth( GLint depth ) { mDepth = depth; }
+	
+	bool				isCompressed() const { return mDataFormat == 0; }
+	GLint				getInternalFormat() const { return mInternalFormat; }
+	void				setInternalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; }
+	GLenum				getDataFormat() const { return mDataFormat; }
+	void				setDataFormat( GLenum dataFormat ) { mDataFormat = dataFormat; }
+	GLenum				getDataType() const { return mDataType; }
+	void				setDataType( GLenum dataType ) { mDataType = dataType; }
+	size_t				getUnpackAlignment() const { return mUnpackAlignment; }
+	void				setUnpackAlignment( size_t unpackAlignment ) { mUnpackAlignment = unpackAlignment; }
 
 	size_t						getNumLevels() const { return mLevels.size(); }
 	const Level&				getLevel( size_t index ) const { return mLevels.at( index ); }
@@ -244,9 +260,19 @@ class TextureData {
 
 	void	allocateDataStore( size_t requireBytes );
 	size_t	getDataStoreSize() const { return mDataStoreSize; }
-	void*	getDataStorePtr( size_t offset );
+	void*	getDataStorePtr( size_t offset ) const;
 	void	mapDataStore();
 	void	unmapDataStore();
+
+  private:
+	void		init();
+	
+	GLint		mWidth, mHeight, mDepth;
+	GLint		mInternalFormat;
+	GLenum		mDataFormat, mDataType;
+	size_t		mUnpackAlignment;
+	
+	std::vector<Level>			mLevels;
 
   #if ! defined( CINDER_GLES )
 	PboRef						mPbo;
@@ -254,8 +280,6 @@ class TextureData {
   #endif
 	std::shared_ptr<uint8_t>	mDataStoreMem;
 	size_t						mDataStoreSize;
-
-	std::vector<Level>			mLevels;
 };
 
 class Texture : public TextureBase {
@@ -315,21 +339,22 @@ class Texture : public TextureBase {
 	/** Designed to accommodate texture where not all pixels are "clean", meaning the maximum texture coordinate value may not be 1.0 (or the texture's width in \c GL_TEXTURE_RECTANGLE_ARB) **/
 	void			setCleanTexCoords( float maxU, float maxV );
 	
-	//! Replaces the pixels of a Texture with contents of \a surface. Expects \a surface's size to match the Texture's.
+	//! Updates the pixels of a Texture with contents of \a surface. Expects \a surface's size to match the Texture's.
 	void			update( const Surface &surface, int mipLevel = 0 );
-	//! Replaces the pixels of a Texture with contents of \a surface. Expects \a surface's size to match the Texture's.
+	//! Updates the pixels of a Texture with contents of \a surface. Expects \a surface's size to match the Texture's.
 	void			update( const Surface32f &surface, int mipLevel = 0 );
-	/** \brief Replaces the pixels of a texture with contents of \a surface. Expects \a area's size to match the Texture's.
-	 \todo Method for updating a subrectangle with an offset into the source **/
+	//! Updates the pixels of a Texture with contents of \a surface. Expects \a area's size to match the Texture's.
 	void			update( const Surface &surface, const Area &area, int mipLevel = 0 );
-	//! Replaces the pixels of a Texture with contents of \a channel. Expects \a channel's size to match the Texture's.
+	//! Updates the pixels of a Texture with contents of \a channel. Expects \a channel's size to match the Texture's.
 	void			update( const Channel32f &channel, int mipLevel = 0 );
-	//! Replaces the pixels of a Texture with contents of \a channel. Expects \a area's size to match the Texture's.
+	//! Updates the pixels of a Texture with contents of \a channel. Expects \a area's size to match the Texture's.
 	void			update( const Channel8u &channel, const Area &area, int mipLevel = 0 );
+	//! Updates the pixels of a Texture with contents of \a textureData. Inefficient if the bounds of \a textureData don't match those of \a this
+	void			update( const TextureData &textureData );
 #if ! defined( CINDER_GLES )
-	//! Replaces the pixels of a Texture with the contents of a PBO (whose target must be \c GL_PIXEL_UNPACK_BUFFER) at mipmap level \a mipLevel. \a format and \a type correspond to parameters of glTexSubImage2D, and would often be GL_RGB and GL_UNSIGNED_BYTE respectively. Reads from the PBO starting at \a pboByteOffset.
+	//! Updates the pixels of a Texture with the contents of a PBO (whose target must be \c GL_PIXEL_UNPACK_BUFFER) at mipmap level \a mipLevel. \a format and \a type correspond to parameters of glTexSubImage2D, and would often be GL_RGB and GL_UNSIGNED_BYTE respectively. Reads from the PBO starting at \a pboByteOffset.
 	void			update( const PboRef &pbo, GLenum format, GLenum type, int mipLevel = 0, size_t pboByteOffset = 0 );
-	//! Replaces a subregion (measured as origin upper-left) of the pixels of a Texture with the contents of a PBO (whose target must be \c GL_PIXEL_UNPACK_BUFFER) at mipmap level \a mipLevel.  \a format and \a type correspond to parameters of glTexSubImage2D, and would often be GL_RGB and GL_UNSIGNED_BYTE respectively. Reads from the PBO starting at \a pboByteOffset.
+	//! Updates a subregion (measured as origin upper-left) of the pixels of a Texture with the contents of a PBO (whose target must be \c GL_PIXEL_UNPACK_BUFFER) at mipmap level \a mipLevel.  \a format and \a type correspond to parameters of glTexSubImage2D, and would often be GL_RGB and GL_UNSIGNED_BYTE respectively. Reads from the PBO starting at \a pboByteOffset.
 	void			update( const PboRef &pbo, GLenum format, GLenum type, const Area &destArea, int mipLevel = 0, size_t pboByteOffset = 0 );
 	//! Updates a Texture from a KTX file. Uses \a intermediatePbo if supplied; requires it to be large enough to hold all MIP levels and throws if it is not.
 	void			updateFromKtx( const DataSourceRef &dataSource, const PboRef &intermediatePbo = PboRef() );
@@ -343,6 +368,8 @@ class Texture : public TextureBase {
 	void			updateFromDds( const DataSourceRef &dataSource );
   #endif
 #endif
+	//! Replaces the pixels (and data store) of a Texture with contents of \a textureData. Use update() instead if the bounds of \a this match those of \a textureData
+	void			replace( const TextureData &textureData );
 
 	//! calculates and sets the total levels of mipmap
 	GLint			getNumMipLevels() const;

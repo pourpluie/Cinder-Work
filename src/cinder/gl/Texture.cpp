@@ -1275,30 +1275,38 @@ ImageTargetGlTexture<T>::ImageTargetGlTexture( const Texture *texture, ImageIo::
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TextureData
-#if defined( CINDER_GLES )
 TextureData::TextureData()
 {
+	init();
 }
 
-TextureData::~TextureData()
-{
-}
-#else
+#if ! defined( CINDER_GLES )
 TextureData::TextureData( const PboRef &pbo )
 	: mPbo( pbo )
 {
+	init();
 	if( mPbo ) {
 		gl::context()->pushBufferBinding( GL_PIXEL_UNPACK_BUFFER, pbo->getId() );
 		mPboMappedPtr = nullptr;
 	}
 }
+#endif
+
+void TextureData::init()
+{
+	mWidth = mHeight = mDepth = 0;
+	mInternalFormat = 0;
+	mDataFormat = mDataType = 0;
+	mUnpackAlignment = 0;
+}
 
 TextureData::~TextureData()
 {
+#if defined( CINDER_GLES )
 	if( mPbo )
 		gl::context()->popBufferBinding( GL_PIXEL_UNPACK_BUFFER );
-}
 #endif
+}
 
 void TextureData::allocateDataStore( size_t requireBytes )
 {
@@ -1333,7 +1341,7 @@ void TextureData::unmapDataStore()
 #endif
 }
 
-void* TextureData::getDataStorePtr( size_t offset )
+void* TextureData::getDataStorePtr( size_t offset ) const
 {
 #if ! defined( CINDER_GLES )
 	if( mPbo ) {
@@ -1347,8 +1355,7 @@ void* TextureData::getDataStorePtr( size_t offset )
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parseKtx
 namespace {
-void parseKtx( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t *resultHeight,
-	uint32_t *resultDepth, uint32_t *resultInternalFormat, uint32_t *resultDataFormat, uint32_t *resultDataType, uint32_t *resultMipmapLevels, TextureData *resultData )
+void parseKtx( const DataSourceRef &dataSource, TextureData *resultData )
 {
 	typedef struct {
 		uint8_t		identifier[12];
@@ -1390,13 +1397,13 @@ void parseKtx( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 	if( header.pixelDepth != 0 )
 		throw KtxParseExc( "3D textures not currently supported" );
 	
-	*resultWidth = header.pixelWidth;
-	*resultHeight = header.pixelHeight;
-	*resultDepth = header.pixelDepth;
-	*resultInternalFormat = header.glInternalFormat;
-	*resultDataFormat = header.glFormat;
-	*resultDataType = header.glType;
-	*resultMipmapLevels = header.numberOfMipmapLevels;
+	resultData->setWidth( header.pixelWidth );
+	resultData->setHeight( header.pixelHeight );
+	resultData->setDepth( header.pixelDepth );
+	resultData->setInternalFormat( header.glInternalFormat );
+	resultData->setDataFormat( header.glFormat );
+	resultData->setDataType( header.glType );
+	resultData->setUnpackAlignment( 4 );
 	
 	ktxStream->seekRelative( header.bytesOfKeyValueData );
 
@@ -1441,40 +1448,26 @@ void parseKtx( const DataSourceRef &dataSource, uint32_t *resultWidth, uint32_t 
 
 TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, Format format )
 {
-	uint32_t width, height, depth, mipmapLevels, internalFormat, dataFormat, dataType;
 #if ! defined( CINDER_GLES )
 	TextureData textureData( format.getIntermediatePbo() );
 #else
 	TextureData textureData;
 #endif
 
-	parseKtx( dataSource, &width, &height, &depth, &internalFormat, &dataFormat, &dataType, &mipmapLevels, &textureData );
+	parseKtx( dataSource, &textureData );
 
 	GLenum target = format.mTarget;
 	GLuint texId;
 	glGenTextures( 1, &texId );
 
-	TextureRef result = Texture::create( target, texId, width, height, false );
-	result->mWidth = width;
-	result->mHeight = height;
-	result->mInternalFormat = dataFormat;
-	if( mipmapLevels > 1 && ( format.mMipmapping || ( ! format.mMipmappingSpecified ) ) )
+	TextureRef result = Texture::create( target, texId, textureData.getWidth(), textureData.getHeight(), false );
+	result->mInternalFormat = textureData.getDataFormat();
+	if( textureData.getLevels().size() > 1 && ( format.mMipmapping || ( ! format.mMipmappingSpecified ) ) )
 		format.mMipmapping = true;
 
 	TextureBindScope bindScope( result );
-	result->initParams( format, dataFormat /*ignored*/ );
-
-	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
-	int curLevel = 0;
-	for( const auto &textureDataLevel : textureData.getLevels() ) {		
-		if( dataType != 0 )
-			glTexImage2D( result->mTarget, curLevel, internalFormat, textureDataLevel.width, textureDataLevel.height, 0, dataFormat, dataType, textureData.getDataStorePtr( textureDataLevel.offset ) );
-		else
-			glCompressedTexImage2D( result->mTarget, curLevel, internalFormat, textureDataLevel.width, textureDataLevel.height, 0, textureDataLevel.dataSize, textureData.getDataStorePtr( textureDataLevel.offset ) );
-		++curLevel;
-	}
-	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-
+	result->initParams( format, 0 /*ignored*/ );
+	result->replace( textureData );
 	return result;
 }
 
@@ -1484,28 +1477,55 @@ void Texture::updateFromKtx( const DataSourceRef &dataSource )
 void Texture::updateFromKtx( const DataSourceRef &dataSource, const PboRef &intermediatePbo )
 #endif
 {
-	uint32_t width, height, depth, mipmapLevels, internalFormat, dataFormat, dataType;
 #if defined( CINDER_GLES )
 	TextureData textureData;
 #else
 	TextureData textureData( intermediatePbo );
 #endif
+	parseKtx( dataSource, &textureData );
+	update( textureData );
+}
 
-	parseKtx( dataSource, &width, &height, &depth, &internalFormat, &dataFormat, &dataType, &mipmapLevels, &textureData );
-	
+void Texture::update( const TextureData &textureData )
+{
+	if( textureData.getWidth() != mWidth || textureData.getHeight() != mHeight )
+		replace( textureData );
+	else {
+		TextureBindScope bindScope( mTarget, mTextureId );
+		if( textureData.getUnpackAlignment() != 0 )
+			glPixelStorei( GL_UNPACK_ALIGNMENT, textureData.getUnpackAlignment() );
+
+		int curLevel = 0;
+		for( const auto &textureDataLevel : textureData.getLevels() ) {		
+			if( textureData.getDataType() != 0 )
+				glTexSubImage2D( mTarget, curLevel, 0, 0, textureDataLevel.width, textureDataLevel.height, textureData.getDataFormat(), textureData.getDataType(), textureData.getDataStorePtr( textureDataLevel.offset ) );
+			else
+				glCompressedTexSubImage2D( mTarget, curLevel, 0, 0, textureDataLevel.width, textureDataLevel.height, textureData.getInternalFormat(), textureDataLevel.dataSize, textureData.getDataStorePtr( textureDataLevel.offset ) );
+			++curLevel;
+		}
+		if( textureData.getUnpackAlignment() != 0 )
+			glPixelStorei( GL_UNPACK_ALIGNMENT, textureData.getUnpackAlignment() );
+	}
+}
+
+void Texture::replace( const TextureData &textureData )
+{
 	TextureBindScope bindScope( mTarget, mTextureId );
-	
-	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+	if( textureData.getUnpackAlignment() != 0 )
+		glPixelStorei( GL_UNPACK_ALIGNMENT, textureData.getUnpackAlignment() );
+
 	int curLevel = 0;
 	for( const auto &textureDataLevel : textureData.getLevels() ) {		
-		if( dataType != 0 )
-			glTexSubImage2D( mTarget, curLevel, 0, 0, textureDataLevel.width, textureDataLevel.height, dataFormat, dataType, textureData.getDataStorePtr( textureDataLevel.offset ) );
+		if( textureData.getDataType() != 0 )
+			glTexImage2D( mTarget, curLevel, textureData.getInternalFormat(), textureDataLevel.width, textureDataLevel.height, 0, textureData.getDataFormat(), textureData.getDataType(), textureData.getDataStorePtr( textureDataLevel.offset ) );
 		else
-			glCompressedTexSubImage2D( mTarget, curLevel, 0, 0, textureDataLevel.width, textureDataLevel.height, internalFormat, textureDataLevel.dataSize, textureData.getDataStorePtr( textureDataLevel.offset ) );
+			glCompressedTexImage2D( mTarget, curLevel, textureData.getInternalFormat(), textureDataLevel.width, textureDataLevel.height, 0, textureDataLevel.dataSize, textureData.getDataStorePtr( textureDataLevel.offset ) );
 		++curLevel;
 	}
-	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+	if( textureData.getUnpackAlignment() != 0 )
+		glPixelStorei( GL_UNPACK_ALIGNMENT, textureData.getUnpackAlignment() );
 }
+
 
 #if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 namespace {
