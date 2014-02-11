@@ -365,7 +365,12 @@ TextureRef Texture::create( GLenum target, GLuint textureID, int width, int heig
 {
 	return TextureRef( new Texture( target, textureID, width, height, doNotDispose ) );
 }
-	
+
+TextureRef Texture::create( const TextureData &data, const Format &format )
+{
+	return TextureRef( new Texture( data, format ) );
+}
+
 Texture::Texture( int width, int height, Format format )
 	: mWidth( width ), mHeight( height ),
 	mCleanWidth( width ), mCleanHeight( height ),
@@ -529,6 +534,17 @@ Texture::Texture( GLenum target, GLuint textureId, int width, int height, bool d
 		mMaxU = (float)mWidth;
 		mMaxV = (float)mHeight;
 	}
+}
+
+Texture::Texture( const TextureData &data, Format format )
+	: mFlipped( false )
+{
+	glGenTextures( 1, &mTextureId );
+	mTarget = format.getTarget();
+	TextureBindScope texBindScope( mTarget, mTextureId );
+	initParams( format, 0 /* unused */ );
+	
+	replace( data );
 }
 	
 void Texture::initData( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format )
@@ -1446,7 +1462,7 @@ void parseKtx( const DataSourceRef &dataSource, TextureData *resultData )
 }
 } // anonymous namespace
 
-TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, Format format )
+TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, const Format &format )
 {
 #if ! defined( CINDER_GLES )
 	TextureData textureData( format.getIntermediatePbo() );
@@ -1455,20 +1471,7 @@ TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, Format forma
 #endif
 
 	parseKtx( dataSource, &textureData );
-
-	GLenum target = format.mTarget;
-	GLuint texId;
-	glGenTextures( 1, &texId );
-
-	TextureRef result = Texture::create( target, texId, textureData.getWidth(), textureData.getHeight(), false );
-	result->mInternalFormat = textureData.getDataFormat();
-	if( textureData.getLevels().size() > 1 && ( format.mMipmapping || ( ! format.mMipmappingSpecified ) ) )
-		format.mMipmapping = true;
-
-	TextureBindScope bindScope( result );
-	result->initParams( format, 0 /*ignored*/ );
-	result->replace( textureData );
-	return result;
+	return Texture::create( textureData, format );
 }
 
 #if defined( CINDER_GLES )
@@ -1510,6 +1513,18 @@ void Texture::update( const TextureData &textureData )
 
 void Texture::replace( const TextureData &textureData )
 {
+	mCleanWidth = mWidth = textureData.getWidth();
+	mCleanHeight = mHeight = textureData.getHeight();
+	mInternalFormat = textureData.getInternalFormat();
+
+	if( mTarget == GL_TEXTURE_2D ) {
+		mMaxU = mMaxV = 1.0f;
+	}
+	else {
+		mMaxU = (float)mWidth;
+		mMaxV = (float)mHeight;
+	}
+	
 	TextureBindScope bindScope( mTarget, mTextureId );
 	if( textureData.getUnpackAlignment() != 0 )
 		glPixelStorei( GL_UNPACK_ALIGNMENT, textureData.getUnpackAlignment() );
@@ -1749,7 +1764,7 @@ void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 }
 } // anonymous namespace
 
-TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format format )
+TextureRef Texture::createFromDds( const DataSourceRef &dataSource, const Format &format )
 {
 #if ! defined( CINDER_GLES )
 	TextureData textureData( format.getIntermediatePbo() );
@@ -1758,23 +1773,7 @@ TextureRef Texture::createFromDds( const DataSourceRef &dataSource, Format forma
 #endif
 
 	parseDds( dataSource, &textureData );
-
-	GLenum target = format.mTarget;
-	GLuint texId;
-	glGenTextures( 1, &texId );
-
-	TextureRef result = Texture::create( target, texId, textureData.getWidth(), textureData.getHeight(), false );
-	result->mWidth = textureData.getWidth();
-	result->mHeight = textureData.getHeight();
-	result->mInternalFormat = textureData.getInternalFormat();
-	if( textureData.getLevels().size() > 1 && ( format.mMipmapping || ( ! format.mMipmappingSpecified ) ) )
-		format.mMipmapping = true;
-
-	TextureBindScope bindScope( result );
-	result->initParams( format, 0 /*ignored*/ );
-	result->replace( textureData );
-
-	return result;
+	return Texture::create( textureData, format );
 }
 
 #if defined( CINDER_GL_ANGLE )

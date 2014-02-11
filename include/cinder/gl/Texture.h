@@ -328,12 +328,14 @@ class Texture : public TextureBase {
 	//! Constructs a Texture based on \a imageSource. A default value of -1 for \a internalFormat chooses an appropriate internal format based on the contents of \a imageSource. Uses a Format's intermediate PBO when available, which is resized as necessary.
 	static TextureRef	create( ImageSourceRef imageSource, Format format = Format() );
 	//! Constructs a Texture based on an externally initialized OpenGL texture. \a doNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
-	static TextureRef	create( GLenum aTarget, GLuint aTextureID, int width, int height, bool doNotDispose );
+	static TextureRef	create( GLenum target, GLuint aTextureID, int width, int height, bool doNotDispose );
+	//! Constructs a Texture based on an instance of TextureData
+	static TextureRef	create( const TextureData &data, const Format &format );
 	//! Constructs a Texture from an optionally compressed KTX file. Enables mipmapping if KTX file contains mipmaps and Format has not specified \c false for mipmapping. Uses Format's intermediate PBO if supplied; requires it to be large enough to hold all MIP levels and throws if it is not. (http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/)
-	static TextureRef	createFromKtx( const DataSourceRef &dataSource, Format format = Format() );
+	static TextureRef	createFromKtx( const DataSourceRef &dataSource, const Format &format = Format() );
 #if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
 	//! Constructs a Texture from a DDS file. Supports DXT1, DTX3, and DTX5. Supports BC7 in the presence of \c GL_ARB_texture_compression_bptc. Enables mipmapping if DDS contains mipmaps and Format has not specified \c false for mipmapping. ANGLE version requires textures to be a multiple of 4 due to DX limitation.
-	static TextureRef	createFromDds( const DataSourceRef &dataSource, Format format = Format() );
+	static TextureRef	createFromDds( const DataSourceRef &dataSource, const Format &format = Format() );
 #endif
 
 	/** Designed to accommodate texture where not all pixels are "clean", meaning the maximum texture coordinate value may not be 1.0 (or the texture's width in \c GL_TEXTURE_RECTANGLE_ARB) **/
@@ -425,7 +427,9 @@ class Texture : public TextureBase {
 	/** Consider Texture::create() instead. Constructs a texture based on \a imageSource. A default value of -1 for \a internalFormat chooses an appropriate internal format based on the contents of \a imageSource. **/
 	Texture( const ImageSourceRef &imageSource, Format format = Format() );
 	//! Consider Texture::create() instead. Constructs a Texture based on an externally initialized OpenGL texture. \a aDoNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
-	Texture( GLenum aTarget, GLuint aTextureID, int width, int height, bool doNotDispose );
+	Texture( GLenum target, GLuint textureId, int width, int height, bool doNotDispose );
+	//! Consider Texture::create() instead. Constructs a Texture based on an externally initialized OpenGL texture. \a aDoNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.	
+	Texture( const TextureData &data, Format format );
 
   protected:
 	void	initData( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format );
