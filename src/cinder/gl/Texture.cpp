@@ -32,11 +32,6 @@
 #include <memory>
 #include <type_traits>
 
-#if defined( CINDER_GL_ANGLE )
-#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT	GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE
-#define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT	GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE
-#endif
-
 #if ! defined( CINDER_GLES )
 #define GL_LUMINANCE						GL_RED
 #define GL_LUMINANCE_ALPHA					GL_RG
