@@ -71,7 +71,7 @@ class ImageTargetGlTexture : public ImageTarget {
 	bool				mHasAlpha;
 	uint8_t				mPixelInc;
 	T					*mData;
-	unique_ptr<T>		mDataStore; // may be NULL
+	unique_ptr<T[]>		mDataStore; // may be NULL
 	int					mRowInc;
 };
 
@@ -1048,7 +1048,7 @@ class ImageSourceTexture : public ImageSource {
 		}
 			
 		mRowBytes = mWidth * ImageIo::channelOrderNumChannels( mChannelOrder ) * dataSize;
-		mData = unique_ptr<uint8_t>( new uint8_t[mRowBytes * mHeight] );
+		mData = unique_ptr<uint8_t[]>( new uint8_t[mRowBytes * mHeight] );
 
 #if defined( CINDER_GLES )
 		// This line is not too awesome, however we need a TextureRef, not a Texture, for an FBO attachment. So this creates a shared_ptr with a no-op deleter
@@ -1076,7 +1076,7 @@ class ImageSourceTexture : public ImageSource {
 		}
 	}
 	
-	std::unique_ptr<uint8_t>	mData;
+	std::unique_ptr<uint8_t[]>	mData;
 	int32_t						mRowBytes;
 };
 
@@ -1253,7 +1253,7 @@ ImageTargetGlTexture<T>::ImageTargetGlTexture( const Texture *texture, ImageIo::
 	
 	// allocate enough room to hold all these pixels if we haven't been passed a data*
 	if( ! intermediateDataStore ) {
-		mDataStore = std::unique_ptr<T>( new T[mTexture->getHeight() * mRowInc] );
+		mDataStore = std::unique_ptr<T[]>( new T[mTexture->getHeight() * mRowInc] );
 		mData = mDataStore.get();
 	}
 	else

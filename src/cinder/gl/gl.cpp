@@ -986,7 +986,7 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 		dataSizeBytes += numVertices * 3 * sizeof(float);
 	}
 
-	unique_ptr<uint8_t> data( new uint8_t[dataSizeBytes] );
+	unique_ptr<uint8_t[]> data( new uint8_t[dataSizeBytes] );
 	Vec2f *verts = ( posLoc >= 0 ) ? reinterpret_cast<Vec2f*>( data.get() + vertsOffset ) : nullptr;
 	Vec2f *texCoords = ( texLoc >= 0 ) ? reinterpret_cast<Vec2f*>( data.get() + texCoordsOffset ) : nullptr;
 	Vec3f *normals = ( normalLoc >= 0 ) ? reinterpret_cast<Vec3f*>( data.get() + normalsOffset ) : nullptr;

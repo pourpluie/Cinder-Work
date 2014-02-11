@@ -280,7 +280,7 @@ void Target::copyIndexData( const uint32_t *source, size_t numIndices, uint16_t 
 
 void Target::generateIndices( Primitive sourcePrimitive, size_t sourceNumIndices )
 {
-	unique_ptr<uint32_t> indices( new uint32_t[sourceNumIndices] );
+	unique_ptr<uint32_t[]> indices( new uint32_t[sourceNumIndices] );
 
 	uint32_t count = 0;
 	std::generate( indices.get(), indices.get() + sourceNumIndices, [&] { return count++; } );
@@ -311,7 +311,7 @@ Rect::Rect()
 
 void Rect::loadInto( Target *target ) const
 {
-	unique_ptr<Vec2f> positions( new Vec2f[4] );
+	unique_ptr<Vec2f[]> positions( new Vec2f[4] );
 	for( size_t p = 0; p < 4; ++p )
 		positions.get()[p] = Vec2f( sPositions[p*2+0], sPositions[p*2+1] ) * mScale + mPos;
 
@@ -515,18 +515,18 @@ void Teapot::calculate() const
 {
 	updateVertexCounts();
 
-	mPositions = unique_ptr<float>( new float[mNumVertices * 3] );
-	mTexCoords = unique_ptr<float>( new float[mNumVertices * 2] );	
-	mNormals = unique_ptr<float>( new float[mNumVertices * 3] );
-	mIndices = unique_ptr<uint32_t>( new uint32_t[mNumIndices] );
+	mPositions = unique_ptr<float[]>( new float[mNumVertices * 3] );
+	mTexCoords = unique_ptr<float[]>( new float[mNumVertices * 2] );	
+	mNormals = unique_ptr<float[]>( new float[mNumVertices * 3] );
+	mIndices = unique_ptr<uint32_t[]>( new uint32_t[mNumIndices] );
 
 	generatePatches( mPositions.get(), mNormals.get(), mTexCoords.get(), mIndices.get(), mSubdivision );
 }
 
 void Teapot::generatePatches( float *v, float *n, float *tc, uint32_t *el, int grid )
 {
-	unique_ptr<float> B( new float[4*(grid+1)] );  // Pre-computed Bernstein basis functions
-	unique_ptr<float> dB( new float[4*(grid+1)] ); // Pre-computed derivitives of basis functions
+	unique_ptr<float[]> B( new float[4*(grid+1)] );  // Pre-computed Bernstein basis functions
+	unique_ptr<float[]> dB( new float[4*(grid+1)] ); // Pre-computed derivitives of basis functions
 	int idx = 0, elIndex = 0, tcIndex = 0;
 
 	// Pre-compute the basis functions  (Bernstein polynomials)
@@ -736,11 +736,11 @@ void Circle::updateVertexCounts()
 
 void Circle::calculate() const
 {
-	mPositions = unique_ptr<Vec2f>( new Vec2f[mNumVertices] );
+	mPositions = unique_ptr<Vec2f[]>( new Vec2f[mNumVertices] );
 	if( isEnabled( Attrib::TEX_COORD_0 ) )
-		mTexCoords = unique_ptr<Vec2f>( new Vec2f[mNumVertices] );
+		mTexCoords = unique_ptr<Vec2f[]>( new Vec2f[mNumVertices] );
 	if( isEnabled( Attrib::NORMAL ) )		
-		mNormals = unique_ptr<Vec3f>( new Vec3f[mNumVertices] );	
+		mNormals = unique_ptr<Vec3f[]>( new Vec3f[mNumVertices] );	
 
 	// center
 	mPositions.get()[0] = mCenter;
@@ -926,10 +926,10 @@ void SplineExtrusion::calculateCurve( const std::function<Vec3f(float)> &pathCur
 	int numTriangles = ( pathSegments - 1 ) * radiusSegments * 2;
 	mNumIndices = numTriangles * 3;
 
-	mVertices = unique_ptr<float>( new float[mNumVertices * 3] );
-	mTexCoords = unique_ptr<float>( new float[mNumVertices * 2] );	
-	mNormals = unique_ptr<float>( new float[mNumVertices * 3] );
-	mIndices = unique_ptr<uint32_t>( new uint32_t[mNumIndices] );
+	mVertices = unique_ptr<float[]>( new float[mNumVertices * 3] );
+	mTexCoords = unique_ptr<float[]>( new float[mNumVertices * 2] );	
+	mNormals = unique_ptr<float[]>( new float[mNumVertices * 3] );
+	mIndices = unique_ptr<uint32_t[]>( new uint32_t[mNumIndices] );
 	
 	for( int pathSeg = 0; pathSeg < pathSegments; ++pathSeg ) {
 		
@@ -944,10 +944,10 @@ void SplineExtrusion::calculate() const
 	mNumVertices = 32 * (mSubdivision + 1) * (mSubdivision + 1);
 	int numFaces = mSubdivision * mSubdivision * 32;
 	mNumIndices = numFaces * 6;
-	mVertices = unique_ptr<float>( new float[mNumVertices * 3] );
-	mTexCoords = unique_ptr<float>( new float[mNumVertices * 2] );	
-	mNormals = unique_ptr<float>( new float[mNumVertices * 3] );
-	mIndices = unique_ptr<uint32_t>( new uint32_t[mNumIndices] );
+	mVertices = unique_ptr<float[]>( new float[mNumVertices * 3] );
+	mTexCoords = unique_ptr<float[]>( new float[mNumVertices * 2] );	
+	mNormals = unique_ptr<float[]>( new float[mNumVertices * 3] );
+	mIndices = unique_ptr<uint32_t[]>( new uint32_t[mNumIndices] );
 
 	generatePatches( mVertices.get(), mNormals.get(), mTexCoords.get(), mIndices.get(), mSubdivision );
 	

@@ -97,7 +97,7 @@ void VboMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *
 
 	if( requiredBytesPerIndex <= 2 ) {
 		mVboMesh->mIndexType = GL_UNSIGNED_SHORT;
-		std::unique_ptr<uint16_t> indices( new uint16_t[numIndices] );
+		std::unique_ptr<uint16_t[]> indices( new uint16_t[numIndices] );
 		copyIndexData( source, numIndices, indices.get() );
 		if( ! mVboMesh->mElements )
 			mVboMesh->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint16_t), indices.get() );
@@ -106,7 +106,7 @@ void VboMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *
 	}
 	else {
 		mVboMesh->mIndexType = GL_UNSIGNED_INT;
-		std::unique_ptr<uint32_t> indices( new uint32_t[numIndices] );
+		std::unique_ptr<uint32_t[]> indices( new uint32_t[numIndices] );
 		copyIndexData( source, numIndices, indices.get() );
 		if( ! mVboMesh->mElements )
 			mVboMesh->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint32_t), indices.get() );
@@ -149,7 +149,7 @@ VboMesh::VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboR
 	}
 
 	// TODO: this should use mapBuffer when available
-	std::unique_ptr<uint8_t> buffer( new uint8_t[vertexDataSizeBytes] );
+	std::unique_ptr<uint8_t[]> buffer( new uint8_t[vertexDataSizeBytes] );
 	
 	// Set our elements VBO to elementArrayVBO, which may well be empty, so that the target doesn't blow it away. Must do this before we loadInto().
 	mElements = elementArrayVbo;
@@ -452,7 +452,7 @@ void VboMeshSource::loadInto( geom::Target *target ) const
 			break;
 		}
 		
-		std::unique_ptr<uint32_t> indices( new uint32_t[mVboMesh->getNumIndices()] );
+		std::unique_ptr<uint32_t[]> indices( new uint32_t[mVboMesh->getNumIndices()] );
 		mVboMesh->downloadIndices( indices.get() );
 		target->copyIndices( gl::toGeomPrimitive( mVboMesh->getGlPrimitive() ), indices.get(), mVboMesh->getNumIndices(), bytesPerIndex );
 	}

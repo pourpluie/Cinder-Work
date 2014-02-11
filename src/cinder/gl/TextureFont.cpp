@@ -83,7 +83,7 @@ TextureFont::TextureFont( const Font &font, const string &supportedChars, const 
 	::CGContextSetFontSize( cgContext, font.getSize() );
 	::CGContextSetTextMatrix( cgContext, CGAffineTransformIdentity );
 
-	std::unique_ptr<uint8_t> lumAlphaData( new uint8_t[mFormat.getTextureWidth()*mFormat.getTextureHeight()*2] );
+	std::unique_ptr<uint8_t[]> lumAlphaData( new uint8_t[mFormat.getTextureWidth()*mFormat.getTextureHeight()*2] );
 
 	for( set<Font::Glyph>::const_iterator glyphIt = glyphs.begin(); glyphIt != glyphs.end(); ) {
 		GlyphInfo newInfo;
@@ -231,7 +231,7 @@ TextureFont::TextureFont( const Font &font, const string &utf8Chars, const Forma
 
 	Channel channel( mFormat.getTextureWidth(), mFormat.getTextureHeight() );
 	ip::fill<uint8_t>( &channel, 0 );
-	std::unique_ptr<uint8_t> lumAlphaData( new uint8_t[mFormat.getTextureWidth()*mFormat.getTextureHeight()*2] );
+	std::unique_ptr<uint8_t[]> lumAlphaData( new uint8_t[mFormat.getTextureWidth()*mFormat.getTextureHeight()*2] );
 
 	GLYPHMETRICS gm = { 0, };
 	MAT2 identityMatrix = { {0,1},{0,0},{0,0},{0,1} };

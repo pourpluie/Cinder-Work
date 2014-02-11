@@ -215,10 +215,10 @@ class Teapot : public Source {
 
 	mutable	size_t						mNumVertices;
 	mutable size_t						mNumIndices;
-	mutable std::unique_ptr<float>		mPositions;
-	mutable std::unique_ptr<float>		mTexCoords;
-	mutable std::unique_ptr<float>		mNormals;	
-	mutable std::unique_ptr<uint32_t>	mIndices;
+	mutable std::unique_ptr<float[]>	mPositions;
+	mutable std::unique_ptr<float[]>	mTexCoords;
+	mutable std::unique_ptr<float[]>	mNormals;	
+	mutable std::unique_ptr<uint32_t[]>	mIndices;
 	
 	static const uint8_t	sPatchIndices[][16];
 	static const float		sCurveData[][3];
@@ -250,9 +250,9 @@ class Circle : public Source {
 	int			mRequestedSegments, mNumSegments;
 
 	size_t		mNumVertices;
-	mutable std::unique_ptr<Vec2f>		mPositions;
-	mutable std::unique_ptr<Vec2f>		mTexCoords;
-	mutable std::unique_ptr<Vec3f>		mNormals;	
+	mutable std::unique_ptr<Vec2f[]>		mPositions;
+	mutable std::unique_ptr<Vec2f[]>		mTexCoords;
+	mutable std::unique_ptr<Vec3f[]>		mNormals;	
 };
 
 class Sphere : public Source {
@@ -319,10 +319,10 @@ class SplineExtrusion : public Source {
 	mutable bool						mCalculationsCached;
 	mutable	int32_t						mNumVertices;
 	mutable int32_t						mNumIndices;
-	mutable std::unique_ptr<float>		mVertices;
-	mutable std::unique_ptr<float>		mTexCoords;
-	mutable std::unique_ptr<float>		mNormals;	
-	mutable std::unique_ptr<uint32_t>	mIndices;
+	mutable std::unique_ptr<float[]>	mVertices;
+	mutable std::unique_ptr<float[]>	mTexCoords;
+	mutable std::unique_ptr<float[]>	mNormals;	
+	mutable std::unique_ptr<uint32_t[]>	mIndices;
 };
 #endif
 

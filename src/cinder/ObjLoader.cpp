@@ -629,7 +629,7 @@ void ObjWriteTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t strideB
 			if( dims == 2 ) { // we need to convert to 3d
 				if( strideBytes == 0 )
 					strideBytes = sizeof(float) * 2;
-				unique_ptr<float> tempData( new float[count * 3] );
+				unique_ptr<float[]> tempData( new float[count * 3] );
 				for( int i = 0; i < count; ++i ) {
 					tempData.get()[i*3+0] = ((const float*)(((const uint8_t*)srcData) + i*strideBytes))[0];
 					tempData.get()[i*3+1] = ((const float*)(((const uint8_t*)srcData) + i*strideBytes))[1];
