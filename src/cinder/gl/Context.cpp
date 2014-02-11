@@ -551,57 +551,79 @@ GlslProgRef Context::getGlslProg()
 // TextureBinding
 void Context::bindTexture( GLenum target, GLuint textureId )
 {
-	GLuint prevValue = getTextureBinding( target );
+	bindTexture( target, textureId, getActiveTexture() );
+}
+
+void Context::bindTexture( GLenum target, GLuint textureId, uint8_t textureUnit )
+{
+	if( mTextureBindingStack.find( textureUnit ) == mTextureBindingStack.end() )
+		mTextureBindingStack[textureUnit] = std::map<GLenum,std::vector<GLint>>();
+
+	GLuint prevValue = getTextureBinding( target, textureUnit );
 	if( prevValue != textureId ) {
-		mTextureBindingStack[target].back() = textureId;
+		mTextureBindingStack[textureUnit][target].back() = textureId;
+		ActiveTextureScope actScp( textureUnit );
 		glBindTexture( target, textureId );
 	}
 }
 
-void Context::pushTextureBinding( GLenum target, GLuint textureId )
+void Context::pushTextureBinding( GLenum target, uint8_t textureUnit )
 {
-	pushTextureBinding( target );
-	bindTexture( target, textureId );
+	if( mTextureBindingStack.find( textureUnit ) == mTextureBindingStack.end() ) {
+		mTextureBindingStack[textureUnit] = std::map<GLenum,std::vector<GLint>>();
+		mTextureBindingStack[textureUnit][target].push_back( -1 );
+	}
+	else
+		mTextureBindingStack[textureUnit][target].push_back( mTextureBindingStack[textureUnit][target].back() );
 }
 
-void Context::pushTextureBinding( GLenum target )
+void Context::pushTextureBinding( GLenum target, GLuint textureId, uint8_t textureUnit )
 {
-	GLuint curValue = getTextureBinding( target );
-	mTextureBindingStack[target].push_back( curValue );
+	pushTextureBinding( target, textureUnit );
+	bindTexture( target, textureId, textureUnit );
 }
 
-void Context::popTextureBinding( GLenum target )
+void Context::popTextureBinding( GLenum target, uint8_t textureUnit )
 {
-	auto cached = mTextureBindingStack.find( target );
-	if( ( cached != mTextureBindingStack.end() ) && ( ! cached->second.empty() ) ) {
+	if( mTextureBindingStack.find( textureUnit ) == mTextureBindingStack.end() )
+		mTextureBindingStack[textureUnit] = std::map<GLenum,std::vector<GLint>>();
+
+	auto cached = mTextureBindingStack[textureUnit].find( target );
+	if( ( cached != mTextureBindingStack[textureUnit].end() ) && ( ! cached->second.empty() ) ) {
 		GLint prevValue = cached->second.back();
 		cached->second.pop_back();
 		if( ! cached->second.empty() ) {
-			if( cached->second.back() != prevValue )
+			if( cached->second.back() != prevValue ) {
+				ActiveTextureScope actScp( textureUnit );
 				glBindTexture( target, cached->second.back() );
+			}
 		}
 	}
 }
 
-GLuint Context::getTextureBinding( GLenum target )
+GLuint Context::getTextureBinding( GLenum target, uint8_t textureUnit )
 {
-	auto cachedIt = mTextureBindingStack.find( target );
-	if( (cachedIt == mTextureBindingStack.end()) || ( cachedIt->second.empty() ) || ( cachedIt->second.back() == -1 ) ) {
+	if( mTextureBindingStack.find( textureUnit ) == mTextureBindingStack.end() )
+		mTextureBindingStack[textureUnit] = std::map<GLenum,std::vector<GLint>>();
+
+	auto cachedIt = mTextureBindingStack[textureUnit].find( target );
+	if( (cachedIt == mTextureBindingStack[textureUnit].end()) || ( cachedIt->second.empty() ) || ( cachedIt->second.back() == -1 ) ) {
 		GLint queriedInt = 0;
 		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
 		if( targetBinding > 0 ) {
+			ActiveTextureScope actScp( textureUnit );
 			glGetIntegerv( targetBinding, &queriedInt );
 		}
 		else
 			return 0; // warning?
 		
-		if( mTextureBindingStack[target].empty() ) { // bad - empty stack; push twice to allow for the pop later and not lead to an empty stack
-			mTextureBindingStack[target] = vector<GLint>();
-			mTextureBindingStack[target].push_back( queriedInt );
-			mTextureBindingStack[target].push_back( queriedInt );			
+		if( mTextureBindingStack[textureUnit][target].empty() ) { // bad - empty stack; push twice to allow for the pop later and not lead to an empty stack
+			mTextureBindingStack[textureUnit][target] = vector<GLint>();
+			mTextureBindingStack[textureUnit][target].push_back( queriedInt );
+			mTextureBindingStack[textureUnit][target].push_back( queriedInt );			
 		}
 		else
-			mTextureBindingStack[target].back() = queriedInt;
+			mTextureBindingStack[textureUnit][target].back() = queriedInt;
 		return (GLuint)queriedInt;
 	}
 	else
@@ -610,10 +632,12 @@ GLuint Context::getTextureBinding( GLenum target )
 
 void Context::textureDeleted( GLenum target, GLuint textureId )
 {
-	auto cachedIt = mTextureBindingStack.find( target );
-	if( cachedIt != mTextureBindingStack.end() && ( ! cachedIt->second.empty() ) && ( cachedIt->second.back() != textureId ) ) {
-		// GL will have set the binding to 0 for target, so let's do the same
-		mTextureBindingStack[target].back() = 0;
+	for( auto &unit : mTextureBindingStack ) {
+		auto cachedIt = unit.second.find( target );
+		if( cachedIt != unit.second.end() && ( ! cachedIt->second.empty() ) && ( cachedIt->second.back() != textureId ) ) {
+			// GL will have set the binding to 0 for target, so let's do the same
+			unit.second[target].back() = 0;
+		}
 	}
 }
 

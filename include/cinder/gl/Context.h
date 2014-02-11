@@ -147,17 +147,21 @@ class Context {
 	TransformFeedbackObjRef transformFeedbackObjGet();
 #endif
 
-	//! Analogous to glBindTexture( \a target, \a textureId )
+	//! Analogous to glBindTexture( \a target, \a textureId ) for the active texture unit
 	void		bindTexture( GLenum target, GLuint textureId );
-	//! Pushes and binds \a textureId for the target \a target
-	void		pushTextureBinding( GLenum target, GLuint textureId );
-	//! Duplicates and pushes the texture binding for the target \a target
-	void		pushTextureBinding( GLenum target );
-	//! Pops the texture binding for the target \a target
-	void		popTextureBinding( GLenum target );	
-	//! Returns the current texture binding for \a target. If not cached, queries the GL for the current value (and caches it).
+	//! Analogous to glBindTexture( \a target, \a textureId ) for texture unit \a textureUnit
+	void		bindTexture( GLenum target, GLuint textureId, uint8_t textureUnit );
+	//! Duplicates and pushes the binding for the target \a target for texture unit \a textureUnit
+	void		pushTextureBinding( GLenum target, uint8_t textureUnit );
+	//! Pushes and binds \a textureId for the target \a target for texture unit \a textureUnit
+	void		pushTextureBinding( GLenum target, GLuint textureId, uint8_t textureUnit );
+	//! Pops the texture binding for the target \a target for texture unit \a textureUnit
+	void		popTextureBinding( GLenum target, uint8_t textureUnit );
+	//! Returns the current texture binding for \a target for the active texture unit. If not cached, queries the GL for the current value (and caches it).
 	GLuint		getTextureBinding( GLenum target );
-	//! No-op if texture wasn't bound to target, otherwise reflects the binding as 0 (in accordance with what GL has done automatically)
+	//! Returns the current texture binding for \a target for texture unit \a textureUnit. If not cached, queries the GL for the current value (and caches it).
+	GLuint		getTextureBinding( GLenum target, uint8_t textureUnit );
+	//! No-op if texture wasn't bound to target, otherwise reflects the texture unit's binding as 0 (in accordance with what GL has done automatically)
 	void		textureDeleted( GLenum target, GLuint textureId );
 
 	//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
@@ -310,10 +314,11 @@ class Context {
 	std::vector<GLint>			mReadFramebufferStack, mDrawFramebufferStack;
 #endif
 	
-	std::map<GLenum,std::vector<GLboolean>>	mBoolStateStack;
-	std::map<GLenum,std::vector<GLint>>		mTextureBindingStack;
-	std::vector<uint8_t>					mActiveTextureStack;
-	GLenum						mCachedFrontPolygonMode, mCachedBackPolygonMode;
+	std::map<GLenum,std::vector<GLboolean>>					mBoolStateStack;
+	// map<TextureUnit,map<TextureTarget,vector<Binding ID Stack>>>
+	std::map<uint8_t,std::map<GLenum,std::vector<GLint>>>	mTextureBindingStack;
+	std::vector<uint8_t>									mActiveTextureStack;
+	GLenum													mCachedFrontPolygonMode, mCachedBackPolygonMode;
 	
 	VaoRef						mDefaultVao;
 	VboRef						mDefaultArrayVbo[4], mDefaultElementVbo;
@@ -462,23 +467,38 @@ struct TextureBindScope : public boost::noncopyable
 	TextureBindScope( GLenum target, GLuint textureId )
 		: mCtx( gl::context() ), mTarget( target )
 	{
-		mCtx->pushTextureBinding( mTarget, textureId );
+		mTextureUnit = mCtx->getActiveTexture();
+		mCtx->pushTextureBinding( mTarget, textureId, mTextureUnit );
+	}
+
+	TextureBindScope( GLenum target, GLuint textureId, uint8_t textureUnit )
+		: mCtx( gl::context() ), mTarget( target ), mTextureUnit( textureUnit )
+	{
+		mCtx->pushTextureBinding( mTarget, textureId, mTextureUnit );
 	}
 
 	TextureBindScope( const TextureBaseRef &texture )
 		: mCtx( gl::context() ), mTarget( texture->getTarget() )
 	{
-		mCtx->pushTextureBinding( mTarget, texture->getId() );
+		mTextureUnit = mCtx->getActiveTexture();
+		mCtx->pushTextureBinding( mTarget, texture->getId(), mTextureUnit );
+	}
+
+	TextureBindScope( const TextureBaseRef &texture, uint8_t textureUnit )
+		: mCtx( gl::context() ), mTarget( texture->getTarget() ), mTextureUnit( textureUnit )
+	{
+		mCtx->pushTextureBinding( mTarget, texture->getId(), mTextureUnit );
 	}
 	
 	~TextureBindScope()
 	{
-		mCtx->popTextureBinding( mTarget );
+		mCtx->popTextureBinding( mTarget, mTextureUnit );
 	}
 	
   private:
 	Context		*mCtx;
 	GLenum		mTarget;
+	uint8_t		mTextureUnit;
 };
 	
 struct ScissorScope : public boost::noncopyable
