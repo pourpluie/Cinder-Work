@@ -216,6 +216,12 @@
 		00624852122F607500039A7A /* Function.h in Headers */ = {isa = PBXBuildFile; fileRef = 0062484E122F607500039A7A /* Function.h */; };
 		00624853122F607500039A7A /* Filesystem.h in Headers */ = {isa = PBXBuildFile; fileRef = 0062484D122F607500039A7A /* Filesystem.h */; };
 		00624854122F607500039A7A /* Function.h in Headers */ = {isa = PBXBuildFile; fileRef = 0062484E122F607500039A7A /* Function.h */; };
+		0065A92018A9EBD0005FBD2B /* TextureFormatParsers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0065A91F18A9EBD0005FBD2B /* TextureFormatParsers.cpp */; };
+		0065A92118A9EBD0005FBD2B /* TextureFormatParsers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0065A91F18A9EBD0005FBD2B /* TextureFormatParsers.cpp */; };
+		0065A92218A9EBD0005FBD2B /* TextureFormatParsers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0065A91F18A9EBD0005FBD2B /* TextureFormatParsers.cpp */; };
+		0065A92418A9EDFB005FBD2B /* TextureFormatParsers.h in Headers */ = {isa = PBXBuildFile; fileRef = 0065A92318A9EDFB005FBD2B /* TextureFormatParsers.h */; };
+		0065A92518A9EDFB005FBD2B /* TextureFormatParsers.h in Headers */ = {isa = PBXBuildFile; fileRef = 0065A92318A9EDFB005FBD2B /* TextureFormatParsers.h */; };
+		0065A92618A9EDFB005FBD2B /* TextureFormatParsers.h in Headers */ = {isa = PBXBuildFile; fileRef = 0065A92318A9EDFB005FBD2B /* TextureFormatParsers.h */; };
 		00704FCD1114F93F003FCAE4 /* App.h in Headers */ = {isa = PBXBuildFile; fileRef = 002419CD0E8035D3004D34EB /* App.h */; };
 		00704FCE1114F93F003FCAE4 /* AppImplCocoaBasic.h in Headers */ = {isa = PBXBuildFile; fileRef = 002419CE0E8035D3004D34EB /* AppImplCocoaBasic.h */; };
 		00704FCF1114F93F003FCAE4 /* AppImplCocoaRendererGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 002419FA0E8036A7004D34EB /* AppImplCocoaRendererGl.h */; };
@@ -956,6 +962,8 @@
 		006228E310C8273C00A8191C /* DataSource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataSource.cpp; sourceTree = "<group>"; };
 		0062484D122F607500039A7A /* Filesystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Filesystem.h; sourceTree = "<group>"; };
 		0062484E122F607500039A7A /* Function.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Function.h; sourceTree = "<group>"; };
+		0065A91F18A9EBD0005FBD2B /* TextureFormatParsers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureFormatParsers.cpp; path = gl/TextureFormatParsers.cpp; sourceTree = "<group>"; };
+		0065A92318A9EDFB005FBD2B /* TextureFormatParsers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureFormatParsers.h; path = gl/TextureFormatParsers.h; sourceTree = "<group>"; };
 		007050BE1114F93F003FCAE4 /* libcinder-iphone_d.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libcinder-iphone_d.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0071BD040FB9F4AD0092E7D6 /* Display.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Display.h; sourceTree = "<group>"; };
 		0071BD080FB9FA2C0092E7D6 /* Display.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Display.cpp; sourceTree = "<group>"; };
@@ -1692,6 +1700,7 @@
 				005783E6189CBB4300D6FB4C /* TextureFont.h */,
 				B38243AA189DC347008B94AC /* BufferTexture.h */,
 				005783F218A5627600D6FB4C /* ConstantStrings.h */,
+				0065A92318A9EDFB005FBD2B /* TextureFormatParsers.h */,
 			);
 			name = gl;
 			sourceTree = "<group>";
@@ -1724,6 +1733,7 @@
 				005783E2189CBB1600D6FB4C /* TextureFont.cpp */,
 				B38243A6189DC328008B94AC /* BufferTexture.cpp */,
 				005783F718A562FB00D6FB4C /* ConstantStrings.cpp */,
+				0065A91F18A9EBD0005FBD2B /* TextureFormatParsers.cpp */,
 			);
 			name = gl;
 			sourceTree = "<group>";
@@ -1950,6 +1960,7 @@
 				00A114191355369A00081873 /* geom.h in Headers */,
 				00A1141B1355369A00081873 /* mesh.h in Headers */,
 				00A1141D1355369A00081873 /* priorityq.h in Headers */,
+				0065A92518A9EDFB005FBD2B /* TextureFormatParsers.h in Headers */,
 				00A1141F1355369A00081873 /* sweep.h in Headers */,
 				00A114211355369A00081873 /* tess.h in Headers */,
 				00A114221355369A00081873 /* tesselator.h in Headers */,
@@ -2126,6 +2137,7 @@
 				00A06FD31760EFC500D8BE17 /* GlslProg.h in Headers */,
 				00A06FDC1760EFC500D8BE17 /* Pbo.h in Headers */,
 				00A06FDF1760EFC500D8BE17 /* Shader.h in Headers */,
+				0065A92618A9EDFB005FBD2B /* TextureFormatParsers.h in Headers */,
 				00A06FE21760EFC500D8BE17 /* Texture.h in Headers */,
 				00A06FE51760EFC500D8BE17 /* Vao.h in Headers */,
 				00A06FE81760EFC500D8BE17 /* Vbo.h in Headers */,
@@ -2267,6 +2279,7 @@
 				0014407F14CDB8D900D99000 /* Plane.h in Headers */,
 				43F78EF61516DAE200EB63B5 /* Json.h in Headers */,
 				0059BD33151CF5540063F095 /* ConcurrentCircularBuffer.h in Headers */,
+				0065A92418A9EDFB005FBD2B /* TextureFormatParsers.h in Headers */,
 				008B435D14EF426100B55B07 /* MatrixAffine2.h in Headers */,
 				008B439D14F5F39100B55B07 /* Svg.h in Headers */,
 				008B43A314F5F39100B55B07 /* SvgGl.h in Headers */,
@@ -2462,6 +2475,7 @@
 				00A113D6135535C500081873 /* Triangulate.cpp in Sources */,
 				00A114141355369A00081873 /* bucketalloc.c in Sources */,
 				00A114161355369A00081873 /* dict.c in Sources */,
+				0065A92118A9EBD0005FBD2B /* TextureFormatParsers.cpp in Sources */,
 				00A114181355369A00081873 /* geom.c in Sources */,
 				00A1141A1355369A00081873 /* mesh.c in Sources */,
 				00A1141C1355369A00081873 /* priorityq.c in Sources */,
@@ -2583,6 +2597,7 @@
 				00A114251355369A00081873 /* dict.c in Sources */,
 				00A114271355369A00081873 /* geom.c in Sources */,
 				00A114291355369A00081873 /* mesh.c in Sources */,
+				0065A92218A9EBD0005FBD2B /* TextureFormatParsers.cpp in Sources */,
 				00A1142B1355369A00081873 /* priorityq.c in Sources */,
 				00A1142D1355369A00081873 /* sweep.c in Sources */,
 				00A1142F1355369A00081873 /* tess.c in Sources */,
@@ -2708,6 +2723,7 @@
 				0012529312344FAA00080A0D /* Ray.cpp in Sources */,
 				C7FB1B95124BE2DF0045AFD2 /* FftProcessor.cpp in Sources */,
 				C7FB1B96124BE2DF0045AFD2 /* FftProcessorImplAccelerate.cpp in Sources */,
+				0065A92018A9EBD0005FBD2B /* TextureFormatParsers.cpp in Sources */,
 				C7FB1B97124BE2DF0045AFD2 /* Input.cpp in Sources */,
 				C7FB1B98124BE2DF0045AFD2 /* InputImplAudioUnit.cpp in Sources */,
 				C7FB1B99124BE2DF0045AFD2 /* OutputImplAudioUnit.cpp in Sources */,
