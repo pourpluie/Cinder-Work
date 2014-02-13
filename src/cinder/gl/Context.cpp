@@ -109,10 +109,12 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	glGetIntegerv( GL_BLEND_DST_ALPHA, &queriedInt );
 	mBlendDstAlphaStack.push_back( queriedInt );
     
-    mModelViewStack.push_back( Matrix44f() );
-	mModelViewStack.back().setToIdentity();
-	mProjectionStack.push_back( Matrix44f() );
-	mProjectionStack.back().setToIdentity();
+    mModelMatrixStack.push_back( Matrix44f() );
+	mModelMatrixStack.back().setToIdentity();
+    mViewMatrixStack.push_back( Matrix44f() );
+	mViewMatrixStack.back().setToIdentity();
+	mProjectionMatrixStack.push_back( Matrix44f() );
+	mProjectionMatrixStack.back().setToIdentity();
 	mGlslProgStack.push_back( GlslProgRef() );
 
 	// set default shader
@@ -1281,12 +1283,18 @@ void Context::setDefaultShaderVars()
 		const auto &uniforms = glslProg->getUniformSemantics();
 		for( const auto &unifIt : uniforms ) {
 			switch( unifIt.second ) {
+				case UNIFORM_MODEL_MATRIX:
+					glslProg->uniform( unifIt.first, gl::getModelMatrix() ); break;
+				case UNIFORM_VIEW_MATRIX:
+					glslProg->uniform( unifIt.first, gl::getViewMatrix() ); break;
+				case UNIFORM_INVERSE_VIEW_MATRIX:
+					glslProg->uniform( unifIt.first, gl::calcViewMatrixInverse() ); break;
 				case UNIFORM_MODELVIEW:
-					glslProg->uniform( unifIt.first, gl::getModelView() ); break;
+					glslProg->uniform( unifIt.first, gl::getModelViewMatrix() ); break;
 				case UNIFORM_MODELVIEWPROJECTION:
-					glslProg->uniform( unifIt.first, gl::getModelViewProjection() ); break;
+					glslProg->uniform( unifIt.first, gl::getModelViewProjectionMatrix() ); break;
 				case UNIFORM_PROJECTION:
-					glslProg->uniform( unifIt.first, gl::getProjection() ); break;
+					glslProg->uniform( unifIt.first, gl::getProjectionMatrix() ); break;
 				case UNIFORM_NORMAL_MATRIX:
 					glslProg->uniform( unifIt.first, gl::calcNormalMatrix() ); break;
 				case UNIFORM_WINDOW_SIZE:

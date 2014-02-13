@@ -99,11 +99,11 @@ void DynamicCubeMappingApp::update()
 void DynamicCubeMappingApp::drawSatellites()
 {
 	for( const auto &satellite : mSatellites ) {
-		gl::pushModelView();
+		gl::pushModelMatrix();
 		gl::translate( satellite.mPos );
 		gl::color( satellite.mColor );
 		mSatelliteBatch->draw();
-		gl::popModelView();
+		gl::popModelMatrix();
 	}
 }
 
@@ -122,8 +122,8 @@ void DynamicCubeMappingApp::draw()
 
 	gl::pushViewport( Vec2i( 0, 0 ), mDynamicCubeMapFbo->getSize() );
 	for( uint8_t dir = 0; dir < 6; ++dir ) {
-		gl::setProjection( ci::CameraPersp( mDynamicCubeMapFbo->getWidth(), mDynamicCubeMapFbo->getHeight(), 90.0f, 1, 1000 ) );
-		gl::setModelView( mDynamicCubeMapFbo->calcViewMatrix( GL_TEXTURE_CUBE_MAP_POSITIVE_X + dir, Vec3f::zero() ) );
+		gl::setProjectionMatrix( ci::CameraPersp( mDynamicCubeMapFbo->getWidth(), mDynamicCubeMapFbo->getHeight(), 90.0f, 1, 1000 ).getProjectionMatrix() );
+		gl::setViewMatrix( mDynamicCubeMapFbo->calcViewMatrix( GL_TEXTURE_CUBE_MAP_POSITIVE_X + dir, Vec3f::zero() ) );
 		mDynamicCubeMapFbo->bindFramebufferFace( GL_TEXTURE_CUBE_MAP_POSITIVE_X + dir );
 		
 		gl::clear();
@@ -141,9 +141,9 @@ void DynamicCubeMappingApp::draw()
 	
 	mDynamicCubeMapFbo->bindTexture( 0 );
 	gl::pushMatrices();
-		gl::multModelView( mObjectRotation );
-		mTeapotBatch->getGlslProg()->uniform( "uViewMatrix", mCam.getModelViewMatrix() );
-		mTeapotBatch->getGlslProg()->uniform( "uInverseViewMatrix", mCam.getInverseModelViewMatrix() );
+		gl::multModelMatrix( mObjectRotation );
+		mTeapotBatch->getGlslProg()->uniform( "uViewMatrix", mCam.getViewMatrix() );
+		mTeapotBatch->getGlslProg()->uniform( "uInverseViewMatrix", mCam.getInverseViewMatrix() );
 		mTeapotBatch->draw();
 	gl::popMatrices();
 }
