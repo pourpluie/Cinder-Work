@@ -77,14 +77,18 @@ class Context {
 	//! Returns the thread's currently active OpenGL Context
 	static Context*	getCurrent();
 
-	//! Returns a reference to the stack of ModelView matrices
-	std::vector<Matrix44f>&	getModelViewStack() { return mModelViewStack; }
-	//! Returns a const reference to the stack of ModelView matrices
-	const std::vector<Matrix44f>&	getModelViewStack() const { return mModelViewStack; }
+	//! Returns a reference to the stack of Model matrices
+	std::vector<Matrix44f>&			getModelMatrixStack() { return mModelMatrixStack; }
+	//! Returns a const reference to the stack of Model matrices
+	const std::vector<Matrix44f>&	getModelMatrixStack() const { return mModelMatrixStack; }
+	//! Returns a reference to the stack of View matrices
+	std::vector<Matrix44f>&			getViewMatrixStack() { return mViewMatrixStack; }
+	//! Returns a const reference to the stack of Model matrices
+	const std::vector<Matrix44f>&	getViewMatrixStack() const { return mViewMatrixStack; }
 	//! Returns a reference to the stack of Projection matrices
-	std::vector<Matrix44f>&			getProjectionStack() { return mProjectionStack; }
+	std::vector<Matrix44f>&			getProjectionMatrixStack() { return mProjectionMatrixStack; }
 	//! Returns a const reference to the stack of Projection matrices
-	const std::vector<Matrix44f>&	getProjectionStack() const { return mProjectionStack; }
+	const std::vector<Matrix44f>&	getProjectionMatrixStack() const { return mProjectionMatrixStack; }
 	
 	//! Binds a VAO. Consider using a VaoScope instead.
 	void		bindVao( const VaoRef &vao );
@@ -359,8 +363,9 @@ class Context {
 	VboRef						mImmVbo; // Immediate-mode VBO
 	
 	ci::ColorAf					mColor;	
-	std::vector<Matrix44f>		mModelViewStack;
-	std::vector<Matrix44f>		mProjectionStack;
+	std::vector<Matrix44f>		mModelMatrixStack;
+	std::vector<Matrix44f>		mViewMatrixStack;	
+	std::vector<Matrix44f>		mProjectionMatrixStack;
 
 	friend class				Environment;
 	friend class				EnvironmentEs2Profile;
@@ -574,16 +579,17 @@ struct ViewportScope : public boost::noncopyable
 	Context					*mCtx;
 };
 
-struct ModelViewScope : public boost::noncopyable {
-	ModelViewScope()	{ gl::pushModelView(); }
-	~ModelViewScope()	{ gl::popModelView(); }
+struct ModelMatrixScope : public boost::noncopyable {
+	ModelMatrixScope()	{ gl::pushModelMatrix(); }
+	~ModelMatrixScope()	{ gl::popModelMatrix(); }
 };
 
-struct ProjectionScope : public boost::noncopyable {
-	ProjectionScope()	{ gl::pushProjection(); }
-	~ProjectionScope()	{ gl::popProjection(); }
+struct ProjectionMatrixScope : public boost::noncopyable {
+	ProjectionMatrixScope()			{ gl::pushProjectionMatrix(); }
+	~ProjectionMatrixScope()	{ gl::popProjectionMatrix(); }
 };
 
+//! Preserves all
 struct MatricesScope : public boost::noncopyable {
 	MatricesScope()		{ gl::pushMatrices(); }
 	~MatricesScope()	{ gl::popMatrices(); }

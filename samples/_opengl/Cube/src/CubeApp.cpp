@@ -67,7 +67,9 @@ void RotatingCubeApp::draw()
 
 	mTexture->bind();
 	gl::pushMatrices();
-		gl::multModelView( mCubeRotation );
+		gl::multModelMatrix( mCubeRotation );
+console() << "ModelView:" << std::endl;
+console() << gl::getModelViewMatrix() << std::endl;
 		mBatch->draw();
 	gl::popMatrices();
 }
