@@ -406,7 +406,7 @@ Matrix44f getProjectionMatrix()
 Matrix44f getModelViewMatrix()
 {
 	auto ctx = context();
-	return ctx->getProjectionMatrixStack().back() * ctx->getViewMatrixStack().back() * ctx->getModelMatrixStack().back();
+	return ctx->getViewMatrixStack().back() * ctx->getModelMatrixStack().back();
 }
 
 Matrix44f getModelViewProjectionMatrix()
@@ -764,7 +764,7 @@ std::string uniformSemanticToString( UniformSemantic uniformSemantic )
 	switch( uniformSemantic ) {
 		case UNIFORM_MODEL_MATRIX: return "UNIFORM_MODEL_MATRIX";
 		case UNIFORM_VIEW_MATRIX: return "UNIFORM_VIEW_MATRIX";
-		case UNIFORM_INVERSE_VIEW_MATRIX: return "UNIFORM_INVERSE_VIEW_MATRIX";
+		case UNIFORM_VIEW_MATRIX_INVERSE: return "UNIFORM_VIEW_MATRIX_INVERSE";
 		case UNIFORM_MODELVIEW: return "UNIFORM_MODELVIEW";
 		case UNIFORM_MODELVIEWPROJECTION: return "UNIFORM_MODELVIEWPROJECTION";
 		case UNIFORM_PROJECTION: return "UNIFORM_PROJECTION";

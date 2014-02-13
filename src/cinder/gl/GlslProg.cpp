@@ -245,7 +245,7 @@ GlslProg::UniformSemanticMap& GlslProg::getDefaultUniformNameToSemanticMap()
 	if( ! initialized ) {
 		sDefaultUniformNameToSemanticMap["ciModelMatrix"] = UNIFORM_MODEL_MATRIX;
 		sDefaultUniformNameToSemanticMap["ciViewMatrix"] = UNIFORM_VIEW_MATRIX;
-		sDefaultUniformNameToSemanticMap["ciInverseViewMatrix"] = UNIFORM_INVERSE_VIEW_MATRIX;
+		sDefaultUniformNameToSemanticMap["ciViewMatrixInverse"] = UNIFORM_VIEW_MATRIX_INVERSE;
 		sDefaultUniformNameToSemanticMap["ciModelView"] = UNIFORM_MODELVIEW;
 		sDefaultUniformNameToSemanticMap["ciModelViewProjection"] = UNIFORM_MODELVIEWPROJECTION;
 		sDefaultUniformNameToSemanticMap["ciProjection"] = UNIFORM_PROJECTION;
