@@ -81,7 +81,7 @@ void MotionBlurFboApp::draw()
 		gl::clear();
 		gl::setMatrices( mCam );
 		updateCubeRotation( startTime + i / (float)SUBFRAMES );
-		gl::multModelView( mCubeRotation );
+		gl::multModelMatrix( mCubeRotation );
 		mBatch->draw();
 		
 		// now add this frame to the accumulation FBO
