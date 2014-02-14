@@ -598,8 +598,12 @@ void Context::pushTextureBinding( GLenum target, uint8_t textureUnit )
 		mTextureBindingStack[textureUnit] = std::map<GLenum,std::vector<GLint>>();
 		mTextureBindingStack[textureUnit][target].push_back( -1 );
 	}
-	else
-		mTextureBindingStack[textureUnit][target].push_back( mTextureBindingStack[textureUnit][target].back() );
+	else if( mTextureBindingStack[textureUnit].find( target ) == mTextureBindingStack[textureUnit].end() ) {
+		mTextureBindingStack[textureUnit][target] = std::vector<GLint>();
+		mTextureBindingStack[textureUnit][target].push_back( -1 );
+	}
+	
+	mTextureBindingStack[textureUnit][target].push_back( mTextureBindingStack[textureUnit][target].back() );
 }
 
 void Context::pushTextureBinding( GLenum target, GLuint textureId, uint8_t textureUnit )
