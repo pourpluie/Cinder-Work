@@ -43,7 +43,7 @@ void ImmediateModeApp::setup()
 void ImmediateModeApp::draw()
 {
 	gl::clear( Color( 0, 0, 0 ) );	
-
+//gl::setMatricesWindowPersp( getWindowWidth(), getWindowHeight(), 60.0f, 1.0f, 10000.0f, true );
 	mGlsl->bind();
 	gl::VertBatch vb( GL_TRIANGLES );
 		vb.color( 1, 0, 0 );
