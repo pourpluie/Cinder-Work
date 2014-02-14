@@ -856,7 +856,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	ctx->drawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
 }
 
-void draw( const TextureRef &texture, const Rectf &rect )
+void draw( const TextureRef &texture, const Area &srcArea, const Rectf &dstRect )
 {
 	auto ctx = context();
 	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture( texture ) );
@@ -868,14 +868,16 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	GLfloat data[8+8]; // both verts and texCoords
 	GLfloat *verts = data, *texCoords = data + 8;
 	
-	verts[0*2+0] = rect.getX2(); texCoords[0*2+0] = texture->getRight();
-	verts[0*2+1] = rect.getY1(); texCoords[0*2+1] = texture->getTop();
-	verts[1*2+0] = rect.getX1(); texCoords[1*2+0] = texture->getLeft();
-	verts[1*2+1] = rect.getY1(); texCoords[1*2+1] = texture->getTop();
-	verts[2*2+0] = rect.getX2(); texCoords[2*2+0] = texture->getRight();
-	verts[2*2+1] = rect.getY2(); texCoords[2*2+1] = texture->getBottom();
-	verts[3*2+0] = rect.getX1(); texCoords[3*2+0] = texture->getLeft();
-	verts[3*2+1] = rect.getY2(); texCoords[3*2+1] = texture->getBottom();
+	Rectf texRect = texture->getAreaTexCoords( srcArea );
+
+	verts[0*2+0] = dstRect.getX2(); texCoords[0*2+0] = texRect.x2;
+	verts[0*2+1] = dstRect.getY1(); texCoords[0*2+1] = texRect.y1;
+	verts[1*2+0] = dstRect.getX1(); texCoords[1*2+0] = texRect.x1;
+	verts[1*2+1] = dstRect.getY1(); texCoords[1*2+1] = texRect.y1;
+	verts[2*2+0] = dstRect.getX2(); texCoords[2*2+0] = texRect.x2;
+	verts[2*2+1] = dstRect.getY2(); texCoords[2*2+1] = texRect.y2;
+	verts[3*2+0] = dstRect.getX1(); texCoords[3*2+0] = texRect.x1;
+	verts[3*2+1] = dstRect.getY2(); texCoords[3*2+1] = texRect.y2;
 	
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
 	BufferScope vboScp( defaultVbo );
@@ -897,6 +899,19 @@ void draw( const TextureRef &texture, const Rectf &rect )
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 	ctx->popVao();
+}
+
+void draw( const TextureRef &texture, const Rectf &dstRect )
+{
+	draw( texture, texture->getBounds(), dstRect );
+}
+
+
+void draw( const TextureRef &texture, const Vec2f &dstOffset )
+{
+	if( ! texture )
+		return;
+	draw( texture, texture->getBounds(), Rectf( texture->getBounds() ) + dstOffset );
 }
 
 void drawSolidRect( const Rectf& r )
@@ -1080,13 +1095,6 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 	ctx->popVao();
-}
-
-void draw( const TextureRef &texture, const Vec2f &v )
-{
-	if( ! texture )
-		return;
-	draw( texture, Rectf( texture->getBounds() ) + v );
 }
 
 GLenum getError()

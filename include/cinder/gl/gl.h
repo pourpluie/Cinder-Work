@@ -232,8 +232,9 @@ geom::Primitive toGeomPrimitive( GLenum prim );
 std::string uniformSemanticToString( UniformSemantic uniformSemantic );
 
 void draw( const VboMeshRef &mesh );
-void draw( const TextureRef &texture, const Rectf &rect );
-void draw( const TextureRef &texture, const Vec2f &v = Vec2f::zero() );
+void draw( const TextureRef &texture, const Rectf &dstRect );
+void draw( const TextureRef &texture, const Area &srcArea, const Rectf &dstRect );
+void draw( const TextureRef &texture, const Vec2f &dstOffset = Vec2f::zero() );
 
 //! Renders a solid cube centered at \a center of size \a size. Normals and created texture coordinates are generated.
 void drawCube( const Vec3f &center, const Vec3f &size );
