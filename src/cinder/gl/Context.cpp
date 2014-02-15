@@ -1142,6 +1142,12 @@ void Context::sanityCheck()
 	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &trueElementArrayBufferBinding );
 	assert( ( cachedElementArrayBufferBinding == -1 ) || ( trueElementArrayBufferBinding == cachedElementArrayBufferBinding ) );
 
+#if defined( CINDER_MSW )
+	auto platformDataMsw = dynamic_pointer_cast<PlatformDataMsw>( context()->getPlatformData() );
+	assert( platformDataMsw->mGlrc == wglGetCurrentContext() );
+	assert( platformDataMsw->mDc == wglGetCurrentDC() );
+#endif
+
 	// assert the various texture bindings are correct
 /*	for( auto& cachedTextureBinding : mTextureBindingStack ) {
 		GLenum target = cachedTextureBinding.first;
