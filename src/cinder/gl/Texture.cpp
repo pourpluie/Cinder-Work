@@ -541,6 +541,9 @@ Texture::Texture( const TextureData &data, Format format )
 	initParams( format, 0 /* unused */ );
 	
 	replace( data );
+
+	if( format.mMipmapping && data.getNumLevels() <= 1 ) 
+		glGenerateMipmap( mTarget );
 }
 	
 void Texture::initData( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format )
