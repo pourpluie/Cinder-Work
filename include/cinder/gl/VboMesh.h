@@ -43,7 +43,8 @@ class VboMesh {
   public:
 	//! Creates a VboMesh which represents the geom::Source \a source.
 	static VboMeshRef	create( const geom::Source &source );
-	static VboMeshRef	create( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo = VboRef() );
+	//! Creates a VboMesh which represents the user's vertex buffer objects. Allows optional \a indexVbo to enable indexed vertices.
+	static VboMeshRef	create( uint32_t numVertices, GLenum glPrimitive, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, uint32_t numIndices = 0, GLenum indexType = GL_UNSIGNED_BYTE, const VboRef &indexVbo = VboRef() );
 	//! Creates a VboMesh which represents the geom::Source \a source. Allows optional \a arrayVbo and \a elementArrayVbo in order to simplify recycling of VBOs.
 	static VboMeshRef	create( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo );
 
