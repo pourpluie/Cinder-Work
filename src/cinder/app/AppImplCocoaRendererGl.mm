@@ -152,12 +152,7 @@ if( ! view )
 	NSSize nsSize = [view frame].size;
 	NSSize backingSize = [view convertSizeToBacking:nsSize];
 	ci::gl::viewport( 0, 0, backingSize.width, backingSize.height );
-	cinder::CameraPersp cam( nsSize.width, nsSize.height, 60.0f );
-
-	cinder::Matrix44f viewMat = cam.getViewMatrix();
-	viewMat.scale( cinder::Vec3f( 1.0f, -1.0f, 1.0f ) );							// invert Y axis so increasing Y goes down.
-	viewMat.translate( cinder::Vec3f( 0.0f, (float)-nsSize.height, 0.0f ) );		// shift origin up to upper-left corner.
-	cinder::gl::setViewMatrix( viewMat );
+	cinder::gl::setMatricesWindowPersp( backingSize.width, backingSize.height );
 }
 
 - (BOOL)acceptsFirstResponder
