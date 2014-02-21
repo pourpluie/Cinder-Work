@@ -221,17 +221,17 @@ void TextureMipmappingApp::draw()
 	gl::clear( Color( 0, 0, 0 ) );
 	gl::enableAlphaBlending();
 	
-	gl::pushModelView();
+	gl::pushModelMatrix();
 		gl::setMatrices( mCam );
-		gl::multModelView( mPlaneTranslation );
-		gl::multModelView( mPlaneRotation );
+		gl::multModelMatrix( mPlaneTranslation );
+		gl::multModelMatrix( mPlaneRotation );
 	
 		renderPlaneTexture( mLeftControl );
 		renderPlaneTexture( mRightControl );
 	
-	gl::popModelView();
+	gl::popModelMatrix();
 	
-	gl::pushModelView();
+	gl::pushMatrices();
 		gl::setMatricesWindow( getWindowSize() );
 	
 		renderFilterButtons( mLeftControl );
@@ -240,7 +240,7 @@ void TextureMipmappingApp::draw()
 		// Simple seperator
 		gl::color(1, 1, 1);
 		gl::drawSolidRect( Rectf( getWindowWidth() / 2 - 2, 0, getWindowWidth() / 2 + 2, getWindowHeight() ) );
-	gl::popModelView();
+	gl::popMatrices();
 }
 
 void TextureMipmappingApp::renderPlaneTexture( FilterControlRef f )
