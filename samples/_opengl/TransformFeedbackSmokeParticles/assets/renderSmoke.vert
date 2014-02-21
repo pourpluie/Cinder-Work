@@ -14,13 +14,12 @@ uniform float MaxParticleSize;
 uniform float Time; 
 uniform float ParticleLifetime;
 
-uniform mat4 modelView;
-uniform mat4 projection;
+uniform mat4 ciModelViewProjection;
 
 void main() {
 	float age = Time - VertexStartTime;
 	Transp = 0.0;
-	gl_Position = projection * modelView * vec4(VertexPosition, 1.0);
+	gl_Position = ciModelViewProjection * vec4(VertexPosition, 1.0);
 	if( Time >= VertexStartTime ) {
 		float agePct = age / ParticleLifetime;
 		Transp = 1.0 - agePct;
