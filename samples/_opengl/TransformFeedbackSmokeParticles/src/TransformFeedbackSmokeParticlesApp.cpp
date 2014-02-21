@@ -257,12 +257,10 @@ void TransformFeedbackSmokeParticlesApp::draw()
 	
 	gl::pushMatrices();
 	gl::setMatrices( mCam );
-	gl::multModelView( Matrix44f::createRotation( Vec3f( 0, 1, 0 ), rotateRadians ) );
+	gl::multModelMatrix( Matrix44f::createRotation( Vec3f( 0, 1, 0 ), rotateRadians ) );
 	
 	mPRenderGlsl->uniform( "Time", getElapsedFrames() / 60.0f );
-	mPRenderGlsl->uniform( "projection", gl::getProjection() );
-	mPRenderGlsl->uniform( "modelView", gl::getModelView() );
-	
+	gl::setDefaultShaderVars();
 	gl::drawArrays( GL_POINTS, 0, nParticles );
 	
 	gl::popMatrices();
