@@ -65,6 +65,8 @@
 		[self release];
 		return;
 	}
+	else
+		[EAGLContext setCurrentContext:mContext];
 	
 	cinder::gl::Environment::setEs2();
 	
