@@ -70,8 +70,6 @@ void CubeMappingApp::draw()
 	mCubeMap->bind();
 	gl::pushMatrices();
 		gl::multModelMatrix( mObjectRotation );
-		mTeapotBatch->getGlslProg()->uniform( "uViewMatrix", mCam.getViewMatrix() );
-		mTeapotBatch->getGlslProg()->uniform( "uInverseViewMatrix", mCam.getInverseViewMatrix() );
 		mTeapotBatch->draw();
 	gl::popMatrices();
 	
