@@ -7,17 +7,20 @@
 	#import <Foundation/Foundation.h>
 #endif
 
+#include <mutex>
+
 using namespace std;
 
 namespace cinder { namespace log {
 
 namespace {
 
-// Leaky singleton so that logging can be done during shutdown
-static Logger* sInstance = new Logger;
-static LoggerMulti* sInstanceMulti = nullptr;
+Logger*			sInstance = new LoggerThreadSafe;	// Leaky singleton to enable logging during shutdown
+LoggerMulti*	sInstanceMulti = nullptr;
 
 } // anonymous namespace
+
+mutex			sMutex;
 
 Logger* logger()
 {
@@ -26,6 +29,8 @@ Logger* logger()
 
 void reset( Logger *logger )
 {
+	lock_guard<mutex> lock( sMutex );
+
 	delete sInstance;
 	sInstance = logger;
 

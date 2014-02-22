@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <memory>
+#include <mutex>
 
 #if ( defined( CINDER_COCOA ) && DEBUG ) || ( defined( CINDER_MSW ) && defined( _DEBUG ) )
 	// by default, CI_LOG_V is enabled in debug builds, but apps can also define this elsewhere to force it on in release.
@@ -89,7 +90,7 @@ class LoggerFile : public Logger {
 };
 */
 
-// TODO: switch to this if and when user adds additional loggers. Use Logger base class by default and if there is only one logger
+// TODO: move to impl
 class LoggerMulti : public Logger {
   public:
 
@@ -104,12 +105,28 @@ class LoggerMulti : public Logger {
 #if defined( CINDER_COCOA )
 
 //! sends output to NSLog so it can be viewed from the Mac Console app
+// TODO: this could probably be much faster with syslog: https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man3/syslog.3.html
 class LoggerNSLog : public Logger {
   public:
 	virtual void write( const Metadata &meta, const std::string& text ) override;
 };
 
 #endif
+
+extern std::mutex	sMutex;
+
+template<class LoggerT>
+class ThreadSafeT : public LoggerT {
+  public:
+	
+	virtual void write( const Metadata &meta, const std::string &text ) override
+	{
+		std::lock_guard<std::mutex> lock( sMutex );
+		LoggerT::write( meta, text );
+	}
+};
+
+typedef ThreadSafeT<Logger>			LoggerThreadSafe;
 
 struct Entry {
 	// TODO: move &&location
@@ -136,7 +153,6 @@ struct Entry {
 
 	void writeToLog()
 	{
-//		Log::instance()->write( mMetaData, mStream.str() );
 		logger()->write( mMetaData, mStream.str() );
 	}
 
