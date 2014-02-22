@@ -598,11 +598,23 @@ void Context::pushTextureBinding( GLenum target, uint8_t textureUnit )
 {
 	if( mTextureBindingStack.find( textureUnit ) == mTextureBindingStack.end() ) {
 		mTextureBindingStack[textureUnit] = std::map<GLenum,std::vector<GLint>>();
-		mTextureBindingStack[textureUnit][target].push_back( -1 );
+		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
+		GLint queriedInt = -1;
+		if( targetBinding > 0 ) {
+			ActiveTextureScope actScp( textureUnit );
+			glGetIntegerv( targetBinding, &queriedInt );
+		}
+		mTextureBindingStack[textureUnit][target].push_back( queriedInt );
 	}
 	else if( mTextureBindingStack[textureUnit].find( target ) == mTextureBindingStack[textureUnit].end() ) {
 		mTextureBindingStack[textureUnit][target] = std::vector<GLint>();
-		mTextureBindingStack[textureUnit][target].push_back( -1 );
+		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
+		GLint queriedInt = -1;
+		if( targetBinding > 0 ) {
+			ActiveTextureScope actScp( textureUnit );
+			glGetIntegerv( targetBinding, &queriedInt );
+		}
+		mTextureBindingStack[textureUnit][target].push_back( queriedInt );
 	}
 	
 	mTextureBindingStack[textureUnit][target].push_back( mTextureBindingStack[textureUnit][target].back() );
