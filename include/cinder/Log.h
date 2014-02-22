@@ -90,18 +90,6 @@ class LoggerFile : public Logger {
 };
 */
 
-// TODO: move to impl
-class LoggerMulti : public Logger {
-  public:
-
-	void pushBack( Logger *logger );
-
-	virtual void write( const Metadata &meta, const std::string &text ) override;
-
-  protected:
-	std::vector<std::unique_ptr<Logger> >	mLoggers;
-};
-
 #if defined( CINDER_COCOA )
 
 //! sends output to NSLog so it can be viewed from the Mac Console app
@@ -118,7 +106,7 @@ extern std::mutex	sMutex;
 template<class LoggerT>
 class ThreadSafeT : public LoggerT {
   public:
-	
+
 	virtual void write( const Metadata &meta, const std::string &text ) override
 	{
 		std::lock_guard<std::mutex> lock( sMutex );

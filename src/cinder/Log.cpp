@@ -15,8 +15,19 @@ namespace cinder { namespace log {
 
 namespace {
 
-Logger*			sInstance = new LoggerThreadSafe;	// Leaky singleton to enable logging during shutdown
-LoggerMulti*	sInstanceMulti = nullptr;
+class LoggerImplMulti : public Logger {
+public:
+
+	void pushBack( Logger *logger )	{ mLoggers.push_back( unique_ptr<Logger>( logger ) ); }
+
+	virtual void write( const Metadata &meta, const std::string &text ) override;
+
+protected:
+	std::vector<std::unique_ptr<Logger> >	mLoggers;
+};
+
+Logger*				sInstance = new LoggerThreadSafe;	// Leaky singleton to enable logging during shutdown
+LoggerImplMulti*	sInstanceMulti = nullptr;
 
 } // anonymous namespace
 
@@ -34,7 +45,7 @@ void reset( Logger *logger )
 	delete sInstance;
 	sInstance = logger;
 
-	LoggerMulti *multi = dynamic_cast<LoggerMulti *>( logger );
+	LoggerImplMulti *multi = dynamic_cast<LoggerImplMulti *>( logger );
 	sInstanceMulti = multi ? multi : nullptr;
 }
 
@@ -42,16 +53,11 @@ void add( Logger *logger )
 {
 	if( ! sInstanceMulti ) {
 		Logger *currentLogger = sInstance;
-		reset( new LoggerMulti );
+		reset( new LoggerImplMulti );
 		sInstanceMulti->pushBack( currentLogger );
 	}
 
 	sInstanceMulti->pushBack( logger );
-}
-
-void LoggerMulti::pushBack( Logger *logger )
-{
-	mLoggers.push_back( unique_ptr<Logger>( logger ) );
 }
 
 void Logger::write( const Metadata &meta, const std::string &text )
@@ -59,7 +65,7 @@ void Logger::write( const Metadata &meta, const std::string &text )
 	app::console() << meta << text << endl;
 }
 
-void LoggerMulti::write( const Metadata &meta, const std::string &text )
+void LoggerImplMulti::write( const Metadata &meta, const std::string &text )
 {
 	for( auto &logger : mLoggers )
 		logger->write( meta, text );
