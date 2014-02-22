@@ -1,9 +1,11 @@
 #pragma once
 
 #include "cinder/Cinder.h"
+//#include "cinder/Filesystem.h"
 #include "cinder/CurrentFunction.h"
 
 #include <sstream>
+#include <fstream>
 #include <vector>
 #include <memory>
 #include <mutex>
@@ -72,8 +74,6 @@ struct Metadata {
 	friend std::ostream& operator<<( std::ostream &os, const Metadata &rhs );
 };
 
-//typedef std::shared_ptr<class Logger>	LoggerRef;
-
 class Logger {
   public:
 	Logger()	{}
@@ -82,13 +82,17 @@ class Logger {
 	virtual void write( const Metadata &meta, const std::string &text );
 };
 
-/*
 class LoggerFile : public Logger {
-	static std::string logFileLocation()	{ return "."; }
-	// TODO:
-	virtual void writeToLog( const Metadata &metadata, const std::string &text ) override {}
+  public:
+	LoggerFile();
+	virtual ~LoggerFile();
+
+	virtual void write( const Metadata &meta, const std::string &text ) override;
+
+  protected:
+//	fs::path		mFilePath;
+	std::ofstream	mStream;
 };
-*/
 
 #if defined( CINDER_COCOA )
 
@@ -100,21 +104,6 @@ class LoggerNSLog : public Logger {
 };
 
 #endif
-
-extern std::mutex	sMutex;
-
-template<class LoggerT>
-class ThreadSafeT : public LoggerT {
-  public:
-
-	virtual void write( const Metadata &meta, const std::string &text ) override
-	{
-		std::lock_guard<std::mutex> lock( sMutex );
-		LoggerT::write( meta, text );
-	}
-};
-
-typedef ThreadSafeT<Logger>			LoggerThreadSafe;
 
 struct Entry {
 	// TODO: move &&location
@@ -152,5 +141,21 @@ private:
 	bool				mHasContent;
 	std::stringstream	mStream;
 };
+
+extern std::mutex	sMutex;
+
+template<class LoggerT>
+class ThreadSafeT : public LoggerT {
+public:
+
+	virtual void write( const Metadata &meta, const std::string &text ) override
+	{
+		std::lock_guard<std::mutex> lock( sMutex );
+		LoggerT::write( meta, text );
+	}
+};
+
+typedef ThreadSafeT<Logger>			LoggerThreadSafe;
+typedef ThreadSafeT<LoggerFile>		LoggerFileThreadSafe;
 
 } } // namespace cinder::log

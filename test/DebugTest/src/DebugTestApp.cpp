@@ -1,5 +1,5 @@
 #include "cinder/app/AppBasic.h"
-#include "cinder/app/RendererGl.h"
+//#include "cinder/app/Renderer.h"
 
 #include "cinder/Log.h"
 
@@ -12,7 +12,8 @@ using namespace std;
 
 class DebugTestApp : public AppBasic {
 	void setup();
-	void draw();
+
+	void keyDown( KeyEvent event );
 };
 
 void DebugTestApp::setup()
@@ -23,15 +24,16 @@ void DebugTestApp::setup()
 	int i = 0;
 	CI_VERIFY( ( i += 1 ) );
 
-	log::reset( new log::LoggerNSLog );
-//	log::add( new log::LoggerNSLog );
+//	log::reset( new log::LoggerNSLog );
+
+	log::add( new log::LoggerFileThreadSafe );
 
 	CI_LOG_I( "i = " << i ); // should be 1 in both debug and release
 }
 
-void DebugTestApp::draw()
+void DebugTestApp::keyDown( KeyEvent event )
 {
-	gl::clear( Color( 0, 0.5f, 0 ) );
+	CI_LOG_I( "event char: " << event.getChar() << ", code: " << event.getCode() );
 }
 
-CINDER_APP_BASIC( DebugTestApp, RendererGl )
+CINDER_APP_BASIC( DebugTestApp, Renderer2d )
