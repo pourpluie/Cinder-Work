@@ -301,6 +301,7 @@ void setMatrices( const ci::Camera& cam )
 	auto ctx = context();
 	ctx->getViewMatrixStack().back() = cam.getViewMatrix();
 	ctx->getProjectionMatrixStack().back() = cam.getProjectionMatrix();
+	ctx->getModelMatrixStack().back().setToIdentity();
 }
 
 void setModelMatrix( const ci::Matrix44f &m )
@@ -434,6 +435,7 @@ void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees
 	auto ctx = gl::context();
 	
 	CameraPersp cam( screenWidth, screenHeight, fovDegrees, nearPlane, farPlane );
+	ctx->getModelMatrixStack().back().setToIdentity();
 	ctx->getProjectionMatrixStack().back() = cam.getProjectionMatrix();
 	ctx->getViewMatrixStack().back() = cam.getViewMatrix();
 	if( originUpperLeft ) {
@@ -450,6 +452,7 @@ void setMatricesWindowPersp( const ci::Vec2i& screenSize, float fovDegrees, floa
 void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft )
 {
 	auto ctx = gl::context();
+	ctx->getModelMatrixStack().back().setToIdentity();	
 	ctx->getViewMatrixStack().back().setToIdentity();
 	if( originUpperLeft )
 		ctx->getProjectionMatrixStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
@@ -460,7 +463,7 @@ void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft 
 		ctx->getProjectionMatrixStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
 													Vec4f( 0.0f, 2.0f / (float)screenHeight, 0.0f, -1.0f ),
 													Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
-													Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );		
+													Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
 }
 
 void setMatricesWindow( const ci::Vec2i& screenSize, bool originUpperLeft )
