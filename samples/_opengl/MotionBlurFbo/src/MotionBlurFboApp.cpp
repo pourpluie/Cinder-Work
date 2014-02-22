@@ -22,6 +22,7 @@ class MotionBlurFboApp : public AppNative {
   public:	
 	void prepareSettings( Settings *settings ) { settings->setResizable( false ); settings->enableHighDensityDisplay( false ); }
 	void setup();
+	void keyDown( KeyEvent event );
 	void updateCubeRotation( double time );
 	void draw();
 	
@@ -29,6 +30,7 @@ class MotionBlurFboApp : public AppNative {
 	Matrix44f			mCubeRotation;
 	gl::BatchRef		mBatch;
 	gl::FboRef			mFbo, mAccumFbo;
+	bool				mPaused;
 };
 
 const int SUBFRAMES = 16; // increasing this number increases quality
@@ -51,6 +53,14 @@ void MotionBlurFboApp::setup()
 	mAccumFbo = gl::Fbo::create( getWindowWidth(), getWindowHeight(),
 		gl::Fbo::Format().colorTexture( gl::Texture::Format().internalFormat( GL_RGB16F ) ).disableDepth() );
 #endif
+
+	mPaused = false;
+}
+
+void MotionBlurFboApp::keyDown( KeyEvent event )
+{
+	if( event.getChar() == ' ' )
+		mPaused = ! mPaused;
 }
 
 void MotionBlurFboApp::updateCubeRotation( double time )
@@ -64,38 +74,41 @@ void MotionBlurFboApp::draw()
 {
 	gl::viewport( Vec2f::zero(), mAccumFbo->getSize() );
 
-	// clear out both of our FBOs
-	gl::context()->pushFramebuffer();
-	mAccumFbo->bindFramebuffer();
-	gl::clear( Color::black() );
-	gl::color( 1, 1, 1, 1 );
-
-	// iterate all the sub-frames
-	double startTime = getElapsedSeconds();
-	for( int i = 0; i < SUBFRAMES; ++i ) {
-		// draw the Cube's sub-frame into mFbo
-		gl::enableDepthRead();
-		gl::enableDepthWrite();
-		gl::enableAlphaBlending();
-		mFbo->bindFramebuffer();
-		gl::clear();
-		gl::setMatrices( mCam );
-		updateCubeRotation( startTime + i / (float)SUBFRAMES );
-		gl::multModelMatrix( mCubeRotation );
-		mBatch->draw();
-		
-		// now add this frame to the accumulation FBO
+	if( ! mPaused ) {
+		// clear out both of our FBOs
+		gl::context()->pushFramebuffer();
 		mAccumFbo->bindFramebuffer();
-		gl::setMatricesWindow( mAccumFbo->getSize() );
-		gl::enableAdditiveBlending();
-		gl::disableDepthWrite();
-		gl::disableDepthRead();		
-		gl::draw( mFbo->getColorTexture() );
-		gl::enableAlphaBlending();
-	}
+		gl::clear( Color::black() );
+		gl::color( 1, 1, 1, 1 );
 
-	// prepare to draw the AccumFbo to the screen (after dividing it by # SUBFRAMES)
-	gl::context()->popFramebuffer();
+		// iterate all the sub-frames
+		double startTime = getElapsedSeconds();
+		for( int i = 0; i < SUBFRAMES; ++i ) {
+			// draw the Cube's sub-frame into mFbo
+			gl::enableDepthRead();
+			gl::enableDepthWrite();
+			gl::enableAlphaBlending();
+			mFbo->bindFramebuffer();
+			gl::clear();
+			gl::setMatrices( mCam );
+			updateCubeRotation( startTime + i / (float)SUBFRAMES );
+			gl::multModelMatrix( mCubeRotation );
+			mBatch->draw();
+			
+			// now add this frame to the accumulation FBO
+			mAccumFbo->bindFramebuffer();
+			gl::setMatricesWindow( mAccumFbo->getSize() );
+			gl::enableAdditiveBlending();
+			gl::disableDepthWrite();
+			gl::disableDepthRead();		
+			gl::draw( mFbo->getColorTexture() );
+			gl::enableAlphaBlending();
+		}
+
+		// prepare to draw the AccumFbo to the screen (after dividing it by # SUBFRAMES)
+		gl::context()->popFramebuffer();
+	}
+	
 	gl::disableDepthRead();
 	gl::enableAlphaBlending();
 	// set the color to be 1/SUBFRAMES, which divides the HDR image by the number of sub-frames we rendered
