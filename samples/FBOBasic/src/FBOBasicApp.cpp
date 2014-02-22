@@ -59,7 +59,7 @@ void FBOBasicApp::renderSceneToFbo()
 	gl::setMatrices( cam );
 
 	// set the modelview matrix to reflect our current rotation
-	gl::multModelView( mTorusRotation );
+	gl::setModelMatrix( mTorusRotation );
 	
 	// render an orange torus, with no textures
 	gl::GlslProgScope shaderScp( gl::getStockShader( gl::ShaderDef().color() ) );
