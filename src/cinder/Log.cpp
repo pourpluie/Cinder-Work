@@ -13,68 +13,80 @@ using namespace std;
 
 namespace cinder { namespace log {
 
-namespace {
-
 class LoggerImplMulti : public Logger {
 public:
 
-//	void pushBack( Logger *logger )	{ mLoggers.push_back( unique_ptr<Logger>( logger ) ); }
-	void pushBack( Logger *logger )	{ mLoggers.push_back( logger ); }
+	void add( Logger *logger )					{ mLoggers.push_back( unique_ptr<Logger>( logger ) ); }
+	void add( unique_ptr<Logger> &&logger )		{ mLoggers.emplace_back( move( logger ) ); }
 
 	virtual void write( const Metadata &meta, const std::string &text ) override;
 
 protected:
-//	std::vector<std::unique_ptr<Logger> >	mLoggers;
-	std::vector<Logger *>	mLoggers;
+	std::vector<std::unique_ptr<Logger> >	mLoggers;
 };
 
-Logger*				sLoggerInstance = new LoggerThreadSafe;	// Leaky singleton to enable logging during shutdown
-LoggerImplMulti*	sLoggerInstanceMulti = nullptr;
+// ----------------------------------------------------------------------------------------------------
+// MARK: - LogManager
+// ----------------------------------------------------------------------------------------------------
 
-} // anonymous namespace
+LogManager*	LogManager::sInstance = new LogManager;	// note: leaks to enable logging during shutdown
 
-mutex			sMutex;
-
-Logger* logger()
+LogManager* manager()
 {
-	return sLoggerInstance;
+	return LogManager::instance();
 }
 
-void reset( Logger *logger )
+LogManager::LogManager()
+	: mLogger( new LoggerThreadSafe ), mLoggerMulti( nullptr )
 {
-	lock_guard<mutex> lock( sMutex );
+}
 
-	delete sLoggerInstance;
-	sLoggerInstance = logger;
+void LogManager::resetLogger( Logger *logger )
+{
+	lock_guard<mutex> lock( mMutex );
+
+	mLogger.reset( logger );
 
 	LoggerImplMulti *multi = dynamic_cast<LoggerImplMulti *>( logger );
-	sLoggerInstanceMulti = multi ? multi : nullptr;
+	mLoggerMulti = multi ? multi : nullptr;
 }
 
-// TODO: memory management here could be better, sort out with LogManager
-// - probably can avoid the LoggerImplMulti there
-void add( Logger *logger )
+void LogManager::addLogger( Logger *logger )
 {
-	if( ! sLoggerInstanceMulti ) {
-		Logger *currentLogger = sLoggerInstance;
-		sLoggerInstanceMulti = new LoggerImplMulti;
-		sLoggerInstanceMulti->pushBack( currentLogger );
-		sLoggerInstance = sLoggerInstanceMulti;
+	lock_guard<mutex> lock( mMutex );
+
+	if( ! mLoggerMulti ) {
+		auto loggerMulti = unique_ptr<LoggerImplMulti>( new LoggerImplMulti );
+		loggerMulti->add( move( mLogger ) );
+		mLoggerMulti = loggerMulti.get();
+		mLogger = move( loggerMulti );
 	}
 
-	sLoggerInstanceMulti->pushBack( logger );
+	mLoggerMulti->add( logger );
 }
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Logger
+// ----------------------------------------------------------------------------------------------------
 
 void Logger::write( const Metadata &meta, const string &text )
 {
 	app::console() << meta << text << endl;
 }
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - LoggerImplMulti
+// ----------------------------------------------------------------------------------------------------
+
 void LoggerImplMulti::write( const Metadata &meta, const string &text )
 {
 	for( auto &logger : mLoggers )
 		logger->write( meta, text );
 }
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - LoggerFile
+// ----------------------------------------------------------------------------------------------------
 
 LoggerFile::LoggerFile()
 {
@@ -93,6 +105,10 @@ void LoggerFile::write( const Metadata &meta, const string &text )
 
 #if defined( CINDER_COCOA )
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - LoggerNSLog
+// ----------------------------------------------------------------------------------------------------
+
 void LoggerNSLog::write( const Metadata &meta, const string& text )
 {
 	NSString *textNs = [NSString stringWithCString:text.c_str() encoding:NSUTF8StringEncoding];
@@ -101,6 +117,10 @@ void LoggerNSLog::write( const Metadata &meta, const string& text )
 }
 
 #endif
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - Helper Classes
+// ----------------------------------------------------------------------------------------------------
 
 string Metadata::toString() const
 {

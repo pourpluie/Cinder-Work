@@ -24,9 +24,8 @@ void DebugTestApp::setup()
 	int i = 0;
 	CI_VERIFY( ( i += 1 ) );
 
-//	log::reset( new log::LoggerNSLog );
-
-	log::add( new log::LoggerFileThreadSafe );
+//	log::manager()->resetLogger( new log::LoggerNSLog );
+	log::manager()->addLogger( new log::LoggerFileThreadSafe );
 
 	CI_LOG_I( "i = " << i ); // should be 1 in both debug and release
 }

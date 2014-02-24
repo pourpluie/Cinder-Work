@@ -30,14 +30,6 @@
 
 namespace cinder { namespace log {
 
-class Logger;
-struct Entry;
-
-Logger* logger();
-void reset( Logger *logger );
-void add( Logger *logger );
-
-
 enum Level {
 	VERBOSE,
 	INFO,
@@ -105,6 +97,37 @@ class LoggerNSLog : public Logger {
 
 #endif
 
+class LoggerImplMulti;
+
+class LogManager {
+public:
+	// Returns a pointer to the shared instance. To enable logging during shutdown, this instance is leaked at shutdown.
+	static LogManager* instance()	{ return sInstance; }
+	//! Destroys the shared instance. Useful to remove false positives with leak detectors like valgrind.
+	static LogManager* destroy()	{ delete sInstance; }
+
+	//! Resets the current Logger stack so only \a logger exists.
+	void resetLogger( Logger *logger );
+	//! Adds \a logger to the current stack of loggers.
+	void addLogger( Logger *logger );
+	//! Returns a pointer to the current Logger instance.
+	Logger* getLogger()	{ return mLogger.get(); }
+	//! Returns the mutex used for thread safe loggers. Also used when adding or resetting new loggers.
+	std::mutex& getMutex() const			{ return mMutex; }
+
+protected:
+	LogManager();
+
+	std::unique_ptr<Logger>	mLogger;
+	LoggerImplMulti			*mLoggerMulti;
+
+	mutable std::mutex		mMutex;
+
+	static LogManager *sInstance;
+};
+
+LogManager* manager();
+
 struct Entry {
 	// TODO: move &&location
 	Entry( Level level, const Location &location )
@@ -130,7 +153,7 @@ struct Entry {
 
 	void writeToLog()
 	{
-		logger()->write( mMetaData, mStream.str() );
+		manager()->getLogger()->write( mMetaData, mStream.str() );
 	}
 
 	const Metadata&	getMetaData() const	{ return mMetaData; }
@@ -142,15 +165,12 @@ private:
 	std::stringstream	mStream;
 };
 
-extern std::mutex	sMutex;
-
 template<class LoggerT>
 class ThreadSafeT : public LoggerT {
-public:
-
+  public:
 	virtual void write( const Metadata &meta, const std::string &text ) override
 	{
-		std::lock_guard<std::mutex> lock( sMutex );
+		std::lock_guard<std::mutex> lock( manager()->getMutex() );
 		LoggerT::write( meta, text );
 	}
 };
