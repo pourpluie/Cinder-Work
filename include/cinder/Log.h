@@ -89,7 +89,8 @@ class LoggerConsole : public Logger {
 
 class LoggerFile : public Logger {
   public:
-	LoggerFile( const fs::path &filePath = "cinder.log" );
+	//! If \a filePath is empty, uses the default ('cinder.log' next to app binary)
+	LoggerFile( const fs::path &filePath = fs::path() );
 	virtual ~LoggerFile();
 
 	virtual void write( const Metadata &meta, const std::string &text ) override;
@@ -120,6 +121,8 @@ public:
 	static LogManager* instance()	{ return sInstance; }
 	//! Destroys the shared instance. Useful to remove false positives with leak detectors like valgrind.
 	static void destroyInstance()	{ delete sInstance; }
+	//! Restores LogManager to its default state.
+	void restoreToDefault();
 
 	//! Resets the current Logger stack so only \a logger exists.
 	void resetLogger( Logger *logger );
@@ -136,15 +139,18 @@ public:
 
 	void enableConsoleLogging();
 	void disableConsoleLogging();
-	bool isConsoleLoggingEnabled() const	{ return mConsoleLoggingEnabled; }
+	void setConsoleLoggingEnabled( bool b = true )		{ b ? enableConsoleLogging() : disableConsoleLogging(); }
+	bool isConsoleLoggingEnabled() const				{ return mConsoleLoggingEnabled; }
 
-	void enableFileLogging( const fs::path &filePath = "cinder.log" );
+	void enableFileLogging( const fs::path &filePath = fs::path() );
 	void disableFileLogging();
-	bool isFileLoggingEnabled() const	{ return mFileLoggingEnabled; }
+	void setFileLoggingEnabled( bool b = true, const fs::path &filePath = fs::path() )			{ b ? enableFileLogging( filePath ) : disableFileLogging(); }
+	bool isFileLoggingEnabled() const					{ return mFileLoggingEnabled; }
 
 	void enableSystemLogging();
 	void disableSystemLogging();
-	bool isSystemLoggingEnabled() const	{ return mSystemLoggingEnabled; }
+	void setSystemLoggingEnabled( bool b = true )		{ b ? enableSystemLogging() : disableSystemLogging(); }
+	bool isSystemLoggingEnabled() const					{ return mSystemLoggingEnabled; }
 
 protected:
 	LogManager();

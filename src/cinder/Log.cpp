@@ -9,6 +9,8 @@
 
 #include <mutex>
 
+#define DEFAULT_FILE_LOG_PATH "cinder.log"
+
 // TODO: consider storing Logger's as shared_ptr instead
 //	- they really aren't shared, but makes swapping them in and out and LogManager's handles easier
 
@@ -47,9 +49,8 @@ LogManager* manager()
 }
 
 LogManager::LogManager()
-	: mLogger( new LoggerConsoleThreadSafe ), mLoggerMulti( nullptr ),
-		mConsoleLoggingEnabled( true ), mFileLoggingEnabled( false ), mSystemLoggingEnabled( false )
 {
+	restoreToDefault();
 }
 
 void LogManager::resetLogger( Logger *logger )
@@ -86,6 +87,17 @@ void LogManager::removeLogger( Logger *logger )
 	mLoggerMulti->remove( logger );
 }
 
+void LogManager::restoreToDefault()
+{
+	lock_guard<mutex> lock( mMutex );
+
+	mLogger.reset( new LoggerConsoleThreadSafe );
+	mLoggerMulti = nullptr;
+	mConsoleLoggingEnabled = true;
+	mFileLoggingEnabled = false;
+	mSystemLoggingEnabled = false;
+}
+
 vector<Logger *> LogManager::getAllLoggers()
 {
 	vector<Logger *> result;
@@ -111,8 +123,14 @@ void LogManager::enableConsoleLogging()
 	
 void LogManager::enableFileLogging( const fs::path &path )
 {
-	if( mFileLoggingEnabled )
-		return;
+	if( mFileLoggingEnabled ) {
+		// if path has changed, destroy previous file logger and make a new one
+		auto logger = mLoggerMulti->findType<LoggerFile>();
+		if( logger )
+			disableFileLogging();
+		else
+			return;
+	}
 
 	addLogger( new LoggerFileThreadSafe( path ) );
 	mFileLoggingEnabled = true;
@@ -209,7 +227,10 @@ void LoggerImplMulti::write( const Metadata &meta, const string &text )
 LoggerFile::LoggerFile( const fs::path &filePath )
 	: mFilePath( filePath )
 {
-	mStream.open( filePath.string() );
+	if( mFilePath.empty() )
+		mFilePath = DEFAULT_FILE_LOG_PATH;
+	
+	mStream.open( mFilePath.string() );
 }
 
 LoggerFile::~LoggerFile()
