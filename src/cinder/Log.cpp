@@ -9,6 +9,9 @@
 
 #include <mutex>
 
+// TODO: consider storing Logger's as shared_ptr instead
+//	- they really aren't shared, but makes swapping them in and out and LogManager's handles easier
+
 using namespace std;
 
 namespace cinder { namespace log {
@@ -16,13 +19,20 @@ namespace cinder { namespace log {
 class LoggerImplMulti : public Logger {
 public:
 
-	void add( Logger *logger )					{ mLoggers.push_back( unique_ptr<Logger>( logger ) ); }
-	void add( unique_ptr<Logger> &&logger )		{ mLoggers.emplace_back( move( logger ) ); }
+	void add( Logger *logger )							{ mLoggers.push_back( std::unique_ptr<Logger>( logger ) ); }
+	void add( std::unique_ptr<Logger> &&logger )		{ mLoggers.emplace_back( move( logger ) ); }
+
+	template <typename LoggerT>
+	Logger* findType();
+
+	void remove( Logger *logger );
+
+	const vector<unique_ptr<Logger> >& getLoggers() const	{ return mLoggers; }
 
 	virtual void write( const Metadata &meta, const std::string &text ) override;
 
-protected:
-	std::vector<std::unique_ptr<Logger> >	mLoggers;
+private:
+	vector<unique_ptr<Logger> >	mLoggers; // TODO: make set? don't want duplicates
 };
 
 // ----------------------------------------------------------------------------------------------------
@@ -37,7 +47,8 @@ LogManager* manager()
 }
 
 LogManager::LogManager()
-	: mLogger( new LoggerThreadSafe ), mLoggerMulti( nullptr )
+	: mLogger( new LoggerConsoleThreadSafe ), mLoggerMulti( nullptr ),
+		mConsoleLoggingEnabled( true ), mFileLoggingEnabled( false ), mSystemLoggingEnabled( false )
 {
 }
 
@@ -49,6 +60,8 @@ void LogManager::resetLogger( Logger *logger )
 
 	LoggerImplMulti *multi = dynamic_cast<LoggerImplMulti *>( logger );
 	mLoggerMulti = multi ? multi : nullptr;
+
+	mConsoleLoggingEnabled = mFileLoggingEnabled = mSystemLoggingEnabled = false;
 }
 
 void LogManager::addLogger( Logger *logger )
@@ -65,11 +78,96 @@ void LogManager::addLogger( Logger *logger )
 	mLoggerMulti->add( logger );
 }
 
+
+void LogManager::removeLogger( Logger *logger )
+{
+	CI_ASSERT( mLoggerMulti );
+
+	mLoggerMulti->remove( logger );
+}
+
+vector<Logger *> LogManager::getAllLoggers()
+{
+	vector<Logger *> result;
+
+	if( mLoggerMulti ) {
+		for( const auto &logger : mLoggerMulti->getLoggers() )
+			result.push_back( logger.get() );
+	}
+	else
+		result.push_back( mLogger.get() );
+
+	return result;
+}
+
+void LogManager::enableConsoleLogging()
+{
+	if( mConsoleLoggingEnabled )
+		return;
+
+	addLogger( new LoggerConsoleThreadSafe );
+	mConsoleLoggingEnabled = true;
+}
+	
+void LogManager::enableFileLogging( const fs::path &path )
+{
+	if( mFileLoggingEnabled )
+		return;
+
+	addLogger( new LoggerFileThreadSafe( path ) );
+	mFileLoggingEnabled = true;
+}
+
+void LogManager::enableSystemLogging()
+{
+	if( mSystemLoggingEnabled )
+		return;
+
+#if defined( CINDER_COCOA )
+	addLogger( new LoggerNSLog );
+	mSystemLoggingEnabled = true;
+#endif
+}
+
+void LogManager::disableConsoleLogging()
+{
+	if( ! mConsoleLoggingEnabled || ! mLoggerMulti )
+		return;
+
+	auto logger = mLoggerMulti->findType<LoggerConsole>();
+	mLoggerMulti->remove( logger );
+
+	mConsoleLoggingEnabled = false;
+}
+
+void LogManager::disableFileLogging()
+{
+	if( ! mFileLoggingEnabled || ! mLoggerMulti )
+		return;
+
+	auto logger = mLoggerMulti->findType<LoggerFile>();
+	mLoggerMulti->remove( logger );
+
+	mFileLoggingEnabled = false;
+}
+
+void LogManager::disableSystemLogging()
+{
+	if( ! mSystemLoggingEnabled || ! mLoggerMulti )
+		return;
+
+#if defined( CINDER_COCOA )
+	auto logger = mLoggerMulti->findType<LoggerNSLog>();
+	mLoggerMulti->remove( logger );
+	mSystemLoggingEnabled = false;
+#endif
+}
+
 // ----------------------------------------------------------------------------------------------------
-// MARK: - Logger
+// MARK: - LoggerConsole
 // ----------------------------------------------------------------------------------------------------
 
-void Logger::write( const Metadata &meta, const string &text )
+void LoggerConsole::write( const Metadata &meta, const string &text )
 {
 	app::console() << meta << text << endl;
 }
@@ -77,6 +175,26 @@ void Logger::write( const Metadata &meta, const string &text )
 // ----------------------------------------------------------------------------------------------------
 // MARK: - LoggerImplMulti
 // ----------------------------------------------------------------------------------------------------
+
+template <typename LoggerT>
+Logger* LoggerImplMulti::findType()
+{
+	for( const auto &logger : mLoggers ) {
+		if( dynamic_cast<LoggerT *>( logger.get() ) )
+			return logger.get();
+	}
+
+	return nullptr;
+}
+
+void LoggerImplMulti::remove( Logger *logger )
+{
+	mLoggers.erase( remove_if( mLoggers.begin(), mLoggers.end(),
+							  [logger]( const std::unique_ptr<Logger> &o ) {
+								  return o.get() == logger;
+							  } ),
+				   mLoggers.end() );
+}
 
 void LoggerImplMulti::write( const Metadata &meta, const string &text )
 {
@@ -88,9 +206,10 @@ void LoggerImplMulti::write( const Metadata &meta, const string &text )
 // MARK: - LoggerFile
 // ----------------------------------------------------------------------------------------------------
 
-LoggerFile::LoggerFile()
+LoggerFile::LoggerFile( const fs::path &filePath )
+	: mFilePath( filePath )
 {
-	mStream.open( "cinder.log" );
+	mStream.open( filePath.string() );
 }
 
 LoggerFile::~LoggerFile()

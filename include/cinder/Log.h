@@ -1,14 +1,21 @@
 #pragma once
 
 #include "cinder/Cinder.h"
-//#include "cinder/Filesystem.h"
+#include "cinder/Filesystem.h"
 #include "cinder/CurrentFunction.h"
+#include "cinder/CinderAssert.h"
 
 #include <sstream>
 #include <fstream>
 #include <vector>
 #include <memory>
 #include <mutex>
+
+#if defined( CINDER_MSW ) && ( _MSC_VER < 1800 )
+	#define CINDER_NO_VARIADIC_TEMPLATES
+	#include <boost/preprocessor/repetition.hpp>
+	#include <boost/preprocessor/control/if.hpp>
+#endif
 
 #if ( defined( CINDER_COCOA ) && DEBUG ) || ( defined( CINDER_MSW ) && defined( _DEBUG ) )
 	// by default, CI_LOG_V is enabled in debug builds, but apps can also define this elsewhere to force it on in release.
@@ -68,21 +75,29 @@ struct Metadata {
 
 class Logger {
   public:
-	Logger()	{}
 	virtual ~Logger()	{}
 
-	virtual void write( const Metadata &meta, const std::string &text );
+	virtual void write( const Metadata &meta, const std::string &text ) = 0;
+};
+
+class LoggerConsole : public Logger {
+  public:
+	virtual ~LoggerConsole()	{}
+
+	virtual void write( const Metadata &meta, const std::string &text ) override;
 };
 
 class LoggerFile : public Logger {
   public:
-	LoggerFile();
+	LoggerFile( const fs::path &filePath = "cinder.log" );
 	virtual ~LoggerFile();
 
 	virtual void write( const Metadata &meta, const std::string &text ) override;
 
+	const fs::path&		getFilePath() const		{ return mFilePath; }
+
   protected:
-//	fs::path		mFilePath;
+	fs::path		mFilePath;
 	std::ofstream	mStream;
 };
 
@@ -104,24 +119,40 @@ public:
 	// Returns a pointer to the shared instance. To enable logging during shutdown, this instance is leaked at shutdown.
 	static LogManager* instance()	{ return sInstance; }
 	//! Destroys the shared instance. Useful to remove false positives with leak detectors like valgrind.
-	static LogManager* destroy()	{ delete sInstance; }
+	static void destroyInstance()	{ delete sInstance; }
 
 	//! Resets the current Logger stack so only \a logger exists.
 	void resetLogger( Logger *logger );
 	//! Adds \a logger to the current stack of loggers.
 	void addLogger( Logger *logger );
-	//! Returns a pointer to the current Logger instance.
+	//! Remove \a logger to the current stack of loggers.
+	void removeLogger( Logger *logger );
+	//! Returns a pointer to the current base Logger instance.
 	Logger* getLogger()	{ return mLogger.get(); }
+	//! Returns a vector of all current loggers
+	std::vector<Logger *> getAllLoggers();
 	//! Returns the mutex used for thread safe loggers. Also used when adding or resetting new loggers.
 	std::mutex& getMutex() const			{ return mMutex; }
+
+	void enableConsoleLogging();
+	void disableConsoleLogging();
+	bool isConsoleLoggingEnabled() const	{ return mConsoleLoggingEnabled; }
+
+	void enableFileLogging( const fs::path &filePath = "cinder.log" );
+	void disableFileLogging();
+	bool isFileLoggingEnabled() const	{ return mFileLoggingEnabled; }
+
+	void enableSystemLogging();
+	void disableSystemLogging();
+	bool isSystemLoggingEnabled() const	{ return mSystemLoggingEnabled; }
 
 protected:
 	LogManager();
 
 	std::unique_ptr<Logger>	mLogger;
 	LoggerImplMulti			*mLoggerMulti;
-
 	mutable std::mutex		mMutex;
+	bool					mConsoleLoggingEnabled, mFileLoggingEnabled, mSystemLoggingEnabled;
 
 	static LogManager *sInstance;
 };
@@ -165,9 +196,28 @@ private:
 	std::stringstream	mStream;
 };
 
+
 template<class LoggerT>
 class ThreadSafeT : public LoggerT {
   public:
+
+#if ! defined( CINDER_NO_VARIADIC_TEMPLATES )
+	template <typename... Args>
+	ThreadSafeT( Args &&... args )
+	: LoggerT( std::forward<Args>( args )... )
+	{}
+#else
+#define CTOR(z, n, unused)														\
+	BOOST_PP_IF( n, template <, ) BOOST_PP_ENUM_PARAMS( n, typename Arg )		\
+		BOOST_PP_IF(n, >, )														\
+			ThreadSafeT( BOOST_PP_ENUM_BINARY_PARAMS( n, Arg, arg ) )			\
+				: LoggerT( BOOST_PP_ENUM_PARAMS( n, arg ) )						\
+			{}
+
+	BOOST_PP_REPEAT(5, CTOR, ~)
+#undef CTOR
+#endif
+
 	virtual void write( const Metadata &meta, const std::string &text ) override
 	{
 		std::lock_guard<std::mutex> lock( manager()->getMutex() );
@@ -175,7 +225,7 @@ class ThreadSafeT : public LoggerT {
 	}
 };
 
-typedef ThreadSafeT<Logger>			LoggerThreadSafe;
-typedef ThreadSafeT<LoggerFile>		LoggerFileThreadSafe;
+typedef ThreadSafeT<LoggerConsole>		LoggerConsoleThreadSafe;
+typedef ThreadSafeT<LoggerFile>			LoggerFileThreadSafe;
 
 } } // namespace cinder::log
