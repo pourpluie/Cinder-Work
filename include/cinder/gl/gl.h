@@ -250,6 +250,11 @@ void drawSolidRect( const Rectf &r );
 void drawSolidRect( const Rectf &r, const Rectf &texcoords );
 void drawSolidCircle( const Vec2f &center, float radius, int numSegments = -1 );
 
+//! Draws a stroked rectangle with dimensions \a rect.
+void drawStrokedRect( const Rectf &rect );
+//! Draws a stroked rectangle with dimensions \a rect, with a line width of \a lineWidth
+void drawStrokedRect( const Rectf &rect, float lineWidth );
+
 // Vertex Attributes
 //! Analogous to glVertexAttribPointer
 void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );

@@ -956,6 +956,69 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
 
+void drawStrokedRect( const Rectf &rect )
+{
+	GLfloat verts[8];
+	verts[0] = rect.x1;	verts[1] = rect.y1;
+	verts[2] = rect.x2;	verts[3] = rect.y1;
+	verts[4] = rect.x2;	verts[5] = rect.y2;
+	verts[6] = rect.x1;	verts[7] = rect.y2;
+
+	auto ctx = context();
+	VaoScope vaoScope( Vao::create() );
+	VboRef defaultVbo = ctx->getDefaultArrayVbo( 8 * sizeof( float ) );
+	BufferScope bufferBindScp( defaultVbo );
+	defaultVbo->bufferSubData( 0, 8 * sizeof( float ), verts );
+
+	gl::GlslProgRef shader = ctx->getGlslProg();
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( posLoc >= 0 ) {
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+	}
+
+	ctx->setDefaultShaderVars();
+	ctx->drawArrays( GL_LINE_LOOP, 0, 4 );
+}
+
+void drawStrokedRect( const Rectf &rect, float lineWidth )
+{
+	const float halfWidth = lineWidth / 2;
+	GLfloat verts[32];
+	verts[0] = rect.x1 - halfWidth;		verts[1] = rect.y1 - halfWidth;		// left bar
+	verts[2] = rect.x1 - halfWidth;		verts[3] = rect.y2 + halfWidth;
+	verts[4] = rect.x1 + halfWidth;		verts[5] = rect.y2 - halfWidth;
+	verts[6] = rect.x1 - halfWidth;		verts[7] = rect.y1 - halfWidth;
+	verts[8] = rect.x1 + halfWidth;		verts[9] = rect.y1 + halfWidth;
+	verts[10] = rect.x2 - halfWidth;	verts[11] = rect.y1 + halfWidth;	// upper bar
+	verts[12] = rect.x1 - halfWidth;	verts[13] = rect.y1 - halfWidth;
+	verts[14] = rect.x2 + halfWidth;	verts[15] = rect.y1 - halfWidth;
+	verts[16] = rect.x2 - halfWidth;	verts[17] = rect.y1 + halfWidth;	// right bar
+	verts[18] = rect.x2 - halfWidth;	verts[19] = rect.y2 - halfWidth;
+	verts[20] = rect.x2 + halfWidth;	verts[21] = rect.y1 - halfWidth;
+	verts[22] = rect.x2 + halfWidth;	verts[23] = rect.y2 + halfWidth;
+	verts[24] = rect.x2 - halfWidth;	verts[25] = rect.y2 - halfWidth;	// bottom bar
+	verts[26] = rect.x1 + halfWidth;	verts[27] = rect.y2 - halfWidth;
+	verts[28] = rect.x2 + halfWidth;	verts[29] = rect.y2 + halfWidth;
+	verts[30] = rect.x1 - halfWidth;	verts[31] = rect.y2 + halfWidth;
+
+	auto ctx = context();
+	VaoScope vaoScope( Vao::create() );
+	VboRef defaultVbo = ctx->getDefaultArrayVbo( 32 * sizeof( float ) );
+	BufferScope bufferBindScp( defaultVbo );
+	defaultVbo->bufferSubData( 0, 32 * sizeof( float ), verts );
+
+	gl::GlslProgRef shader = ctx->getGlslProg();
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( posLoc >= 0 ) {
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
+	}
+
+	ctx->setDefaultShaderVars();
+	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 16 );
+}
+
 void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 {
 	auto ctx = context();
