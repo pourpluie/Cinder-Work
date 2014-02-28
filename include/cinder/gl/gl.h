@@ -266,7 +266,7 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments = -1 );
 
 //! Draws a stroked rectangle with dimensions \a rect.
 void drawStrokedRect( const Rectf &rect );
-//! Draws a stroked rectangle with dimensions \a rect, with a line width of \a lineWidth
+//! Draws a stroked rectangle centered around \a rect, with a line width of \a lineWidth
 void drawStrokedRect( const Rectf &rect, float lineWidth );
 
 // Vertex Attributes

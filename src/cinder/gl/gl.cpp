@@ -1000,9 +1000,9 @@ void drawStrokedRect( const Rectf &rect, float lineWidth )
 {
 	const float halfWidth = lineWidth / 2;
 	GLfloat verts[32];
-	verts[0] = rect.x1 - halfWidth;		verts[1] = rect.y1 - halfWidth;		// left bar
-	verts[2] = rect.x1 - halfWidth;		verts[3] = rect.y2 + halfWidth;
-	verts[4] = rect.x1 + halfWidth;		verts[5] = rect.y2 - halfWidth;
+	verts[0] = rect.x1 + halfWidth;		verts[1] = rect.y2 - halfWidth;		// left bar
+	verts[2] = rect.x1 + halfWidth;		verts[3] = rect.y1 + halfWidth;
+	verts[4] = rect.x1 - halfWidth;		verts[5] = rect.y2 + halfWidth;
 	verts[6] = rect.x1 - halfWidth;		verts[7] = rect.y1 - halfWidth;
 	verts[8] = rect.x1 + halfWidth;		verts[9] = rect.y1 + halfWidth;
 	verts[10] = rect.x2 - halfWidth;	verts[11] = rect.y1 + halfWidth;	// upper bar
