@@ -8,7 +8,6 @@
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Environment.h"
 
-#include "cinder/app/App.h"
 #include "cinder/Utilities.h"
 #include <vector>
 
