@@ -278,11 +278,11 @@ ostream& operator<<( ostream &os, const Metadata &rhs )
 ostream& operator<<( ostream &lhs, const Level &rhs )
 {
 	switch( rhs ) {
-		case Level::VERBOSE:		lhs << "verbose";	break;
-		case Level::INFO:			lhs << "info";		break;
-		case Level::WARNING:		lhs << "WARNING";	break;
-		case Level::ERROR:			lhs << "ERROR";		break;
-		case Level::FATAL:			lhs << "FATAL";		break;
+		case LEVEL_VERBOSE:		lhs << "verbose";	break;
+		case LEVEL_INFO:			lhs << "info";		break;
+		case LEVEL_WARNING:		lhs << "WARNING";	break;
+		case LEVEL_ERROR:			lhs << "ERROR";		break;
+		case LEVEL_FATAL:			lhs << "FATAL";		break;
 		default: CI_ASSERT_NOT_REACHABLE();
 	}
 	return lhs;

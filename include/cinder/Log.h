@@ -25,25 +25,27 @@
 #define CINDER_LOG_STREAM( level, stream ) ::cinder::log::Entry( level, ::cinder::log::Location( CINDER_CURRENT_FUNCTION, __FILE__, __LINE__ ) ) << stream
 
 #if defined( CI_ENABLE_LOG_V )
-	#define CI_LOG_V( stream )	CINDER_LOG_STREAM( ::cinder::log::Level::VERBOSE, stream )
+	#define CI_LOG_V( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_VERBOSE, stream )
 #else
 	#define CI_LOG_V( stream )
 #endif
 
-#define CI_LOG_I( stream )	CINDER_LOG_STREAM( ::cinder::log::Level::INFO, stream )
-#define CI_LOG_W( stream )	CINDER_LOG_STREAM( ::cinder::log::Level::WARNING, stream )
-#define CI_LOG_E( stream )	CINDER_LOG_STREAM( ::cinder::log::Level::ERROR, stream )
-#define CI_LOG_F( stream )	CINDER_LOG_STREAM( ::cinder::log::Level::FATAL, stream )
+#define CI_LOG_I( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_INFO, stream )
+#define CI_LOG_W( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_WARNING, stream )
+#define CI_LOG_E( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_ERROR, stream )
+#define CI_LOG_F( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_FATAL, stream )
 
 namespace cinder { namespace log {
 
-enum Level {
-	VERBOSE,
-	INFO,
-	WARNING,
-	ERROR,
-	FATAL
-};
+#undef ERROR
+
+typedef enum {
+	LEVEL_VERBOSE,
+	LEVEL_INFO,
+	LEVEL_WARNING,
+	LEVEL_ERROR,
+	LEVEL_FATAL
+} Level;
 
 extern std::ostream& operator<<( std::ostream &lhs, const Level &rhs );
 
