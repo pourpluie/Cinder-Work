@@ -94,7 +94,7 @@ std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )
 {
 	std::string s;
 	
-	s +=		"uniform mat4	ciModelViewProjection;\n"
+	s +=		"uniform mat4	ciModelViewProjectionMatrix;\n"
 				"\n"
 				"attribute vec4		ciPosition;\n"
 				;
@@ -112,7 +112,7 @@ std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )
 
 	s +=		"void main( void )\n"
 				"{\n"
-				"	gl_Position	= ciModelViewProjection * ciPosition;\n"
+				"	gl_Position	= ciModelViewProjectionMatrix * ciPosition;\n"
 				;
 				
 	if( shader.mTextureMapping ) {	

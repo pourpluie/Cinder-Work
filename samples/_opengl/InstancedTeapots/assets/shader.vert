@@ -1,6 +1,6 @@
 #version 150
 
-uniform mat4	ciModelViewProjection;
+uniform mat4	ciModelViewProjectionMatrix;
 uniform mat3	ciNormalMatrix;
 
 in vec4		ciPosition;
@@ -14,7 +14,7 @@ out highp vec3	Normal;
 
 void main( void )
 {
-	gl_Position	= ciModelViewProjection * ( ciPosition + vec4( vInstancePosition, 1 ) );
+	gl_Position	= ciModelViewProjectionMatrix * ( ciPosition + vec4( vInstancePosition, 1 ) );
 	Color 		= ciColor;
 	TexCoord	= ciTexCoord0;
 	Normal		= ciNormalMatrix * ciNormal;

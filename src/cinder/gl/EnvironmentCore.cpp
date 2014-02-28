@@ -95,7 +95,7 @@ std::string	EnvironmentCore::generateVertexShader( const ShaderDef &shader )
 	
 	s +=		"#version 150\n"
 				"\n"
-				"uniform mat4	ciModelViewProjection;\n"
+				"uniform mat4	ciModelViewProjectionMatrix;\n"
 				"\n"
 				"in vec4		ciPosition;\n"
 				;
@@ -113,7 +113,7 @@ std::string	EnvironmentCore::generateVertexShader( const ShaderDef &shader )
 
 	s +=		"void main( void )\n"
 				"{\n"
-				"	gl_Position	= ciModelViewProjection * ciPosition;\n"
+				"	gl_Position	= ciModelViewProjectionMatrix * ciPosition;\n"
 				;
 	if( shader.mColor ) {
 		s +=	"	Color = ciColor;\n"

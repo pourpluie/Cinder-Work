@@ -101,7 +101,7 @@ std::string	EnvironmentLegacy::generateVertexShader( const ShaderDef &shader )
 	
 	s +=		"#version 120\n"
 				"\n"
-				"uniform mat4	ciModelViewProjection;\n"
+				"uniform mat4	ciModelViewProjectionMatrix;\n"
 				"\n"
 				"attribute vec4	ciPosition;\n"
 				;
@@ -120,7 +120,7 @@ std::string	EnvironmentLegacy::generateVertexShader( const ShaderDef &shader )
 
 	s +=		"void main( void )\n"
 				"{\n"
-				"	gl_Position	= ciModelViewProjection * ciPosition;\n"
+				"	gl_Position	= ciModelViewProjectionMatrix * ciPosition;\n"
 				;
 				
 	if( shader.mTextureMapping ) {	

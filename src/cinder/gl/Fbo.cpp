@@ -399,7 +399,10 @@ void Fbo::init()
 	
 	// attach Textures
 	for( auto &textureAttachment : mFormat.mAttachmentsTexture ) {
-		glFramebufferTexture2D( GL_FRAMEBUFFER, textureAttachment.first, textureAttachment.second->getTarget(), textureAttachment.second->getId(), 0 );
+		auto textureTarget = textureAttachment.second->getTarget();
+		if( textureTarget == GL_TEXTURE_CUBE_MAP )
+			textureTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+		glFramebufferTexture2D( GL_FRAMEBUFFER, textureAttachment.first, textureTarget, textureAttachment.second->getId(), 0 );
 		mAttachmentsTexture[textureAttachment.first] = textureAttachment.second;
 	}
 	

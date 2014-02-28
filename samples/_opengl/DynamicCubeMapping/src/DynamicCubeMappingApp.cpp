@@ -118,7 +118,7 @@ void DynamicCubeMappingApp::drawSkyBox()
 
 void DynamicCubeMappingApp::draw()
 {
-	gl::clear( Color( 0, 0, 0 ) );
+	gl::clear( Color( 1, 0, 0 ) );
 
 	gl::pushViewport( Vec2i( 0, 0 ), mDynamicCubeMapFbo->getSize() );
 	for( uint8_t dir = 0; dir < 6; ++dir ) {
