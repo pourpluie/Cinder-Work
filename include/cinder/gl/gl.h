@@ -62,6 +62,12 @@
 #include "cinder/Matrix44.h"
 #include "cinder/geomIo.h"
 
+#if ! defined( NDEBUG )
+	#define CI_CHECK_GL()	cinder::gl::checkError()
+#else
+	#define CI_CHECK_GL()	((void)0)
+#endif
+
 namespace cinder { namespace gl {
 
 // Remember to add a matching case to uniformSemanticToString
@@ -283,6 +289,7 @@ void	drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indice
 	
 GLenum getError();
 std::string getErrorString( GLenum err );
+void checkError();
 
 class Exception : public cinder::Exception {
 };

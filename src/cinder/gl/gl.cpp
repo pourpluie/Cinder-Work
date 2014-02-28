@@ -9,6 +9,7 @@
 #include "cinder/gl/Environment.h"
 
 #include "cinder/Utilities.h"
+#include "cinder/Log.h"
 #include <vector>
 
 #if defined( CINDER_MSW )
@@ -1183,5 +1184,14 @@ std::string getErrorString( GLenum err )
 			return "";
 	}
 }
-	
+
+void checkError()
+{
+	GLenum errorFlag = getError();
+	if( errorFlag != GL_NO_ERROR ) {
+		CI_LOG_E( "glGetError flag set: " << getErrorString( errorFlag ) );
+		CI_ASSERT( 0 );
+	}
+}
+
 } } // namespace cinder::gl
