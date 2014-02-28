@@ -621,9 +621,24 @@ void vertex( const ci::Vec4f &v )
 #if ! defined( CINDER_GLES )
 void polygonMode( GLenum face, GLenum mode )
 {
-	auto ctx = gl::context();
-	ctx->polygonMode( face, mode );
+	gl::context()->polygonMode( face, mode );
 }
+
+void enableWireframe()
+{
+	gl::polygonMode( GL_FRONT_AND_BACK, GL_LINE );
+}
+
+void disableWireframe()
+{
+	gl::polygonMode( GL_FRONT_AND_BACK, GL_FILL );
+}
+
+bool isWireframeEnabled()
+{
+	return gl::context()->getPolygonMode( GL_FRONT_AND_BACK ) == GL_LINE;
+}
+
 #endif
 
 void draw( const VboMeshRef& mesh )

@@ -228,6 +228,14 @@ void vertex( const ci::Vec4f &v );
 
 #if ! defined( CINDER_GLES )
 void polygonMode( GLenum face, GLenum mode );
+//! Enables wireframe drawing by setting the \c PolygonMode to \c GL_LINE.
+void enableWireframe();
+//! Disables wireframe drawing.
+void disableWireframe();
+//! Returns whether wirefrom drawing is enabled.
+bool isWireframeEnabled();
+//! Toggles wireframe drawing according to \a enable.
+inline void setWireframeEnabled( bool enable = true )	{ if( enable ) enableWireframe(); else disableWireframe(); }
 #endif
 
 //! Converts a geom::Primitive to an OpenGL primitive mode( GL_TRIANGLES, GL_TRIANGLE_STRIP, etc )

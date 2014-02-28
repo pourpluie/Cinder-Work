@@ -1056,6 +1056,10 @@ void Context::polygonMode( GLenum face, GLenum mode )
 	}
 }
 
+GLenum Context::getPolygonMode( GLenum face ) const
+{
+	return face == GL_FRONT ? mCachedFrontPolygonMode : mCachedBackPolygonMode;
+}
 #endif // ! defined( CINDER_GLES )
 
 //////////////////////////////////////////////////////////////////////////////////////////

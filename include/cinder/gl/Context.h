@@ -248,6 +248,7 @@ class Context {
 #if ! defined( CINDER_GLES )
 	//! Parallels glPolygonMode()
 	void		polygonMode( GLenum face, GLenum mode );
+	GLenum		getPolygonMode( GLenum face ) const;
 #endif
 	
 	void		sanityCheck();
