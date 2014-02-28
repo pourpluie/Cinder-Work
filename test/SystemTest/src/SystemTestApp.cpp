@@ -1,4 +1,5 @@
 #include "cinder/app/AppBasic.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/System.h"
 #include "cinder/qtime/QuickTime.h"
 

@@ -739,6 +739,11 @@
 		1161C978165C7DFC00268A5E /* ImageTargetFileQuartz.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00BC8A0810D2EE2000D6DC59 /* ImageTargetFileQuartz.cpp */; };
 		1161C979165C847200268A5E /* ImageSourceFileQuartz.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009FD55610CAB8B700D63B1B /* ImageSourceFileQuartz.cpp */; };
 		1161C97A165C847400268A5E /* ImageSourceFileQuartz.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009FD55610CAB8B700D63B1B /* ImageSourceFileQuartz.cpp */; };
+		11C0947918B80D9E00276534 /* CinderAssert.h in Headers */ = {isa = PBXBuildFile; fileRef = 11C0947618B80D9E00276534 /* CinderAssert.h */; };
+		11C0947A18B80D9E00276534 /* Log.h in Headers */ = {isa = PBXBuildFile; fileRef = 11C0947718B80D9E00276534 /* Log.h */; };
+		11C0947B18B80D9E00276534 /* CurrentFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = 11C0947818B80D9E00276534 /* CurrentFunction.h */; };
+		11C0947E18B80DD700276534 /* CinderAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11C0947C18B80DD700276534 /* CinderAssert.cpp */; };
+		11C0947F18B80DD700276534 /* Log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11C0947D18B80DD700276534 /* Log.cpp */; };
 		277C2CF01366632B00178A29 /* Matrix22.h in Headers */ = {isa = PBXBuildFile; fileRef = 277C2CEC1366632B00178A29 /* Matrix22.h */; };
 		277C2CF11366632B00178A29 /* Matrix33.h in Headers */ = {isa = PBXBuildFile; fileRef = 277C2CED1366632B00178A29 /* Matrix33.h */; };
 		277C2CF21366632B00178A29 /* Matrix44.h in Headers */ = {isa = PBXBuildFile; fileRef = 277C2CEE1366632B00178A29 /* Matrix44.h */; };
@@ -1128,6 +1133,11 @@
 		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		0867D6A5FE840307C02AAC07 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		1058C7B1FEA5585E11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		11C0947618B80D9E00276534 /* CinderAssert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CinderAssert.h; sourceTree = "<group>"; };
+		11C0947718B80D9E00276534 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Log.h; sourceTree = "<group>"; };
+		11C0947818B80D9E00276534 /* CurrentFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CurrentFunction.h; sourceTree = "<group>"; };
+		11C0947C18B80DD700276534 /* CinderAssert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CinderAssert.cpp; sourceTree = "<group>"; };
+		11C0947D18B80DD700276534 /* Log.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Log.cpp; sourceTree = "<group>"; };
 		277C2CEC1366632B00178A29 /* Matrix22.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Matrix22.h; sourceTree = "<group>"; };
 		277C2CED1366632B00178A29 /* Matrix33.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Matrix33.h; sourceTree = "<group>"; };
 		277C2CEE1366632B00178A29 /* Matrix44.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = Matrix44.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -1498,6 +1508,9 @@
 				009987140F79CFC20042F211 /* cocoa */,
 				00CE73910E92DBD60059E09B /* gl */,
 				0076581B11226084005547DF /* CinderResources.h */,
+				11C0947618B80D9E00276534 /* CinderAssert.h */,
+				11C0947818B80D9E00276534 /* CurrentFunction.h */,
+				11C0947718B80D9E00276534 /* Log.h */,
 				0032FD2810BB46F500C63A9D /* Exception.h */,
 				0062484D122F607500039A7A /* Filesystem.h */,
 				0062484E122F607500039A7A /* Function.h */,
@@ -1587,6 +1600,8 @@
 				009987180F79D04D0042F211 /* cocoa */,
 				00CE73960E92DBEB0059E09B /* gl */,
 				0032FD2A10BB472E00C63A9D /* Exception.cpp */,
+				11C0947C18B80DD700276534 /* CinderAssert.cpp */,
+				11C0947D18B80DD700276534 /* Log.cpp */,
 				007B09730E9559960052257E /* Rand.cpp */,
 				008CE8410E94679D00644A05 /* Area.cpp */,
 				009EEF190EB79C89003AB86B /* Rect.cpp */,
@@ -2212,6 +2227,7 @@
 				003ADBA01038996800ACF6F2 /* AntTweakBar.h in Headers */,
 				002F8F73103AFD9A0077CB91 /* System.h in Headers */,
 				C70E19FF106AA38700E63577 /* Buffer.h in Headers */,
+				11C0947A18B80D9E00276534 /* Log.h in Headers */,
 				0032FD2910BB46F500C63A9D /* Exception.h in Headers */,
 				006228E210C8248800A8191C /* DataSource.h in Headers */,
 				009FD55510C9DB0600D63B1B /* ImageSourceFileQuartz.h in Headers */,
@@ -2273,8 +2289,10 @@
 				005783F318A5627600D6FB4C /* ConstantStrings.h in Headers */,
 				277C2CF11366632B00178A29 /* Matrix33.h in Headers */,
 				277C2CF21366632B00178A29 /* Matrix44.h in Headers */,
+				11C0947B18B80D9E00276534 /* CurrentFunction.h in Headers */,
 				277C2CF31366632B00178A29 /* MatrixAlgo.h in Headers */,
 				005C0CE914CBB3DB00A12CD2 /* Base64.h in Headers */,
+				11C0947918B80D9E00276534 /* CinderAssert.h in Headers */,
 				004172FA14C9BE520070C0D1 /* Frustum.h in Headers */,
 				0014407F14CDB8D900D99000 /* Plane.h in Headers */,
 				43F78EF61516DAE200EB63B5 /* Json.h in Headers */,
@@ -2685,6 +2703,7 @@
 				EAC3D1AD1011F3AC00FFBC9E /* Serial.cpp in Sources */,
 				003ADB65103884C800ACF6F2 /* Params.cpp in Sources */,
 				003ADB971038974A00ACF6F2 /* TwMgr.cpp in Sources */,
+				11C0947E18B80DD700276534 /* CinderAssert.cpp in Sources */,
 				003ADB981038974A00ACF6F2 /* TwPrecomp.cpp in Sources */,
 				003ADB991038974A00ACF6F2 /* LoadOGL.cpp in Sources */,
 				003ADB9A1038974A00ACF6F2 /* TwFonts.cpp in Sources */,
@@ -2714,6 +2733,7 @@
 				005783F818A562FB00D6FB4C /* ConstantStrings.cpp in Sources */,
 				00E7ECA6188F93B00029139A /* TransformFeedbackObjImplHardware.cpp in Sources */,
 				0049A349116EE655007DDFB0 /* AxisAlignedBox.cpp in Sources */,
+				11C0947F18B80DD700276534 /* Log.cpp in Sources */,
 				C7A76E9F1176449F00A46655 /* Io.cpp in Sources */,
 				C7A76EA01176449F00A46655 /* Output.cpp in Sources */,
 				C7A76EA11176449F00A46655 /* SourceFile.cpp in Sources */,
