@@ -1181,6 +1181,7 @@ void drawStrokedCircle( const Vec2f &center, float radius, int numSegments )
 		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)nullptr );
 	}
 	ctx->getDefaultVao()->replacementBindEnd();
+	ctx->setDefaultShaderVars();
 	// draw
 	drawArrays( GL_LINE_LOOP, 0, positions.size() );
 }
