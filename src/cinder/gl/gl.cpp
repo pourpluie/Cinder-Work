@@ -938,35 +938,35 @@ void draw( const Path2d &path, float approximationScale )
 	{ return; }
 	auto ctx = context();
 	vector<Vec2f> points = path.subdivide( approximationScale );
-
-	VaoRef vao = Vao::create();
-	VaoScope vaoScope( vao );
-	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * points.size() );
-	BufferScope bufferBindScp( defaultVbo );
-	defaultVbo->bufferSubData( 0, sizeof(Vec2f) * points.size(), points.data() );
-
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * points.size() );
+	arrayVbo->bufferSubData( 0, sizeof(Vec2f) * points.size(), points.data() );
 	gl::GlslProgRef shader = ctx->getGlslProg();
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+	BufferScope bufferBindScp( arrayVbo );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ){
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
 	}
+
+	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
-	// path closure hsould be handled by the subdivide method, making this a line strip
 	ctx->drawArrays( GL_LINE_STRIP, 0, points.size() );
 }
 
 void drawLine( const Vec3f &a, const Vec3f &b )
 {
-	auto ctx = context();
 	array<Vec3f, 2> points = { a, b };
+	auto ctx = context();
 	gl::GlslProgRef shader = ctx->getGlslProg();
-	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(Vec3f) * 2 );
-	BufferScope bufferBindScp( defaultVbo );
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec3f) * 2 );
+	BufferScope bufferBindScp( arrayVbo );
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
-	defaultVbo->bufferSubData( 0, sizeof(Vec3f) * 2, points.data() );
+	arrayVbo->bufferSubData( 0, sizeof(Vec3f) * 2, points.data() );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
@@ -979,15 +979,15 @@ void drawLine( const Vec3f &a, const Vec3f &b )
 
 void drawLine( const Vec2f &a, const Vec2f &b )
 {
-	auto ctx = context();
 	array<Vec2f, 2> points = { a, b };
+	auto ctx = context();
 	gl::GlslProgRef shader = ctx->getGlslProg();
-	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * 2 );
-	BufferScope bufferBindScp( defaultVbo );
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * 2 );
+	BufferScope bufferBindScp( arrayVbo );
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
-	defaultVbo->bufferSubData( 0, sizeof(Vec2f) * 2, points.data() );
+	arrayVbo->bufferSubData( 0, sizeof(Vec2f) * 2, points.data() );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
@@ -1142,6 +1142,47 @@ void drawStrokedRect( const Rectf &rect, float lineWidth )
 
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 16 );
+}
+
+void drawStrokedCircle( const Vec2f &center, float radius, int numSegments )
+{
+	auto ctx = context();
+
+	if( numSegments <= 0 ) {
+		numSegments = static_cast<int>(math<double>::floor( radius * M_PI * 2 ) );
+	}
+	if( numSegments < 3 ) {
+		numSegments = 3;
+	}
+	// construct circle
+	const size_t numVertices = numSegments;
+	vector<Vec2f> positions;
+	positions.assign( numVertices, center );	// all vertices start at center
+	const float tDelta = 2.0f * static_cast<float>(M_PI) * (1.0f / numVertices);
+	float t = 0;
+	for( auto &pos : positions ) {
+		const Vec2f unit( math<float>::cos( t ), math<float>::sin( t ) );
+		pos += unit * radius;	// push out from center
+		t += tDelta;
+	}
+	// copy data to GPU
+	const size_t size = positions.size() * sizeof( Vec2f );
+	auto arrayVbo = ctx->getDefaultArrayVbo( size );
+	arrayVbo->bufferSubData( 0, size, (GLvoid*)positions.data() );
+	// set attributes
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+	BufferScope bufferBindScp( arrayVbo );
+
+	auto shader = ctx->getGlslProg();
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( posLoc >= 0 ) {
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)nullptr );
+	}
+	ctx->getDefaultVao()->replacementBindEnd();
+	// draw
+	drawArrays( GL_LINE_LOOP, 0, positions.size() );
 }
 
 void drawSolidCircle( const Vec2f &center, float radius, int numSegments )

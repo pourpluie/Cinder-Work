@@ -286,6 +286,8 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments = -1 );
 void drawStrokedRect( const Rectf &rect );
 //! Draws a stroked rectangle centered around \a rect, with a line width of \a lineWidth
 void drawStrokedRect( const Rectf &rect, float lineWidth );
+//! Draws a stroked circles centered around \a center with a radius of \a radius
+void drawStrokedCircle( const Vec2f &center, float radius, int numSegments = -1 );
 
 // Vertex Attributes
 //! Analogous to glVertexAttribPointer
