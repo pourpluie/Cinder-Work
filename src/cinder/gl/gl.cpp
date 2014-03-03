@@ -983,7 +983,7 @@ void draw( const PolyLine<Vec3f> &polyLine )
 {
 	auto ctx = context();
 	const vector<Vec3f> &points = polyLine.getPoints();
-	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * points.size() );
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec3f) * points.size() );
 	arrayVbo->bufferSubData( 0, sizeof(Vec3f) * points.size(), points.data() );
 	gl::GlslProgRef shader = ctx->getGlslProg();
 
@@ -1003,19 +1003,21 @@ void draw( const PolyLine<Vec3f> &polyLine )
 
 void drawLine( const Vec3f &a, const Vec3f &b )
 {
+	const int dims = 3;
+	const int size = sizeof( Vec3f ) * 2;
 	array<Vec3f, 2> points = { a, b };
 	auto ctx = context();
 	gl::GlslProgRef shader = ctx->getGlslProg();
-	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec3f) * 2 );
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( size );
 	BufferScope bufferBindScp( arrayVbo );
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
-	arrayVbo->bufferSubData( 0, sizeof(Vec3f) * 2, points.data() );
+	arrayVbo->bufferSubData( 0, size, points.data() );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
-		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
+		vertexAttribPointer( posLoc, dims, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
 	}
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
@@ -1024,19 +1026,21 @@ void drawLine( const Vec3f &a, const Vec3f &b )
 
 void drawLine( const Vec2f &a, const Vec2f &b )
 {
+	const int dims = 2;
+	const int size = sizeof( Vec2f ) * 2;
 	array<Vec2f, 2> points = { a, b };
 	auto ctx = context();
 	gl::GlslProgRef shader = ctx->getGlslProg();
-	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * 2 );
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( size );
 	BufferScope bufferBindScp( arrayVbo );
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
-	arrayVbo->bufferSubData( 0, sizeof(Vec2f) * 2, points.data() );
+	arrayVbo->bufferSubData( 0, size, points.data() );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
-		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
+		vertexAttribPointer( posLoc, dims, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
 	}
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();

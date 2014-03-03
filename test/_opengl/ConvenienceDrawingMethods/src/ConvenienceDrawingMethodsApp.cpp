@@ -40,9 +40,19 @@ void ConvenienceDrawingMethodsApp::setup()
 	{
 		mPolyline2D.push_back( r.nextVec2f() * cCircleRadius );
 	}
-	for( int i = 0; i < 50; ++i )
-	{
-		mPolyline3D.push_back( r.nextVec3f() * cCircleRadius );
+
+	// line wrapping around a sphere
+	const int numVertices = 48;
+	const float azimuth = 12.0f * M_PI / numVertices;
+	// divide total inclination change by particles (from straight down to straight up)
+	const float inclination = M_PI / numVertices;
+	// fixed radius to generate a sphere
+	for( int i = 0; i < numVertices; ++i )
+	{	// give each particle its starting values
+		float x = cCircleRadius * sin( inclination * i ) * cos( azimuth * i );
+		float y = cCircleRadius * cos( inclination * i );
+		float z = cCircleRadius * sin( inclination * i ) * sin( azimuth * i );
+		mPolyline3D.push_back( Vec3f( x, y, z ) );
 	}
 }
 
@@ -58,6 +68,7 @@ void ConvenienceDrawingMethodsApp::draw()
 {
 	// clear out the window with black
 	gl::clear( Color( 0, 0, 0 ) );
+	gl::setMatricesWindowPersp( getWindowSize() );
 
 	// Draw some rows of circles
 	const int numCircles = 4;
@@ -93,7 +104,7 @@ void ConvenienceDrawingMethodsApp::draw()
 	gl::drawSolid( mPolyline2D );
 	gl::popModelView();
 
-	// Draw a 3D PolyLine and a 3D line
+	// Draw a 3D PolyLine
 	gl::pushModelView();
 	gl::translate( cGridStep, cGridStep * 4.0f );
 	gl::pushModelView();
@@ -101,7 +112,14 @@ void ConvenienceDrawingMethodsApp::draw()
 	gl::color( Color( 1.0f, 0.0f, 0.0f ) );
 	gl::draw( mPolyline3D );
 	gl::popModelView();
-
+	// draw a 3D line back into space
+	gl::translate( cGridStep, 0.0f );
+	gl::pushModelView();
+	gl::rotate( -getElapsedSeconds() * 90.0f, 0.0f, 0.5f, 1.0f );
+	gl::drawLine( Vec3f( 0.0f, 0.0f, cCircleRadius ), Vec3f( 0.0f, 0.0f, -cCircleRadius ) );
+	gl::drawLine( Vec3f( -cCircleRadius, 0.0f, 0.0f ), Vec3f( cCircleRadius, 0.0f, 0.0f ) );
+	gl::drawLine( Vec3f( 0.0f, -cCircleRadius, 0.0f ), Vec3f( 0.0f, cCircleRadius, 0.0f ) );
+	gl::popModelView();
 	gl::popModelView();
 }
 
