@@ -12,6 +12,7 @@
 #include "cinder/Triangulate.h"
 #include "cinder/TriMesh.h"
 #include "cinder/Path2d.h"
+#include "cinder/Shape2d.h"
 #include "cinder/Log.h"
 #include <vector>
 
@@ -956,6 +957,50 @@ void draw( const Path2d &path, float approximationScale )
 	ctx->drawArrays( GL_LINE_STRIP, 0, points.size() );
 }
 
+void draw( const PolyLine<Vec2f> &polyLine )
+{
+	auto ctx = context();
+	const vector<Vec2f> &points = polyLine.getPoints();
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * points.size() );
+	arrayVbo->bufferSubData( 0, sizeof(Vec2f) * points.size(), points.data() );
+	gl::GlslProgRef shader = ctx->getGlslProg();
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+	BufferScope bufferBindScp( arrayVbo );
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( posLoc >= 0 ){
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
+	}
+
+	ctx->getDefaultVao()->replacementBindEnd();
+	ctx->setDefaultShaderVars();
+	ctx->drawArrays( GL_LINE_STRIP, 0, points.size() );
+}
+
+void draw( const PolyLine<Vec3f> &polyLine )
+{
+	auto ctx = context();
+	const vector<Vec3f> &points = polyLine.getPoints();
+	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * points.size() );
+	arrayVbo->bufferSubData( 0, sizeof(Vec3f) * points.size(), points.data() );
+	gl::GlslProgRef shader = ctx->getGlslProg();
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+	BufferScope bufferBindScp( arrayVbo );
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( posLoc >= 0 ){
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
+	}
+
+	ctx->getDefaultVao()->replacementBindEnd();
+	ctx->setDefaultShaderVars();
+	ctx->drawArrays( GL_LINE_STRIP, 0, points.size() );
+}
+
 void drawLine( const Vec3f &a, const Vec3f &b )
 {
 	array<Vec3f, 2> points = { a, b };
@@ -1003,40 +1048,17 @@ void draw( const TriMesh &mesh )
 	if( mesh.getNumVertices() <= 0 )
 	{ return; }
 
-	auto ctx = gl::context();
-	auto curShader = ctx->getGlslProg();
-	if( ! curShader )
-	{ return; }
-
-	// calculate size (start with just position)
-	const size_t size = mesh.getNumVertices() * mesh.getPositionsDims() * sizeof( float );
-	auto arrayVbo = ctx->getDefaultArrayVbo( size );
-	arrayVbo->bufferSubData( 0, size, (const GLvoid*) mesh.getPositionsRaw() );
-
-	const size_t elementSize = mesh.getNumIndices() * sizeof( uint32_t );
-	auto elementVbo = ctx->getDefaultElementVbo( elementSize );
-	elementVbo->bufferSubData( 0, elementSize, (const GLvoid*)mesh.getIndices().data() );
-
-	// generate attribute description
-	ctx->pushVao();
-	ctx->getDefaultVao()->replacementBindBegin();
-	BufferScope bufferBindScp( arrayVbo );
-	BufferScope elementBindScp( elementVbo );
-	int posLoc = curShader->getAttribSemanticLocation( geom::Attrib::POSITION );
-	if( posLoc >= 0 ) {
-		enableVertexAttribArray( posLoc );
-		vertexAttribPointer( posLoc, mesh.getPositionsDims(), GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
-	}
-	ctx->getDefaultVao()->replacementBindEnd();
-	ctx->setDefaultShaderVars();
-
-	drawElements( toGl( mesh.getPrimitive() ), mesh.getNumIndices(), GL_UNSIGNED_INT, 0 );
-	ctx->popVao();
+	draw( VboMesh::create( mesh ) );
 }
 
 void drawSolid( const Path2d &path, float approximationScale )
 {
 	draw( Triangulator( path ).calcMesh() );
+}
+
+void drawSolid( const PolyLine<Vec2f> &polyLine )
+{
+	draw( Triangulator( polyLine ).calcMesh() );
 }
 
 void drawSolidRect( const Rectf& r )
