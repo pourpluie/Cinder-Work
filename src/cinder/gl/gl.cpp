@@ -9,6 +9,9 @@
 #include "cinder/gl/Environment.h"
 
 #include "cinder/Utilities.h"
+#include "cinder/Triangulate.h"
+#include "cinder/TriMesh.h"
+#include "cinder/Path2d.h"
 #include "cinder/Log.h"
 #include <vector>
 
@@ -91,7 +94,7 @@ std::pair<GLint,GLint> getVersion()
 		}
 		else {
 			// Copy only up until the space.
-			int iLengthMinor = (int)((ptrdiff_t)strDotPos - (ptrdiff_t)strVersion); 
+			int iLengthMinor = (int)((ptrdiff_t)strDotPos - (ptrdiff_t)strVersion);
 			iLengthMinor = iLengthMinor - (iLength + 1);
 			strncpy( strWorkBuff, strVersion + iLength + 1, iLengthMinor );
 			strWorkBuff[iLengthMinor] = '\0';
@@ -140,17 +143,17 @@ void clear( const ColorA& color, bool clearDepthBuffer )
 		clear( GL_COLOR_BUFFER_BIT );
 	}
 }
-    
+
 void clear( GLbitfield mask )
 {
     glClear( mask );
 }
-    
+
 void clearColor( const ColorA &color )
 {
     glClearColor( color.r, color.g, color.b, color.a );
 }
-	
+
 void clearDepth( const double depth )
 {
 #if ! defined( CINDER_GLES )
@@ -159,37 +162,37 @@ void clearDepth( const double depth )
 	glClearDepthf( depth );
 #endif
 }
-    
+
 void clearDepth( const float depth )
 {
     glClearDepthf( depth );
 }
-    
+
 void clearStencil( const int s )
 {
     glClearStencil( s );
 }
-    
+
 void colorMask( GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha )
 {
     glColorMask( red, green, blue, alpha );
 }
-    
+
 void depthMask( GLboolean flag )
 {
     gl::context()->depthMask( flag );
 }
-	
+
 void stencilMask( GLboolean mask )
 {
 	glStencilMask( mask );
 }
-    
+
 void stencilFunc( GLenum func, GLint ref, GLuint mask )
 {
     glStencilFunc( func, ref, mask );
 }
-    
+
 void stencilOp( GLenum fail, GLenum zfail, GLenum zpass )
 {
     glStencilOp( fail, zfail, zpass );
@@ -285,12 +288,12 @@ void disableDepthWrite()
 {
 	gl::context()->depthMask( GL_FALSE );
 }
-    
+
 void enableStencilTest( bool enable )
 {
     gl::enable( GL_STENCIL_TEST, enable );
 }
-    
+
 void disableStencilTest()
 {
     gl::disable( GL_STENCIL_TEST );
@@ -400,7 +403,7 @@ Matrix33f calcNormalMatrix()
 void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees, float nearPlane, float farPlane, bool originUpperLeft )
 {
 	auto ctx = gl::context();
-	
+
 	CameraPersp cam( screenWidth, screenHeight, fovDegrees, nearPlane, farPlane );
 	ctx->getProjectionStack().back() = cam.getProjectionMatrix();
 	ctx->getModelViewStack().back() = cam.getModelViewMatrix();
@@ -428,7 +431,7 @@ void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft 
 		ctx->getProjectionStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
 													Vec4f( 0.0f, 2.0f / (float)screenHeight, 0.0f, -1.0f ),
 													Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
-													Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );		
+													Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
 }
 
 void setMatricesWindow( const ci::Vec2i& screenSize, bool originUpperLeft )
@@ -451,7 +454,7 @@ void rotate( const cinder::Quatf &quat )
 	if( math<float>::abs( angle ) > EPSILON_VALUE )
 		rotate( cinder::toDegrees( angle ), axis.x, axis.y, axis.z );
 }
-	
+
 void scale( const ci::Vec3f& v )
 {
 	auto ctx = gl::context();
@@ -463,7 +466,7 @@ void translate( const ci::Vec3f& v )
 	auto ctx = gl::context();
 	ctx->getModelViewStack().back().translate( v );
 }
-	
+
 void begin( GLenum mode )
 {
 	auto ctx = gl::context();
@@ -473,7 +476,7 @@ void begin( GLenum mode )
 void end()
 {
 	auto ctx = gl::context();
-	
+
 	if( ctx->immediate().empty() )
 		return;
 	else {
@@ -488,7 +491,7 @@ void bindBufferBase( GLenum target, int index, BufferObjRef buffer )
 {
 	gl::context()->bindBufferBase( target, index, buffer );
 }
-	
+
 void beginTransformFeedback( GLenum primitiveMode )
 {
 	gl::context()->beginTransformFeedback( primitiveMode );
@@ -576,7 +579,7 @@ void texCoord( const ci::Vec3f &v )
 	ctx->immediate().texCoord( v );
 }
 
-void texCoord( const ci::Vec4f &v )	
+void texCoord( const ci::Vec4f &v )
 {
 	auto ctx = gl::context();
 	ctx->immediate().texCoord( v );
@@ -611,7 +614,7 @@ void vertex( const ci::Vec3f &v )
 	auto ctx = gl::context();
 	ctx->immediate().vertex( Vec4f( v.x, v.y, v.z, 1 ), ctx->getCurrentColor() );
 }
-	
+
 void vertex( const ci::Vec4f &v )
 {
 	auto ctx = gl::context();
@@ -647,7 +650,7 @@ void draw( const VboMeshRef& mesh )
 	auto curShader = ctx->getGlslProg();
 	if( ! curShader )
 		return;
-	
+
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
 	mesh->buildVao( curShader );
@@ -796,7 +799,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 
 	static GLfloat texs[24*2]={	0,1,	1,1,	1,0,	0,0,
 								1,1,	1,0,	0,0,	0,1,
-								0,1,	1,1,	1,0,	0,0,							
+								0,1,	1,1,	1,0,	0,0,
 								1,1,	1,0,	0,0,	0,1,
 								1,0,	0,0,	0,1,	1,1,
 								1,0,	0,0,	0,1,	1,1 };
@@ -807,7 +810,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 									12,13,14,12,14,15,
 									16,17,18,16,18,19,
 									20,21,22,20,22,23 };
-	
+
 	Context *ctx = gl::context();
 	GlslProgRef curShader = ctx->getGlslProg();
 	if( ! curShader )
@@ -817,7 +820,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	bool hasNormals = curShader->hasAttribSemantic( geom::Attrib::NORMAL );
 	bool hasTextureCoords = curShader->hasAttribSemantic( geom::Attrib::TEX_COORD_0 );
 	bool hasColors = curShader->hasAttribSemantic( geom::Attrib::COLOR );
-	
+
 	size_t totalArrayBufferSize = 0;
 	if( hasPositions )
 		totalArrayBufferSize += sizeof(float)*24*3;
@@ -827,7 +830,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 		totalArrayBufferSize += sizeof(float)*24*2;
 	if( hasColors )
 		totalArrayBufferSize += 24*4;
-	
+
 	VaoRef vao = Vao::create();
 	VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( totalArrayBufferSize );
 	BufferScope vboScp( defaultArrayVbo );
@@ -864,7 +867,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 		defaultArrayVbo->bufferSubData( curBufferOffset, 24*4, colors );
 		curBufferOffset += 24*4;
 	}
-	
+
 	elementVbo->bufferSubData( 0, 36, elements );
 
 	ctx->setDefaultShaderVars();
@@ -882,7 +885,7 @@ void draw( const TextureRef &texture, const Area &srcArea, const Rectf &dstRect 
 
 	GLfloat data[8+8]; // both verts and texCoords
 	GLfloat *verts = data, *texCoords = data + 8;
-	
+
 	Rectf texRect = texture->getAreaTexCoords( srcArea );
 
 	verts[0*2+0] = dstRect.getX2(); texCoords[0*2+0] = texRect.x2;
@@ -893,7 +896,7 @@ void draw( const TextureRef &texture, const Area &srcArea, const Rectf &dstRect 
 	verts[2*2+1] = dstRect.getY2(); texCoords[2*2+1] = texRect.y2;
 	verts[3*2+0] = dstRect.getX1(); texCoords[3*2+0] = texRect.x1;
 	verts[3*2+1] = dstRect.getY2(); texCoords[3*2+1] = texRect.y2;
-	
+
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
 	BufferScope vboScp( defaultVbo );
 	ctx->pushVao();
@@ -910,7 +913,7 @@ void draw( const TextureRef &texture, const Area &srcArea, const Rectf &dstRect 
 			vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 		}
 	ctx->getDefaultVao()->replacementBindEnd();
-	
+
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 	ctx->popVao();
@@ -929,6 +932,113 @@ void draw( const TextureRef &texture, const Vec2f &dstOffset )
 	draw( texture, texture->getBounds(), Rectf( texture->getBounds() ) + dstOffset );
 }
 
+void draw( const Path2d &path, float approximationScale )
+{
+	if( path.getNumSegments() == 0 )
+	{ return; }
+	auto ctx = context();
+	vector<Vec2f> points = path.subdivide( approximationScale );
+
+	VaoRef vao = Vao::create();
+	VaoScope vaoScope( vao );
+	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * points.size() );
+	BufferScope bufferBindScp( defaultVbo );
+	defaultVbo->bufferSubData( 0, sizeof(Vec2f) * points.size(), points.data() );
+
+	gl::GlslProgRef shader = ctx->getGlslProg();
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( posLoc >= 0 ){
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
+	}
+	ctx->setDefaultShaderVars();
+	// path closure hsould be handled by the subdivide method, making this a line strip
+	ctx->drawArrays( GL_LINE_STRIP, 0, points.size() );
+}
+
+void drawLine( const Vec3f &a, const Vec3f &b )
+{
+	auto ctx = context();
+	array<Vec3f, 2> points = { a, b };
+	gl::GlslProgRef shader = ctx->getGlslProg();
+	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(Vec3f) * 2 );
+	BufferScope bufferBindScp( defaultVbo );
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+	defaultVbo->bufferSubData( 0, sizeof(Vec3f) * 2, points.data() );
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( posLoc >= 0 ) {
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
+	}
+	ctx->getDefaultVao()->replacementBindEnd();
+	ctx->setDefaultShaderVars();
+	ctx->drawArrays( GL_LINES, 0, points.size() );
+}
+
+void drawLine( const Vec2f &a, const Vec2f &b )
+{
+	auto ctx = context();
+	array<Vec2f, 2> points = { a, b };
+	gl::GlslProgRef shader = ctx->getGlslProg();
+	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * 2 );
+	BufferScope bufferBindScp( defaultVbo );
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+	defaultVbo->bufferSubData( 0, sizeof(Vec2f) * 2, points.data() );
+	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( posLoc >= 0 ) {
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
+	}
+	ctx->getDefaultVao()->replacementBindEnd();
+	ctx->setDefaultShaderVars();
+	ctx->drawArrays( GL_LINES, 0, points.size() );
+}
+
+void draw( const TriMesh &mesh )
+{
+	if( mesh.getNumVertices() <= 0 )
+	{ return; }
+
+	auto ctx = gl::context();
+	auto curShader = ctx->getGlslProg();
+	if( ! curShader )
+	{ return; }
+
+	// calculate size (start with just position)
+	const size_t size = mesh.getNumVertices() * mesh.getPositionsDims() * sizeof( float );
+	auto arrayVbo = ctx->getDefaultArrayVbo( size );
+	arrayVbo->bufferSubData( 0, size, (const GLvoid*) mesh.getPositionsRaw() );
+
+	const size_t elementSize = mesh.getNumIndices() * sizeof( uint32_t );
+	auto elementVbo = ctx->getDefaultElementVbo( elementSize );
+	elementVbo->bufferSubData( 0, elementSize, (const GLvoid*)mesh.getIndices().data() );
+
+	// generate attribute description
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+	BufferScope bufferBindScp( arrayVbo );
+	BufferScope elementBindScp( elementVbo );
+	int posLoc = curShader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	if( posLoc >= 0 ) {
+		enableVertexAttribArray( posLoc );
+		vertexAttribPointer( posLoc, mesh.getPositionsDims(), GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
+	}
+	ctx->getDefaultVao()->replacementBindEnd();
+	ctx->setDefaultShaderVars();
+
+	drawElements( toGl( mesh.getPrimitive() ), mesh.getNumIndices(), GL_UNSIGNED_INT, 0 );
+	ctx->popVao();
+}
+
+void drawSolid( const Path2d &path, float approximationScale )
+{
+	draw( Triangulator( path ).calcMesh() );
+}
+
 void drawSolidRect( const Rectf& r )
 {
 	drawSolidRect( r, Rectf( 0, 0, 1, 1 ) );
@@ -939,7 +1049,7 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	auto ctx = context();
 	GLfloat data[8+8]; // both verts and texCoords
 	GLfloat *verts = data, *texCoords = data + 8;
-	
+
 	verts[0*2+0] = r.getX2(); texCoords[0*2+0] = texcoords.getX2();
 	verts[0*2+1] = r.getY1(); texCoords[0*2+1] = texcoords.getY1();
 	verts[1*2+0] = r.getX1(); texCoords[1*2+0] = texcoords.getX1();
@@ -948,13 +1058,13 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	verts[2*2+1] = r.getY2(); texCoords[2*2+1] = texcoords.getY2();
 	verts[3*2+0] = r.getX1(); texCoords[3*2+0] = texcoords.getX1();
 	verts[3*2+1] = r.getY2(); texCoords[3*2+1] = texcoords.getY2();
-	
+
 	VaoRef vao = Vao::create();
 	VaoScope vaoScope( vao );
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
 	BufferScope bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
-	
+
 	gl::GlslProgRef shader = ctx->getGlslProg();
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
@@ -966,7 +1076,7 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 		enableVertexAttribArray( texLoc );
 		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 	}
-	
+
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 }
@@ -1055,7 +1165,7 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 	BufferScope vboScp( defaultVbo );
 
 	size_t dataSizeBytes = 0;
-	
+
 	size_t vertsOffset, texCoordsOffset, normalsOffset;
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
@@ -1083,7 +1193,7 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 	Vec2f *verts = ( posLoc >= 0 ) ? reinterpret_cast<Vec2f*>( data.get() + vertsOffset ) : nullptr;
 	Vec2f *texCoords = ( texLoc >= 0 ) ? reinterpret_cast<Vec2f*>( data.get() + texCoordsOffset ) : nullptr;
 	Vec3f *normals = ( normalLoc >= 0 ) ? reinterpret_cast<Vec3f*>( data.get() + normalsOffset ) : nullptr;
-	
+
 	if( verts )
 		verts[0] = center;
 	if( texCoords )
@@ -1104,9 +1214,9 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 	}
 
 	defaultVbo->bufferSubData( 0, dataSizeBytes, data.get() );
-	
+
 	ctx->setDefaultShaderVars();
-	ctx->drawArrays( GL_TRIANGLE_FAN, 0, numSegments + 2 );	
+	ctx->drawArrays( GL_TRIANGLE_FAN, 0, numSegments + 2 );
 }
 
 void drawSphere( const Vec3f &center, float radius, int segments )
@@ -1117,13 +1227,13 @@ void drawSphere( const Vec3f &center, float radius, int segments )
 		return;
 	//auto batch = gl::Batch::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).normals().texCoords(), glslProg );
 	//batch->draw();
-	
-	
+
+
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
 	gl::VboMeshRef mesh = gl::VboMesh::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).enable( geom::Attrib::NORMAL ).enable( geom::Attrib::TEX_COORD_0 ), ctx->getDefaultArrayVbo(), ctx->getDefaultElementVbo() );
 	mesh->buildVao( glslProg );
-	ctx->getDefaultVao()->replacementBindEnd();	
+	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	mesh->drawImpl();
 	ctx->popVao();
@@ -1142,7 +1252,7 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 
 	float sinA = math<float>::sin( rotationRadians );
 	float cosA = math<float>::cos( rotationRadians );
-	
+
 	verts[0] = pos + bbRight * ( -0.5f * scale.x * cosA - 0.5f * sinA * scale.y ) + bbUp * ( -0.5f * scale.x * sinA + 0.5f * cosA * scale.y );
 	texCoordsOut[0*2+0] = texCoords.getX1(); texCoordsOut[0*2+1] = texCoords.getY1();
 	verts[1] = pos + bbRight * ( -0.5f * scale.x * cosA - -0.5f * sinA * scale.y ) + bbUp * ( -0.5f * scale.x * sinA + -0.5f * cosA * scale.y );
@@ -1151,13 +1261,13 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 	texCoordsOut[2*2+0] = texCoords.getX2(); texCoordsOut[2*2+1] = texCoords.getY1();
 	verts[3] = pos + bbRight * ( 0.5f * scale.x * cosA - -0.5f * sinA * scale.y ) + bbUp * ( 0.5f * scale.x * sinA + -0.5f * cosA * scale.y );
 	texCoordsOut[3*2+0] = texCoords.getX2(); texCoordsOut[3*2+1] = texCoords.getY2();
-	
+
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*20 );
 	BufferScope bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, sizeof(float)*20, data );
-	
+
 	int posLoc = glslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
@@ -1168,7 +1278,7 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 		enableVertexAttribArray( texLoc );
 		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*12) );
 	}
-	
+
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );

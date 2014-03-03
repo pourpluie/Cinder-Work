@@ -68,6 +68,13 @@
 	#define CI_CHECK_GL()	((void)0)
 #endif
 
+// forward declarations
+namespace cinder
+{
+	class TriMesh;
+	class Path2d;
+}
+
 namespace cinder { namespace gl {
 
 // Remember to add a matching case to uniformSemanticToString
@@ -249,6 +256,13 @@ void draw( const VboMeshRef &mesh );
 void draw( const TextureRef &texture, const Rectf &dstRect );
 void draw( const TextureRef &texture, const Area &srcArea, const Rectf &dstRect );
 void draw( const TextureRef &texture, const Vec2f &dstOffset = Vec2f::zero() );
+//! Draws a Path2d \a path2d using approximation scale \a approximationScale. 1.0 corresponds to screenspace, 2.0 is double screen resolution, etc
+void draw( const Path2d &path, float approximationScale = 1.0f );
+//! Draws a cinder::TriMesh \a mesh at the origin. Currently only uses position and index information.
+void draw( const TriMesh &mesh );
+
+//! Draws a solid (filled) Path2d \a path2d using approximation scale \a approximationScale. 1.0 corresponds to screenspace, 2.0 is double screen resolution, etc. Performance warning: This routine tesselates the polygon into triangles. Consider using Triangulator directly.
+void drawSolid( const class Path2d &path2d, float approximationScale = 1.0f );
 
 //! Renders a solid cube centered at \a center of size \a size. Normals and created texture coordinates are generated.
 void drawCube( const Vec3f &center, const Vec3f &size );
@@ -258,6 +272,10 @@ void drawColorCube( const Vec3f &center, const Vec3f &size );
 void drawSphere( const Vec3f &center, float radius, int segments );
 //! Draws a textured quad of size \a scale that is aligned with the vectors \a bbRight and \a bbUp at \a pos, rotated by \a rotationRadians around the vector orthogonal to \a bbRight and \a bbUp.
 void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians, const Vec3f &bbRight, const Vec3f &bbUp, const Rectf &texCoords = Rectf( 0, 0, 1, 1 ) );
+
+//! Draws a line between points a and b
+void drawLine( const Vec3f &a, const Vec3f &b );
+void drawLine( const Vec2f &a, const Vec2f &b );
 
 //! Draws \a texture on the XY-plane
 void drawSolidRect( const Rectf &r );

@@ -90,6 +90,9 @@ class TriMesh : public geom::Source {
 	//! Returns whether the TriMesh has texture coordinates for unit 3
 	bool		hasTexCoords3() const { return !mTexCoords3.empty(); }
 
+	//! Returns the number of dimensions of the position data (e.g. 2 for Vec2f and 3 for Vec3f)
+	size_t		getPositionsDims() const { return mPositionsDims; }
+
 	//! Creates a vertex which can be referred to with appendTriangle() or appendIndices() */
 	void		appendVertex( const Vec2f &v ) { appendVertices( &v, 1 ); }
 	//! Creates a vertex which can be referred to with appendTriangle() or appendIndices() */
@@ -211,6 +214,8 @@ class TriMesh : public geom::Source {
 	//! Returns all the vertices for a mesh in a std::vector as Vec<DIM>f. For example, to get 3D vertices, call getVertices<3>().
 	template<uint8_t DIM>
 	typename VECDIM<DIM,float>::TYPE*		getVertices() { assert(mPositionsDims==DIM); return (typename VECDIM<DIM,float>::TYPE*)mPositions.data(); }
+	//! Returns a pointer to the beginning of the mesh's position data.
+	const float*							getPositionsRaw() const { return mPositions.data(); }
 	//! Returns all the normals for a mesh in a std::vector as Vec3f objects. There will be one of these for each vertex in the mesh
 	std::vector<Vec3f>&				getNormals() { return mNormals; }
 	//! Returns all the normals for a mesh in a std::vector as Vec3f objects. There will be one of these for each vertex in the mesh
