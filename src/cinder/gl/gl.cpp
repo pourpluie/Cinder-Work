@@ -936,7 +936,8 @@ void draw( const TextureRef &texture, const Vec2f &dstOffset )
 void draw( const Path2d &path, float approximationScale )
 {
 	if( path.getNumSegments() == 0 )
-	{ return; }
+		return;
+
 	auto ctx = context();
 	vector<Vec2f> points = path.subdivide( approximationScale );
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * points.size() );
@@ -947,7 +948,7 @@ void draw( const Path2d &path, float approximationScale )
 	ctx->getDefaultVao()->replacementBindBegin();
 	BufferScope bufferBindScp( arrayVbo );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
-	if( posLoc >= 0 ){
+	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
 	}
@@ -969,7 +970,7 @@ void draw( const PolyLine<Vec2f> &polyLine )
 	ctx->getDefaultVao()->replacementBindBegin();
 	BufferScope bufferBindScp( arrayVbo );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
-	if( posLoc >= 0 ){
+	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
 	}
@@ -991,7 +992,7 @@ void draw( const PolyLine<Vec3f> &polyLine )
 	ctx->getDefaultVao()->replacementBindBegin();
 	BufferScope bufferBindScp( arrayVbo );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
-	if( posLoc >= 0 ){
+	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
 	}
@@ -1050,7 +1051,7 @@ void drawLine( const Vec2f &a, const Vec2f &b )
 void draw( const TriMesh &mesh )
 {
 	if( mesh.getNumVertices() <= 0 )
-	{ return; }
+		return;
 
 	draw( VboMesh::create( mesh ) );
 }
