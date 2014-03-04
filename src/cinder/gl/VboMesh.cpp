@@ -208,7 +208,6 @@ void VboMesh::buildVao( const GlslProgRef &shader, const AttributeMapping &attri
 
 void VboMesh::drawImpl()
 {
-context()->sanityCheck();
 	if( mNumIndices )
 		glDrawElements( mGlPrimitive, mNumIndices, mIndexType, (GLvoid*)( 0 ) );
 	else
