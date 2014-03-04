@@ -3,6 +3,7 @@
 #include "cinder/PolyLine.h"
 #include "cinder/gl/gl.h"
 #include "cinder/Rand.h"
+#include "cinder/Path2d.h"
 
 using namespace ci;
 using namespace ci::app;
