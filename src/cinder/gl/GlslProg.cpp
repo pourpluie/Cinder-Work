@@ -709,7 +709,7 @@ const GlslProg::AttribSemanticMap& GlslProg::getAttribSemantics() const
 
 bool GlslProg::hasAttribSemantic( geom::Attrib semantic ) const
 {
-	auto semantics = getAttribSemantics();
+	auto &semantics = getAttribSemantics();
 	for( auto semIt = semantics.begin(); semIt != semantics.end(); ++semIt ) {
 		if( semIt->second == semantic )
 			return true;
@@ -720,7 +720,7 @@ bool GlslProg::hasAttribSemantic( geom::Attrib semantic ) const
 
 GLint GlslProg::getAttribSemanticLocation( geom::Attrib semantic ) const
 {
-	auto semantics = getAttribSemantics();
+	auto &semantics = getAttribSemantics();
 	for( auto semIt = semantics.begin(); semIt != semantics.end(); ++semIt ) {
 		if( semIt->second == semantic )
 			return getAttribLocation( semIt->first );
