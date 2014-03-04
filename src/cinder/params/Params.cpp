@@ -256,6 +256,10 @@ void InterfaceGl::draw()
 	TwSetCurrentWindow( mTwWindowId );
 	
 	TwDraw();
+	// due to a bug in Ant we need to restore the currently bound VAO as well as the buffer bindings
+	gl::context()->restoreInvalidatedVao();
+	gl::context()->restoreInvalidatedBufferBinding( GL_ARRAY_BUFFER );
+	gl::context()->restoreInvalidatedBufferBinding( GL_ELEMENT_ARRAY_BUFFER );
 }
 
 void InterfaceGl::show( bool visible )
