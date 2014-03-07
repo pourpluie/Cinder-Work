@@ -34,7 +34,7 @@ namespace cinder { namespace app {
 class MouseEvent : public Event {
   public:
 	MouseEvent() : Event() {}
-	MouseEvent( WindowRef win, int initiator, int x, int y, unsigned int modifiers, float wheelIncrement, uint32_t nativeModifiers )
+	MouseEvent( const WindowRef &win, int initiator, int x, int y, unsigned int modifiers, float wheelIncrement, uint32_t nativeModifiers )
 		: Event( win ), mInitiator( initiator ), mPos( x, y ), mModifiers( modifiers ), mWheelIncrement( wheelIncrement ), mNativeModifiers( nativeModifiers )
 	{}
 

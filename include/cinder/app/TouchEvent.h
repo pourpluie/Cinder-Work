@@ -69,7 +69,7 @@ class TouchEvent : public Event {
 	TouchEvent()
 		: Event()
 	{}
-	TouchEvent( WindowRef win, const std::vector<Touch> &touches )
+	TouchEvent( const WindowRef &win, const std::vector<Touch> &touches )
 		: Event( win ), mTouches( touches )
 	{}
 	
