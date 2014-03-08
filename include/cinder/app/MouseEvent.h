@@ -34,22 +34,18 @@ namespace cinder { namespace app {
 class MouseEvent : public Event {
   public:
 	MouseEvent() : Event() {}
-	MouseEvent( WindowRef win, int aInitiator, int aX, int aY, unsigned int aModifiers, float aWheelIncrement, uint32_t aNativeModifiers )
-		: Event( win ), mInitiator( aInitiator ), mX( aX ), mY( aY ), mModifiers( aModifiers ), mWheelIncrement( aWheelIncrement ), mNativeModifiers( aNativeModifiers )
+	MouseEvent( const WindowRef &win, int initiator, int x, int y, unsigned int modifiers, float wheelIncrement, uint32_t nativeModifiers )
+		: Event( win ), mInitiator( initiator ), mPos( x, y ), mModifiers( modifiers ), mWheelIncrement( wheelIncrement ), mNativeModifiers( nativeModifiers )
 	{}
 
 	//! Returns the X coordinate of the mouse event, measured in points
-	int			getX() const				{ return mX; }
-	//! Set the X coordinate of the mouse event, measured in points
-	void		setX( int x )				{ mX = x; }
+	int			getX() const				{ return mPos.x; }
 	//! Returns the Y coordinate of the mouse event, measured in points
-	int			getY() const				{ return mY; }
-	//! Set the Y coordinate of the mouse event, measured in points
-	void		setY( int y )				{ mY = y; }
+	int			getY() const				{ return mPos.y; }
 	//! Returns the coordinates of the mouse event measured in points
-	Vec2i		getPos() const				{ return Vec2i( mX, mY ); }
+	const Vec2i&	getPos() const			{ return mPos; }
 	//! Sets the coordinates of the mouse event, measured in points
-	void		setPos( const Vec2i &pos )	{ mX = pos.x; mY = pos.y; }
+	void		setPos( const Vec2i &pos )	{ mPos = pos; }
 	//! Returns whether the initiator for the event was the left mouse button
 	bool		isLeft() const				{ return ( mInitiator & LEFT_DOWN ) ? true : false; }
 	//! Returns whether the initiator for the event was the right mouse button
@@ -95,7 +91,7 @@ class MouseEvent : public Event {
 			
   protected:
 	int				mInitiator;
-	int				mX, mY;
+	Vec2i			mPos;
 	unsigned int	mModifiers;
 	float			mWheelIncrement;
 	uint32_t		mNativeModifiers;
