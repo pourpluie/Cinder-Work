@@ -255,7 +255,7 @@ void NormalMappingApp::update()
 	if(bAnimateLantern) 
 		lanternPositionOS += mPerlin.dfBm( Vec3f( 0.0f, 0.0f, fTime ) ) * 5.0f;
 	Vec3f lanternPositionWS = mMeshTransform.transformPointAffine( lanternPositionOS );
-	mLightLantern.position = mCamera.getModelViewMatrix().transformPointAffine( lanternPositionWS );
+	mLightLantern.position = mCamera.getViewMatrix().transformPointAffine( lanternPositionWS );
 	mLightAmbient.position = Vec4f::zero();
 
 	// set the varying shader uniforms
@@ -295,10 +295,10 @@ void NormalMappingApp::draw()
 			// use our own normal mapping shader for this scope
 			gl::GlslProgScope GlslProgScope( mShader );
 	
-			gl::pushModelView();
-			gl::multModelView( mMeshTransform );
+			gl::pushModelMatrix();
+			gl::multModelMatrix( mMeshTransform );
 			gl::draw( mMesh );
-			gl::popModelView();
+			gl::popModelMatrix();
 		}
 	
 		// render normals, tangents and bitangents if necessary
@@ -306,10 +306,10 @@ void NormalMappingApp::draw()
 			// use a default shader for this scope
 			gl::GlslProgScope GlslProgScope( gl::context()->getStockShader( gl::ShaderDef().color() ) );
 
-			gl::pushModelView();
-			gl::multModelView( mMeshTransform );
+			gl::pushModelMatrix();
+			gl::multModelMatrix( mMeshTransform );
 			gl::draw( mMeshDebug );
-			gl::popModelView();
+			gl::popModelMatrix();
 		}
 
 		// get ready to render in 2D again

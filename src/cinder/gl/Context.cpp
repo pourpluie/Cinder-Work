@@ -109,10 +109,12 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	glGetIntegerv( GL_BLEND_DST_ALPHA, &queriedInt );
 	mBlendDstAlphaStack.push_back( queriedInt );
     
-    mModelViewStack.push_back( Matrix44f() );
-	mModelViewStack.back().setToIdentity();
-	mProjectionStack.push_back( Matrix44f() );
-	mProjectionStack.back().setToIdentity();
+    mModelMatrixStack.push_back( Matrix44f() );
+	mModelMatrixStack.back().setToIdentity();
+    mViewMatrixStack.push_back( Matrix44f() );
+	mViewMatrixStack.back().setToIdentity();
+	mProjectionMatrixStack.push_back( Matrix44f() );
+	mProjectionMatrixStack.back().setToIdentity();
 	mGlslProgStack.push_back( GlslProgRef() );
 
 	// set default shader
@@ -596,11 +598,23 @@ void Context::pushTextureBinding( GLenum target, uint8_t textureUnit )
 {
 	if( mTextureBindingStack.find( textureUnit ) == mTextureBindingStack.end() ) {
 		mTextureBindingStack[textureUnit] = std::map<GLenum,std::vector<GLint>>();
-		mTextureBindingStack[textureUnit][target].push_back( -1 );
+		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
+		GLint queriedInt = -1;
+		if( targetBinding > 0 ) {
+			ActiveTextureScope actScp( textureUnit );
+			glGetIntegerv( targetBinding, &queriedInt );
+		}
+		mTextureBindingStack[textureUnit][target].push_back( queriedInt );
 	}
 	else if( mTextureBindingStack[textureUnit].find( target ) == mTextureBindingStack[textureUnit].end() ) {
 		mTextureBindingStack[textureUnit][target] = std::vector<GLint>();
-		mTextureBindingStack[textureUnit][target].push_back( -1 );
+		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
+		GLint queriedInt = -1;
+		if( targetBinding > 0 ) {
+			ActiveTextureScope actScp( textureUnit );
+			glGetIntegerv( targetBinding, &queriedInt );
+		}
+		mTextureBindingStack[textureUnit][target].push_back( queriedInt );
 	}
 	
 	mTextureBindingStack[textureUnit][target].push_back( mTextureBindingStack[textureUnit][target].back() );
@@ -1285,12 +1299,18 @@ void Context::setDefaultShaderVars()
 		const auto &uniforms = glslProg->getUniformSemantics();
 		for( const auto &unifIt : uniforms ) {
 			switch( unifIt.second ) {
-				case UNIFORM_MODELVIEW:
+				case UNIFORM_MODEL_MATRIX:
+					glslProg->uniform( unifIt.first, gl::getModelMatrix() ); break;
+				case UNIFORM_VIEW_MATRIX:
+					glslProg->uniform( unifIt.first, gl::getViewMatrix() ); break;
+				case UNIFORM_VIEW_MATRIX_INVERSE:
+					glslProg->uniform( unifIt.first, gl::calcViewMatrixInverse() ); break;
+				case UNIFORM_MODEL_VIEW:
 					glslProg->uniform( unifIt.first, gl::getModelView() ); break;
-				case UNIFORM_MODELVIEWPROJECTION:
+				case UNIFORM_MODEL_VIEW_PROJECTION:
 					glslProg->uniform( unifIt.first, gl::getModelViewProjection() ); break;
-				case UNIFORM_PROJECTION:
-					glslProg->uniform( unifIt.first, gl::getProjection() ); break;
+				case UNIFORM_PROJECTION_MATRIX:
+					glslProg->uniform( unifIt.first, gl::getProjectionMatrix() ); break;
 				case UNIFORM_NORMAL_MATRIX:
 					glslProg->uniform( unifIt.first, gl::calcNormalMatrix() ); break;
 				case UNIFORM_WINDOW_SIZE:

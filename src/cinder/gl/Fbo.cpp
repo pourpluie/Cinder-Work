@@ -399,7 +399,10 @@ void Fbo::init()
 	
 	// attach Textures
 	for( auto &textureAttachment : mFormat.mAttachmentsTexture ) {
-		glFramebufferTexture2D( GL_FRAMEBUFFER, textureAttachment.first, textureAttachment.second->getTarget(), textureAttachment.second->getId(), 0 );
+		auto textureTarget = textureAttachment.second->getTarget();
+		if( textureTarget == GL_TEXTURE_CUBE_MAP )
+			textureTarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+		glFramebufferTexture2D( GL_FRAMEBUFFER, textureAttachment.first, textureTarget, textureAttachment.second->getId(), 0 );
 		mAttachmentsTexture[textureAttachment.first] = textureAttachment.second;
 	}
 	
@@ -742,7 +745,7 @@ Matrix44f FboCubeMap::calcViewMatrix( GLenum face, const Vec3f &eyePos )
 	// We need to rotate 180deg around Z for non-Y faces
 	if( face != GL_TEXTURE_CUBE_MAP_POSITIVE_Y && face != GL_TEXTURE_CUBE_MAP_NEGATIVE_Y )
 		result.rotate( Vec3f( 0, 0, 1 ), M_PI );
-	result *= cam.getModelViewMatrix();
+	result *= cam.getViewMatrix();
 
 	
 	return result;

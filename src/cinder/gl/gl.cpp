@@ -303,94 +303,127 @@ void disableStencilTest()
 void setMatrices( const ci::Camera& cam )
 {
 	auto ctx = context();
-	ctx->getModelViewStack().back() = cam.getModelViewMatrix();
-	ctx->getProjectionStack().back() = cam.getProjectionMatrix();
+	ctx->getViewMatrixStack().back() = cam.getViewMatrix();
+	ctx->getProjectionMatrixStack().back() = cam.getProjectionMatrix();
+	ctx->getModelMatrixStack().back().setToIdentity();
 }
 
-void setModelView( const ci::Matrix44f &m )
+void setModelMatrix( const ci::Matrix44f &m )
 {
-	context()->getModelViewStack().back() = m;
+	context()->getModelMatrixStack().back() = m;
 }
 
-void setModelView( const ci::Camera& cam )
+void setViewMatrix( const ci::Matrix44f &m )
 {
-	context()->getModelViewStack().back() = cam.getModelViewMatrix();
+	context()->getViewMatrixStack().back() = m;
 }
 
-void setProjection( const ci::Camera& cam )
+void setProjectionMatrix( const ci::Matrix44f &m )
 {
-	context()->getProjectionStack().back() = cam.getProjectionMatrix();
+	context()->getProjectionMatrixStack().back() = m;
 }
 
-void setProjection( const ci::Matrix44f &m )
-{
-	context()->getProjectionStack().back() = m;
-}
-
-void pushModelView()
+void pushModelMatrix()
 {
 	auto ctx = context();
-	ctx->getModelViewStack().push_back( ctx->getModelViewStack().back() );
+	ctx->getModelMatrixStack().push_back( ctx->getModelMatrixStack().back() );
 }
 
-void popModelView()
+void popModelMatrix()
 {
-	context()->getModelViewStack().pop_back();
+	context()->getModelMatrixStack().pop_back();
 }
 
-void pushProjection()
+void pushViewMatrix()
 {
 	auto ctx = context();
-	ctx->getProjectionStack().push_back( ctx->getProjectionStack().back() );
+	ctx->getViewMatrixStack().push_back( ctx->getViewMatrixStack().back() );
 }
 
-void popProjection()
+void popViewMatrix()
 {
-	context()->getProjectionStack().pop_back();
+	context()->getViewMatrixStack().pop_back();
+}
+
+void pushProjectionMatrix()
+{
+	auto ctx = context();
+	ctx->getProjectionMatrixStack().push_back( ctx->getProjectionMatrixStack().back() );
+}
+
+void popProjectionMatrix()
+{
+	context()->getProjectionMatrixStack().pop_back();
 }
 
 void pushMatrices()
 {
 	auto ctx = context();
-	ctx->getModelViewStack().push_back( ctx->getModelViewStack().back() );
-	ctx->getProjectionStack().push_back( ctx->getProjectionStack().back() );
+	ctx->getModelMatrixStack().push_back( ctx->getModelMatrixStack().back() );
+	ctx->getViewMatrixStack().push_back( ctx->getViewMatrixStack().back() );
+	ctx->getProjectionMatrixStack().push_back( ctx->getProjectionMatrixStack().back() );
 }
 
 void popMatrices()
 {
 	auto ctx = context();
-	ctx->getModelViewStack().pop_back();
-	ctx->getProjectionStack().pop_back();
+	ctx->getModelMatrixStack().pop_back();
+	ctx->getViewMatrixStack().pop_back();
+	ctx->getProjectionMatrixStack().pop_back();
 }
 
-void multModelView( const ci::Matrix44f& mtx )
+void multModelMatrix( const ci::Matrix44f& mtx )
 {
 	auto ctx = gl::context();
-	ctx->getModelViewStack().back() *= mtx;
+	ctx->getModelMatrixStack().back() *= mtx;
 }
 
-void multProjection( const ci::Matrix44f& mtx )
+void multViewMatrix( const ci::Matrix44f& mtx )
 {
 	auto ctx = gl::context();
-	ctx->getProjectionStack().back() *= mtx;
+	ctx->getViewMatrixStack().back() *= mtx;
+}
+
+void multProjectionMatrix( const ci::Matrix44f& mtx )
+{
+	auto ctx = gl::context();
+	ctx->getProjectionMatrixStack().back() *= mtx;
+}
+
+Matrix44f getModelMatrix()
+{
+	auto ctx = gl::context();
+	return ctx->getModelMatrixStack().back();
+}
+
+Matrix44f getViewMatrix()
+{
+	auto ctx = gl::context();
+	return ctx->getViewMatrixStack().back();
+}
+
+Matrix44f getProjectionMatrix()
+{
+	auto ctx = gl::context();
+	return ctx->getProjectionMatrixStack().back();
 }
 
 Matrix44f getModelView()
 {
-	auto ctx = gl::context();
-	return ctx->getModelViewStack().back();
-}
-
-Matrix44f getProjection()
-{
-	auto ctx = gl::context();
-	return ctx->getProjectionStack().back();
+	auto ctx = context();
+	return ctx->getViewMatrixStack().back() * ctx->getModelMatrixStack().back();
 }
 
 Matrix44f getModelViewProjection()
 {
 	auto ctx = context();
-	return ctx->getProjectionStack().back() * ctx->getModelViewStack().back();
+	return ctx->getProjectionMatrixStack().back() * ctx->getViewMatrixStack().back() * ctx->getModelMatrixStack().back();
+}
+
+Matrix44f calcViewMatrixInverse()
+{
+	Matrix44f v = getViewMatrix();
+	return v.inverted();
 }
 
 Matrix33f calcNormalMatrix()
@@ -406,11 +439,12 @@ void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees
 	auto ctx = gl::context();
 
 	CameraPersp cam( screenWidth, screenHeight, fovDegrees, nearPlane, farPlane );
-	ctx->getProjectionStack().back() = cam.getProjectionMatrix();
-	ctx->getModelViewStack().back() = cam.getModelViewMatrix();
+	ctx->getModelMatrixStack().back().setToIdentity();
+	ctx->getProjectionMatrixStack().back() = cam.getProjectionMatrix();
+	ctx->getViewMatrixStack().back() = cam.getViewMatrix();
 	if( originUpperLeft ) {
-		ctx->getModelViewStack().back().scale( Vec3f( 1.0f, -1.0f, 1.0f ) );					// invert Y axis so increasing Y goes down.
-		ctx->getModelViewStack().back().translate( Vec3f( 0.0f, (float)-screenHeight, 0.0f ) ); // shift origin up to upper-left corner.
+		ctx->getViewMatrixStack().back().scale( Vec3f( 1.0f, -1.0f, 1.0f ) );					// invert Y axis so increasing Y goes down.
+		ctx->getViewMatrixStack().back().translate( Vec3f( 0.0f, (float)-screenHeight, 0.0f ) ); // shift origin up to upper-left corner.
 	}
 }
 
@@ -422,14 +456,15 @@ void setMatricesWindowPersp( const ci::Vec2i& screenSize, float fovDegrees, floa
 void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft )
 {
 	auto ctx = gl::context();
-	ctx->getModelViewStack().back().setToIdentity();
+	ctx->getModelMatrixStack().back().setToIdentity();	
+	ctx->getViewMatrixStack().back().setToIdentity();
 	if( originUpperLeft )
-		ctx->getProjectionStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
+		ctx->getProjectionMatrixStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
 													Vec4f( 0.0f, 2.0f / -(float)screenHeight, 0.0f, 1.0f ),
 													Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
 													Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	else
-		ctx->getProjectionStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
+		ctx->getProjectionMatrixStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
 													Vec4f( 0.0f, 2.0f / (float)screenHeight, 0.0f, -1.0f ),
 													Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
 													Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
@@ -443,8 +478,7 @@ void setMatricesWindow( const ci::Vec2i& screenSize, bool originUpperLeft )
 void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis )
 {
 	auto ctx = gl::context();
-//	ctx->getModelViewStack().back().rotate( Vec3f( toRadians( xAxis ), toRadians( yAxis ), toRadians( zAxis ) ) );
-	ctx->getModelViewStack().back().rotate( Vec3f( xAxis, yAxis, zAxis ), toRadians( angleDegrees ) );
+	ctx->getModelMatrixStack().back().rotate( Vec3f( xAxis, yAxis, zAxis ), toRadians( angleDegrees ) );
 }
 
 void rotate( const cinder::Quatf &quat )
@@ -459,13 +493,13 @@ void rotate( const cinder::Quatf &quat )
 void scale( const ci::Vec3f& v )
 {
 	auto ctx = gl::context();
-	ctx->getModelViewStack().back().scale( v );
+	ctx->getModelMatrixStack().back().scale( v );
 }
 
 void translate( const ci::Vec3f& v )
 {
 	auto ctx = gl::context();
-	ctx->getModelViewStack().back().translate( v );
+	ctx->getModelMatrixStack().back().translate( v );
 }
 
 void begin( GLenum mode )
@@ -750,12 +784,16 @@ geom::Primitive toGeomPrimitive( GLenum prim )
 std::string uniformSemanticToString( UniformSemantic uniformSemantic )
 {
 	switch( uniformSemantic ) {
-		case UNIFORM_MODELVIEW: return "UNIFORM_MODELVIEW";
-		case UNIFORM_MODELVIEWPROJECTION: return "UNIFORM_MODELVIEWPROJECTION";
-		case UNIFORM_PROJECTION: return "UNIFORM_PROJECTION";
+		case UNIFORM_MODEL_MATRIX: return "UNIFORM_MODEL_MATRIX";
+		case UNIFORM_VIEW_MATRIX: return "UNIFORM_VIEW_MATRIX";
+		case UNIFORM_VIEW_MATRIX_INVERSE: return "UNIFORM_VIEW_MATRIX_INVERSE";
+		case UNIFORM_MODEL_VIEW: return "UNIFORM_MODEL_VIEW";
+		case UNIFORM_MODEL_VIEW_PROJECTION: return "UNIFORM_MODEL_VIEW_PROJECTION";
+		case UNIFORM_PROJECTION_MATRIX: return "UNIFORM_PROJECTION_MATRIX";
 		case UNIFORM_NORMAL_MATRIX: return "UNIFORM_NORMAL_MATRIX";
 		case UNIFORM_WINDOW_SIZE: return "UNIFORM_WINDOW_SIZE";
 		case UNIFORM_ELAPSED_SECONDS: return "UNIFORM_ELAPSED_SECONDS";
+		default: return "";
 	}
 }
 

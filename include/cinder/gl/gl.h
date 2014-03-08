@@ -80,9 +80,12 @@ namespace cinder { namespace gl {
 
 // Remember to add a matching case to uniformSemanticToString
 enum UniformSemantic {
-	UNIFORM_MODELVIEW,
-	UNIFORM_MODELVIEWPROJECTION,
-	UNIFORM_PROJECTION,
+	UNIFORM_MODEL_MATRIX,
+	UNIFORM_VIEW_MATRIX,
+	UNIFORM_VIEW_MATRIX_INVERSE,
+	UNIFORM_MODEL_VIEW,
+	UNIFORM_MODEL_VIEW_PROJECTION,
+	UNIFORM_PROJECTION_MATRIX,
 	UNIFORM_NORMAL_MATRIX,
 	UNIFORM_WINDOW_SIZE,
 	UNIFORM_ELAPSED_SECONDS
@@ -163,42 +166,59 @@ void disableStencilRead();
 void enableStencilWrite( bool enable = true );
 void disableStencilWrite();
 
+//! Sets the View and Projection matrices based on a Camera
 void setMatrices( const ci::Camera &cam );
-void setModelView( const ci::Matrix44f &m );
-void setModelView( const ci::Camera &cam );
-void setProjection( const ci::Camera &cam );
-void setProjection( const ci::Matrix44f &m );
-void pushModelView();
-void popModelView();
-void pushProjection();
-void popProjection();
+void setModelMatrix( const ci::Matrix44f &m );
+void setViewMatrix( const ci::Matrix44f &m );
+void setProjectionMatrix( const ci::Matrix44f &m );
+void pushModelMatrix();
+void popModelMatrix();
+void pushViewMatrix();
+void popViewMatrix();
+void pushProjectionMatrix();
+void popProjectionMatrix();
+//! Pushes Model, View and Projection matrices
 void pushMatrices();
+//! Pops Model, View and Projection matrices
 void popMatrices();
-void multModelView( const ci::Matrix44f &mtx );
-void multProjection( const ci::Matrix44f &mtx );
+void multModelMatrix( const ci::Matrix44f &mtx );
+void multViewMatrix( const ci::Matrix44f &mtx );
+void multProjectionMatrix( const ci::Matrix44f &mtx );
 
+Matrix44f getModelMatrix();
+Matrix44f getViewMatrix();
+Matrix44f getProjectionMatrix();
 Matrix44f getModelView();
-Matrix44f getProjection();
 Matrix44f getModelViewProjection();
+Matrix44f calcViewMatrixInverse();
 Matrix33f calcNormalMatrix();
 
-void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 10000.0f, bool originUpperLeft = true );
-void setMatricesWindowPersp( const ci::Vec2i &screenSize, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 10000.0f, bool originUpperLeft = true );
+void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 1000.0f, bool originUpperLeft = true );
+void setMatricesWindowPersp( const ci::Vec2i &screenSize, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 1000.0f, bool originUpperLeft = true );
 void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft = true );
 void setMatricesWindow( const ci::Vec2i &screenSize, bool originUpperLeft = true );
 
+//! Rotates the Model matrix by \a angleDegrees around the axis (\a x,\a y,\a z)
 void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis );
 void rotate( const cinder::Quatf &quat );
 inline void rotate( float zDegrees ) { rotate( zDegrees, 0, 0, 1 ); }
 
+//! Scales the Model matrix by \a v
 void scale( const ci::Vec3f &v );
+//! Scales the Model matrix by (\a x,\a y, \a z)
 inline void scale( float x, float y, float z ) { scale( Vec3f( x, y, z ) ); }
+//! Scales the Model matrix by \a v
 inline void scale( const ci::Vec2f &v ) { scale( Vec3f( v.x, v.y, 1 ) ); }
+//! Scales the Model matrix by (\a x,\a y, 1)
 inline void scale( float x, float y ) { scale( Vec3f( x, y, 1 ) ); }
 
+//! Translates the Model matrix by \a v
 void translate( const ci::Vec3f &v );
+//! Translates the Model matrix by (\a x,\a y,\a z )
 inline void translate( float x, float y, float z ) { translate( Vec3f( x, y, z ) ); }
+//! Translates the Model matrix by \a v
 inline void translate( const ci::Vec2f &v ) { translate( Vec3f( v, 0 ) ); }
+//! Translates the Model matrix by (\a x,\a y)
 inline void translate( float x, float y ) { translate( Vec3f( x, y, 0 ) ); }
 	
 void begin( GLenum mode );
