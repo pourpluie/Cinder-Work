@@ -34,7 +34,7 @@ GlslProg::AttribSemanticMap		GlslProg::sDefaultAttribNameToSemanticMap;
 //////////////////////////////////////////////////////////////////////////
 // GlslProg::Format
 GlslProg::Format::Format()
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	: mTransformFormat( -1 )
 #endif
 {
@@ -89,7 +89,7 @@ GlslProg::Format& GlslProg::Format::fragment( const char *fragmentShader )
 	return *this;
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 GlslProg::Format& GlslProg::Format::geometry( const DataSourceRef &dataSource )
 {
 	if( dataSource ) {
@@ -113,7 +113,7 @@ GlslProg::Format& GlslProg::Format::geometry( const char *geometryShader )
 
 	return *this;
 }
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 GlslProg::Format& GlslProg::Format::attrib( geom::Attrib semantic, const std::string &attribName )
 {
@@ -178,7 +178,7 @@ GlslProg::GlslProg( const Format &format )
 		loadShader( format.getVertex(), GL_VERTEX_SHADER );
 	if( ! format.getFragment().empty() )
 		loadShader( format.getFragment(), GL_FRAGMENT_SHADER );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	if( ! format.getGeometry().empty() )
 		loadShader( format.getGeometry(), GL_GEOMETRY_SHADER );
 #endif
@@ -215,7 +215,7 @@ GlslProg::GlslProg( const Format &format )
 	for( auto &attribLoc : attribLocations )
 		glBindAttribLocation( mHandle, attribLoc.second, attribLoc.first.c_str() );
 	
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	if( ! format.getVaryings().empty() && format.getTransformFormat() > 0 ) {
 		// This is a mess due to an NVidia driver bug on MSW which expects the memory passed to glTransformFeedbackVaryings
 		// to still be around after the call. We allocate the storage and put it on the GlslProg itself to be freed at destruction

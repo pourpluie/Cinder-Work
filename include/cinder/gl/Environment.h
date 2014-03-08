@@ -65,7 +65,7 @@ class Environment {
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) = 0;
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) = 0;
 
-#if ! defined( CINDER_GLES )	
+#if ! defined( CINDER_GL_ES )	
 	virtual bool			isCoreProfile() const = 0;
 
 	static void				setCore();

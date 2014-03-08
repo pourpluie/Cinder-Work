@@ -25,7 +25,7 @@
 #include "cinder/gl/Environment.h"
 #include "cinder/gl/gl.h"
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 
 #include "cinder/gl/Shader.h"
 #include "cinder/gl/Context.h"
@@ -179,4 +179,4 @@ GlslProgRef	EnvironmentEs2::buildShader( const ShaderDef &shader )
 
 } } // namespace cinder::gl
 
-#endif // defined( CINDER_GLES )
+#endif // defined( CINDER_GL_ES )

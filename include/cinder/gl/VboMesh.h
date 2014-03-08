@@ -78,7 +78,7 @@ class VboMesh {
 	//! Adds a new VBO (paired with its geom::BufferLayout) to the VboMesh
 	void												appendVbo( const geom::BufferLayout &layout, const VboRef &vbo );
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Returns a geom::Source which references 'this'. Inefficient - primarily useful for debugging. The returned geom::SourceRef should not outlive 'this' (not a shared_ptr).
 	geom::SourceRef	createSource() const;
 	

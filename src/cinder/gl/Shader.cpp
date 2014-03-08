@@ -42,7 +42,7 @@ ShaderDef::ShaderDef()
 ShaderDef& ShaderDef::texture( const TextureRef &texture )
 {
 	mTextureMapping = true;
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	if( texture && texture->getTarget() == GL_TEXTURE_RECTANGLE_ARB )
 		mTextureMappingRectangleArb = true;
 #endif
@@ -55,7 +55,7 @@ ShaderDef& ShaderDef::texture( const TextureRef &texture )
 ShaderDef& ShaderDef::texture( GLenum target )
 {
 	mTextureMapping = true;
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	if( target == GL_TEXTURE_RECTANGLE_ARB )
 		mTextureMappingRectangleArb = true;
 #endif
@@ -99,7 +99,7 @@ bool ShaderDef::operator<( const ShaderDef &rhs ) const
 {
 	if( rhs.mTextureMapping != mTextureMapping )
 		return rhs.mTextureMapping;
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	if( rhs.mTextureMappingRectangleArb != mTextureMappingRectangleArb )
 		return rhs.mTextureMappingRectangleArb;
 #endif

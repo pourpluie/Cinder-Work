@@ -47,7 +47,7 @@ class Batch {
 	static BatchRef		create( const geom::SourceRef &sourceRef, const gl::GlslProgRef &glsl );
 	
 	void			draw();
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	void			drawInstanced( GLsizei primcount );
 #endif
 	void			bind();

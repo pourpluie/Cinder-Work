@@ -28,8 +28,8 @@
 	#define GL_GLEXT_PROTOTYPES
 	#include "GLES2/gl2.h"
 	#include "GLES2/gl2ext.h"
-	#define CINDER_GLES
-	#define CINDER_GLES2
+	#define CINDER_GL_ES
+	#define CINDER_GL_ES_2
 	#pragma comment( lib, "libEGL.lib" )
 	#pragma comment( lib, "libGLESv2.lib" )
 #elif ! defined( CINDER_COCOA_TOUCH )
@@ -48,8 +48,8 @@
 #else
 	#include <OpenGLES/ES2/gl.h>
 	#include <OpenGLES/ES2/glext.h>
-	#define CINDER_GLES
-	#define CINDER_GLES2
+	#define CINDER_GL_ES
+	#define CINDER_GL_ES_2
 #endif
 
 #include "cinder/gl/Texture.h"
@@ -224,7 +224,7 @@ inline void translate( float x, float y ) { translate( Vec3f( x, y, 0 ) ); }
 void begin( GLenum mode );
 void end();
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void bindBufferBase( GLenum target, int index, BufferObjRef buffer );
 	
 void beginTransformFeedback( GLenum primitiveMode );
@@ -254,7 +254,7 @@ void vertex( const ci::Vec2f &v );
 void vertex( const ci::Vec3f &v );
 void vertex( const ci::Vec4f &v );
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void polygonMode( GLenum face, GLenum mode );
 //! Enables wireframe drawing by setting the \c PolygonMode to \c GL_LINE.
 void enableWireframe();
@@ -316,10 +316,10 @@ void drawStrokedCircle( const Vec2f &center, float radius, int numSegments = -1 
 // Vertex Attributes
 //! Analogous to glVertexAttribPointer
 void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 //! Analogous to glVertexAttribIPointer
 void	vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 //! Analogous to glEnableVertexAttribArray
 void	enableVertexAttribArray( GLuint index );
 

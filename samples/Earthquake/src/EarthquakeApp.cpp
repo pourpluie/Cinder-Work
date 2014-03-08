@@ -85,7 +85,7 @@ void EarthquakeApp::setup()
 
 	mStars						= gl::Texture::create( loadImage( loadResource( RES_STARS_PNG ) ) );
 
-#if defined( CINDER_GLES )	
+#if defined( CINDER_GL_ES )	
 	mEarthShader = gl::GlslProg::create( loadResource( "passThru_vert_es2.glsl" ), loadResource( "earth_frag_es2.glsl" ) );
 	mQuakeShader = gl::GlslProg::create( loadResource( "quake_vert_es2.glsl" ), loadResource( "quake_frag_es2.glsl" ) );
 #else

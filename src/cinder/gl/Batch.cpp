@@ -195,7 +195,7 @@ void Batch::draw()
 		ctx->drawArrays( mPrimitive, 0, mNumVertices );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Batch::drawInstanced( GLsizei primcount )
 {
 	auto ctx = gl::context();

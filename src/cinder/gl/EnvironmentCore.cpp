@@ -29,7 +29,7 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Vao.h"
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 
 namespace cinder { namespace gl {
 
@@ -192,4 +192,4 @@ GlslProgRef	EnvironmentCore::buildShader( const ShaderDef &shader )
 
 } } // namespace cinder::gl
 
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )

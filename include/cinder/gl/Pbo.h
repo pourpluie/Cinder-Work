@@ -22,7 +22,7 @@
 
 #pragma once
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 
 #include "cinder/gl/BufferObj.h"
 
@@ -55,4 +55,4 @@ typedef PboSurface<float>	PboSurface32f;
 
 } }
 
-#endif // defined( CINDER_GLES )
+#endif // defined( CINDER_GL_ES )

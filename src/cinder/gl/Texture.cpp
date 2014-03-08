@@ -32,7 +32,7 @@
 #include <memory>
 #include <type_traits>
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 #define GL_LUMINANCE						GL_RED
 #define GL_LUMINANCE_ALPHA					GL_RG
 #endif
@@ -50,7 +50,7 @@ template<typename T>
 class ImageTargetGlTexture : public ImageTarget {
   public:
 	static shared_ptr<ImageTargetGlTexture> create( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	// receives a pointer to an intermediate data store, presumably a mapped PBO
 	static shared_ptr<ImageTargetGlTexture> create( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha, void *data );
 #endif
@@ -103,11 +103,11 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 	// default is GL_REPEAT
 	if( format.mWrapT != GL_REPEAT )
 		glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, format.mWrapT );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	// default is GL_REPEAT
 	if( format.mWrapR != GL_REPEAT )
 		glTexParameteri( mTarget, GL_TEXTURE_WRAP_R, format.mWrapR );
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 	if( format.mMipmapping && ! format.mMinFilterSpecified )
 		format.mMinFilter = GL_LINEAR_MIPMAP_LINEAR;
@@ -127,7 +127,7 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 	else
 		mInternalFormat = format.mInternalFormat;
 
-#if defined( CINDER_GLES )		
+#if defined( CINDER_GL_ES )		
 	// by default mPixelDataFormat should match mInternalFormat
 	if( format.mPixelDataFormat == -1 )
 		format.mPixelDataFormat = mInternalFormat;
@@ -138,7 +138,7 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 #endif
 
 	// Swizzle mask
-#if ! defined( CINDER_GLES2 )
+#if ! defined( CINDER_GL_ES_2 )
 	if( supportsHardwareSwizzle() ) {
 		if( format.mSwizzleMask[0] != GL_RED || format.mSwizzleMask[1] != GL_GREEN || format.mSwizzleMask[2] != GL_BLUE || format.mSwizzleMask[3] != GL_ALPHA )
 			glTexParameteriv( mTarget, GL_TEXTURE_SWIZZLE_RGBA, format.mSwizzleMask.data() );
@@ -176,7 +176,7 @@ GLenum TextureBase::getBindingConstantForTarget( GLenum target )
 		case GL_TEXTURE_CUBE_MAP:
 			return GL_TEXTURE_BINDING_CUBE_MAP;
 		break;
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		case GL_TEXTURE_RECTANGLE: // equivalent to GL_TEXTURE_RECTANGLE_ARB
 			return GL_TEXTURE_BINDING_RECTANGLE;
 		break;
@@ -222,7 +222,7 @@ void TextureBase::setWrapT( GLenum wrapT )
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, wrapT );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void TextureBase::setWrapR( GLenum wrapR )
 {
 	TextureBindScope tbs( mTarget, mTextureId );
@@ -262,7 +262,7 @@ void TextureBase::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOr
 		break;
 		case SurfaceChannelOrder::BGRA:
 		case SurfaceChannelOrder::BGRX:
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 			*dataFormat = GL_BGRA_EXT;
 #else
 			*dataFormat = GL_BGRA;
@@ -292,7 +292,7 @@ GLfloat TextureBase::getMaxMaxAnisotropy()
 
 bool TextureBase::supportsHardwareSwizzle()
 {
-	#if defined( CINDER_GLES2 )
+	#if defined( CINDER_GL_ES_2 )
 		return false;
 	#else
 		static bool supported = ( ( gl::isExtensionAvailable( "GL_EXT_texture_swizzle" ) || gl::getVersion() >= make_pair( 3, 3 ) ) );
@@ -416,7 +416,7 @@ Texture::Texture( const Surface32f &surface, Format format )
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
 	TextureBindScope texBindScope( mTarget, mTextureId );
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	initParams( format, surface.hasAlpha() ? GL_RGBA : GL_RGB );
 #else
 	initParams( format, surface.hasAlpha() ? GL_RGBA32F : GL_RGB32F );
@@ -495,7 +495,7 @@ Texture::Texture( const ImageSourceRef &imageSource, Format format )
 			defaultInternalFormat = ( imageSource->hasAlpha() ) ? GL_RGBA : GL_RGB;
 		break;
 		case ImageIo::CM_GRAY: {
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 			defaultInternalFormat = ( imageSource->hasAlpha() ) ? GL_LUMINANCE_ALPHA : GL_LUMINANCE;
 #else
 			defaultInternalFormat = ( imageSource->hasAlpha() ) ?  GL_RG : GL_RED;
@@ -589,7 +589,7 @@ void Texture::initData( const float *data, GLint dataFormat, const Format &forma
 		glGenerateMipmap( mTarget );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 // Called by initData( ImageSourceRef ) when the user has supplied an intermediate PBO via Format
 // We map the PBO after resizing it if necessary, and then use that as a data store for the ImageTargetGlTexture
 void Texture::initDataImageSourceWithPboImpl( const ImageSourceRef &imageSource, const Format &format, GLint dataFormat, ImageIo::ChannelOrder channelOrder, bool isGray, const PboRef &pbo )
@@ -682,7 +682,7 @@ void Texture::initData( const ImageSourceRef &imageSource, const Format &format 
 	}
 	
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	auto pbo = format.getIntermediatePbo();
 	if( pbo )
 		initDataImageSourceWithPboImpl( imageSource, format, dataFormat, channelOrder, isGray, pbo );
@@ -836,7 +836,7 @@ void Texture::update( const Channel8u &channel, const Area &area, int mipLevel )
 	}
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Texture::update( const PboRef &pbo, GLenum format, GLenum type, int mipLevel, size_t pboByteOffset )
 {
 	update( pbo, format, type, getBounds(), mipLevel, pboByteOffset );
@@ -1021,7 +1021,7 @@ class ImageSourceTexture : public ImageSource {
 		
 
 		GLenum format;
-#if ! defined( CINDER_GLES )		
+#if ! defined( CINDER_GL_ES )		
 		GLint internalFormat = texture.getInternalFormat();
 		switch( internalFormat ) {
 			case GL_RGB: setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); format = GL_RGB; break;
@@ -1065,7 +1065,7 @@ class ImageSourceTexture : public ImageSource {
 		mRowBytes = mWidth * ImageIo::channelOrderNumChannels( mChannelOrder ) * dataSize;
 		mData = unique_ptr<uint8_t[]>( new uint8_t[mRowBytes * mHeight] );
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 		// This line is not too awesome, however we need a TextureRef, not a Texture, for an FBO attachment. So this creates a shared_ptr with a no-op deleter
 		// that won't destroy our original texture.
 		TextureRef tempSharedPtr( &texture, []( const Texture* ){} );
@@ -1100,7 +1100,7 @@ ImageSourceRef Texture::createSource()
 	return ImageSourceRef( new ImageSourceTexture( *this ) );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 /////////////////////////////////////////////////////////////////////////////////
 // Texture3d
 Texture3dRef Texture3d::create( GLint width, GLint height, GLint depth, Format format )
@@ -1152,7 +1152,7 @@ void Texture3d::update( const Surface &surface, int depth, int mipLevel )
 		mipMapSize.x, mipMapSize.y, 1, dataFormat, type, surface.getData() );
 }
 
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 /////////////////////////////////////////////////////////////////////////////////
 // TextureCubeMap
@@ -1245,7 +1245,7 @@ shared_ptr<ImageTargetGlTexture<T>> ImageTargetGlTexture<T>::create( const Textu
 	return shared_ptr<ImageTargetGlTexture<T>>( new ImageTargetGlTexture<T>( texture, channelOrder, isGray, hasAlpha, nullptr ) );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 // create method receives an existing pointer which presumably is a mapped PBO
 template<typename T>
 shared_ptr<ImageTargetGlTexture<T>> ImageTargetGlTexture<T>::create( const Texture *texture, ImageIo::ChannelOrder &channelOrder, bool isGray, bool hasAlpha, void *intermediateDataStore )
@@ -1295,7 +1295,7 @@ TextureData::TextureData()
 	init();
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 TextureData::TextureData( const PboRef &pbo )
 	: mPbo( pbo )
 {
@@ -1317,7 +1317,7 @@ void TextureData::init()
 
 TextureData::~TextureData()
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	if( mPbo )
 		gl::context()->popBufferBinding( GL_PIXEL_UNPACK_BUFFER );
 #endif
@@ -1325,7 +1325,7 @@ TextureData::~TextureData()
 
 void TextureData::allocateDataStore( size_t requireBytes )
 {
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[requireBytes] );
 #else
 	if( mPbo ) {
@@ -1341,7 +1341,7 @@ void TextureData::allocateDataStore( size_t requireBytes )
 
 void TextureData::mapDataStore()
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	if( mPbo )
 		mPboMappedPtr = mPbo->map( GL_WRITE_ONLY );
 #endif
@@ -1349,7 +1349,7 @@ void TextureData::mapDataStore()
 
 void TextureData::unmapDataStore()
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	if( mPbo )
 		mPbo->unmap();
 	mPboMappedPtr = nullptr;
@@ -1358,7 +1358,7 @@ void TextureData::unmapDataStore()
 
 void* TextureData::getDataStorePtr( size_t offset ) const
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	if( mPbo ) {
 		return ((uint8_t*)mPboMappedPtr) + offset;
 	}
@@ -1369,7 +1369,7 @@ void* TextureData::getDataStorePtr( size_t offset ) const
 
 TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, const Format &format )
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	TextureData textureData( format.getIntermediatePbo() );
 #else
 	TextureData textureData;
@@ -1379,13 +1379,13 @@ TextureRef Texture::createFromKtx( const DataSourceRef &dataSource, const Format
 	return Texture::create( textureData, format );
 }
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 void Texture::updateFromKtx( const DataSourceRef &dataSource )
 #else
 void Texture::updateFromKtx( const DataSourceRef &dataSource, const PboRef &intermediatePbo )
 #endif
 {
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	TextureData textureData;
 #else
 	TextureData textureData( intermediatePbo );
@@ -1446,10 +1446,10 @@ void Texture::replace( const TextureData &textureData )
 		glPixelStorei( GL_UNPACK_ALIGNMENT, textureData.getUnpackAlignment() );
 }
 
-#if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
+#if ! defined( CINDER_GL_ES ) || defined( CINDER_GL_ANGLE )
 TextureRef Texture::createFromDds( const DataSourceRef &dataSource, const Format &format )
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	TextureData textureData( format.getIntermediatePbo() );
 #else
 	TextureData textureData;
@@ -1465,7 +1465,7 @@ void Texture::updateFromDds( const DataSourceRef &dataSource )
 void Texture::updateFromDds( const DataSourceRef &dataSource, const PboRef &intermediatePbo )
 #endif
 {
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	TextureData textureData;
 #else
 	TextureData textureData( intermediatePbo );
@@ -1474,7 +1474,7 @@ void Texture::updateFromDds( const DataSourceRef &dataSource, const PboRef &inte
 	parseDds( dataSource, &textureData );
 	update( textureData );
 }
-#endif // ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
+#endif // ! defined( CINDER_GL_ES ) || defined( CINDER_GL_ANGLE )
 
 TextureResizeExc::TextureResizeExc( const string &message, const Vec2i &updateSize, const Vec2i &textureSize )
 	 : TextureDataExc( "" )

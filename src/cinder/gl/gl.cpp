@@ -67,7 +67,7 @@ bool isExtensionAvailable( const std::string &extName )
 std::pair<GLint,GLint> getVersion()
 {
 	//hard-coded for now
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	return std::make_pair( (GLint)2, (GLint)0 );
 #else
 	static bool	sInitialized = false;
@@ -157,7 +157,7 @@ void clearColor( const ColorA &color )
 
 void clearDepth( const double depth )
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
     glClearDepth( depth );
 #else
 	glClearDepthf( depth );
@@ -521,7 +521,7 @@ void end()
 	}
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void bindBufferBase( GLenum target, int index, BufferObjRef buffer )
 {
 	gl::context()->bindBufferBase( target, index, buffer );
@@ -656,7 +656,7 @@ void vertex( const ci::Vec4f &v )
 	ctx->immediate().vertex( v, ctx->getCurrentColor() );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void polygonMode( GLenum face, GLenum mode )
 {
 	gl::context()->polygonMode( face, mode );
@@ -702,7 +702,7 @@ void vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean norma
 	context()->vertexAttribPointer( index, size, type, normalized, stride, pointer );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer )
 {
 	context()->vertexAttribIPointer( index, size, type, stride, pointer );

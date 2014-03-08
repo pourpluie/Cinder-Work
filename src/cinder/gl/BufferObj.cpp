@@ -34,7 +34,7 @@ BufferObjRef BufferObj::create( GLenum target, GLsizeiptr allocationSize, const 
 	
 BufferObj::BufferObj( GLenum target )
 	: mId( 0 ), mSize( 0 ), mTarget( target ),
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	mUsage( 0 ) /* GL ES default buffer usage is undefined(?) */
 #else
 	mUsage( GL_READ_WRITE )
@@ -80,7 +80,7 @@ void BufferObj::bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *d
 	glBufferSubData( mTarget, offset, size, data );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void BufferObj::getBufferSubData( GLintptr offset, GLsizeiptr size, GLvoid *data )
 {
 	BufferScope bufferBind( mTarget, mId );
@@ -113,7 +113,7 @@ void BufferObj::ensureMinimumSize( GLsizeiptr minimumSize )
 void* BufferObj::map( GLenum access ) const
 {
 	BufferScope bufferBind( mTarget, mId );
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	return reinterpret_cast<void*>( glMapBufferOES( mTarget, access ) );
 #else
 	return reinterpret_cast<void*>( glMapBuffer( mTarget, access ) );
@@ -123,7 +123,7 @@ void* BufferObj::map( GLenum access ) const
 void* BufferObj::mapBufferRange( GLintptr offset, GLsizeiptr length, GLbitfield access ) const
 {
 	BufferScope bufferBind( mTarget, mId );
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	return reinterpret_cast<void*>( glMapBufferRangeEXT( mTarget, offset, length, access ) );
 #else
 	return reinterpret_cast<void*>( glMapBufferRange( mTarget, offset, length, access ) );
@@ -133,7 +133,7 @@ void* BufferObj::mapBufferRange( GLintptr offset, GLsizeiptr length, GLbitfield 
 void BufferObj::unmap() const
 {
 	BufferScope bufferBind( mTarget, mId );
-#if defined( CINDER_GLES )	
+#if defined( CINDER_GL_ES )	
 	GLboolean result = glUnmapBufferOES( mTarget );
 #else
 	GLboolean result = glUnmapBuffer( mTarget );
@@ -176,7 +176,7 @@ GLuint BufferObj::getBindingConstantForTarget( GLenum target )
 			return GL_ARRAY_BUFFER_BINDING;
 		case GL_ELEMENT_ARRAY_BUFFER:
 			return GL_ELEMENT_ARRAY_BUFFER_BINDING;
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		case GL_PIXEL_PACK_BUFFER:
 			return GL_PIXEL_PACK_BUFFER_BINDING;
 		case GL_PIXEL_UNPACK_BUFFER:

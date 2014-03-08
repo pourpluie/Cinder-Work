@@ -110,7 +110,7 @@ TextureFont::TextureFont( const Font &font, const string &supportedChars, const 
 			gl::Texture::Format textureFormat = gl::Texture::Format();
 			textureFormat.enableMipmapping( mFormat.hasMipmapping() );
 			GLint dataFormat;
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 			dataFormat = GL_LUMINANCE_ALPHA;
 			textureFormat.setInternalFormat( dataFormat );
 #else
@@ -292,7 +292,7 @@ TextureFont::TextureFont( const Font &font, const string &utf8Chars, const Forma
 				}
 			}
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 			textureFormat.setInternalFormat( GL_LUMINANCE_ALPHA );
 #else
 			textureFormat.setInternalFormat( GL_RG );
@@ -337,7 +337,7 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 		vector<float> verts, texCoords;
 		vector<ColorA8u> vertColors;
 		const gl::TextureRef &curTex = mTextures[texIdx];
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 		vector<uint16_t> indices;
 		uint16_t curIdx = 0;
 		GLenum indexType = GL_UNSIGNED_SHORT;
@@ -453,7 +453,7 @@ void TextureFont::drawGlyphs( const std::vector<std::pair<uint16_t,Vec2f> > &gly
 		vector<float> verts, texCoords;
 		vector<ColorA8u> vertColors;
 		const gl::TextureRef &curTex = mTextures[texIdx];
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 		vector<uint16_t> indices;
 		uint16_t curIdx = 0;
 		GLenum indexType = GL_UNSIGNED_SHORT;

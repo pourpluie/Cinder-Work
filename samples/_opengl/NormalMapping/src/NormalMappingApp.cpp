@@ -115,7 +115,7 @@ private:
 
 	float				fTime;
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	params::InterfaceGlRef	mParams;
 #endif
 };
@@ -170,7 +170,7 @@ void NormalMappingApp::setup()
 		mEmmisiveMap = gl::Texture::create( loadImage( loadAsset("leprechaun_emmisive.png") ) );
 
 		// load our shader and set the non-varying uniforms
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		mShader = gl::GlslProg::create( loadAsset("normal_mapping_vert.glsl"), loadAsset("normal_mapping_frag.glsl") );
 #else
 		mShader = gl::GlslProg::create( loadAsset("normal_mapping_vert_es2.glsl"), loadAsset("normal_mapping_frag_es2.glsl") );
@@ -213,7 +213,7 @@ void NormalMappingApp::setup()
 	viewmodes.push_back("Lighting Only     ");
 	viewmodes.push_back("Calculated Normals");
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	mParams = params::InterfaceGl::create( getWindow(), "Normal Mapping Demo", Vec2i(340, 150) );
 	mParams->setOptions( "", "valueswidth=fit" );
 
@@ -319,7 +319,7 @@ void NormalMappingApp::draw()
 		gl::popMatrices();
 
 		// render our parameter window
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		if( mParams )
 			mParams->draw();
 #endif

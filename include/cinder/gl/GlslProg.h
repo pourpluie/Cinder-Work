@@ -59,7 +59,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		Format&		fragment( const DataSourceRef &dataSource );
 		//! Supplies the GLSL source for the fragment shader
 		Format&		fragment( const char *vertexShader );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		//! Supplies the GLSL source for the geometry shader
 		Format&		geometry( const DataSourceRef &dataSource );
 		//! Supplies the GLSL source for the geometry shader
@@ -84,7 +84,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		const std::string&	getVertex() const { return mVertexShader; }
 		//! Returns the GLSL source for the fragment shader. Returns an empty string if it isn't present.
 		const std::string&	getFragment() const { return mFragmentShader; }
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		//! Returns the GLSL source for the geometry shader
 		const std::string&	getGeometry() const { return mGeometryShader; }
 		const std::vector<std::string>&  getVaryings() const { return mTransformVaryings; }
@@ -105,7 +105,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	  protected:
 		std::string					mVertexShader;
 		std::string					mFragmentShader;
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		std::string								mGeometryShader;
 		GLenum									mTransformFormat;
 		std::vector<std::string>				mTransformVaryings;
@@ -219,7 +219,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	mutable AttribSemanticMap				mAttribSemantics;
 
 	// storage as a work-around for NVidia on MSW driver bug expecting persistent memory in calls to glTransformFeedbackVaryings
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	std::unique_ptr<std::vector<GLchar>>	mTransformFeedbackVaryingsChars;
 	std::unique_ptr<std::vector<GLchar*>>	mTransformFeedbackVaryingsCharStarts;
 #endif

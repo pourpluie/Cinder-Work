@@ -58,7 +58,7 @@ std::string	constantToString( GLenum constant )
 		sSymbols[GL_FLOAT_MAT4] = "FLOAT_MAT4";
 		sSymbols[GL_SAMPLER_2D] = "SAMPLER_2D";
 		sSymbols[GL_SAMPLER_CUBE] = "SAMPLER_CUBE";
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		sSymbols[GL_SAMPLER_1D] = "SAMPLER_1D";
 		sSymbols[GL_SAMPLER_3D] = "SAMPLER_3D";
 		sSymbols[GL_SAMPLER_1D_SHADOW] = "SAMPLER_1D_SHADOW";
@@ -71,7 +71,7 @@ std::string	constantToString( GLenum constant )
 		// Buffer bindings
 		sSymbols[GL_ARRAY_BUFFER] = "GL_ARRAY_BUFFER";
 		sSymbols[GL_ELEMENT_ARRAY_BUFFER] = "GL_ELEMENT_ARRAY_BUFFER";
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		sSymbols[GL_ATOMIC_COUNTER_BUFFER] = "GL_ATOMIC_COUNTER_BUFFER";
 		sSymbols[GL_COPY_READ_BUFFER] = "GL_COPY_READ_BUFFER";
 		sSymbols[GL_COPY_WRITE_BUFFER] = "GL_COPY_WRITE_BUFFER";
@@ -89,7 +89,7 @@ std::string	constantToString( GLenum constant )
 		sSymbols[GL_STREAM_DRAW] = "GL_STREAM_DRAW";
 		sSymbols[GL_STATIC_DRAW] = "GL_STATIC_DRAW";
 		sSymbols[GL_DYNAMIC_DRAW] = "GL_DYNAMIC_DRAW";
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		sSymbols[GL_STREAM_READ] = "GL_STREAM_READ";
 		sSymbols[GL_STREAM_COPY] = "GL_STREAM_COPY";
 		sSymbols[GL_STATIC_READ] = "GL_STATIC_READ";

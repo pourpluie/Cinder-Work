@@ -27,7 +27,7 @@
 
 namespace cinder { namespace gl {
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	
 extern TransformFeedbackObjRef createTransformFeedbackObjImplHardware();
 extern TransformFeedbackObjRef createTransformFeedbackObjImplSoftware();

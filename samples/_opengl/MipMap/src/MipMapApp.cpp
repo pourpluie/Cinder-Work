@@ -118,7 +118,7 @@ void TextureMipmappingApp::setup()
 	// This if def is here to make sure whether you're using gl::Es2 or desktop gl.
 	// It illustrates the fact that unfortunately Es2 does not support non-power-of-two
 	// textures.
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	mCheckerBoard = Surface( loadImage( loadResource( NON_POT_CHECKER ) ) );
 #else
 	mCheckerBoard = Surface( loadImage( loadResource( CHECKER_BOARD ) ) );

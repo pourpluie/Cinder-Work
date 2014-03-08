@@ -43,7 +43,7 @@ class Vao;
 typedef std::shared_ptr<Vao>			VaoRef;
 class BufferObj;
 typedef std::shared_ptr<BufferObj>		BufferObjRef;
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 class TransformFeedbackObj;
 typedef std::shared_ptr<TransformFeedbackObj>	TransformFeedbackObjRef;
 #endif
@@ -155,7 +155,7 @@ class Context {
 	//! Returns the currently bound GlslProg
 	GlslProgRef		getGlslProg();
 	
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Binds \a ref to the specific \a index within \a target.
 	void bindBufferBase( GLenum target, int index, const BufferObjRef &ref );
 
@@ -249,7 +249,7 @@ class Context {
 	//! Analogous to glDepthMask()
 	void		depthMask( GLboolean enable );
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Parallels glPolygonMode()
 	void		polygonMode( GLenum face, GLenum mode );
 	GLenum		getPolygonMode( GLenum face ) const;
@@ -265,10 +265,10 @@ class Context {
 	void		disableVertexAttribArray( GLuint index );
 	//! Analogous to glVertexAttribPointer()
 	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Analogous to glVertexAttribIPointer()
 	void		vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 	//! Analogous to glVertexAttribDivisor()
 	void		vertexAttribDivisor( GLuint index, GLuint divisor );
 	//! Analogous to glVertexAttrib1f()
@@ -284,12 +284,12 @@ class Context {
 	void		drawArrays( GLenum mode, GLint first, GLsizei count );
 	//! Analogous to glDrawElements()
 	void		drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Analogous to glDrawArraysInstanced()
 	void		drawArraysInstanced( GLenum mode, GLint first, GLsizei count, GLsizei primcount );
 	//! Analogous to glDrawElementsInstanced()
 	void		drawElementsInstanced( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount );
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 	//! Returns the current active color, used in immediate-mode emulation and as UNIFORM_COLOR
 	const ColorAf&	getCurrentColor() const { return mColor; }
@@ -327,7 +327,7 @@ class Context {
 	std::vector<GlslProgRef>			mGlslProgStack;
 	std::vector<VaoRef>					mVaoStack;
 	
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	TransformFeedbackObjRef				mCachedTransformFeedbackObj;
 #endif
 	
@@ -335,7 +335,7 @@ class Context {
 	std::vector<GLint>					mBlendSrcRgbStack, mBlendDstRgbStack;
 	std::vector<GLint>					mBlendSrcAlphaStack, mBlendDstAlphaStack;
 
-#if defined( CINDER_GLES ) && (! defined( CINDER_COCOA_TOUCH ))
+#if defined( CINDER_GL_ES ) && (! defined( CINDER_COCOA_TOUCH ))
 	std::vector<GLint>			mFramebufferStack;
 #else
 	std::vector<GLint>			mReadFramebufferStack, mDrawFramebufferStack;

@@ -37,7 +37,7 @@
 using namespace std;
 
 // ES 2 Multisampling is available on iOS via an extension
-#if ! defined( CINDER_GLES ) || ( defined( CINDER_COCOA_TOUCH ) )
+#if ! defined( CINDER_GL_ES ) || ( defined( CINDER_COCOA_TOUCH ) )
 	#define SUPPORTS_FBO_MULTISAMPLING
 	#if defined( CINDER_COCOA_TOUCH )
 		#define GL_READ_FRAMEBUFFER					GL_READ_FRAMEBUFFER_APPLE
@@ -61,13 +61,13 @@ namespace cinder { namespace gl {
 Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	: mPlatformData( platformData ),
 	mColor( ColorAf::white() )
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL ),
 	mCachedTransformFeedbackObj( nullptr )
 #endif
 {
 	// setup default VAO
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	mDefaultVao = Vao::create();
 	mVaoStack.push_back( mDefaultVao );
 	mDefaultVao->setContext( this );
@@ -435,7 +435,7 @@ void Context::restoreInvalidatedBufferBinding( GLenum target )
 	}
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Context::bindBufferBase( GLenum target, int index, const BufferObjRef &buffer )
 {
 	switch (target) {
@@ -1047,7 +1047,7 @@ void Context::depthMask( GLboolean enable )
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // PolygonMode
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Context::polygonMode( GLenum face, GLenum mode )
 {
 	if( face == GL_FRONT_AND_BACK ) {
@@ -1074,7 +1074,7 @@ GLenum Context::getPolygonMode( GLenum face ) const
 {
 	return face == GL_FRONT ? mCachedFrontPolygonMode : mCachedBackPolygonMode;
 }
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Templated stack management routines
@@ -1133,7 +1133,7 @@ void Context::sanityCheck()
 {
 	// assert cached (VAO) GL_VERTEX_ARRAY_BINDING is correct
 	GLint trueVaoBinding;
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING_OES, &trueVaoBinding );
 #else
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &trueVaoBinding );
@@ -1185,7 +1185,7 @@ void Context::printState( std::ostream &os ) const
 	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
 	os << "GL_ELEMENT_ARRAY_BUFFER:" << queriedInt << ", ";
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING_OES, &queriedInt );
 #else
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &queriedInt );
@@ -1217,14 +1217,14 @@ void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLbool
 		vao->vertexAttribPointerImpl( index, size, type, normalized, stride, pointer );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Context::vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer )
 {
 	VaoRef vao = getVao();
 	if( vao )
 		vao->vertexAttribIPointerImpl( index, size, type, stride, pointer );
 }
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 void Context::vertexAttribDivisor( GLuint index, GLuint divisor )
 {
@@ -1265,7 +1265,7 @@ void Context::drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoi
 	glDrawElements( mode, count, type, indices );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Context::drawArraysInstanced( GLenum mode, GLint first, GLsizei count, GLsizei primcount )
 {
 	glDrawArraysInstanced( mode, first, count, primcount );
@@ -1275,7 +1275,7 @@ void Context::drawElementsInstanced( GLenum mode, GLsizei count, GLenum type, co
 {
 	glDrawElementsInstanced( mode, count, type, indices, primcount );
 }
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Shaders
