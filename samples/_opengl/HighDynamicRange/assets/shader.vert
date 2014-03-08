@@ -4,7 +4,7 @@
 in vec4 ciPosition;
 in vec4 ciTexCoord0;
  
-uniform mat4   ciModelViewProjectionMatrix;
+uniform mat4   ciModelViewProjection;
  
 // Color to fragment program
 out vec2 TexCoord0;
@@ -12,5 +12,5 @@ out vec2 TexCoord0;
 void main(void) 
 { 
     TexCoord0 = ciTexCoord0.st;
-    gl_Position = ciModelViewProjectionMatrix * ciPosition;
+    gl_Position = ciModelViewProjection * ciPosition;
 }

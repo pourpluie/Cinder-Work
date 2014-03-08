@@ -1,5 +1,5 @@
-uniform mat4	ciModelViewMatrix;
-uniform mat4	ciModelViewProjectionMatrix;
+uniform mat4	ciModelView;
+uniform mat4	ciModelViewProjection;
 uniform mat3	ciNormalMatrix;
 
 attribute vec4			ciPosition;
@@ -16,7 +16,7 @@ varying vec2		vTexCoord0;
 void main()
 {	
 	// calculate view space position (required for lighting)
-	vVertex = ciModelViewMatrix * ciPosition; 
+	vVertex = ciModelView * ciPosition; 
 
 	// calculate view space normal (required for lighting & normal mapping)
 	vNormal = normalize(ciNormalMatrix * ciNormal);
@@ -29,5 +29,5 @@ void main()
 	vTexCoord0 = ciTexCoord0;
 
 	// vertex shader must always pass projection space position
-	gl_Position = ciModelViewProjectionMatrix * ciPosition;
+	gl_Position = ciModelViewProjection * ciPosition;
 }

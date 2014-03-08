@@ -1301,10 +1301,10 @@ void Context::setDefaultShaderVars()
 					glslProg->uniform( unifIt.first, gl::getViewMatrix() ); break;
 				case UNIFORM_VIEW_MATRIX_INVERSE:
 					glslProg->uniform( unifIt.first, gl::calcViewMatrixInverse() ); break;
-				case UNIFORM_MODEL_VIEW_MATRIX:
-					glslProg->uniform( unifIt.first, gl::getModelViewMatrix() ); break;
-				case UNIFORM_MODEL_VIEW_PROJECTION_MATRIX:
-					glslProg->uniform( unifIt.first, gl::getModelViewProjectionMatrix() ); break;
+				case UNIFORM_MODEL_VIEW:
+					glslProg->uniform( unifIt.first, gl::getModelView() ); break;
+				case UNIFORM_MODEL_VIEW_PROJECTION:
+					glslProg->uniform( unifIt.first, gl::getModelViewProjection() ); break;
 				case UNIFORM_PROJECTION_MATRIX:
 					glslProg->uniform( unifIt.first, gl::getProjectionMatrix() ); break;
 				case UNIFORM_NORMAL_MATRIX:

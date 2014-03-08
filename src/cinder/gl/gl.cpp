@@ -404,13 +404,13 @@ Matrix44f getProjectionMatrix()
 	return ctx->getProjectionMatrixStack().back();
 }
 
-Matrix44f getModelViewMatrix()
+Matrix44f getModelView()
 {
 	auto ctx = context();
 	return ctx->getViewMatrixStack().back() * ctx->getModelMatrixStack().back();
 }
 
-Matrix44f getModelViewProjectionMatrix()
+Matrix44f getModelViewProjection()
 {
 	auto ctx = context();
 	return ctx->getProjectionMatrixStack().back() * ctx->getViewMatrixStack().back() * ctx->getModelMatrixStack().back();
@@ -424,7 +424,7 @@ Matrix44f calcViewMatrixInverse()
 
 Matrix33f calcNormalMatrix()
 {
-	Matrix33f mv = getModelViewMatrix().subMatrix33( 0, 0 );
+	Matrix33f mv = getModelView().subMatrix33( 0, 0 );
 	mv.invert( FLT_MIN );
 	mv.transpose();
 	return mv;
@@ -768,8 +768,8 @@ std::string uniformSemanticToString( UniformSemantic uniformSemantic )
 		case UNIFORM_MODEL_MATRIX: return "UNIFORM_MODEL_MATRIX";
 		case UNIFORM_VIEW_MATRIX: return "UNIFORM_VIEW_MATRIX";
 		case UNIFORM_VIEW_MATRIX_INVERSE: return "UNIFORM_VIEW_MATRIX_INVERSE";
-		case UNIFORM_MODEL_VIEW_MATRIX: return "UNIFORM_MODEL_VIEW_MATRIX";
-		case UNIFORM_MODEL_VIEW_PROJECTION_MATRIX: return "UNIFORM_MODEL_VIEW_PROJECTION_MATRIX";
+		case UNIFORM_MODEL_VIEW: return "UNIFORM_MODEL_VIEW";
+		case UNIFORM_MODEL_VIEW_PROJECTION: return "UNIFORM_MODEL_VIEW_PROJECTION";
 		case UNIFORM_PROJECTION_MATRIX: return "UNIFORM_PROJECTION_MATRIX";
 		case UNIFORM_NORMAL_MATRIX: return "UNIFORM_NORMAL_MATRIX";
 		case UNIFORM_WINDOW_SIZE: return "UNIFORM_WINDOW_SIZE";

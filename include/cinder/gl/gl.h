@@ -69,8 +69,8 @@ enum UniformSemantic {
 	UNIFORM_MODEL_MATRIX,
 	UNIFORM_VIEW_MATRIX,
 	UNIFORM_VIEW_MATRIX_INVERSE,
-	UNIFORM_MODEL_VIEW_MATRIX,
-	UNIFORM_MODEL_VIEW_PROJECTION_MATRIX,
+	UNIFORM_MODEL_VIEW,
+	UNIFORM_MODEL_VIEW_PROJECTION,
 	UNIFORM_PROJECTION_MATRIX,
 	UNIFORM_NORMAL_MATRIX,
 	UNIFORM_WINDOW_SIZE,
@@ -174,8 +174,8 @@ void multProjectionMatrix( const ci::Matrix44f &mtx );
 Matrix44f getModelMatrix();
 Matrix44f getViewMatrix();
 Matrix44f getProjectionMatrix();
-Matrix44f getModelViewMatrix();
-Matrix44f getModelViewProjectionMatrix();
+Matrix44f getModelView();
+Matrix44f getModelViewProjection();
 Matrix44f calcViewMatrixInverse();
 Matrix33f calcNormalMatrix();
 
