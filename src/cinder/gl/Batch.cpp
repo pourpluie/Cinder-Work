@@ -26,6 +26,7 @@
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/VboMesh.h"
 #include "cinder/gl/gl.h"
+#include "cinder/Log.h"
 
 namespace cinder { namespace gl {
 
@@ -159,6 +160,7 @@ void Batch::initVao()
 	mVao = Vao::create();
 	ScopedVao ScopedVao( mVao );
 	
+	std::set<geom::Attrib> enabledAttribs;
 	// iterate all the vertex array VBOs
 	for( const auto &vertArrayVbo : mVertexArrayVbos ) {
 		// bind this VBO (to the current VAO)
@@ -170,8 +172,16 @@ void Batch::initVao()
 				int loc = mGlsl->getAttribSemanticLocation( attribInfo.getAttrib() );
 				ctx->enableVertexAttribArray( loc );
 				ctx->vertexAttribPointer( loc, attribInfo.getDims(), GL_FLOAT, GL_FALSE, attribInfo.getStride(), (const void*)attribInfo.getOffset() );
+				enabledAttribs.insert( attribInfo.getAttrib() );
 			}
 		}
+	}
+	
+	// warn the user if the shader expects any attribs which we couldn't supply. We make an exception for ciColor since it often comes from the Context instead
+	const auto &glslActiveAttribs = mGlsl->getAttribSemantics();
+	for( auto &glslActiveAttrib : glslActiveAttribs ) {
+		if( (glslActiveAttrib.second != geom::Attrib::COLOR) && (enabledAttribs.count( glslActiveAttrib.second ) == 0) )
+			CI_LOG_W( "Batch GlslProg expected an Attrib of " << geom::attribToString( glslActiveAttrib.second ) << " but vertex data doesn't provide it." );			
 	}
 	
 	if( mNumIndices > 0 )

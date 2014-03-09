@@ -172,9 +172,9 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	//! Returns a std::map from the attribute name to its OpenGL type (GL_BOOL, GL_FLOAT_VEC3, etc)
 	const std::map<std::string,GLenum>&		getActiveAttribTypes() const;
 
-	//! Returns the map between uniform semantics and uniform names
+	//! Returns the map between uniform semantics and active uniforms' names
 	const UniformSemanticMap&		getUniformSemantics() const;
-	//! Returns the map between attribute semantics and attribute names
+	//! Returns the map between attribute semantics and active attributes' names
 	const AttribSemanticMap&		getAttribSemantics() const;
 	
 	bool	hasAttribSemantic( geom::Attrib semantic ) const;
