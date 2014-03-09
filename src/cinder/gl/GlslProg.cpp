@@ -775,7 +775,7 @@ const GlslProg::UniformSemanticMap& GlslProg::getUniformSemantics() const
 			}
 			// if this uniform starts with "ci[A-Z]" it is likely a typo
 			else if( (activeUnifIt->first.length() > 4) && (activeUnifIt->first.substr( 0, 2 ) == "ci") && (isupper(activeUnifIt->first[2]) ) ) {
-				CI_LOG_W( "\"" << activeUnifIt->first << "\" appears to reference a Cinder uniform but is not a known semantic" );
+				CI_LOG_W( "\"" << activeUnifIt->first << "\" may reference a Cinder uniform but is not a known semantic" );
 			}
 		}
 	
@@ -796,6 +796,10 @@ const GlslProg::AttribSemanticMap& GlslProg::getAttribSemantics() const
 			if( semantic != mAttribNameToSemanticMap.end() ) {
 				// found this semantic, add it mAttrSemantics
 				mAttribSemantics[semantic->first] = semantic->second;
+			}
+			// if this attribute starts with "ci[A-Z]" it is likely a typo
+			else if( (activeAttrIt->first.length() > 4) && (activeAttrIt->first.substr( 0, 2 ) == "ci") && (isupper(activeAttrIt->first[2]) ) ) {
+				CI_LOG_W( "\"" << activeAttrIt->first << "\" may reference a Cinder attribute but is not a known semantic" );
 			}
 		}
 	
