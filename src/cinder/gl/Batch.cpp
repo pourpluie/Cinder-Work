@@ -108,15 +108,13 @@ BatchRef Batch::create( const geom::SourceRef &sourceRef, const gl::GlslProgRef 
 Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const AttributeMapping &attributeMapping )
 	: mGlsl( glsl )
 {
-	mVertexArrayVbos = vboMesh->getVertexArrayVbos();
 	mElements = vboMesh->getElementVbo();
-	mVao = Vao::create();
-	ScopedVao vaoScp( mVao );
-	vboMesh->buildVao( glsl, attributeMapping );
 	mPrimitive = vboMesh->getGlPrimitive();
 	mNumVertices = vboMesh->getNumVertices();
 	mNumIndices = vboMesh->getNumIndices();
 	mIndexType = vboMesh->getIndexDataType();
+	mVertexArrayVbos = vboMesh->getVertexArrayLayoutVbos();
+	initVao();
 }
 
 Batch::Batch( const geom::Source &source, const gl::GlslProgRef &glsl )
@@ -147,14 +145,13 @@ void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 	BatchGeomTarget target( source.getPrimitive(), bufferLayout, buffer.get(), this );
 	source.loadInto( &target );
 
-	mVertexArrayVbos.push_back( Vbo::create( GL_ARRAY_BUFFER, vertexDataSizeBytes, buffer.get() ) );
-	std::vector<std::pair<geom::BufferLayout,VboRef>> vertLayoutVbos;
-	vertLayoutVbos.push_back( make_pair( bufferLayout, mVertexArrayVbos.back() ) );
+	auto vbo = Vbo::create( GL_ARRAY_BUFFER, vertexDataSizeBytes, buffer.get() );
+	mVertexArrayVbos.push_back( make_pair( bufferLayout, vbo ) );
 	
-	initVao( vertLayoutVbos );
+	initVao();
 }
 
-void Batch::initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertLayoutVbos )
+void Batch::initVao()
 {
 	auto ctx = gl::context();
 	ctx->pushBufferBinding( GL_ARRAY_BUFFER );
@@ -163,7 +160,7 @@ void Batch::initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &ve
 	ScopedVao ScopedVao( mVao );
 	
 	// iterate all the vertex array VBOs
-	for( const auto &vertArrayVbo : vertLayoutVbos ) {
+	for( const auto &vertArrayVbo : mVertexArrayVbos ) {
 		// bind this VBO (to the current VAO)
 		vertArrayVbo.second->bind();
 		// now iterate the attributes associated with this VBO
@@ -181,6 +178,12 @@ void Batch::initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &ve
 		mElements->bind();
 
 	ctx->popBufferBinding( GL_ARRAY_BUFFER );
+}
+
+void Batch::setGlslProg( const GlslProgRef& glsl )
+{
+	mGlsl = glsl;
+	initVao();
 }
 
 void Batch::draw()
