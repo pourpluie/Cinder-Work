@@ -1426,4 +1426,211 @@ void checkError()
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+// VaoScope
+VaoScope::VaoScope( const VaoRef &vao )
+	: mCtx( gl::context() )
+{
+	mCtx->pushVao( vao );
+}
+
+VaoScope::~VaoScope()
+{
+	mCtx->popVao();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// BufferScope
+BufferScope::BufferScope( const BufferObjRef &bufferObj )
+	: mCtx( gl::context() ), mTarget( bufferObj->getTarget() )
+{
+	mCtx->pushBufferBinding( mTarget, bufferObj->getId() );
+}
+
+BufferScope::BufferScope( GLenum target, GLuint id )
+		: mCtx( gl::context() ), mTarget( target )
+{
+	mCtx->pushBufferBinding( target, id );
+}
+
+BufferScope::~BufferScope()
+{
+	mCtx->popBufferBinding( mTarget );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// StateScope
+StateScope::StateScope( GLenum cap, GLboolean value )
+	: mCtx( gl::context() ), mCap( cap )
+{
+	mCtx->pushBoolState( cap, value );
+}
+
+StateScope::~StateScope() {
+	mCtx->popBoolState( mCap );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// BlendScope
+BlendScope::BlendScope( GLboolean enable )
+	: mCtx( gl::context() ), mSaveFactors( false )
+{
+	mCtx->pushBoolState( GL_BLEND, enable );
+}
+
+//! Parallels glBlendFunc(), implicitly enables blending
+BlendScope::BlendScope( GLenum sfactor, GLenum dfactor )
+	: mCtx( gl::context() ), mSaveFactors( true )
+{
+	mCtx->pushBoolState( GL_BLEND, GL_TRUE );
+	mCtx->pushBlendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
+}
+
+//! Parallels glBlendFuncSeparate(), implicitly enables blending
+BlendScope::BlendScope( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
+	: mCtx( gl::context() ), mSaveFactors( true )
+{
+	mCtx->pushBoolState( GL_BLEND, GL_TRUE );
+	mCtx->pushBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
+}
+
+BlendScope::~BlendScope()
+{
+	mCtx->popBoolState( GL_BLEND );
+	if( mSaveFactors )
+		mCtx->popBlendFuncSeparate();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// GlslProgScope
+GlslProgScope::GlslProgScope( const GlslProgRef &prog )
+	: mCtx( gl::context() )
+{
+	mCtx->pushGlslProg( prog );
+}
+
+GlslProgScope::GlslProgScope( const std::shared_ptr<const GlslProg> &prog )
+	: mCtx( gl::context() )
+{
+	mCtx->pushGlslProg( std::const_pointer_cast<GlslProg>( prog ) );
+}
+
+GlslProgScope::~GlslProgScope()
+{
+	mCtx->popGlslProg();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// FramebufferScope
+FramebufferScope::FramebufferScope( const FboRef &fbo, GLenum target )
+	: mCtx( gl::context() ), mTarget( target )
+{
+	mCtx->pushFramebuffer( fbo, target );
+}
+
+FramebufferScope::FramebufferScope( GLenum target, GLuint framebufferId )
+	: mCtx( gl::context() ), mTarget( target )
+{
+	mCtx->pushFramebuffer( target, framebufferId );
+}
+
+FramebufferScope::~FramebufferScope()
+{	
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
+	mCtx->popFramebuffer( GL_FRAMEBUFFER );
+#else
+	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
+		mCtx->popFramebuffer( GL_READ_FRAMEBUFFER );
+	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_DRAW_FRAMEBUFFER )
+		mCtx->popFramebuffer( GL_DRAW_FRAMEBUFFER );
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ActiveTextureScope
+ActiveTextureScope::ActiveTextureScope( uint8_t textureUnit )
+	: mCtx( gl::context() )
+{
+	mCtx->pushActiveTexture( textureUnit );
+}
+	
+ActiveTextureScope::~ActiveTextureScope()
+{
+	mCtx->popActiveTexture();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// TextureBindScope
+TextureBindScope::TextureBindScope( GLenum target, GLuint textureId )
+	: mCtx( gl::context() ), mTarget( target )
+{
+	mTextureUnit = mCtx->getActiveTexture();
+	mCtx->pushTextureBinding( mTarget, textureId, mTextureUnit );
+}
+
+TextureBindScope::TextureBindScope( GLenum target, GLuint textureId, uint8_t textureUnit )
+	: mCtx( gl::context() ), mTarget( target ), mTextureUnit( textureUnit )
+{
+	mCtx->pushTextureBinding( mTarget, textureId, mTextureUnit );
+}
+
+TextureBindScope::TextureBindScope( const TextureBaseRef &texture )
+	: mCtx( gl::context() ), mTarget( texture->getTarget() )
+{
+	mTextureUnit = mCtx->getActiveTexture();
+	mCtx->pushTextureBinding( mTarget, texture->getId(), mTextureUnit );
+}
+
+TextureBindScope::TextureBindScope( const TextureBaseRef &texture, uint8_t textureUnit )
+	: mCtx( gl::context() ), mTarget( texture->getTarget() ), mTextureUnit( textureUnit )
+{
+	mCtx->pushTextureBinding( mTarget, texture->getId(), mTextureUnit );
+}
+	
+TextureBindScope::~TextureBindScope()
+{
+	mCtx->popTextureBinding( mTarget, mTextureUnit );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScissorScope
+ScissorScope::ScissorScope( const Vec2i &lowerLeftPostion, const Vec2i &dimension )
+	: mCtx( gl::context() )
+{
+	mCtx->pushBoolState( GL_SCISSOR_TEST, GL_TRUE );
+	mCtx->pushScissor( std::pair<Vec2i, Vec2i>( lowerLeftPostion, dimension ) ); 
+}
+
+ScissorScope::ScissorScope( int lowerLeftX, int lowerLeftY, int width, int height )
+	: mCtx( gl::context() )
+{
+	mCtx->pushBoolState( GL_SCISSOR_TEST, GL_TRUE );
+	mCtx->pushScissor( std::pair<Vec2i, Vec2i>( Vec2i( lowerLeftX, lowerLeftY ), Vec2i( width, height ) ) );		
+}
+	
+ScissorScope::~ScissorScope()
+{
+	mCtx->popBoolState( GL_SCISSOR_TEST );
+	mCtx->popScissor();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ViewportScope
+ViewportScope::ViewportScope( const Vec2i &lowerLeftPostion, const Vec2i &dimension )
+	: mCtx( gl::context() )
+{
+	mCtx->pushViewport( std::pair<Vec2i, Vec2i>( lowerLeftPostion, dimension ) ); 
+}
+
+ViewportScope::ViewportScope( int lowerLeftX, int lowerLeftY, int width, int height )
+	: mCtx( gl::context() )
+{
+	mCtx->pushViewport( std::pair<Vec2i, Vec2i>( Vec2i( lowerLeftX, lowerLeftY ), Vec2i( width, height ) ) );		
+}
+	
+ViewportScope::~ViewportScope()
+{
+	mCtx->popViewport();
+}
+
 } } // namespace cinder::gl

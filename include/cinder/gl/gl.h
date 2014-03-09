@@ -51,6 +51,7 @@
 	#define CINDER_GL_ES
 	#define CINDER_GL_ES_2
 #endif
+#include <boost/noncopyable.hpp>
 
 #include "cinder/gl/Texture.h"
 
@@ -92,17 +93,21 @@ enum UniformSemantic {
 };
 
 class Vbo;
-typedef std::shared_ptr<Vbo>		VboRef;
+typedef std::shared_ptr<Vbo>			VboRef;
 class VboMesh;
-typedef std::shared_ptr<VboMesh>	VboMeshRef;
+typedef std::shared_ptr<VboMesh>		VboMeshRef;
 class Texture;
-typedef std::shared_ptr<Texture>	TextureRef;
+typedef std::shared_ptr<Texture>		TextureRef;
+class TextureBase;
+typedef std::shared_ptr<TextureBase>	TextureBaseRef;
 class BufferObj;
-typedef std::shared_ptr<BufferObj>	BufferObjRef;
+typedef std::shared_ptr<BufferObj>		BufferObjRef;
 class GlslProg;
-typedef std::shared_ptr<GlslProg>	GlslProgRef;
+typedef std::shared_ptr<GlslProg>		GlslProgRef;
 class Vao;
-typedef std::shared_ptr<Vao>		VaoRef;
+typedef std::shared_ptr<Vao>			VaoRef;
+class Fbo;
+typedef std::shared_ptr<Fbo>			FboRef;
 
 class Context* context();
 class Environment* env();
@@ -342,6 +347,132 @@ void	drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indice
 GLenum getError();
 std::string getErrorString( GLenum err );
 void checkError();
+
+
+struct VaoScope : public boost::noncopyable {
+	VaoScope( const VaoRef &vao );
+	~VaoScope();
+
+  private:
+	Context		*mCtx;
+};
+
+struct BufferScope : public boost::noncopyable {
+	BufferScope( const BufferObjRef &bufferObj );
+	BufferScope( GLenum target, GLuint id );
+	~BufferScope();
+	
+  private:
+	Context		*mCtx;
+	GLenum		mTarget;
+};
+
+struct StateScope : public boost::noncopyable {
+	StateScope( GLenum cap, GLboolean value );
+	~StateScope();
+
+  private:
+	Context		*mCtx;
+	GLenum		mCap;
+};
+
+struct BlendScope : public boost::noncopyable
+{
+	BlendScope( GLboolean enable );
+	//! Parallels glBlendFunc(), and implicitly enables blending
+	BlendScope( GLenum sfactor, GLenum dfactor );
+	//! Parallels glBlendFuncSeparate(), and implicitly enables blending
+	BlendScope( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
+	~BlendScope();
+	
+  private:
+	Context		*mCtx;
+	bool		mSaveFactors; // whether we should also set the blend factors rather than just the blend state
+};
+
+struct GlslProgScope : public boost::noncopyable
+{
+	GlslProgScope( const GlslProgRef &prog );
+	GlslProgScope( const std::shared_ptr<const GlslProg> &prog );
+	~GlslProgScope();
+
+  private:
+	Context		*mCtx;
+};
+
+struct FramebufferScope : public boost::noncopyable
+{
+	FramebufferScope( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
+	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
+	FramebufferScope( GLenum target, GLuint framebufferId );
+	~FramebufferScope();
+	
+  private:
+	Context		*mCtx;
+	GLenum		mTarget;
+};
+
+struct ActiveTextureScope : public boost::noncopyable
+{
+	//! Sets the currently active texture through glActiveTexture. Expects values relative to \c 0, \em not GL_TEXTURE0
+	ActiveTextureScope( uint8_t textureUnit );
+	~ActiveTextureScope();
+	
+  private:
+	Context		*mCtx;
+};
+
+struct TextureBindScope : public boost::noncopyable
+{
+	TextureBindScope( GLenum target, GLuint textureId );
+	TextureBindScope( GLenum target, GLuint textureId, uint8_t textureUnit );
+	TextureBindScope( const TextureBaseRef &texture );
+	TextureBindScope( const TextureBaseRef &texture, uint8_t textureUnit );
+	~TextureBindScope();
+	
+  private:
+	Context		*mCtx;
+	GLenum		mTarget;
+	uint8_t		mTextureUnit;
+};
+	
+struct ScissorScope : public boost::noncopyable
+{
+	//! Implicitly enables scissor test
+	ScissorScope( const Vec2i &lowerLeftPostion, const Vec2i &dimension );
+	//! Implicitly enables scissor test	
+	ScissorScope( int lowerLeftX, int lowerLeftY, int width, int height );
+	~ScissorScope();
+
+  private:
+	Context					*mCtx;
+};
+
+struct ViewportScope : public boost::noncopyable
+{
+	ViewportScope( const Vec2i &lowerLeftPostion, const Vec2i &dimension );
+	ViewportScope( int lowerLeftX, int lowerLeftY, int width, int height );
+	~ViewportScope();
+
+  private:
+	Context					*mCtx;
+};
+
+struct ModelMatrixScope : public boost::noncopyable {
+	ModelMatrixScope()	{ gl::pushModelMatrix(); }
+	~ModelMatrixScope()	{ gl::popModelMatrix(); }
+};
+
+struct ProjectionMatrixScope : public boost::noncopyable {
+	ProjectionMatrixScope()			{ gl::pushProjectionMatrix(); }
+	~ProjectionMatrixScope()	{ gl::popProjectionMatrix(); }
+};
+
+//! Preserves all
+struct MatricesScope : public boost::noncopyable {
+	MatricesScope()		{ gl::pushMatrices(); }
+	~MatricesScope()	{ gl::popMatrices(); }
+};
 
 class Exception : public cinder::Exception {
 };
