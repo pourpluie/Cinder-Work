@@ -57,6 +57,10 @@
 		003133A4129EB85D009DC098 /* Blend.h in Headers */ = {isa = PBXBuildFile; fileRef = 003133A3129EB85D009DC098 /* Blend.h */; };
 		003133A5129EB85D009DC098 /* Blend.h in Headers */ = {isa = PBXBuildFile; fileRef = 003133A3129EB85D009DC098 /* Blend.h */; };
 		003133A6129EB85D009DC098 /* Blend.h in Headers */ = {isa = PBXBuildFile; fileRef = 003133A3129EB85D009DC098 /* Blend.h */; };
+		00317DB318CBF8F20079D48E /* Log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11C0947D18B80DD700276534 /* Log.cpp */; };
+		00317DB418CBF8F30079D48E /* Log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11C0947D18B80DD700276534 /* Log.cpp */; };
+		00317DB518CBF9040079D48E /* CinderAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11C0947C18B80DD700276534 /* CinderAssert.cpp */; };
+		00317DB618CBF9050079D48E /* CinderAssert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11C0947C18B80DD700276534 /* CinderAssert.cpp */; };
 		0032FD2910BB46F500C63A9D /* Exception.h in Headers */ = {isa = PBXBuildFile; fileRef = 0032FD2810BB46F500C63A9D /* Exception.h */; };
 		0032FD2B10BB472E00C63A9D /* Exception.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0032FD2A10BB472E00C63A9D /* Exception.cpp */; };
 		0034C311151A5752003F2E30 /* Unicode.h in Headers */ = {isa = PBXBuildFile; fileRef = 0034C310151A5752003F2E30 /* Unicode.h */; };
@@ -1040,11 +1044,11 @@
 		00A06F701760EFAD00D8BE17 /* Context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Context.cpp; path = gl/Context.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		00A06F711760EFAD00D8BE17 /* Environment.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; lineEnding = 0; name = Environment.cpp; path = gl/Environment.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		00A06F721760EFAD00D8BE17 /* Fbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Fbo.cpp; path = gl/Fbo.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		00A06F741760EFAD00D8BE17 /* gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gl.cpp; path = gl/gl.cpp; sourceTree = "<group>"; };
+		00A06F741760EFAD00D8BE17 /* gl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = gl.cpp; path = gl/gl.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		00A06F761760EFAD00D8BE17 /* GlslProg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GlslProg.cpp; path = gl/GlslProg.cpp; sourceTree = "<group>"; };
 		00A06F791760EFAD00D8BE17 /* Pbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pbo.cpp; path = gl/Pbo.cpp; sourceTree = "<group>"; };
 		00A06F7A1760EFAD00D8BE17 /* Shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Shader.cpp; path = gl/Shader.cpp; sourceTree = "<group>"; };
-		00A06F7B1760EFAD00D8BE17 /* Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Texture.cpp; path = gl/Texture.cpp; sourceTree = "<group>"; };
+		00A06F7B1760EFAD00D8BE17 /* Texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = Texture.cpp; path = gl/Texture.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		00A06F7C1760EFAD00D8BE17 /* Vao.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vao.cpp; path = gl/Vao.cpp; sourceTree = "<group>"; };
 		00A06F7D1760EFAD00D8BE17 /* Vbo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vbo.cpp; path = gl/Vbo.cpp; sourceTree = "<group>"; };
 		00A06F7E1760EFAD00D8BE17 /* VboMesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VboMesh.cpp; path = gl/VboMesh.cpp; sourceTree = "<group>"; };
@@ -1052,7 +1056,7 @@
 		00A06FB11760EFC500D8BE17 /* Context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = Context.h; path = gl/Context.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		00A06FB21760EFC500D8BE17 /* Environment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = Environment.h; path = gl/Environment.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		00A06FB31760EFC500D8BE17 /* Fbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fbo.h; path = gl/Fbo.h; sourceTree = "<group>"; };
-		00A06FB51760EFC500D8BE17 /* gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gl.h; path = gl/gl.h; sourceTree = "<group>"; };
+		00A06FB51760EFC500D8BE17 /* gl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = gl.h; path = gl/gl.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		00A06FB61760EFC500D8BE17 /* GlslProg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlslProg.h; path = gl/GlslProg.h; sourceTree = "<group>"; };
 		00A06FB91760EFC500D8BE17 /* Pbo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Pbo.h; path = gl/Pbo.h; sourceTree = "<group>"; };
 		00A06FBA1760EFC500D8BE17 /* Shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Shader.h; path = gl/Shader.h; sourceTree = "<group>"; };
@@ -2449,6 +2453,7 @@
 				0070509C1114F93F003FCAE4 /* Buffer.cpp in Sources */,
 				0070509D1114F93F003FCAE4 /* Exception.cpp in Sources */,
 				0070509E1114F93F003FCAE4 /* DataSource.cpp in Sources */,
+				00317DB318CBF8F20079D48E /* Log.cpp in Sources */,
 				0070509F1114F93F003FCAE4 /* ImageIo.cpp in Sources */,
 				007050A11114F93F003FCAE4 /* DataTarget.cpp in Sources */,
 				007050A41114F93F003FCAE4 /* Shape2d.cpp in Sources */,
@@ -2480,6 +2485,7 @@
 				43ED0FDE12209488003AEB0B /* UrlImplCocoa.mm in Sources */,
 				43ED0FE5122094AB003AEB0B /* Url.cpp in Sources */,
 				0012529412344FAA00080A0D /* Ray.cpp in Sources */,
+				00317DB518CBF9040079D48E /* CinderAssert.cpp in Sources */,
 				C7FB1B9B124BE2ED0045AFD2 /* Input.cpp in Sources */,
 				C7FB1B9C124BE2ED0045AFD2 /* InputImplAudioUnit.cpp in Sources */,
 				C7FB1B9D124BE2ED0045AFD2 /* OutputImplAudioUnit.cpp in Sources */,
@@ -2571,6 +2577,7 @@
 				00CFD9C61135C3520091E310 /* Buffer.cpp in Sources */,
 				00CFD9C71135C3520091E310 /* Exception.cpp in Sources */,
 				00CFD9C81135C3520091E310 /* DataSource.cpp in Sources */,
+				00317DB418CBF8F30079D48E /* Log.cpp in Sources */,
 				00CFD9C91135C3520091E310 /* ImageIo.cpp in Sources */,
 				00CFD9CA1135C3520091E310 /* DataTarget.cpp in Sources */,
 				00CFD9CB1135C3520091E310 /* Shape2d.cpp in Sources */,
@@ -2602,6 +2609,7 @@
 				0012529512344FAA00080A0D /* Ray.cpp in Sources */,
 				C7FB1B9F124BE2ED0045AFD2 /* Input.cpp in Sources */,
 				C7FB1BA0124BE2ED0045AFD2 /* InputImplAudioUnit.cpp in Sources */,
+				00317DB618CBF9050079D48E /* CinderAssert.cpp in Sources */,
 				C7FB1BA1124BE2ED0045AFD2 /* OutputImplAudioUnit.cpp in Sources */,
 				C7FB1BA2124BE2ED0045AFD2 /* PcmBuffer.cpp in Sources */,
 				C7FB1BA5124BE2FE0045AFD2 /* CocoaCaConverter.cpp in Sources */,
