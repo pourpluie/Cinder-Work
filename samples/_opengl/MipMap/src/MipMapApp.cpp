@@ -248,7 +248,7 @@ void TextureMipmappingApp::renderPlaneTexture( FilterControlRef f )
 	// This creates the scissor effect of showing both sides for contrast.
 	// it takes an area with origin at lower left and width and height
 	// like glViewport
-	gl::ScissorScope myScissor( f->mScissorPos, f->mScissorDimension  );
+	gl::ScopedScissor myScissor( f->mScissorPos, f->mScissorDimension  );
 	
 	switch( f->mTextureChoice ) {
 		case 0:

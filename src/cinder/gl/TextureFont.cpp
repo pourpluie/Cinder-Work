@@ -323,12 +323,12 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 	if( ! colors.empty() )
 		assert( glyphMeasures.size() == colors.size() );
 
-	TextureBindScope texBindScp( mTextures[0] );
+	ScopedTextureBind texBindScp( mTextures[0] );
 	auto shaderDef = ShaderDef().texture( mTextures[0] );
 	if( ! colors.empty() )
 		shaderDef.color();
 	GlslProgRef shader = gl::getStockShader( shaderDef );
-	GlslProgScope glslScp( shader );
+	ScopedGlslProg glslScp( shader );
 
 	Vec2f baseline = baselineIn;
 
@@ -397,8 +397,8 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 		VboRef defaultElementVbo = ctx->getDefaultElementVbo( indices.size() * sizeof(curIdx) );
 		VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( dataSize );
 
-		BufferScope vboArrayScp( defaultArrayVbo );
-		BufferScope vboElScp( defaultElementVbo );
+		ScopedBuffer vboArrayScp( defaultArrayVbo );
+		ScopedBuffer vboElScp( defaultElementVbo );
 
 		size_t dataOffset = 0;
 		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
@@ -440,12 +440,12 @@ void TextureFont::drawGlyphs( const std::vector<std::pair<uint16_t,Vec2f> > &gly
 	if( ! colors.empty() )
 		assert( glyphMeasures.size() == colors.size() );
 
-	TextureBindScope texBindScp( mTextures[0] );
+	ScopedTextureBind texBindScp( mTextures[0] );
 	auto shaderDef = ShaderDef().texture( mTextures[0] );
 	if( ! colors.empty() )
 		shaderDef.color();
 	GlslProgRef shader = gl::getStockShader( shaderDef );
-	GlslProgScope glslScp( shader );
+	ScopedGlslProg glslScp( shader );
 
 	const float scale = options.getScale();
 
@@ -533,8 +533,8 @@ void TextureFont::drawGlyphs( const std::vector<std::pair<uint16_t,Vec2f> > &gly
 		VboRef defaultElementVbo = ctx->getDefaultElementVbo( indices.size() * sizeof(curIdx) );
 		VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( dataSize );
 
-		BufferScope vboArrayScp( defaultArrayVbo );
-		BufferScope vboElScp( defaultElementVbo );
+		ScopedBuffer vboArrayScp( defaultArrayVbo );
+		ScopedBuffer vboElScp( defaultElementVbo );
 
 		size_t dataOffset = 0;
 		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );

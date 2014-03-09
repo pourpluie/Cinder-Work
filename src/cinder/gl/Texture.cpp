@@ -156,13 +156,13 @@ GLint TextureBase::getInternalFormat() const
 
 void TextureBase::bind( uint8_t textureUnit ) const
 {
-	ActiveTextureScope activeTextureScope( textureUnit );
+	ScopedActiveTexture ScopedActiveTexture( textureUnit );
 	gl::context()->bindTexture( mTarget, mTextureId );
 }
 
 void TextureBase::unbind( uint8_t textureUnit ) const
 {
-	ActiveTextureScope activeTextureScope( textureUnit );
+	ScopedActiveTexture ScopedActiveTexture( textureUnit );
 	gl::context()->bindTexture( mTarget, 0 );
 }
 
@@ -212,39 +212,39 @@ GLenum TextureBase::getBindingConstantForTarget( GLenum target )
 
 void TextureBase::setWrapS( GLenum wrapS )
 {
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_S, wrapS );
 }
 
 void TextureBase::setWrapT( GLenum wrapT )
 {
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_T, wrapT );
 }
 
 #if ! defined( CINDER_GL_ES )
 void TextureBase::setWrapR( GLenum wrapR )
 {
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	glTexParameteri( mTarget, GL_TEXTURE_WRAP_R, wrapR );
 }
 #endif
 
 void TextureBase::setMinFilter( GLenum minFilter )
 {
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	glTexParameteri( mTarget, GL_TEXTURE_MIN_FILTER, minFilter );
 }
 
 void TextureBase::setMagFilter( GLenum magFilter )
 {
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	glTexParameteri( mTarget, GL_TEXTURE_MAG_FILTER, magFilter );
 }
 	
 void TextureBase::setMaxAnisotropy( GLfloat maxAnisotropy )
 {
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy );
 }
 
@@ -374,7 +374,7 @@ Texture::Texture( int width, int height, Format format )
 {
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );
+	ScopedTextureBind texBindScope( mTarget, mTextureId );
 	initParams( format, GL_RGBA );
 	initData( (unsigned char*)0, 0, format.mPixelDataFormat, format.mPixelDataType, format );
 }
@@ -386,7 +386,7 @@ Texture::Texture( const unsigned char *data, int dataFormat, int width, int heig
 {
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );
+	ScopedTextureBind texBindScope( mTarget, mTextureId );
 	initParams( format, GL_RGBA );
 	initData( data, 0, dataFormat, GL_UNSIGNED_BYTE, format );
 }
@@ -398,7 +398,7 @@ Texture::Texture( const Surface8u &surface, Format format )
 {
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );
+	ScopedTextureBind texBindScope( mTarget, mTextureId );
 	initParams( format, surface.hasAlpha() ? GL_RGBA : GL_RGB );
 	
 	GLint dataFormat;
@@ -415,7 +415,7 @@ Texture::Texture( const Surface32f &surface, Format format )
 {
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );
+	ScopedTextureBind texBindScope( mTarget, mTextureId );
 #if defined( CINDER_GL_ES )
 	initParams( format, surface.hasAlpha() ? GL_RGBA : GL_RGB );
 #else
@@ -431,7 +431,7 @@ Texture::Texture( const Channel8u &channel, Format format )
 {
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );
+	ScopedTextureBind texBindScope( mTarget, mTextureId );
 	initParams( format, GL_LUMINANCE );
 	
 	// if the data is not already contiguous, we'll need to create a block of memory that is
@@ -460,7 +460,7 @@ Texture::Texture( const Channel32f &channel, Format format )
 {
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );
+	ScopedTextureBind texBindScope( mTarget, mTextureId );
 	initParams( format, GL_LUMINANCE );
 	
 	// if the data is not already contiguous, we'll need to create a block of memory that is
@@ -512,7 +512,7 @@ Texture::Texture( const ImageSourceRef &imageSource, Format format )
 
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );
+	ScopedTextureBind texBindScope( mTarget, mTextureId );
 	initParams( format, defaultInternalFormat );
 	initData( imageSource, format );
 }
@@ -537,7 +537,7 @@ Texture::Texture( const TextureData &data, Format format )
 {
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );
+	ScopedTextureBind texBindScope( mTarget, mTextureId );
 	initParams( format, 0 /* unused */ );
 	
 	replace( data );
@@ -548,7 +548,7 @@ Texture::Texture( const TextureData &data, Format format )
 	
 void Texture::initData( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format )
 {
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	
 	if( mTarget == GL_TEXTURE_2D ) {
 		mMaxU = mMaxV = 1.0f;
@@ -567,7 +567,7 @@ void Texture::initData( const unsigned char *data, int unpackRowLength, GLenum d
 
 void Texture::initData( const float *data, GLint dataFormat, const Format &format )
 {
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	
 	if( mTarget == GL_TEXTURE_2D ) {
 		mMaxU = mMaxV = 1.0f;
@@ -672,7 +672,7 @@ void Texture::initData( const ImageSourceRef &imageSource, const Format &format 
 		break;
 	}
 	
-	TextureBindScope tbs( mTarget, mTextureId );	
+	ScopedTextureBind tbs( mTarget, mTextureId );	
 	if( mTarget == GL_TEXTURE_2D ) {
 		mMaxU = mMaxV = 1.0f;
 	}
@@ -706,7 +706,7 @@ void Texture::update( const Surface &surface, int mipLevel )
 		if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) )
 			throw TextureResizeExc( "Invalid Texture::update() surface dimensions", surface.getSize(), getSize() );
 
-		TextureBindScope tbs( mTarget, mTextureId );
+		ScopedTextureBind tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		glTexImage2D( mTarget, mipLevel, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, type, surface.getData() );
 	}
@@ -715,7 +715,7 @@ void Texture::update( const Surface &surface, int mipLevel )
 		
 		Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
 		
-		TextureBindScope tbs( mTarget, mTextureId );
+		ScopedTextureBind tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		glTexImage2D( mTarget, mipLevel, getInternalFormat(), mipMapSize.x, mipMapSize.y, 0, dataFormat, type, surface.getData() );
 	}
@@ -730,7 +730,7 @@ void Texture::update( const Surface32f &surface, int mipLevel )
 		if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) )
 			throw TextureResizeExc( "Invalid Texture::update() surface dimensions", surface.getSize(), getSize() );
 
-		TextureBindScope tbs( mTarget, mTextureId );
+		ScopedTextureBind tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		// @TODO: type does not seem to be pulling out the right value..
 		glTexImage2D( mTarget, mipLevel, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, GL_FLOAT, surface.getData() );
@@ -740,7 +740,7 @@ void Texture::update( const Surface32f &surface, int mipLevel )
 		
 		Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
 		
-		TextureBindScope tbs( mTarget, mTextureId );
+		ScopedTextureBind tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 		// @TODO: type does not seem to be pulling out the right value..
 		glTexImage2D( mTarget, mipLevel, getInternalFormat(), mipMapSize.x, mipMapSize.y, 0, dataFormat, GL_FLOAT, surface.getData() );
@@ -755,7 +755,7 @@ void Texture::update( const Surface &surface, const Area &area, int mipLevel )
 	if( mipLevel == 0 ) {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
 		
-		TextureBindScope tbs( mTarget, mTextureId );
+		ScopedTextureBind tbs( mTarget, mTextureId );
 		glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), area.getWidth(), area.getHeight(), dataFormat, type, surface.getData( area.getUL() ) );
 	}
 	else {
@@ -763,7 +763,7 @@ void Texture::update( const Surface &surface, const Area &area, int mipLevel )
 		
 		Vec2i mipMapSize = calcMipLevelSize( mipLevel, area.getWidth(), area.getHeight() );
 		
-		TextureBindScope tbs( mTarget, mTextureId );
+		ScopedTextureBind tbs( mTarget, mTextureId );
 		glTexSubImage2D( mTarget, mipLevel, area.getX1(), area.getY1(), mipMapSize.x, mipMapSize.y, dataFormat, type, surface.getData( area.getUL() ) );
 	}
 }
@@ -775,21 +775,21 @@ void Texture::update( const Channel32f &channel, int mipLevel )
 		if( ( channel.getWidth() != getWidth() ) || ( channel.getHeight() != getHeight() ) )
 			throw TextureResizeExc( "Invalid Texture::update() channel dimensions", channel.getSize(), getSize() );
 
-		TextureBindScope tbs( mTarget, mTextureId );
+		ScopedTextureBind tbs( mTarget, mTextureId );
 		glTexSubImage2D( mTarget, mipLevel, 0, 0, getWidth(), getHeight(), GL_LUMINANCE, GL_FLOAT, channel.getData() );
 	}
 	else {
 		
 		Vec2i mipMapSize = calcMipLevelSize( mipLevel, getWidth(), getHeight() );
 		
-		TextureBindScope tbs( mTarget, mTextureId );
+		ScopedTextureBind tbs( mTarget, mTextureId );
 		glTexSubImage2D( mTarget, mipLevel, 0, 0, mipMapSize.x, mipMapSize.y, GL_LUMINANCE, GL_FLOAT, channel.getData() );
 	}
 }
 
 void Texture::update( const Channel8u &channel, const Area &area, int mipLevel )
 {
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	if( mipLevel == 0 ) {
 		// if the data is not already contiguous, we'll need to create a block of memory that is
 		if( ( channel.getIncrement() != 1 ) || ( channel.getRowBytes() != channel.getWidth() * sizeof(uint8_t) ) ) {
@@ -849,8 +849,8 @@ void Texture::update( const PboRef &pbo, GLenum format, GLenum type, const Area 
 	CI_ASSERT_ERROR( pbo->getTarget() == GL_PIXEL_UNPACK_BUFFER )
 	*/
 	
-	BufferScope bufScp( (BufferObjRef)( pbo ) );
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedBuffer bufScp( (BufferObjRef)( pbo ) );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	glTexSubImage2D( mTarget, mipLevel, destArea.getX1(), mHeight - destArea.getY2(), destArea.getWidth(), destArea.getHeight(), format, type, reinterpret_cast<const GLvoid*>( pboByteOffset ) );
 }
 #endif
@@ -1071,10 +1071,10 @@ class ImageSourceTexture : public ImageSource {
 		TextureRef tempSharedPtr( &texture, []( const Texture* ){} );
 		// The theory here is we need to build an FBO, attach the Texture to it, issue a glReadPixels against it, and the put it away		
 		FboRef fbo = Fbo::create( mWidth, mHeight, gl::Fbo::Format().attachment( GL_COLOR_ATTACHMENT0, tempSharedPtr ).disableDepth() );
-		FramebufferScope fbScp( fbo );
+		ScopedFramebuffer fbScp( fbo );
 		glReadPixels( 0, 0, mWidth, mHeight, format, dataType, mData.get() );
 #else
-		gl::TextureBindScope tbScope( texture.getTarget(), texture.getId() );
+		gl::ScopedTextureBind tbScope( texture.getTarget(), texture.getId() );
 		glPixelStorei( GL_PACK_ALIGNMENT, 1 );
 		glGetTexImage( texture.getTarget(), 0, format, dataType, mData.get() );
 #endif
@@ -1118,10 +1118,10 @@ Texture3d::Texture3d( GLint width, GLint height, GLint depth, Format format )
 {
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );
+	ScopedTextureBind texBindScope( mTarget, mTextureId );
 	TextureBase::initParams( format, GL_RGB );
 
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	glTexImage3D( mTarget, 0, mInternalFormat, mWidth, mHeight, mDepth, 0, format.mPixelDataFormat, format.mPixelDataType, NULL );
 }
 
@@ -1130,7 +1130,7 @@ Texture3d::Texture3d( GLint width, GLint height, GLint depth, GLenum dataFormat,
 {
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );
+	ScopedTextureBind texBindScope( mTarget, mTextureId );
 	TextureBase::initParams( format, GL_RGB );
 
 	glTexImage3D( mTarget, 0, mInternalFormat, mWidth, mHeight, mDepth, 0, dataFormat, GL_UNSIGNED_BYTE, data );
@@ -1146,7 +1146,7 @@ void Texture3d::update( const Surface &surface, int depth, int mipLevel )
 	if( surface.getSize() != mipMapSize )
 		throw TextureResizeExc( "Invalid Texture::update() surface dimensions", surface.getSize(), mipMapSize );
 
-	TextureBindScope tbs( mTarget, mTextureId );
+	ScopedTextureBind tbs( mTarget, mTextureId );
 	glTexSubImage3D( mTarget, mipLevel,
 		0, 0, depth, // offsets
 		mipMapSize.x, mipMapSize.y, 1, dataFormat, type, surface.getData() );
@@ -1212,7 +1212,7 @@ TextureCubeMap::TextureCubeMap( int32_t width, int32_t height, Format format )
 {
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );	
+	ScopedTextureBind texBindScope( mTarget, mTextureId );	
 	TextureBase::initParams( format, GL_RGB );
 
 	for( GLenum target = 0; target < 6; ++target )
@@ -1223,7 +1223,7 @@ TextureCubeMap::TextureCubeMap( const Surface8u images[6], Format format )
 {
 	glGenTextures( 1, &mTextureId );
 	mTarget = format.getTarget();
-	TextureBindScope texBindScope( mTarget, mTextureId );	
+	ScopedTextureBind texBindScope( mTarget, mTextureId );	
 	TextureBase::initParams( format, ( images[0].hasAlpha() ) ? GL_RGBA : GL_RGB );
 
 	mWidth = images[0].getWidth();
@@ -1399,7 +1399,7 @@ void Texture::update( const TextureData &textureData )
 	if( textureData.getWidth() != mWidth || textureData.getHeight() != mHeight )
 		replace( textureData );
 	else {
-		TextureBindScope bindScope( mTarget, mTextureId );
+		ScopedTextureBind bindScope( mTarget, mTextureId );
 		if( textureData.getUnpackAlignment() != 0 )
 			glPixelStorei( GL_UNPACK_ALIGNMENT, textureData.getUnpackAlignment() );
 
@@ -1430,7 +1430,7 @@ void Texture::replace( const TextureData &textureData )
 		mMaxV = (float)mHeight;
 	}
 	
-	TextureBindScope bindScope( mTarget, mTextureId );
+	ScopedTextureBind bindScope( mTarget, mTextureId );
 	if( textureData.getUnpackAlignment() != 0 )
 		glPixelStorei( GL_UNPACK_ALIGNMENT, textureData.getUnpackAlignment() );
 

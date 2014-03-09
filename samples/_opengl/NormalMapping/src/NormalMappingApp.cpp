@@ -27,8 +27,8 @@ http://www.cgtrader.com/3d-models/character-people/fantasy/the-leprechaun-the-go
 #include "cinder/app/AppNative.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
-#include "cinder/gl/Context.h"
 #include "cinder/gl/GlslProg.h"
+#include "cinder/gl/Shader.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/VboMesh.h"
 #include "cinder/params/Params.h"
@@ -293,7 +293,7 @@ void NormalMappingApp::draw()
 		// render our model
 		{
 			// use our own normal mapping shader for this scope
-			gl::GlslProgScope GlslProgScope( mShader );
+			gl::ScopedGlslProg GlslProgScope( mShader );
 	
 			gl::pushModelMatrix();
 			gl::multModelMatrix( mMeshTransform );
@@ -304,7 +304,7 @@ void NormalMappingApp::draw()
 		// render normals, tangents and bitangents if necessary
 		if(bShowNormalsAndTangents) {
 			// use a default shader for this scope
-			gl::GlslProgScope GlslProgScope( gl::context()->getStockShader( gl::ShaderDef().color() ) );
+			gl::ScopedGlslProg GlslProgScope( gl::getStockShader( gl::ShaderDef().color() ) );
 
 			gl::pushModelMatrix();
 			gl::multModelMatrix( mMeshTransform );

@@ -89,7 +89,7 @@ class Context {
 	//! Returns a const reference to the stack of Projection matrices
 	const std::vector<Matrix44f>&	getProjectionMatrixStack() const { return mProjectionMatrixStack; }
 	
-	//! Binds a VAO. Consider using a VaoScope instead.
+	//! Binds a VAO. Consider using a ScopedVao instead.
 	void		bindVao( const VaoRef &vao );
 	//! Pushes and binds the VAO \a vao
 	void		pushVao( const VaoRef &vao );
@@ -232,9 +232,9 @@ class Context {
 	//! Enables or disables OpenGL capability \a cap. Calls \a setter rather than glEnable or glDisable. Not generally necessary to call directly.
 	void		setBoolState( GLenum cap, GLboolean value, const std::function<void(GLboolean)> &setter );
 
-	//! Analogous glBlendFunc(). Consider using a BlendScope instead.
+	//! Analogous glBlendFunc(). Consider using a ScopedBlend instead.
 	void		blendFunc( GLenum sfactor, GLenum dfactor );
-	//! Analogous to glBlendFuncSeparate(). Consider using a BlendScope instead.
+	//! Analogous to glBlendFuncSeparate(). Consider using a ScopedBlend instead.
 	void		blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
 	//! Analogous to glBlendFuncSeparate, but pushes values rather than replaces them
 	void		pushBlendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );

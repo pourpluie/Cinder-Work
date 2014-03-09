@@ -379,7 +379,7 @@ void Fbo::init()
 {
 	// allocate the framebuffer itself
 	glGenFramebuffers( 1, &mId );
-	FramebufferScope fbScp( GL_FRAMEBUFFER, mId );
+	ScopedFramebuffer fbScp( GL_FRAMEBUFFER, mId );
 
 	// After calling this function, mFormat's mAttachmentsTexture and mAttachmentsBuffer should be 1:1 with what will be instantiated
 	initFormatAttachments();
@@ -420,7 +420,7 @@ void Fbo::init()
 void Fbo::initMultisample( bool csaa )
 {
 	glGenFramebuffers( 1, &mMultisampleFramebufferId );
-	FramebufferScope fbScp( GL_FRAMEBUFFER, mMultisampleFramebufferId );
+	ScopedFramebuffer fbScp( GL_FRAMEBUFFER, mMultisampleFramebufferId );
 
 	// create mirror Multisample Renderbuffers for any Buffer attachments in the primary FBO
 	for( auto &bufferAttachment : mFormat.mAttachmentsBuffer ) {
@@ -521,16 +521,16 @@ void Fbo::resolveTextures() const
 
 #if defined( CINDER_GL_ANGLE )
 	if( mMultisampleFramebufferId ) {
-		FramebufferScope drawFbScp( GL_DRAW_FRAMEBUFFER, mId );
-		FramebufferScope readFbScp( GL_READ_FRAMEBUFFER, mMultisampleFramebufferId );
+		ScopedFramebuffer drawFbScp( GL_DRAW_FRAMEBUFFER, mId );
+		ScopedFramebuffer readFbScp( GL_READ_FRAMEBUFFER, mMultisampleFramebufferId );
 		
 		glBlitFramebufferANGLE( 0, 0, mWidth, mHeight, 0, 0, mWidth, mHeight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST );
 	}
 #elif defined( SUPPORTS_MULTISAMPLE ) && defined( CINDER_GL_ES )
 	// iOS-specific multisample resolution code
 	if( mMultisampleFramebufferId ) {
-		FramebufferScope drawFbScp( GL_DRAW_FRAMEBUFFER_APPLE, mId );
-		FramebufferScope readFbScp( GL_READ_FRAMEBUFFER_APPLE, mMultisampleFramebufferId );
+		ScopedFramebuffer drawFbScp( GL_DRAW_FRAMEBUFFER_APPLE, mId );
+		ScopedFramebuffer readFbScp( GL_READ_FRAMEBUFFER_APPLE, mMultisampleFramebufferId );
 		
 		glResolveMultisampleFramebuffer();
 	}
@@ -572,7 +572,7 @@ void Fbo::updateMipmaps( GLenum attachment ) const
 	else {
 		auto textureIt = mAttachmentsTexture.find( attachment );
 		if( textureIt != mAttachmentsTexture.end() ) {
-			TextureBindScope textureBind( textureIt->second );
+			ScopedTextureBind textureBind( textureIt->second );
 			glGenerateMipmap( textureIt->second->getTarget() );
 		}
 	}
@@ -680,24 +680,24 @@ GLint Fbo::getMaxAttachments()
 #if ! defined( CINDER_GL_ES )
 void Fbo::blitTo( Fbo dst, const Area &srcArea, const Area &dstArea, GLenum filter, GLbitfield mask ) const
 {
-	FramebufferScope readScp( GL_READ_FRAMEBUFFER, mId );
-	FramebufferScope drawScp( GL_DRAW_FRAMEBUFFER, dst.getId() );
+	ScopedFramebuffer readScp( GL_READ_FRAMEBUFFER, mId );
+	ScopedFramebuffer drawScp( GL_DRAW_FRAMEBUFFER, dst.getId() );
 
 	glBlitFramebuffer( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
 }
 
 void Fbo::blitToScreen( const Area &srcArea, const Area &dstArea, GLenum filter, GLbitfield mask ) const
 {
-	FramebufferScope readScp( GL_READ_FRAMEBUFFER, mId );
-	FramebufferScope drawScp( GL_DRAW_FRAMEBUFFER, 0 );
+	ScopedFramebuffer readScp( GL_READ_FRAMEBUFFER, mId );
+	ScopedFramebuffer drawScp( GL_DRAW_FRAMEBUFFER, 0 );
 	
 	glBlitFramebuffer( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
 }
 
 void Fbo::blitFromScreen( const Area &srcArea, const Area &dstArea, GLenum filter, GLbitfield mask )
 {
-	FramebufferScope readScp( GL_READ_FRAMEBUFFER, GL_NONE );
-	FramebufferScope drawScp( GL_DRAW_FRAMEBUFFER, mId );
+	ScopedFramebuffer readScp( GL_READ_FRAMEBUFFER, GL_NONE );
+	ScopedFramebuffer drawScp( GL_DRAW_FRAMEBUFFER, mId );
 
 	glBlitFramebuffer( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
 }

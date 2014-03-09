@@ -229,9 +229,9 @@ void TransformFeedbackSmokeParticlesApp::update()
 {
 	mDrawBuff = 1 - mDrawBuff;
 	
-	gl::GlslProgScope	mGlslScope( mPUpdateGlsl );
-	gl::VaoScope		mVaoScope( mPVao[mDrawBuff] );
-	gl::StateScope		mStateScope( GL_RASTERIZER_DISCARD, true );
+	gl::ScopedGlslProg	mGlslScope( mPUpdateGlsl );
+	gl::ScopedVao		mVaoScope( mPVao[mDrawBuff] );
+	gl::ScopedState		mStateScope( GL_RASTERIZER_DISCARD, true );
 	
 	mPUpdateGlsl->uniform( "Time", getElapsedFrames() / 60.0f );
 	
@@ -249,11 +249,11 @@ void TransformFeedbackSmokeParticlesApp::draw()
 	static float rotateRadians = 0.0f;
 	rotateRadians += 0.01f;
 	
-	gl::VaoScope mVaoScope( mPVao[1-mDrawBuff] );
-	gl::GlslProgScope mGlslScope( mPRenderGlsl );
-	gl::TextureBindScope mTexScope( mSmokeTexture );
-	gl::StateScope mStateScope( GL_PROGRAM_POINT_SIZE, true );
-	gl::BlendScope mBlendScope( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	gl::ScopedVao mVaoScope( mPVao[1-mDrawBuff] );
+	gl::ScopedGlslProg mGlslScope( mPRenderGlsl );
+	gl::ScopedTextureBind mTexScope( mSmokeTexture );
+	gl::ScopedState mStateScope( GL_PROGRAM_POINT_SIZE, true );
+	gl::ScopedBlend mBlendScope( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
 	gl::pushMatrices();
 	gl::setMatrices( mCam );

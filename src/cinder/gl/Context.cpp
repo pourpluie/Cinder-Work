@@ -589,7 +589,7 @@ void Context::bindTexture( GLenum target, GLuint textureId, uint8_t textureUnit 
 	GLuint prevValue = getTextureBinding( target, textureUnit );
 	if( prevValue != textureId ) {
 		mTextureBindingStack[textureUnit][target].back() = textureId;
-		ActiveTextureScope actScp( textureUnit );
+		ScopedActiveTexture actScp( textureUnit );
 		glBindTexture( target, textureId );
 	}
 }
@@ -601,7 +601,7 @@ void Context::pushTextureBinding( GLenum target, uint8_t textureUnit )
 		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
 		GLint queriedInt = -1;
 		if( targetBinding > 0 ) {
-			ActiveTextureScope actScp( textureUnit );
+			ScopedActiveTexture actScp( textureUnit );
 			glGetIntegerv( targetBinding, &queriedInt );
 		}
 		mTextureBindingStack[textureUnit][target].push_back( queriedInt );
@@ -611,7 +611,7 @@ void Context::pushTextureBinding( GLenum target, uint8_t textureUnit )
 		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
 		GLint queriedInt = -1;
 		if( targetBinding > 0 ) {
-			ActiveTextureScope actScp( textureUnit );
+			ScopedActiveTexture actScp( textureUnit );
 			glGetIntegerv( targetBinding, &queriedInt );
 		}
 		mTextureBindingStack[textureUnit][target].push_back( queriedInt );
@@ -637,7 +637,7 @@ void Context::popTextureBinding( GLenum target, uint8_t textureUnit )
 		cached->second.pop_back();
 		if( ! cached->second.empty() ) {
 			if( cached->second.back() != prevValue ) {
-				ActiveTextureScope actScp( textureUnit );
+				ScopedActiveTexture actScp( textureUnit );
 				glBindTexture( target, cached->second.back() );
 			}
 		}
@@ -654,7 +654,7 @@ GLuint Context::getTextureBinding( GLenum target, uint8_t textureUnit )
 		GLint queriedInt = 0;
 		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
 		if( targetBinding > 0 ) {
-			ActiveTextureScope actScp( textureUnit );
+			ScopedActiveTexture actScp( textureUnit );
 			glGetIntegerv( targetBinding, &queriedInt );
 		}
 		else

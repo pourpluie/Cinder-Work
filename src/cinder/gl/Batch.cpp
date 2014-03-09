@@ -25,6 +25,7 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/VboMesh.h"
+#include "cinder/gl/gl.h"
 
 namespace cinder { namespace gl {
 
@@ -110,7 +111,7 @@ Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const Attr
 	mVertexArrayVbos = vboMesh->getVertexArrayVbos();
 	mElements = vboMesh->getElementVbo();
 	mVao = Vao::create();
-	VaoScope vaoScp( mVao );
+	ScopedVao vaoScp( mVao );
 	vboMesh->buildVao( glsl, attributeMapping );
 	mPrimitive = vboMesh->getGlPrimitive();
 	mNumVertices = vboMesh->getNumVertices();
@@ -159,7 +160,7 @@ void Batch::initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &ve
 	ctx->pushBufferBinding( GL_ARRAY_BUFFER );
 
 	mVao = Vao::create();
-	VaoScope vaoScope( mVao );
+	ScopedVao ScopedVao( mVao );
 	
 	// iterate all the vertex array VBOs
 	for( const auto &vertArrayVbo : vertLayoutVbos ) {
@@ -186,8 +187,8 @@ void Batch::draw()
 {
 	auto ctx = gl::context();
 	
-	gl::GlslProgScope GlslProgScope( mGlsl );
-	gl::VaoScope vaoScope( mVao );
+	gl::ScopedGlslProg ScopedGlslProg( mGlsl );
+	gl::ScopedVao ScopedVao( mVao );
 	ctx->setDefaultShaderVars();
 	if( mNumIndices )
 		ctx->drawElements( mPrimitive, mNumIndices, mIndexType, 0 );
@@ -200,8 +201,8 @@ void Batch::drawInstanced( GLsizei primcount )
 {
 	auto ctx = gl::context();
 	
-	gl::GlslProgScope GlslProgScope( mGlsl );
-	gl::VaoScope vaoScope( mVao );
+	gl::ScopedGlslProg ScopedGlslProg( mGlsl );
+	gl::ScopedVao ScopedVao( mVao );
 	ctx->setDefaultShaderVars();
 	if( mNumIndices )
 		ctx->drawElementsInstanced( mPrimitive, mNumIndices, mIndexType, 0, primcount );
@@ -316,7 +317,7 @@ void VertBatch::draw()
 {
 	// this pushes the VAO, which needs to be popped
 	setupBuffers();
-	VaoScope vao( mVao );
+	ScopedVao vao( mVao );
 	
 	auto ctx = context();
 	ctx->setDefaultShaderVars();
@@ -349,7 +350,7 @@ void VertBatch::setupBuffers()
 		forceUpload = true;
 	}
 	
-	BufferScope bufferScope( mVbo );
+	ScopedBuffer ScopedBuffer( mVbo );
 	// if this VBO was freshly made, or we don't own the buffer because we use the context defaults
 	if( forceUpload || ( ! mOwnsBuffers ) ) {
 		mVbo->ensureMinimumSize( totalSizeBytes );
@@ -387,7 +388,7 @@ void VertBatch::setupBuffers()
 		mVao->bind();
 	}
 
-	BufferScope vboScope( mVbo );
+	gl::ScopedBuffer vboScope( mVbo );
 	size_t offset = 0;
 	if( glslProg->hasAttribSemantic( geom::Attrib::POSITION ) ) {
 		int loc = glslProg->getAttribSemanticLocation( geom::Attrib::POSITION );

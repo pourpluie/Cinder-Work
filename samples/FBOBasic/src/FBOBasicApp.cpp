@@ -45,7 +45,7 @@ void FBOBasicApp::renderSceneToFbo()
 	// this will restore the old framebuffer binding when we leave this function
 	// on non-OpenGL ES platforms, you can just call mFbo->unbindFramebuffer() at the end of the function
 	// but this will restore the "screen" FBO on OpenGL ES, and does the right thing on both platforms
-	gl::FramebufferScope fbScp( mFbo );
+	gl::ScopedFramebuffer fbScp( mFbo );
 	// clear out the FBO with blue
 	gl::clear( Color( 0.25, 0.5f, 1.0f ) );
 
@@ -62,7 +62,7 @@ void FBOBasicApp::renderSceneToFbo()
 	gl::setModelMatrix( mTorusRotation );
 	
 	// render an orange torus, with no textures
-	gl::GlslProgScope shaderScp( gl::getStockShader( gl::ShaderDef().color() ) );
+	gl::ScopedGlslProg shaderScp( gl::getStockShader( gl::ShaderDef().color() ) );
 	gl::color( Color( 1.0f, 0.5f, 0.25f ) );
 //	gl::drawTorus( 1.4f, 0.3f, 32, 64 );
 	gl::drawCube( Vec3f::zero(), Vec3f( 2.2f, 2.2f, 2.2f ) );
@@ -97,7 +97,7 @@ void FBOBasicApp::draw()
 
 	// draw a cube textured with the FBO
 	{
-		gl::GlslProgScope shaderScp( gl::getStockShader( gl::ShaderDef().texture() ) );
+		gl::ScopedGlslProg shaderScp( gl::getStockShader( gl::ShaderDef().texture() ) );
 		gl::drawCube( Vec3f::zero(), Vec3f( 2.2f, 2.2f, 2.2f ) );
 	}
 

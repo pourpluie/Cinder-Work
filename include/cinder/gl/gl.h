@@ -349,86 +349,86 @@ std::string getErrorString( GLenum err );
 void checkError();
 
 
-struct VaoScope : public boost::noncopyable {
-	VaoScope( const VaoRef &vao );
-	~VaoScope();
+struct ScopedVao : public boost::noncopyable {
+	ScopedVao( const VaoRef &vao );
+	~ScopedVao();
 
   private:
 	Context		*mCtx;
 };
 
-struct BufferScope : public boost::noncopyable {
-	BufferScope( const BufferObjRef &bufferObj );
-	BufferScope( GLenum target, GLuint id );
-	~BufferScope();
+struct ScopedBuffer : public boost::noncopyable {
+	ScopedBuffer( const BufferObjRef &bufferObj );
+	ScopedBuffer( GLenum target, GLuint id );
+	~ScopedBuffer();
 	
   private:
 	Context		*mCtx;
 	GLenum		mTarget;
 };
 
-struct StateScope : public boost::noncopyable {
-	StateScope( GLenum cap, GLboolean value );
-	~StateScope();
+struct ScopedState : public boost::noncopyable {
+	ScopedState( GLenum cap, GLboolean value );
+	~ScopedState();
 
   private:
 	Context		*mCtx;
 	GLenum		mCap;
 };
 
-struct BlendScope : public boost::noncopyable
+struct ScopedBlend : public boost::noncopyable
 {
-	BlendScope( GLboolean enable );
+	ScopedBlend( GLboolean enable );
 	//! Parallels glBlendFunc(), and implicitly enables blending
-	BlendScope( GLenum sfactor, GLenum dfactor );
+	ScopedBlend( GLenum sfactor, GLenum dfactor );
 	//! Parallels glBlendFuncSeparate(), and implicitly enables blending
-	BlendScope( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
-	~BlendScope();
+	ScopedBlend( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
+	~ScopedBlend();
 	
   private:
 	Context		*mCtx;
 	bool		mSaveFactors; // whether we should also set the blend factors rather than just the blend state
 };
 
-struct GlslProgScope : public boost::noncopyable
+struct ScopedGlslProg : public boost::noncopyable
 {
-	GlslProgScope( const GlslProgRef &prog );
-	GlslProgScope( const std::shared_ptr<const GlslProg> &prog );
-	~GlslProgScope();
+	ScopedGlslProg( const GlslProgRef &prog );
+	ScopedGlslProg( const std::shared_ptr<const GlslProg> &prog );
+	~ScopedGlslProg();
 
   private:
 	Context		*mCtx;
 };
 
-struct FramebufferScope : public boost::noncopyable
+struct ScopedFramebuffer : public boost::noncopyable
 {
-	FramebufferScope( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
+	ScopedFramebuffer( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
 	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
-	FramebufferScope( GLenum target, GLuint framebufferId );
-	~FramebufferScope();
+	ScopedFramebuffer( GLenum target, GLuint framebufferId );
+	~ScopedFramebuffer();
 	
   private:
 	Context		*mCtx;
 	GLenum		mTarget;
 };
 
-struct ActiveTextureScope : public boost::noncopyable
+struct ScopedActiveTexture : public boost::noncopyable
 {
 	//! Sets the currently active texture through glActiveTexture. Expects values relative to \c 0, \em not GL_TEXTURE0
-	ActiveTextureScope( uint8_t textureUnit );
-	~ActiveTextureScope();
+	ScopedActiveTexture( uint8_t textureUnit );
+	~ScopedActiveTexture();
 	
   private:
 	Context		*mCtx;
 };
 
-struct TextureBindScope : public boost::noncopyable
+struct ScopedTextureBind : public boost::noncopyable
 {
-	TextureBindScope( GLenum target, GLuint textureId );
-	TextureBindScope( GLenum target, GLuint textureId, uint8_t textureUnit );
-	TextureBindScope( const TextureBaseRef &texture );
-	TextureBindScope( const TextureBaseRef &texture, uint8_t textureUnit );
-	~TextureBindScope();
+	ScopedTextureBind( GLenum target, GLuint textureId );
+	ScopedTextureBind( GLenum target, GLuint textureId, uint8_t textureUnit );
+	ScopedTextureBind( const TextureBaseRef &texture );
+	ScopedTextureBind( const TextureBaseRef &texture, uint8_t textureUnit );
+	~ScopedTextureBind();
 	
   private:
 	Context		*mCtx;
@@ -436,42 +436,42 @@ struct TextureBindScope : public boost::noncopyable
 	uint8_t		mTextureUnit;
 };
 	
-struct ScissorScope : public boost::noncopyable
+struct ScopedScissor : public boost::noncopyable
 {
 	//! Implicitly enables scissor test
-	ScissorScope( const Vec2i &lowerLeftPostion, const Vec2i &dimension );
+	ScopedScissor( const Vec2i &lowerLeftPostion, const Vec2i &dimension );
 	//! Implicitly enables scissor test	
-	ScissorScope( int lowerLeftX, int lowerLeftY, int width, int height );
-	~ScissorScope();
+	ScopedScissor( int lowerLeftX, int lowerLeftY, int width, int height );
+	~ScopedScissor();
 
   private:
 	Context					*mCtx;
 };
 
-struct ViewportScope : public boost::noncopyable
+struct ScopedViewport : public boost::noncopyable
 {
-	ViewportScope( const Vec2i &lowerLeftPostion, const Vec2i &dimension );
-	ViewportScope( int lowerLeftX, int lowerLeftY, int width, int height );
-	~ViewportScope();
+	ScopedViewport( const Vec2i &lowerLeftPostion, const Vec2i &dimension );
+	ScopedViewport( int lowerLeftX, int lowerLeftY, int width, int height );
+	~ScopedViewport();
 
   private:
 	Context					*mCtx;
 };
 
-struct ModelMatrixScope : public boost::noncopyable {
-	ModelMatrixScope()	{ gl::pushModelMatrix(); }
-	~ModelMatrixScope()	{ gl::popModelMatrix(); }
+struct ScopedModelMatrix : public boost::noncopyable {
+	ScopedModelMatrix()	{ gl::pushModelMatrix(); }
+	~ScopedModelMatrix()	{ gl::popModelMatrix(); }
 };
 
-struct ProjectionMatrixScope : public boost::noncopyable {
-	ProjectionMatrixScope()			{ gl::pushProjectionMatrix(); }
-	~ProjectionMatrixScope()	{ gl::popProjectionMatrix(); }
+struct ScopedProjectionMatrix : public boost::noncopyable {
+	ScopedProjectionMatrix()			{ gl::pushProjectionMatrix(); }
+	~ScopedProjectionMatrix()	{ gl::popProjectionMatrix(); }
 };
 
 //! Preserves all
-struct MatricesScope : public boost::noncopyable {
-	MatricesScope()		{ gl::pushMatrices(); }
-	~MatricesScope()	{ gl::popMatrices(); }
+struct ScopedMatrices : public boost::noncopyable {
+	ScopedMatrices()		{ gl::pushMatrices(); }
+	~ScopedMatrices()	{ gl::popMatrices(); }
 };
 
 class Exception : public cinder::Exception {
