@@ -23,6 +23,7 @@
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Context.h"
 #include "cinder/gl/ConstantStrings.h"
+#include "cinder/Log.h"
 
 using namespace std;
 
@@ -342,9 +343,14 @@ void GlslProg::uniform( const std::string &name, int data ) const
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );
-	glUniform1i( loc, data );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform1i( loc, data );
 }
 
 // Vec2i
@@ -358,9 +364,14 @@ void GlslProg::uniform( const std::string &name, const Vec2i &data ) const
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform2i( loc, data.x, data.y );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform2i( loc, data.x, data.y );
 }
 
 // int *, count
@@ -374,9 +385,14 @@ void GlslProg::uniform( const std::string &name, const int *data, int count ) co
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform1iv( loc, count, data );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform1iv( loc, count, data );
 }
 
 // Vec2i *, count
@@ -390,9 +406,14 @@ void GlslProg::uniform( const std::string &name, const Vec2i *data, int count ) 
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform2iv( loc, count, &data[0].x );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform2iv( loc, count, &data[0].x );
 }
 
 // float
@@ -406,9 +427,14 @@ void GlslProg::uniform( const std::string &name, float data ) const
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform1f( loc, data );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform1f( loc, data );
 }
 
 // Vec2f
@@ -422,9 +448,14 @@ void GlslProg::uniform( const std::string &name, const Vec2f &data ) const
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform2f( loc, data.x, data.y );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform2f( loc, data.x, data.y );
 }
 
 // Vec3f
@@ -438,9 +469,14 @@ void GlslProg::uniform( const std::string &name, const Vec3f &data ) const
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform3f( loc, data.x, data.y, data.z );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform3f( loc, data.x, data.y, data.z );
 }
 
 // Vec4f
@@ -454,9 +490,14 @@ void GlslProg::uniform( const std::string &name, const Vec4f &data ) const
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform4f( loc, data.x, data.y, data.z, data.w );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform4f( loc, data.x, data.y, data.z, data.w );
 }
 
 // Matrix33f
@@ -470,9 +511,14 @@ void GlslProg::uniform( const std::string &name, const Matrix33f &data, bool tra
 {
     GlslProgScope shaderBind( shared_from_this() );
     GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-    glUniformMatrix3fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniformMatrix3fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
 }
 
 // Matrix44f
@@ -486,9 +532,14 @@ void GlslProg::uniform( const std::string &name, const Matrix44f &data, bool tra
 {
     GlslProgScope shaderBind( shared_from_this() );
     GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-    glUniformMatrix4fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniformMatrix4fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
 }
 
 // Color
@@ -502,9 +553,14 @@ void GlslProg::uniform( const std::string &name, const Color &data ) const
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform3f( loc, data.r, data.g, data.b );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform3f( loc, data.r, data.g, data.b );
 }
 
 // ColorA
@@ -518,9 +574,14 @@ void GlslProg::uniform( const std::string &name, const ColorA &data ) const
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform4f( loc, data.r, data.g, data.b, data.a );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform4f( loc, data.r, data.g, data.b, data.a );
 }
 
 // float*, count
@@ -534,9 +595,14 @@ void GlslProg::uniform( const std::string &name, const float *data, int count ) 
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform1fv( loc, count, data );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform1fv( loc, count, data );
 }
 
 // Vec2f*, count
@@ -550,9 +616,14 @@ void GlslProg::uniform( const std::string &name, const Vec2f *data, int count ) 
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform2fv( loc, count, &data[0].x );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform2fv( loc, count, &data[0].x );
 }
 
 // Vec3f*, count
@@ -566,9 +637,14 @@ void GlslProg::uniform( const std::string &name, const Vec3f *data, int count ) 
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform3fv( loc, count, &data[0].x );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform3fv( loc, count, &data[0].x );
 }
 
 // Vec4f*, count
@@ -582,9 +658,14 @@ void GlslProg::uniform( const std::string &name, const Vec4f *data, int count ) 
 {
 	GlslProgScope shaderBind( shared_from_this() );
 	GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-	glUniform4fv( loc, count, &data[0].x );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniform4fv( loc, count, &data[0].x );
 }
 
 // Matrix33f*, count
@@ -598,9 +679,14 @@ void GlslProg::uniform( const std::string &name, const Matrix33f *data, int coun
 {
     GlslProgScope shaderBind( shared_from_this() );
     GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-    glUniformMatrix3fv( loc, count, ( transpose ) ? GL_TRUE : GL_FALSE, &data->m[0] );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniformMatrix3fv( loc, count, ( transpose ) ? GL_TRUE : GL_FALSE, &data->m[0] );
 }
 
 // Matrix44f*, count
@@ -614,9 +700,14 @@ void GlslProg::uniform( const std::string &name, const Matrix44f *data, int coun
 {
     GlslProgScope shaderBind( shared_from_this() );
     GLint loc = getUniformLocation( name );
-	if( loc == -1 )
-		throw GlslUnknownUniform( name );	
-    glUniformMatrix4fv( loc, count, ( transpose ) ? GL_TRUE : GL_FALSE, &data->m[0] );
+	if( loc == -1 ) {
+		if( mLoggedMissingUniforms.count( name ) == 0 ) {
+			CI_LOG_E( "Unknown uniform: \"" << name << "\"" );
+			mLoggedMissingUniforms.insert( name );
+		}
+	}
+	else
+		glUniformMatrix4fv( loc, count, ( transpose ) ? GL_TRUE : GL_FALSE, &data->m[0] );
 }
 
 GLint GlslProg::getUniformLocation( const std::string &name ) const
@@ -681,6 +772,10 @@ const GlslProg::UniformSemanticMap& GlslProg::getUniformSemantics() const
 			if( semantic != mUniformNameToSemanticMap.end() ) {
 				// found this semantic, add it mUniformSemantics
 				mUniformSemantics[semantic->first] = semantic->second;
+			}
+			// if this uniform starts with "ci[A-Z]" it is likely a typo
+			else if( (activeUnifIt->first.length() > 4) && (activeUnifIt->first.substr( 0, 2 ) == "ci") && (isupper(activeUnifIt->first[2]) ) ) {
+				CI_LOG_W( "\"" << activeUnifIt->first << "\" appears to reference a Cinder uniform but is not a known semantic" );
 			}
 		}
 	
