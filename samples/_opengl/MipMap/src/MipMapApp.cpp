@@ -118,7 +118,7 @@ void TextureMipmappingApp::setup()
 	// This if def is here to make sure whether you're using gl::Es2 or desktop gl.
 	// It illustrates the fact that unfortunately Es2 does not support non-power-of-two
 	// textures.
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	mCheckerBoard = Surface( loadImage( loadResource( NON_POT_CHECKER ) ) );
 #else
 	mCheckerBoard = Surface( loadImage( loadResource( CHECKER_BOARD ) ) );
@@ -221,17 +221,17 @@ void TextureMipmappingApp::draw()
 	gl::clear( Color( 0, 0, 0 ) );
 	gl::enableAlphaBlending();
 	
-	gl::pushModelView();
+	gl::pushModelMatrix();
 		gl::setMatrices( mCam );
-		gl::multModelView( mPlaneTranslation );
-		gl::multModelView( mPlaneRotation );
+		gl::multModelMatrix( mPlaneTranslation );
+		gl::multModelMatrix( mPlaneRotation );
 	
 		renderPlaneTexture( mLeftControl );
 		renderPlaneTexture( mRightControl );
 	
-	gl::popModelView();
+	gl::popModelMatrix();
 	
-	gl::pushModelView();
+	gl::pushMatrices();
 		gl::setMatricesWindow( getWindowSize() );
 	
 		renderFilterButtons( mLeftControl );
@@ -240,7 +240,7 @@ void TextureMipmappingApp::draw()
 		// Simple seperator
 		gl::color(1, 1, 1);
 		gl::drawSolidRect( Rectf( getWindowWidth() / 2 - 2, 0, getWindowWidth() / 2 + 2, getWindowHeight() ) );
-	gl::popModelView();
+	gl::popMatrices();
 }
 
 void TextureMipmappingApp::renderPlaneTexture( FilterControlRef f )
@@ -248,7 +248,7 @@ void TextureMipmappingApp::renderPlaneTexture( FilterControlRef f )
 	// This creates the scissor effect of showing both sides for contrast.
 	// it takes an area with origin at lower left and width and height
 	// like glViewport
-	gl::ScissorScope myScissor( f->mScissorPos, f->mScissorDimension  );
+	gl::ScopedScissor myScissor( f->mScissorPos, f->mScissorDimension  );
 	
 	switch( f->mTextureChoice ) {
 		case 0:

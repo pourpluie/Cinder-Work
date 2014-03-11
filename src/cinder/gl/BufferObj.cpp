@@ -34,7 +34,7 @@ BufferObjRef BufferObj::create( GLenum target, GLsizeiptr allocationSize, const 
 	
 BufferObj::BufferObj( GLenum target )
 	: mId( 0 ), mSize( 0 ), mTarget( target ),
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	mUsage( 0 ) /* GL ES default buffer usage is undefined(?) */
 #else
 	mUsage( GL_READ_WRITE )
@@ -48,7 +48,7 @@ BufferObj::BufferObj( GLenum target, GLsizeiptr allocationSize, const void *data
 {
 	glGenBuffers( 1, &mId );
 	
-	BufferScope bufferBind( mTarget, mId );
+	ScopedBuffer bufferBind( mTarget, mId );
 	glBufferData( mTarget, mSize, data, mUsage );
 }
 
@@ -68,7 +68,7 @@ void BufferObj::bind() const
 
 void BufferObj::bufferData( GLsizeiptr size, const GLvoid *data, GLenum usage )
 {
-	BufferScope bufferBind( mTarget, mId );
+	ScopedBuffer bufferBind( mTarget, mId );
 	mSize = size;
 	mUsage = usage;
 	glBufferData( mTarget, mSize, data, usage );
@@ -76,21 +76,21 @@ void BufferObj::bufferData( GLsizeiptr size, const GLvoid *data, GLenum usage )
 	
 void BufferObj::bufferSubData( GLintptr offset, GLsizeiptr size, const GLvoid *data )
 {
-	BufferScope bufferBind( mTarget, mId );
+	ScopedBuffer bufferBind( mTarget, mId );
 	glBufferSubData( mTarget, offset, size, data );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void BufferObj::getBufferSubData( GLintptr offset, GLsizeiptr size, GLvoid *data )
 {
-	BufferScope bufferBind( mTarget, mId );
+	ScopedBuffer bufferBind( mTarget, mId );
 	glGetBufferSubData( mTarget, offset, size, data );
 }
 #endif
 
 void BufferObj::copyData( GLsizeiptr size, const GLvoid *data )
 {
-	BufferScope bufferBind( mTarget, mId );
+	ScopedBuffer bufferBind( mTarget, mId );
 	
 	if( size <= mSize )
 		glBufferSubData( mTarget, 0, size, data );
@@ -104,7 +104,7 @@ void BufferObj::ensureMinimumSize( GLsizeiptr minimumSize )
 {
 	if( mSize < minimumSize ) {
 		mSize = minimumSize;
-		BufferScope bufferBind( mTarget, mId );
+		ScopedBuffer bufferBind( mTarget, mId );
 		glBufferData( mTarget, mSize, NULL, mUsage );
 	}
 }
@@ -112,8 +112,8 @@ void BufferObj::ensureMinimumSize( GLsizeiptr minimumSize )
 #if ! defined( CINDER_GL_ANGLE )	
 void* BufferObj::map( GLenum access ) const
 {
-	BufferScope bufferBind( mTarget, mId );
-#if defined( CINDER_GLES )
+	ScopedBuffer bufferBind( mTarget, mId );
+#if defined( CINDER_GL_ES )
 	return reinterpret_cast<void*>( glMapBufferOES( mTarget, access ) );
 #else
 	return reinterpret_cast<void*>( glMapBuffer( mTarget, access ) );
@@ -122,8 +122,8 @@ void* BufferObj::map( GLenum access ) const
 
 void* BufferObj::mapBufferRange( GLintptr offset, GLsizeiptr length, GLbitfield access ) const
 {
-	BufferScope bufferBind( mTarget, mId );
-#if defined( CINDER_GLES )
+	ScopedBuffer bufferBind( mTarget, mId );
+#if defined( CINDER_GL_ES )
 	return reinterpret_cast<void*>( glMapBufferRangeEXT( mTarget, offset, length, access ) );
 #else
 	return reinterpret_cast<void*>( glMapBufferRange( mTarget, offset, length, access ) );
@@ -132,8 +132,8 @@ void* BufferObj::mapBufferRange( GLintptr offset, GLsizeiptr length, GLbitfield 
 
 void BufferObj::unmap() const
 {
-	BufferScope bufferBind( mTarget, mId );
-#if defined( CINDER_GLES )	
+	ScopedBuffer bufferBind( mTarget, mId );
+#if defined( CINDER_GL_ES )	
 	GLboolean result = glUnmapBufferOES( mTarget );
 #else
 	GLboolean result = glUnmapBuffer( mTarget );
@@ -176,7 +176,7 @@ GLuint BufferObj::getBindingConstantForTarget( GLenum target )
 			return GL_ARRAY_BUFFER_BINDING;
 		case GL_ELEMENT_ARRAY_BUFFER:
 			return GL_ELEMENT_ARRAY_BUFFER_BINDING;
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		case GL_PIXEL_PACK_BUFFER:
 			return GL_PIXEL_PACK_BUFFER_BINDING;
 		case GL_PIXEL_UNPACK_BUFFER:

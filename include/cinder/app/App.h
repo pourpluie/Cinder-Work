@@ -54,10 +54,6 @@
 		class NSBundle;
 	#endif
 //	class CinderView;
-#elif defined( CINDER_MSW )
-	#include "cinder/msw/OutputDebugStringStream.h"
-#elif defined( CINDER_WINRT)
-	#include "cinder/msw/OutputDebugStringStream.h"
 #endif
 
 #include <vector>

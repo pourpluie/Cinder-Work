@@ -24,7 +24,7 @@
 
 #include "cinder/gl/gl.h"
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Context.h"
@@ -147,4 +147,4 @@ void VaoImplCore::reflectBindBufferImpl( GLenum target, GLuint buffer )
 
 } }
 
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )

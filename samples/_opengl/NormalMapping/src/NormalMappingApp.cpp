@@ -27,8 +27,8 @@ http://www.cgtrader.com/3d-models/character-people/fantasy/the-leprechaun-the-go
 #include "cinder/app/AppNative.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
-#include "cinder/gl/Context.h"
 #include "cinder/gl/GlslProg.h"
+#include "cinder/gl/Shader.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/VboMesh.h"
 #include "cinder/params/Params.h"
@@ -115,7 +115,7 @@ private:
 
 	float				fTime;
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	params::InterfaceGlRef	mParams;
 #endif
 };
@@ -170,7 +170,7 @@ void NormalMappingApp::setup()
 		mEmmisiveMap = gl::Texture::create( loadImage( loadAsset("leprechaun_emmisive.png") ) );
 
 		// load our shader and set the non-varying uniforms
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		mShader = gl::GlslProg::create( loadAsset("normal_mapping_vert.glsl"), loadAsset("normal_mapping_frag.glsl") );
 #else
 		mShader = gl::GlslProg::create( loadAsset("normal_mapping_vert_es2.glsl"), loadAsset("normal_mapping_frag_es2.glsl") );
@@ -213,7 +213,7 @@ void NormalMappingApp::setup()
 	viewmodes.push_back("Lighting Only     ");
 	viewmodes.push_back("Calculated Normals");
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	mParams = params::InterfaceGl::create( getWindow(), "Normal Mapping Demo", Vec2i(340, 150) );
 	mParams->setOptions( "", "valueswidth=fit" );
 
@@ -255,7 +255,7 @@ void NormalMappingApp::update()
 	if(bAnimateLantern) 
 		lanternPositionOS += mPerlin.dfBm( Vec3f( 0.0f, 0.0f, fTime ) ) * 5.0f;
 	Vec3f lanternPositionWS = mMeshTransform.transformPointAffine( lanternPositionOS );
-	mLightLantern.position = mCamera.getModelViewMatrix().transformPointAffine( lanternPositionWS );
+	mLightLantern.position = mCamera.getViewMatrix().transformPointAffine( lanternPositionWS );
 	mLightAmbient.position = Vec4f::zero();
 
 	// set the varying shader uniforms
@@ -293,23 +293,23 @@ void NormalMappingApp::draw()
 		// render our model
 		{
 			// use our own normal mapping shader for this scope
-			gl::GlslProgScope GlslProgScope( mShader );
+			gl::ScopedGlslProg GlslProgScope( mShader );
 	
-			gl::pushModelView();
-			gl::multModelView( mMeshTransform );
+			gl::pushModelMatrix();
+			gl::multModelMatrix( mMeshTransform );
 			gl::draw( mMesh );
-			gl::popModelView();
+			gl::popModelMatrix();
 		}
 	
 		// render normals, tangents and bitangents if necessary
 		if(bShowNormalsAndTangents) {
 			// use a default shader for this scope
-			gl::GlslProgScope GlslProgScope( gl::context()->getStockShader( gl::ShaderDef().color() ) );
+			gl::ScopedGlslProg GlslProgScope( gl::getStockShader( gl::ShaderDef().color() ) );
 
-			gl::pushModelView();
-			gl::multModelView( mMeshTransform );
+			gl::pushModelMatrix();
+			gl::multModelMatrix( mMeshTransform );
 			gl::draw( mMeshDebug );
-			gl::popModelView();
+			gl::popModelMatrix();
 		}
 
 		// get ready to render in 2D again
@@ -319,7 +319,7 @@ void NormalMappingApp::draw()
 		gl::popMatrices();
 
 		// render our parameter window
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		if( mParams )
 			mParams->draw();
 #endif

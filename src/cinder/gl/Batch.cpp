@@ -25,6 +25,8 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/VboMesh.h"
+#include "cinder/gl/gl.h"
+#include "cinder/Log.h"
 
 namespace cinder { namespace gl {
 
@@ -107,15 +109,13 @@ BatchRef Batch::create( const geom::SourceRef &sourceRef, const gl::GlslProgRef 
 Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const AttributeMapping &attributeMapping )
 	: mGlsl( glsl )
 {
-	mVertexArrayVbos = vboMesh->getVertexArrayVbos();
 	mElements = vboMesh->getElementVbo();
-	mVao = Vao::create();
-	VaoScope vaoScp( mVao );
-	vboMesh->buildVao( glsl, attributeMapping );
 	mPrimitive = vboMesh->getGlPrimitive();
 	mNumVertices = vboMesh->getNumVertices();
 	mNumIndices = vboMesh->getNumIndices();
 	mIndexType = vboMesh->getIndexDataType();
+	mVertexArrayVbos = vboMesh->getVertexArrayLayoutVbos();
+	initVao();
 }
 
 Batch::Batch( const geom::Source &source, const gl::GlslProgRef &glsl )
@@ -146,23 +146,23 @@ void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 	BatchGeomTarget target( source.getPrimitive(), bufferLayout, buffer.get(), this );
 	source.loadInto( &target );
 
-	mVertexArrayVbos.push_back( Vbo::create( GL_ARRAY_BUFFER, vertexDataSizeBytes, buffer.get() ) );
-	std::vector<std::pair<geom::BufferLayout,VboRef>> vertLayoutVbos;
-	vertLayoutVbos.push_back( make_pair( bufferLayout, mVertexArrayVbos.back() ) );
+	auto vbo = Vbo::create( GL_ARRAY_BUFFER, vertexDataSizeBytes, buffer.get() );
+	mVertexArrayVbos.push_back( make_pair( bufferLayout, vbo ) );
 	
-	initVao( vertLayoutVbos );
+	initVao();
 }
 
-void Batch::initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertLayoutVbos )
+void Batch::initVao()
 {
 	auto ctx = gl::context();
 	ctx->pushBufferBinding( GL_ARRAY_BUFFER );
 
 	mVao = Vao::create();
-	VaoScope vaoScope( mVao );
+	ScopedVao ScopedVao( mVao );
 	
+	std::set<geom::Attrib> enabledAttribs;
 	// iterate all the vertex array VBOs
-	for( const auto &vertArrayVbo : vertLayoutVbos ) {
+	for( const auto &vertArrayVbo : mVertexArrayVbos ) {
 		// bind this VBO (to the current VAO)
 		vertArrayVbo.second->bind();
 		// now iterate the attributes associated with this VBO
@@ -172,8 +172,16 @@ void Batch::initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &ve
 				int loc = mGlsl->getAttribSemanticLocation( attribInfo.getAttrib() );
 				ctx->enableVertexAttribArray( loc );
 				ctx->vertexAttribPointer( loc, attribInfo.getDims(), GL_FLOAT, GL_FALSE, attribInfo.getStride(), (const void*)attribInfo.getOffset() );
+				enabledAttribs.insert( attribInfo.getAttrib() );
 			}
 		}
+	}
+	
+	// warn the user if the shader expects any attribs which we couldn't supply. We make an exception for ciColor since it often comes from the Context instead
+	const auto &glslActiveAttribs = mGlsl->getAttribSemantics();
+	for( auto &glslActiveAttrib : glslActiveAttribs ) {
+		if( (glslActiveAttrib.second != geom::Attrib::COLOR) && (enabledAttribs.count( glslActiveAttrib.second ) == 0) )
+			CI_LOG_W( "Batch GlslProg expected an Attrib of " << geom::attribToString( glslActiveAttrib.second ) << " but vertex data doesn't provide it." );			
 	}
 	
 	if( mNumIndices > 0 )
@@ -182,12 +190,18 @@ void Batch::initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &ve
 	ctx->popBufferBinding( GL_ARRAY_BUFFER );
 }
 
+void Batch::setGlslProg( const GlslProgRef& glsl )
+{
+	mGlsl = glsl;
+	initVao();
+}
+
 void Batch::draw()
 {
 	auto ctx = gl::context();
 	
-	gl::GlslProgScope GlslProgScope( mGlsl );
-	gl::VaoScope vaoScope( mVao );
+	gl::ScopedGlslProg ScopedGlslProg( mGlsl );
+	gl::ScopedVao ScopedVao( mVao );
 	ctx->setDefaultShaderVars();
 	if( mNumIndices )
 		ctx->drawElements( mPrimitive, mNumIndices, mIndexType, 0 );
@@ -195,13 +209,13 @@ void Batch::draw()
 		ctx->drawArrays( mPrimitive, 0, mNumVertices );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Batch::drawInstanced( GLsizei primcount )
 {
 	auto ctx = gl::context();
 	
-	gl::GlslProgScope GlslProgScope( mGlsl );
-	gl::VaoScope vaoScope( mVao );
+	gl::ScopedGlslProg ScopedGlslProg( mGlsl );
+	gl::ScopedVao ScopedVao( mVao );
 	ctx->setDefaultShaderVars();
 	if( mNumIndices )
 		ctx->drawElementsInstanced( mPrimitive, mNumIndices, mIndexType, 0, primcount );
@@ -316,7 +330,7 @@ void VertBatch::draw()
 {
 	// this pushes the VAO, which needs to be popped
 	setupBuffers();
-	VaoScope vao( mVao );
+	ScopedVao vao( mVao );
 	
 	auto ctx = context();
 	ctx->setDefaultShaderVars();
@@ -349,7 +363,7 @@ void VertBatch::setupBuffers()
 		forceUpload = true;
 	}
 	
-	BufferScope bufferScope( mVbo );
+	ScopedBuffer ScopedBuffer( mVbo );
 	// if this VBO was freshly made, or we don't own the buffer because we use the context defaults
 	if( forceUpload || ( ! mOwnsBuffers ) ) {
 		mVbo->ensureMinimumSize( totalSizeBytes );
@@ -387,7 +401,7 @@ void VertBatch::setupBuffers()
 		mVao->bind();
 	}
 
-	BufferScope vboScope( mVbo );
+	gl::ScopedBuffer vboScope( mVbo );
 	size_t offset = 0;
 	if( glslProg->hasAttribSemantic( geom::Attrib::POSITION ) ) {
 		int loc = glslProg->getAttribSemanticLocation( geom::Attrib::POSITION );

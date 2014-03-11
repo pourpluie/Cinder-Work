@@ -47,7 +47,7 @@ class Batch {
 	static BatchRef		create( const geom::SourceRef &sourceRef, const gl::GlslProgRef &glsl );
 	
 	void			draw();
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	void			drawInstanced( GLsizei primcount );
 #endif
 	void			bind();
@@ -62,6 +62,8 @@ class Batch {
 	GLenum			getIndexDataType() const { return mIndexType; }
 	//! Returns the shader associated with the Batch
 	const GlslProgRef&	getGlslProg() const	{ return mGlsl; }
+	//! Replaces the shader associated with the Batch. Issues a warning if not all attributes were able to match
+	void			setGlslProg( const GlslProgRef& glsl );
 	//! Returns the VAO mapping the Batch's geometry to its shader
 	const VaoRef&		getVao() const { return mVao; }
 
@@ -70,11 +72,11 @@ class Batch {
 	Batch( const geom::Source &source, const gl::GlslProgRef &glsl );
 
 	void	init( const geom::Source &source, const gl::GlslProgRef &glsl );
-	void	initVao( const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertLayoutVbos );
+	void	initVao();
 		
 	GlslProgRef		mGlsl;
 	
-	std::vector<VboRef>		mVertexArrayVbos;
+	std::vector<std::pair<geom::BufferLayout,VboRef>>	mVertexArrayVbos;
 	VboRef					mElements;
 	VaoRef					mVao;
 	

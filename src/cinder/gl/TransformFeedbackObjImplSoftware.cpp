@@ -26,7 +26,7 @@
 
 namespace cinder { namespace gl {
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	
 class TransformFeedbackObjImplSoftware : public TransformFeedbackObj {
   public:

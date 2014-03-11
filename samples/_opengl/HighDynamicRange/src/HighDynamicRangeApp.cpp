@@ -1,7 +1,6 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
-#include "cinder/gl/Context.h"
 #include "cinder/gl/GlslProg.h"
 
 #include "HdrLoader.h"
@@ -61,8 +60,8 @@ void HighDynamicRangeApp::draw()
 {
 	gl::clear( Color( 0, 0, 0 ) );
 
-	gl::GlslProgScope shaderScp( mShader );
-	gl::TextureBindScope texBindScp( mHdrTexture );
+	gl::ScopedGlslProg shaderScp( mShader );
+	gl::ScopedTextureBind texBindScp( mHdrTexture );
 	mShader->uniform( "uExposure", mExposure );
 	gl::drawSolidRect( mHdrTexture->getBounds() );
 }

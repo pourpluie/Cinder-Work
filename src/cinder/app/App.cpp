@@ -22,8 +22,8 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #if ! defined ( CINDER_WINRT )
+	#define BOOST_REGEX_NO_LIB
 	#include <boost/asio.hpp>
 #endif
 
@@ -48,7 +48,6 @@
 	#include "cinder/msw/OutputDebugStringStream.h"
 	#include "cinder/app/AppImplMsw.h"
 #endif
-
 
 using namespace std;
 

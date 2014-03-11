@@ -67,7 +67,7 @@ bool isExtensionAvailable( const std::string &extName )
 std::pair<GLint,GLint> getVersion()
 {
 	//hard-coded for now
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	return std::make_pair( (GLint)2, (GLint)0 );
 #else
 	static bool	sInitialized = false;
@@ -157,7 +157,7 @@ void clearColor( const ColorA &color )
 
 void clearDepth( const double depth )
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
     glClearDepth( depth );
 #else
 	glClearDepthf( depth );
@@ -303,94 +303,127 @@ void disableStencilTest()
 void setMatrices( const ci::Camera& cam )
 {
 	auto ctx = context();
-	ctx->getModelViewStack().back() = cam.getModelViewMatrix();
-	ctx->getProjectionStack().back() = cam.getProjectionMatrix();
+	ctx->getViewMatrixStack().back() = cam.getViewMatrix();
+	ctx->getProjectionMatrixStack().back() = cam.getProjectionMatrix();
+	ctx->getModelMatrixStack().back().setToIdentity();
 }
 
-void setModelView( const ci::Matrix44f &m )
+void setModelMatrix( const ci::Matrix44f &m )
 {
-	context()->getModelViewStack().back() = m;
+	context()->getModelMatrixStack().back() = m;
 }
 
-void setModelView( const ci::Camera& cam )
+void setViewMatrix( const ci::Matrix44f &m )
 {
-	context()->getModelViewStack().back() = cam.getModelViewMatrix();
+	context()->getViewMatrixStack().back() = m;
 }
 
-void setProjection( const ci::Camera& cam )
+void setProjectionMatrix( const ci::Matrix44f &m )
 {
-	context()->getProjectionStack().back() = cam.getProjectionMatrix();
+	context()->getProjectionMatrixStack().back() = m;
 }
 
-void setProjection( const ci::Matrix44f &m )
-{
-	context()->getProjectionStack().back() = m;
-}
-
-void pushModelView()
+void pushModelMatrix()
 {
 	auto ctx = context();
-	ctx->getModelViewStack().push_back( ctx->getModelViewStack().back() );
+	ctx->getModelMatrixStack().push_back( ctx->getModelMatrixStack().back() );
 }
 
-void popModelView()
+void popModelMatrix()
 {
-	context()->getModelViewStack().pop_back();
+	context()->getModelMatrixStack().pop_back();
 }
 
-void pushProjection()
+void pushViewMatrix()
 {
 	auto ctx = context();
-	ctx->getProjectionStack().push_back( ctx->getProjectionStack().back() );
+	ctx->getViewMatrixStack().push_back( ctx->getViewMatrixStack().back() );
 }
 
-void popProjection()
+void popViewMatrix()
 {
-	context()->getProjectionStack().pop_back();
+	context()->getViewMatrixStack().pop_back();
+}
+
+void pushProjectionMatrix()
+{
+	auto ctx = context();
+	ctx->getProjectionMatrixStack().push_back( ctx->getProjectionMatrixStack().back() );
+}
+
+void popProjectionMatrix()
+{
+	context()->getProjectionMatrixStack().pop_back();
 }
 
 void pushMatrices()
 {
 	auto ctx = context();
-	ctx->getModelViewStack().push_back( ctx->getModelViewStack().back() );
-	ctx->getProjectionStack().push_back( ctx->getProjectionStack().back() );
+	ctx->getModelMatrixStack().push_back( ctx->getModelMatrixStack().back() );
+	ctx->getViewMatrixStack().push_back( ctx->getViewMatrixStack().back() );
+	ctx->getProjectionMatrixStack().push_back( ctx->getProjectionMatrixStack().back() );
 }
 
 void popMatrices()
 {
 	auto ctx = context();
-	ctx->getModelViewStack().pop_back();
-	ctx->getProjectionStack().pop_back();
+	ctx->getModelMatrixStack().pop_back();
+	ctx->getViewMatrixStack().pop_back();
+	ctx->getProjectionMatrixStack().pop_back();
 }
 
-void multModelView( const ci::Matrix44f& mtx )
+void multModelMatrix( const ci::Matrix44f& mtx )
 {
 	auto ctx = gl::context();
-	ctx->getModelViewStack().back() *= mtx;
+	ctx->getModelMatrixStack().back() *= mtx;
 }
 
-void multProjection( const ci::Matrix44f& mtx )
+void multViewMatrix( const ci::Matrix44f& mtx )
 {
 	auto ctx = gl::context();
-	ctx->getProjectionStack().back() *= mtx;
+	ctx->getViewMatrixStack().back() *= mtx;
+}
+
+void multProjectionMatrix( const ci::Matrix44f& mtx )
+{
+	auto ctx = gl::context();
+	ctx->getProjectionMatrixStack().back() *= mtx;
+}
+
+Matrix44f getModelMatrix()
+{
+	auto ctx = gl::context();
+	return ctx->getModelMatrixStack().back();
+}
+
+Matrix44f getViewMatrix()
+{
+	auto ctx = gl::context();
+	return ctx->getViewMatrixStack().back();
+}
+
+Matrix44f getProjectionMatrix()
+{
+	auto ctx = gl::context();
+	return ctx->getProjectionMatrixStack().back();
 }
 
 Matrix44f getModelView()
 {
-	auto ctx = gl::context();
-	return ctx->getModelViewStack().back();
-}
-
-Matrix44f getProjection()
-{
-	auto ctx = gl::context();
-	return ctx->getProjectionStack().back();
+	auto ctx = context();
+	return ctx->getViewMatrixStack().back() * ctx->getModelMatrixStack().back();
 }
 
 Matrix44f getModelViewProjection()
 {
 	auto ctx = context();
-	return ctx->getProjectionStack().back() * ctx->getModelViewStack().back();
+	return ctx->getProjectionMatrixStack().back() * ctx->getViewMatrixStack().back() * ctx->getModelMatrixStack().back();
+}
+
+Matrix44f calcViewMatrixInverse()
+{
+	Matrix44f v = getViewMatrix();
+	return v.inverted();
 }
 
 Matrix33f calcNormalMatrix()
@@ -406,11 +439,12 @@ void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees
 	auto ctx = gl::context();
 
 	CameraPersp cam( screenWidth, screenHeight, fovDegrees, nearPlane, farPlane );
-	ctx->getProjectionStack().back() = cam.getProjectionMatrix();
-	ctx->getModelViewStack().back() = cam.getModelViewMatrix();
+	ctx->getModelMatrixStack().back().setToIdentity();
+	ctx->getProjectionMatrixStack().back() = cam.getProjectionMatrix();
+	ctx->getViewMatrixStack().back() = cam.getViewMatrix();
 	if( originUpperLeft ) {
-		ctx->getModelViewStack().back().scale( Vec3f( 1.0f, -1.0f, 1.0f ) );					// invert Y axis so increasing Y goes down.
-		ctx->getModelViewStack().back().translate( Vec3f( 0.0f, (float)-screenHeight, 0.0f ) ); // shift origin up to upper-left corner.
+		ctx->getViewMatrixStack().back().scale( Vec3f( 1.0f, -1.0f, 1.0f ) );					// invert Y axis so increasing Y goes down.
+		ctx->getViewMatrixStack().back().translate( Vec3f( 0.0f, (float)-screenHeight, 0.0f ) ); // shift origin up to upper-left corner.
 	}
 }
 
@@ -422,14 +456,15 @@ void setMatricesWindowPersp( const ci::Vec2i& screenSize, float fovDegrees, floa
 void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft )
 {
 	auto ctx = gl::context();
-	ctx->getModelViewStack().back().setToIdentity();
+	ctx->getModelMatrixStack().back().setToIdentity();	
+	ctx->getViewMatrixStack().back().setToIdentity();
 	if( originUpperLeft )
-		ctx->getProjectionStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
+		ctx->getProjectionMatrixStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
 													Vec4f( 0.0f, 2.0f / -(float)screenHeight, 0.0f, 1.0f ),
 													Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
 													Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	else
-		ctx->getProjectionStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
+		ctx->getProjectionMatrixStack().back().setRows(	Vec4f( 2.0f / (float)screenWidth, 0.0f, 0.0f, -1.0f ),
 													Vec4f( 0.0f, 2.0f / (float)screenHeight, 0.0f, -1.0f ),
 													Vec4f( 0.0f, 0.0f, -1.0f, 0.0f ),
 													Vec4f( 0.0f, 0.0f, 0.0f, 1.0f ) );
@@ -443,8 +478,7 @@ void setMatricesWindow( const ci::Vec2i& screenSize, bool originUpperLeft )
 void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis )
 {
 	auto ctx = gl::context();
-//	ctx->getModelViewStack().back().rotate( Vec3f( toRadians( xAxis ), toRadians( yAxis ), toRadians( zAxis ) ) );
-	ctx->getModelViewStack().back().rotate( Vec3f( xAxis, yAxis, zAxis ), toRadians( angleDegrees ) );
+	ctx->getModelMatrixStack().back().rotate( Vec3f( xAxis, yAxis, zAxis ), toRadians( angleDegrees ) );
 }
 
 void rotate( const cinder::Quatf &quat )
@@ -459,13 +493,13 @@ void rotate( const cinder::Quatf &quat )
 void scale( const ci::Vec3f& v )
 {
 	auto ctx = gl::context();
-	ctx->getModelViewStack().back().scale( v );
+	ctx->getModelMatrixStack().back().scale( v );
 }
 
 void translate( const ci::Vec3f& v )
 {
 	auto ctx = gl::context();
-	ctx->getModelViewStack().back().translate( v );
+	ctx->getModelMatrixStack().back().translate( v );
 }
 
 void begin( GLenum mode )
@@ -481,13 +515,13 @@ void end()
 	if( ctx->immediate().empty() )
 		return;
 	else {
-		GlslProgScope GlslProgScope( ctx->getStockShader( ShaderDef().color() ) );
+		ScopedGlslProg ScopedGlslProg( ctx->getStockShader( ShaderDef().color() ) );
 		ctx->immediate().draw();
 		ctx->immediate().clear();
 	}
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void bindBufferBase( GLenum target, int index, BufferObjRef buffer )
 {
 	gl::context()->bindBufferBase( target, index, buffer );
@@ -622,7 +656,7 @@ void vertex( const ci::Vec4f &v )
 	ctx->immediate().vertex( v, ctx->getCurrentColor() );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void polygonMode( GLenum face, GLenum mode )
 {
 	gl::context()->polygonMode( face, mode );
@@ -668,7 +702,7 @@ void vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean norma
 	context()->vertexAttribPointer( index, size, type, normalized, stride, pointer );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer )
 {
 	context()->vertexAttribIPointer( index, size, type, stride, pointer );
@@ -750,12 +784,16 @@ geom::Primitive toGeomPrimitive( GLenum prim )
 std::string uniformSemanticToString( UniformSemantic uniformSemantic )
 {
 	switch( uniformSemantic ) {
-		case UNIFORM_MODELVIEW: return "UNIFORM_MODELVIEW";
-		case UNIFORM_MODELVIEWPROJECTION: return "UNIFORM_MODELVIEWPROJECTION";
-		case UNIFORM_PROJECTION: return "UNIFORM_PROJECTION";
+		case UNIFORM_MODEL_MATRIX: return "UNIFORM_MODEL_MATRIX";
+		case UNIFORM_VIEW_MATRIX: return "UNIFORM_VIEW_MATRIX";
+		case UNIFORM_VIEW_MATRIX_INVERSE: return "UNIFORM_VIEW_MATRIX_INVERSE";
+		case UNIFORM_MODEL_VIEW: return "UNIFORM_MODEL_VIEW";
+		case UNIFORM_MODEL_VIEW_PROJECTION: return "UNIFORM_MODEL_VIEW_PROJECTION";
+		case UNIFORM_PROJECTION_MATRIX: return "UNIFORM_PROJECTION_MATRIX";
 		case UNIFORM_NORMAL_MATRIX: return "UNIFORM_NORMAL_MATRIX";
 		case UNIFORM_WINDOW_SIZE: return "UNIFORM_WINDOW_SIZE";
 		case UNIFORM_ELAPSED_SECONDS: return "UNIFORM_ELAPSED_SECONDS";
+		default: return "";
 	}
 }
 
@@ -834,10 +872,10 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 
 	VaoRef vao = Vao::create();
 	VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( totalArrayBufferSize );
-	BufferScope vboScp( defaultArrayVbo );
+	ScopedBuffer vboScp( defaultArrayVbo );
 	VboRef elementVbo = ctx->getDefaultElementVbo( 6*6 );
 
-	VaoScope vaoScope( vao );
+	ScopedVao ScopedVao( vao );
 	elementVbo->bind();
 	size_t curBufferOffset = 0;
 	if( hasPositions ) {
@@ -879,8 +917,8 @@ void draw( const TextureRef &texture, const Area &srcArea, const Rectf &dstRect 
 {
 	auto ctx = context();
 	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture( texture ).color() );
-	GlslProgScope GlslProgScope( shader );
-	TextureBindScope texBindScope( texture );
+	ScopedGlslProg ScopedGlslProg( shader );
+	ScopedTextureBind texBindScope( texture );
 
 	shader->uniform( "uTex0", 0 );
 
@@ -899,7 +937,7 @@ void draw( const TextureRef &texture, const Area &srcArea, const Rectf &dstRect 
 	verts[3*2+1] = dstRect.getY2(); texCoords[3*2+1] = texRect.y2;
 
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
-	BufferScope vboScp( defaultVbo );
+	ScopedBuffer vboScp( defaultVbo );
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
 		defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
@@ -946,7 +984,7 @@ void draw( const Path2d &path, float approximationScale )
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
-	BufferScope bufferBindScp( arrayVbo );
+	ScopedBuffer bufferBindScp( arrayVbo );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
@@ -968,7 +1006,7 @@ void draw( const PolyLine<Vec2f> &polyLine )
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
-	BufferScope bufferBindScp( arrayVbo );
+	ScopedBuffer bufferBindScp( arrayVbo );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
@@ -990,7 +1028,7 @@ void draw( const PolyLine<Vec3f> &polyLine )
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
-	BufferScope bufferBindScp( arrayVbo );
+	ScopedBuffer bufferBindScp( arrayVbo );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
@@ -1010,7 +1048,7 @@ void drawLine( const Vec3f &a, const Vec3f &b )
 	auto ctx = context();
 	gl::GlslProgRef shader = ctx->getGlslProg();
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( size );
-	BufferScope bufferBindScp( arrayVbo );
+	ScopedBuffer bufferBindScp( arrayVbo );
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
@@ -1033,7 +1071,7 @@ void drawLine( const Vec2f &a, const Vec2f &b )
 	auto ctx = context();
 	gl::GlslProgRef shader = ctx->getGlslProg();
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( size );
-	BufferScope bufferBindScp( arrayVbo );
+	ScopedBuffer bufferBindScp( arrayVbo );
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
@@ -1087,9 +1125,9 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 	verts[3*2+1] = r.getY2(); texCoords[3*2+1] = texcoords.getY2();
 
 	VaoRef vao = Vao::create();
-	VaoScope vaoScope( vao );
+	ScopedVao ScopedVao( vao );
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
-	BufferScope bufferBindScp( defaultVbo );
+	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
 
 	gl::GlslProgRef shader = ctx->getGlslProg();
@@ -1117,9 +1155,9 @@ void drawStrokedRect( const Rectf &rect )
 	verts[6] = rect.x1;	verts[7] = rect.y2;
 
 	auto ctx = context();
-	VaoScope vaoScope( Vao::create() );
+	ScopedVao ScopedVao( Vao::create() );
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( 8 * sizeof( float ) );
-	BufferScope bufferBindScp( defaultVbo );
+	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, 8 * sizeof( float ), verts );
 
 	gl::GlslProgRef shader = ctx->getGlslProg();
@@ -1155,9 +1193,9 @@ void drawStrokedRect( const Rectf &rect, float lineWidth )
 	verts[30] = rect.x1 - halfWidth;	verts[31] = rect.y2 + halfWidth;
 
 	auto ctx = context();
-	VaoScope vaoScope( Vao::create() );
+	ScopedVao ScopedVao( Vao::create() );
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( 32 * sizeof( float ) );
-	BufferScope bufferBindScp( defaultVbo );
+	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, 32 * sizeof( float ), verts );
 
 	gl::GlslProgRef shader = ctx->getGlslProg();
@@ -1199,7 +1237,7 @@ void drawStrokedCircle( const Vec2f &center, float radius, int numSegments )
 	// set attributes
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
-	BufferScope bufferBindScp( arrayVbo );
+	ScopedBuffer bufferBindScp( arrayVbo );
 
 	auto shader = ctx->getGlslProg();
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
@@ -1221,7 +1259,7 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 		return;
 
 	VaoRef vao = Vao::create();
-	VaoScope vaoScope( vao );
+	ScopedVao ScopedVao( vao );
 
 	if( numSegments <= 0 ) {
 		numSegments = (int)math<double>::floor( radius * M_PI * 2 );
@@ -1231,7 +1269,7 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 
 	size_t worstCaseSize = numVertices * sizeof(float) * ( 2 + 2 + 3 );
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( worstCaseSize );
-	BufferScope vboScp( defaultVbo );
+	ScopedBuffer vboScp( defaultVbo );
 
 	size_t dataSizeBytes = 0;
 
@@ -1334,7 +1372,7 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*20 );
-	BufferScope bufferBindScp( defaultVbo );
+	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, sizeof(float)*20, data );
 
 	int posLoc = glslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
@@ -1386,6 +1424,213 @@ void checkError()
 		CI_LOG_E( "glGetError flag set: " << getErrorString( errorFlag ) );
 		CI_ASSERT( 0 );
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopedVao
+ScopedVao::ScopedVao( const VaoRef &vao )
+	: mCtx( gl::context() )
+{
+	mCtx->pushVao( vao );
+}
+
+ScopedVao::~ScopedVao()
+{
+	mCtx->popVao();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopedBuffer
+ScopedBuffer::ScopedBuffer( const BufferObjRef &bufferObj )
+	: mCtx( gl::context() ), mTarget( bufferObj->getTarget() )
+{
+	mCtx->pushBufferBinding( mTarget, bufferObj->getId() );
+}
+
+ScopedBuffer::ScopedBuffer( GLenum target, GLuint id )
+		: mCtx( gl::context() ), mTarget( target )
+{
+	mCtx->pushBufferBinding( target, id );
+}
+
+ScopedBuffer::~ScopedBuffer()
+{
+	mCtx->popBufferBinding( mTarget );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopedState
+ScopedState::ScopedState( GLenum cap, GLboolean value )
+	: mCtx( gl::context() ), mCap( cap )
+{
+	mCtx->pushBoolState( cap, value );
+}
+
+ScopedState::~ScopedState() {
+	mCtx->popBoolState( mCap );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopedBlend
+ScopedBlend::ScopedBlend( GLboolean enable )
+	: mCtx( gl::context() ), mSaveFactors( false )
+{
+	mCtx->pushBoolState( GL_BLEND, enable );
+}
+
+//! Parallels glBlendFunc(), implicitly enables blending
+ScopedBlend::ScopedBlend( GLenum sfactor, GLenum dfactor )
+	: mCtx( gl::context() ), mSaveFactors( true )
+{
+	mCtx->pushBoolState( GL_BLEND, GL_TRUE );
+	mCtx->pushBlendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
+}
+
+//! Parallels glBlendFuncSeparate(), implicitly enables blending
+ScopedBlend::ScopedBlend( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
+	: mCtx( gl::context() ), mSaveFactors( true )
+{
+	mCtx->pushBoolState( GL_BLEND, GL_TRUE );
+	mCtx->pushBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
+}
+
+ScopedBlend::~ScopedBlend()
+{
+	mCtx->popBoolState( GL_BLEND );
+	if( mSaveFactors )
+		mCtx->popBlendFuncSeparate();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopedGlslProg
+ScopedGlslProg::ScopedGlslProg( const GlslProgRef &prog )
+	: mCtx( gl::context() )
+{
+	mCtx->pushGlslProg( prog );
+}
+
+ScopedGlslProg::ScopedGlslProg( const std::shared_ptr<const GlslProg> &prog )
+	: mCtx( gl::context() )
+{
+	mCtx->pushGlslProg( std::const_pointer_cast<GlslProg>( prog ) );
+}
+
+ScopedGlslProg::~ScopedGlslProg()
+{
+	mCtx->popGlslProg();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopedFramebuffer
+ScopedFramebuffer::ScopedFramebuffer( const FboRef &fbo, GLenum target )
+	: mCtx( gl::context() ), mTarget( target )
+{
+	mCtx->pushFramebuffer( fbo, target );
+}
+
+ScopedFramebuffer::ScopedFramebuffer( GLenum target, GLuint framebufferId )
+	: mCtx( gl::context() ), mTarget( target )
+{
+	mCtx->pushFramebuffer( target, framebufferId );
+}
+
+ScopedFramebuffer::~ScopedFramebuffer()
+{	
+#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
+	mCtx->popFramebuffer( GL_FRAMEBUFFER );
+#else
+	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
+		mCtx->popFramebuffer( GL_READ_FRAMEBUFFER );
+	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_DRAW_FRAMEBUFFER )
+		mCtx->popFramebuffer( GL_DRAW_FRAMEBUFFER );
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopedActiveTexture
+ScopedActiveTexture::ScopedActiveTexture( uint8_t textureUnit )
+	: mCtx( gl::context() )
+{
+	mCtx->pushActiveTexture( textureUnit );
+}
+	
+ScopedActiveTexture::~ScopedActiveTexture()
+{
+	mCtx->popActiveTexture();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopedTextureBind
+ScopedTextureBind::ScopedTextureBind( GLenum target, GLuint textureId )
+	: mCtx( gl::context() ), mTarget( target )
+{
+	mTextureUnit = mCtx->getActiveTexture();
+	mCtx->pushTextureBinding( mTarget, textureId, mTextureUnit );
+}
+
+ScopedTextureBind::ScopedTextureBind( GLenum target, GLuint textureId, uint8_t textureUnit )
+	: mCtx( gl::context() ), mTarget( target ), mTextureUnit( textureUnit )
+{
+	mCtx->pushTextureBinding( mTarget, textureId, mTextureUnit );
+}
+
+ScopedTextureBind::ScopedTextureBind( const TextureBaseRef &texture )
+	: mCtx( gl::context() ), mTarget( texture->getTarget() )
+{
+	mTextureUnit = mCtx->getActiveTexture();
+	mCtx->pushTextureBinding( mTarget, texture->getId(), mTextureUnit );
+}
+
+ScopedTextureBind::ScopedTextureBind( const TextureBaseRef &texture, uint8_t textureUnit )
+	: mCtx( gl::context() ), mTarget( texture->getTarget() ), mTextureUnit( textureUnit )
+{
+	mCtx->pushTextureBinding( mTarget, texture->getId(), mTextureUnit );
+}
+	
+ScopedTextureBind::~ScopedTextureBind()
+{
+	mCtx->popTextureBinding( mTarget, mTextureUnit );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopedScissor
+ScopedScissor::ScopedScissor( const Vec2i &lowerLeftPostion, const Vec2i &dimension )
+	: mCtx( gl::context() )
+{
+	mCtx->pushBoolState( GL_SCISSOR_TEST, GL_TRUE );
+	mCtx->pushScissor( std::pair<Vec2i, Vec2i>( lowerLeftPostion, dimension ) ); 
+}
+
+ScopedScissor::ScopedScissor( int lowerLeftX, int lowerLeftY, int width, int height )
+	: mCtx( gl::context() )
+{
+	mCtx->pushBoolState( GL_SCISSOR_TEST, GL_TRUE );
+	mCtx->pushScissor( std::pair<Vec2i, Vec2i>( Vec2i( lowerLeftX, lowerLeftY ), Vec2i( width, height ) ) );		
+}
+	
+ScopedScissor::~ScopedScissor()
+{
+	mCtx->popBoolState( GL_SCISSOR_TEST );
+	mCtx->popScissor();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// ScopedViewport
+ScopedViewport::ScopedViewport( const Vec2i &lowerLeftPostion, const Vec2i &dimension )
+	: mCtx( gl::context() )
+{
+	mCtx->pushViewport( std::pair<Vec2i, Vec2i>( lowerLeftPostion, dimension ) ); 
+}
+
+ScopedViewport::ScopedViewport( int lowerLeftX, int lowerLeftY, int width, int height )
+	: mCtx( gl::context() )
+{
+	mCtx->pushViewport( std::pair<Vec2i, Vec2i>( Vec2i( lowerLeftX, lowerLeftY ), Vec2i( width, height ) ) );		
+}
+	
+ScopedViewport::~ScopedViewport()
+{
+	mCtx->popViewport();
 }
 
 } } // namespace cinder::gl

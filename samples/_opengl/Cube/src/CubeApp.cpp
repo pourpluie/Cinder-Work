@@ -31,7 +31,7 @@ void RotatingCubeApp::setup()
 	
 	mTexture = gl::Texture::create( loadImage( loadAsset( "texture.jpg" ) ), gl::Texture::Format().mipmap() );
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	mGlsl = gl::GlslProg::create( loadAsset( "shader_es2.vert" ), loadAsset( "shader_es2.frag" ) );
 #else
 	mGlsl = gl::GlslProg::create( loadAsset( "shader.vert" ), loadAsset( "shader.frag" ) );
@@ -67,7 +67,7 @@ void RotatingCubeApp::draw()
 
 	mTexture->bind();
 	gl::pushMatrices();
-		gl::multModelView( mCubeRotation );
+		gl::multModelMatrix( mCubeRotation );
 		mBatch->draw();
 	gl::popMatrices();
 }

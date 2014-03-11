@@ -99,7 +99,7 @@ void VaoImplSoftware::bindImpl( Context *context )
 			if( attribIt->second.mPointerType == VertexAttrib::FLOAT )
 				glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
 			else
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 				glVertexAttribIPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mStride, attribIt->second.mPointer );
 #else
 				; // should we throw here?
@@ -133,7 +133,7 @@ void VaoImplSoftware::vertexAttribIPointerImpl( GLuint index, GLint size, GLenum
 {
 	mLayout.vertexAttribIPointer( index, size, type, stride, pointer );
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	glVertexAttribIPointer( index, size, type, stride, pointer );	
 #endif
 }
@@ -142,7 +142,7 @@ void VaoImplSoftware::vertexAttribDivisorImpl( GLuint index, GLuint divisor )
 {
 	mLayout.vertexAttribDivisor( index, divisor );
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	glVertexAttribDivisor( index, divisor );
 #endif
 }

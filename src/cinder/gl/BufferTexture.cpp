@@ -26,7 +26,7 @@
 
 namespace cinder { namespace gl {
 	
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	
 BufferTextureRef BufferTexture::create( const BufferObjRef &buffer, GLenum internalFormat )
 {
@@ -61,13 +61,13 @@ void BufferTexture::setBuffer( const BufferObjRef &buffer, GLenum internalFormat
 
 void BufferTexture::bindTexture( uint8_t textureUnit )
 {
-	ActiveTextureScope activeTextureScope( textureUnit );
+	ScopedActiveTexture activeTexture( textureUnit );
 	gl::context()->bindTexture( mTarget, mId );
 }
 
 void BufferTexture::unbindTexture( uint8_t textureUnit )
 {
-	ActiveTextureScope activeTextureScope( textureUnit );
+	ScopedActiveTexture activeTexture( textureUnit );
 	gl::context()->bindTexture( mTarget, 0 );
 }
 	

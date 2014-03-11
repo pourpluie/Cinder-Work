@@ -37,7 +37,7 @@
 using namespace std;
 
 // ES 2 Multisampling is available on iOS via an extension
-#if ! defined( CINDER_GLES ) || ( defined( CINDER_COCOA_TOUCH ) )
+#if ! defined( CINDER_GL_ES ) || ( defined( CINDER_COCOA_TOUCH ) )
 	#define SUPPORTS_FBO_MULTISAMPLING
 	#if defined( CINDER_COCOA_TOUCH )
 		#define GL_READ_FRAMEBUFFER					GL_READ_FRAMEBUFFER_APPLE
@@ -61,13 +61,13 @@ namespace cinder { namespace gl {
 Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	: mPlatformData( platformData ),
 	mColor( ColorAf::white() )
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL ),
 	mCachedTransformFeedbackObj( nullptr )
 #endif
 {
 	// setup default VAO
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	mDefaultVao = Vao::create();
 	mVaoStack.push_back( mDefaultVao );
 	mDefaultVao->setContext( this );
@@ -109,10 +109,12 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	glGetIntegerv( GL_BLEND_DST_ALPHA, &queriedInt );
 	mBlendDstAlphaStack.push_back( queriedInt );
     
-    mModelViewStack.push_back( Matrix44f() );
-	mModelViewStack.back().setToIdentity();
-	mProjectionStack.push_back( Matrix44f() );
-	mProjectionStack.back().setToIdentity();
+    mModelMatrixStack.push_back( Matrix44f() );
+	mModelMatrixStack.back().setToIdentity();
+    mViewMatrixStack.push_back( Matrix44f() );
+	mViewMatrixStack.back().setToIdentity();
+	mProjectionMatrixStack.push_back( Matrix44f() );
+	mProjectionMatrixStack.back().setToIdentity();
 	mGlslProgStack.push_back( GlslProgRef() );
 
 	// set default shader
@@ -441,7 +443,7 @@ void Context::restoreInvalidatedBufferBinding( GLenum target )
 	}
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Context::bindBufferBase( GLenum target, int index, const BufferObjRef &buffer )
 {
 	switch (target) {
@@ -595,7 +597,7 @@ void Context::bindTexture( GLenum target, GLuint textureId, uint8_t textureUnit 
 	GLuint prevValue = getTextureBinding( target, textureUnit );
 	if( prevValue != textureId ) {
 		mTextureBindingStack[textureUnit][target].back() = textureId;
-		ActiveTextureScope actScp( textureUnit );
+		ScopedActiveTexture actScp( textureUnit );
 		glBindTexture( target, textureId );
 	}
 }
@@ -604,11 +606,23 @@ void Context::pushTextureBinding( GLenum target, uint8_t textureUnit )
 {
 	if( mTextureBindingStack.find( textureUnit ) == mTextureBindingStack.end() ) {
 		mTextureBindingStack[textureUnit] = std::map<GLenum,std::vector<GLint>>();
-		mTextureBindingStack[textureUnit][target].push_back( -1 );
+		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
+		GLint queriedInt = -1;
+		if( targetBinding > 0 ) {
+			ScopedActiveTexture actScp( textureUnit );
+			glGetIntegerv( targetBinding, &queriedInt );
+		}
+		mTextureBindingStack[textureUnit][target].push_back( queriedInt );
 	}
 	else if( mTextureBindingStack[textureUnit].find( target ) == mTextureBindingStack[textureUnit].end() ) {
 		mTextureBindingStack[textureUnit][target] = std::vector<GLint>();
-		mTextureBindingStack[textureUnit][target].push_back( -1 );
+		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
+		GLint queriedInt = -1;
+		if( targetBinding > 0 ) {
+			ScopedActiveTexture actScp( textureUnit );
+			glGetIntegerv( targetBinding, &queriedInt );
+		}
+		mTextureBindingStack[textureUnit][target].push_back( queriedInt );
 	}
 	
 	mTextureBindingStack[textureUnit][target].push_back( mTextureBindingStack[textureUnit][target].back() );
@@ -631,7 +645,7 @@ void Context::popTextureBinding( GLenum target, uint8_t textureUnit )
 		cached->second.pop_back();
 		if( ! cached->second.empty() ) {
 			if( cached->second.back() != prevValue ) {
-				ActiveTextureScope actScp( textureUnit );
+				ScopedActiveTexture actScp( textureUnit );
 				glBindTexture( target, cached->second.back() );
 			}
 		}
@@ -648,7 +662,7 @@ GLuint Context::getTextureBinding( GLenum target, uint8_t textureUnit )
 		GLint queriedInt = 0;
 		GLenum targetBinding = Texture::getBindingConstantForTarget( target );
 		if( targetBinding > 0 ) {
-			ActiveTextureScope actScp( textureUnit );
+			ScopedActiveTexture actScp( textureUnit );
 			glGetIntegerv( targetBinding, &queriedInt );
 		}
 		else
@@ -1041,7 +1055,7 @@ void Context::depthMask( GLboolean enable )
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // PolygonMode
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Context::polygonMode( GLenum face, GLenum mode )
 {
 	if( face == GL_FRONT_AND_BACK ) {
@@ -1068,7 +1082,7 @@ GLenum Context::getPolygonMode( GLenum face ) const
 {
 	return face == GL_FRONT ? mCachedFrontPolygonMode : mCachedBackPolygonMode;
 }
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Templated stack management routines
@@ -1127,7 +1141,7 @@ void Context::sanityCheck()
 {
 	// assert cached (VAO) GL_VERTEX_ARRAY_BINDING is correct
 	GLint trueVaoBinding;
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING_OES, &trueVaoBinding );
 #else
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &trueVaoBinding );
@@ -1179,7 +1193,7 @@ void Context::printState( std::ostream &os ) const
 	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &queriedInt );
 	os << "GL_ELEMENT_ARRAY_BUFFER:" << queriedInt << ", ";
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING_OES, &queriedInt );
 #else
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &queriedInt );
@@ -1211,14 +1225,14 @@ void Context::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLbool
 		vao->vertexAttribPointerImpl( index, size, type, normalized, stride, pointer );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Context::vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer )
 {
 	VaoRef vao = getVao();
 	if( vao )
 		vao->vertexAttribIPointerImpl( index, size, type, stride, pointer );
 }
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 void Context::vertexAttribDivisor( GLuint index, GLuint divisor )
 {
@@ -1259,7 +1273,7 @@ void Context::drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoi
 	glDrawElements( mode, count, type, indices );
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Context::drawArraysInstanced( GLenum mode, GLint first, GLsizei count, GLsizei primcount )
 {
 	glDrawArraysInstanced( mode, first, count, primcount );
@@ -1269,7 +1283,7 @@ void Context::drawElementsInstanced( GLenum mode, GLsizei count, GLenum type, co
 {
 	glDrawElementsInstanced( mode, count, type, indices, primcount );
 }
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Shaders
@@ -1293,12 +1307,18 @@ void Context::setDefaultShaderVars()
 		const auto &uniforms = glslProg->getUniformSemantics();
 		for( const auto &unifIt : uniforms ) {
 			switch( unifIt.second ) {
-				case UNIFORM_MODELVIEW:
+				case UNIFORM_MODEL_MATRIX:
+					glslProg->uniform( unifIt.first, gl::getModelMatrix() ); break;
+				case UNIFORM_VIEW_MATRIX:
+					glslProg->uniform( unifIt.first, gl::getViewMatrix() ); break;
+				case UNIFORM_VIEW_MATRIX_INVERSE:
+					glslProg->uniform( unifIt.first, gl::calcViewMatrixInverse() ); break;
+				case UNIFORM_MODEL_VIEW:
 					glslProg->uniform( unifIt.first, gl::getModelView() ); break;
-				case UNIFORM_MODELVIEWPROJECTION:
+				case UNIFORM_MODEL_VIEW_PROJECTION:
 					glslProg->uniform( unifIt.first, gl::getModelViewProjection() ); break;
-				case UNIFORM_PROJECTION:
-					glslProg->uniform( unifIt.first, gl::getProjection() ); break;
+				case UNIFORM_PROJECTION_MATRIX:
+					glslProg->uniform( unifIt.first, gl::getProjectionMatrix() ); break;
 				case UNIFORM_NORMAL_MATRIX:
 					glslProg->uniform( unifIt.first, gl::calcNormalMatrix() ); break;
 				case UNIFORM_WINDOW_SIZE:
@@ -1359,70 +1379,6 @@ VboRef Context::getDefaultElementVbo( size_t requiredSize )
 	return mDefaultElementVbo;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////
-// BufferScope
-BufferScope::BufferScope( const BufferObjRef &bufferObj )
-	: mCtx( gl::context() ), mTarget( bufferObj->getTarget() )
-{
-	mCtx->pushBufferBinding( mTarget, bufferObj->getId() );
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// BlendScope
-BlendScope::BlendScope( GLboolean enable )
-	: mCtx( gl::context() ), mSaveFactors( false )
-{
-	mCtx->pushBoolState( GL_BLEND, enable );
-}
-
-//! Parallels glBlendFunc(), implicitly enables blending
-BlendScope::BlendScope( GLenum sfactor, GLenum dfactor )
-	: mCtx( gl::context() ), mSaveFactors( true )
-{
-	mCtx->pushBoolState( GL_BLEND, GL_TRUE );
-	mCtx->pushBlendFuncSeparate( sfactor, dfactor, sfactor, dfactor );
-}
-
-//! Parallels glBlendFuncSeparate(), implicitly enables blending
-BlendScope::BlendScope( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha )
-	: mCtx( gl::context() ), mSaveFactors( true )
-{
-	mCtx->pushBoolState( GL_BLEND, GL_TRUE );
-	mCtx->pushBlendFuncSeparate( srcRGB, dstRGB, srcAlpha, dstAlpha );
-}
-
-BlendScope::~BlendScope()
-{
-	mCtx->popBoolState( GL_BLEND );
-	if( mSaveFactors )
-		mCtx->popBlendFuncSeparate();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// FramebufferScope
-FramebufferScope::FramebufferScope( const FboRef &fbo, GLenum target )
-	: mCtx( gl::context() ), mTarget( target )
-{
-	mCtx->pushFramebuffer( fbo, target );
-}
-
-FramebufferScope::FramebufferScope( GLenum target, GLuint framebufferId )
-	: mCtx( gl::context() ), mTarget( target )
-{
-	mCtx->pushFramebuffer( target, framebufferId );
-}
-
-FramebufferScope::~FramebufferScope()
-{	
-#if ! defined( SUPPORTS_FBO_MULTISAMPLING )
-	mCtx->popFramebuffer( GL_FRAMEBUFFER );
-#else
-	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_READ_FRAMEBUFFER )
-		mCtx->popFramebuffer( GL_READ_FRAMEBUFFER );
-	if( mTarget == GL_FRAMEBUFFER || mTarget == GL_DRAW_FRAMEBUFFER )
-		mCtx->popFramebuffer( GL_DRAW_FRAMEBUFFER );
-#endif
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

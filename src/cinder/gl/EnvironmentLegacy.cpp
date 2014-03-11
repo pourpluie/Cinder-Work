@@ -22,7 +22,7 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#if ( ! defined( CINDER_GLES ) ) && ( ! defined( CINDER_GL_ANGLE ) )
+#if ( ! defined( CINDER_GL_ES ) ) && ( ! defined( CINDER_GL_ANGLE ) )
 
 #define CINDER_GL_LEGACY // to force appropriate GL headers
 #include "glload/gl_all.h"
@@ -201,4 +201,4 @@ GlslProgRef	EnvironmentLegacy::buildShader( const ShaderDef &shader )
 
 } } // namespace cinder::gl
 
-#endif // ( ! defined( CINDER_GLES ) ) && ( ! defined( CINDER_GL_ANGLE ) )
+#endif // ( ! defined( CINDER_GL_ES ) ) && ( ! defined( CINDER_GL_ANGLE ) )

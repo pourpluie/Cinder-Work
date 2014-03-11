@@ -110,7 +110,7 @@ TextureFont::TextureFont( const Font &font, const string &supportedChars, const 
 			gl::Texture::Format textureFormat = gl::Texture::Format();
 			textureFormat.enableMipmapping( mFormat.hasMipmapping() );
 			GLint dataFormat;
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 			dataFormat = GL_LUMINANCE_ALPHA;
 			textureFormat.setInternalFormat( dataFormat );
 #else
@@ -292,7 +292,7 @@ TextureFont::TextureFont( const Font &font, const string &utf8Chars, const Forma
 				}
 			}
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 			textureFormat.setInternalFormat( GL_LUMINANCE_ALPHA );
 #else
 			textureFormat.setInternalFormat( GL_RG );
@@ -323,12 +323,12 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 	if( ! colors.empty() )
 		assert( glyphMeasures.size() == colors.size() );
 
-	TextureBindScope texBindScp( mTextures[0] );
+	ScopedTextureBind texBindScp( mTextures[0] );
 	auto shaderDef = ShaderDef().texture( mTextures[0] );
 	if( ! colors.empty() )
 		shaderDef.color();
 	GlslProgRef shader = gl::getStockShader( shaderDef );
-	GlslProgScope glslScp( shader );
+	ScopedGlslProg glslScp( shader );
 
 	Vec2f baseline = baselineIn;
 
@@ -337,7 +337,7 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 		vector<float> verts, texCoords;
 		vector<ColorA8u> vertColors;
 		const gl::TextureRef &curTex = mTextures[texIdx];
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 		vector<uint16_t> indices;
 		uint16_t curIdx = 0;
 		GLenum indexType = GL_UNSIGNED_SHORT;
@@ -397,8 +397,8 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 		VboRef defaultElementVbo = ctx->getDefaultElementVbo( indices.size() * sizeof(curIdx) );
 		VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( dataSize );
 
-		BufferScope vboArrayScp( defaultArrayVbo );
-		BufferScope vboElScp( defaultElementVbo );
+		ScopedBuffer vboArrayScp( defaultArrayVbo );
+		ScopedBuffer vboElScp( defaultElementVbo );
 
 		size_t dataOffset = 0;
 		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
@@ -440,12 +440,12 @@ void TextureFont::drawGlyphs( const std::vector<std::pair<uint16_t,Vec2f> > &gly
 	if( ! colors.empty() )
 		assert( glyphMeasures.size() == colors.size() );
 
-	TextureBindScope texBindScp( mTextures[0] );
+	ScopedTextureBind texBindScp( mTextures[0] );
 	auto shaderDef = ShaderDef().texture( mTextures[0] );
 	if( ! colors.empty() )
 		shaderDef.color();
 	GlslProgRef shader = gl::getStockShader( shaderDef );
-	GlslProgScope glslScp( shader );
+	ScopedGlslProg glslScp( shader );
 
 	const float scale = options.getScale();
 
@@ -453,7 +453,7 @@ void TextureFont::drawGlyphs( const std::vector<std::pair<uint16_t,Vec2f> > &gly
 		vector<float> verts, texCoords;
 		vector<ColorA8u> vertColors;
 		const gl::TextureRef &curTex = mTextures[texIdx];
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 		vector<uint16_t> indices;
 		uint16_t curIdx = 0;
 		GLenum indexType = GL_UNSIGNED_SHORT;
@@ -533,8 +533,8 @@ void TextureFont::drawGlyphs( const std::vector<std::pair<uint16_t,Vec2f> > &gly
 		VboRef defaultElementVbo = ctx->getDefaultElementVbo( indices.size() * sizeof(curIdx) );
 		VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( dataSize );
 
-		BufferScope vboArrayScp( defaultArrayVbo );
-		BufferScope vboElScp( defaultElementVbo );
+		ScopedBuffer vboArrayScp( defaultArrayVbo );
+		ScopedBuffer vboElScp( defaultElementVbo );
 
 		size_t dataOffset = 0;
 		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );

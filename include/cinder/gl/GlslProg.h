@@ -28,6 +28,7 @@
 #include <fstream>
 #include <exception>
 #include <map>
+#include <set>
 
 #include "cinder/gl/gl.h"
 #include "cinder/Vector.h"
@@ -59,7 +60,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		Format&		fragment( const DataSourceRef &dataSource );
 		//! Supplies the GLSL source for the fragment shader
 		Format&		fragment( const char *vertexShader );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		//! Supplies the GLSL source for the geometry shader
 		Format&		geometry( const DataSourceRef &dataSource );
 		//! Supplies the GLSL source for the geometry shader
@@ -84,7 +85,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		const std::string&	getVertex() const { return mVertexShader; }
 		//! Returns the GLSL source for the fragment shader. Returns an empty string if it isn't present.
 		const std::string&	getFragment() const { return mFragmentShader; }
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		//! Returns the GLSL source for the geometry shader
 		const std::string&	getGeometry() const { return mGeometryShader; }
 		const std::vector<std::string>&  getVaryings() const { return mTransformVaryings; }
@@ -105,7 +106,7 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	  protected:
 		std::string					mVertexShader;
 		std::string					mFragmentShader;
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		std::string								mGeometryShader;
 		GLenum									mTransformFormat;
 		std::vector<std::string>				mTransformVaryings;
@@ -171,9 +172,9 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	//! Returns a std::map from the attribute name to its OpenGL type (GL_BOOL, GL_FLOAT_VEC3, etc)
 	const std::map<std::string,GLenum>&		getActiveAttribTypes() const;
 
-	//! Returns the map between uniform semantics and uniform names
+	//! Returns the map between uniform semantics and active uniforms' names
 	const UniformSemanticMap&		getUniformSemantics() const;
-	//! Returns the map between attribute semantics and attribute names
+	//! Returns the map between attribute semantics and active attributes' names
 	const AttribSemanticMap&		getAttribSemantics() const;
 	
 	bool	hasAttribSemantic( geom::Attrib semantic ) const;
@@ -217,9 +218,11 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	AttribSemanticMap						mAttribNameToSemanticMap;
 	mutable bool							mAttribSemanticsCached;
 	mutable AttribSemanticMap				mAttribSemantics;
+	// enumerates the uniforms we've already logged as missing so that we don't flood the log with the same message
+	mutable std::set<std::string>			mLoggedMissingUniforms;
 
 	// storage as a work-around for NVidia on MSW driver bug expecting persistent memory in calls to glTransformFeedbackVaryings
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	std::unique_ptr<std::vector<GLchar>>	mTransformFeedbackVaryingsChars;
 	std::unique_ptr<std::vector<GLchar*>>	mTransformFeedbackVaryingsCharStarts;
 #endif
@@ -250,18 +253,4 @@ class GlslNullProgramExc : public std::exception {
 	
 };
 
-class GlslUnknownUniform : public Exception {
-  public:
-	GlslUnknownUniform( const std::string &uniformName )
-	{
-		mMessage = std::string( "Unknown uniform: " ) + uniformName;
-	}
-	
-	virtual const char* what() const throw() {
-		return mMessage.c_str();
-	}
-	
-	std::string		mMessage;
-};
-	
 } } // namespace cinder::gl

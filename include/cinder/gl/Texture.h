@@ -35,7 +35,7 @@
 #include <utility>
 #include <array>
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 #define GL_BLUE		0x1905
 #define GL_GREEN	0x1904
 #define GL_RED		0x1903
@@ -75,7 +75,7 @@ class TextureBase {
 	void			setWrapS( GLenum wrapS );
 	//! Sets the vertical wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_CLAMP_TO_EDGE.
 	void			setWrapT( GLenum wrapT );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Sets the depth wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_CLAMP_TO_EDGE.
 	void			setWrapR( GLenum wrapR );
 #endif	
@@ -108,7 +108,7 @@ class TextureBase {
 		//! Specifies the texture's target. The default is \c GL_TEXTURE_2D
 		void	setTarget( GLenum target ) { mTarget = target; }
 		//! Sets the texture's target to be \c GL_TEXTURE_RECTANGLE. Not available in OpenGL ES.
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		void	setTargetRect() { mTarget = GL_TEXTURE_RECTANGLE; }
 #endif
 		
@@ -130,7 +130,7 @@ class TextureBase {
 		void	setWrapS( GLenum wrapS ) { mWrapS = wrapS; }
 		//! Sets the vertical wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_CLAMP_TO_EDGE.
 		void	setWrapT( GLenum wrapT ) { mWrapT = wrapT; }
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		//! Sets the depth wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_CLAMP_TO_EDGE.
 		void	setWrapR( GLenum wrapR ) { mWrapR = wrapR; }
 #endif
@@ -161,7 +161,7 @@ class TextureBase {
 		//! Returns the vertical wrapping behavior for the texture coordinates.
 		GLenum	getWrapT() const { return mWrapT; }
 		//! Returns the depth wrapping behavior for the texture coordinates.
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		GLenum	getWrapR() const { return mWrapR; }
 #endif
 		//! Returns the texture minifying function, which is used whenever the pixel being textured maps to an area greater than one texture element.
@@ -171,7 +171,7 @@ class TextureBase {
 		//! Returns the texture anisotropic filtering amount
 		GLfloat getMaxAnisotropy() const { return mMaxAnisotropy; }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		//! Supplies an intermediate PBO that Texture constructors optionally make use of. A PBO of an inadequate size may result in an exception.
 		void			setIntermediatePbo( const PboRef &intermediatePbo ) { mIntermediatePbo = intermediatePbo; }
 		//! Returns the optional intermediate PBO that Texture constructors may make use of.
@@ -197,7 +197,7 @@ class TextureBase {
 		GLenum				mPixelDataType;
 		std::array<GLint,4>	mSwizzleMask;
 
-#if ! defined( CINDER_GLES )		
+#if ! defined( CINDER_GL_ES )		
 		PboRef				mIntermediatePbo;
 #endif
 		friend class TextureBase;
@@ -227,7 +227,7 @@ class TextureData {
 	};
 
 	TextureData();
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Binds the pbo if it's not nullptr
 	TextureData( const PboRef &pbo );
 #endif
@@ -274,7 +274,7 @@ class TextureData {
 	
 	std::vector<Level>			mLevels;
 
-  #if ! defined( CINDER_GLES )
+  #if ! defined( CINDER_GL_ES )
 	PboRef						mPbo;
 	void*						mPboMappedPtr;
   #endif
@@ -297,7 +297,7 @@ class Texture : public TextureBase {
 		Format& wrap( GLenum wrap ) { mWrapS = mWrapT = mWrapR = wrap; return *this; }
 		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
 		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		Format& wrapR( GLenum wrapR ) { mWrapR = wrapR; return *this; }
 #endif
 		Format& minFilter( GLenum minFilter ) { setMinFilter( minFilter ); return *this; }
@@ -307,7 +307,7 @@ class Texture : public TextureBase {
 		//! Corresponds to the 'type' parameter of glTexImage*(). Defaults to \c GL_UNSIGNED_BYTE
 		Format& pixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; return *this; }
 		Format& swizzleMask( const std::array<GLint,4> &swizzleMask ) { setSwizzleMask( swizzleMask ); return *this; }
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		Format& intermediatePbo( const PboRef &intermediatePbo ) { setIntermediatePbo( intermediatePbo ); return *this; }
 #endif		
 		friend Texture;
@@ -333,7 +333,7 @@ class Texture : public TextureBase {
 	static TextureRef	create( const TextureData &data, const Format &format );
 	//! Constructs a Texture from an optionally compressed KTX file. Enables mipmapping if KTX file contains mipmaps and Format has not specified \c false for mipmapping. Uses Format's intermediate PBO if supplied; requires it to be large enough to hold all MIP levels and throws if it is not. (http://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/)
 	static TextureRef	createFromKtx( const DataSourceRef &dataSource, const Format &format = Format() );
-#if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
+#if ! defined( CINDER_GL_ES ) || defined( CINDER_GL_ANGLE )
 	//! Constructs a Texture from a DDS file. Supports DXT1, DTX3, and DTX5. Supports BC7 in the presence of \c GL_ARB_texture_compression_bptc. Enables mipmapping if DDS contains mipmaps and Format has not specified \c false for mipmapping. ANGLE version requires textures to be a multiple of 4 due to DX limitation.
 	static TextureRef	createFromDds( const DataSourceRef &dataSource, const Format &format = Format() );
 #endif
@@ -353,7 +353,7 @@ class Texture : public TextureBase {
 	void			update( const Channel8u &channel, const Area &area, int mipLevel = 0 );
 	//! Updates the pixels of a Texture with contents of \a textureData. Inefficient if the bounds of \a textureData don't match those of \a this
 	void			update( const TextureData &textureData );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Updates the pixels of a Texture with the contents of a PBO (whose target must be \c GL_PIXEL_UNPACK_BUFFER) at mipmap level \a mipLevel. \a format and \a type correspond to parameters of glTexSubImage2D, and would often be GL_RGB and GL_UNSIGNED_BYTE respectively. Reads from the PBO starting at \a pboByteOffset.
 	void			update( const PboRef &pbo, GLenum format, GLenum type, int mipLevel = 0, size_t pboByteOffset = 0 );
 	//! Updates a subregion (measured as origin upper-left) of the pixels of a Texture with the contents of a PBO (whose target must be \c GL_PIXEL_UNPACK_BUFFER) at mipmap level \a mipLevel.  \a format and \a type correspond to parameters of glTexSubImage2D, and would often be GL_RGB and GL_UNSIGNED_BYTE respectively. Reads from the PBO starting at \a pboByteOffset.
@@ -435,7 +435,7 @@ class Texture : public TextureBase {
 	void	initData( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format );
 	void	initData( const float *data, GLint dataFormat, const Format &format );
 	void	initData( const ImageSourceRef &imageSource, const Format &format );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	void	initDataImageSourceWithPboImpl( const ImageSourceRef &imageSource, const Format &format, GLint dataFormat, ImageIo::ChannelOrder channelOrder, bool isGray, const PboRef &pbo );
 #endif
 	void	initDataImageSourceImpl( const ImageSourceRef &imageSource, const Format &format, GLint dataFormat, ImageIo::ChannelOrder channelOrder, bool isGray );
@@ -447,7 +447,7 @@ class Texture : public TextureBase {
 	friend class TextureCache;
 };
 
-#ifndef CINDER_GLES
+#ifndef CINDER_GL_ES
 class Texture3d : public TextureBase {
   public:
 	struct Format : public TextureBase::Format {
@@ -464,7 +464,7 @@ class Texture3d : public TextureBase {
 		Format& wrap( GLenum wrap ) { mWrapS = mWrapT = mWrapR = wrap; return *this; }
 		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
 		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		Format& wrapR( GLenum wrapR ) { mWrapR = wrapR; return *this; }
 #endif
 		Format& minFilter( GLenum minFilter ) { setMinFilter( minFilter ); return *this; }
@@ -514,9 +514,9 @@ class TextureCubeMap : public TextureBase
 		Format& wrap( GLenum wrap ) { mWrapS = mWrapT = mWrapR = wrap; return *this; }
 		Format& wrapS( GLenum wrapS ) { mWrapS = wrapS; return *this; }
 		Format& wrapT( GLenum wrapT ) { mWrapT = wrapT; return *this; }
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		Format& wrapR( GLenum wrapR ) { mWrapR = wrapR; return *this; }		
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 		Format& minFilter( GLenum minFilter ) { setMinFilter( minFilter ); return *this; }
 		Format& magFilter( GLenum magFilter ) { setMagFilter( magFilter ); return *this; }
 		

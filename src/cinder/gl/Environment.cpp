@@ -42,7 +42,7 @@ extern Environment* allocateEnvironmentLegacy();
 extern Environment* allocateEnvironmentEs2();
 static Environment *sEnvironment = NULL;
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void Environment::setCore()
 {
 	if( ! sEnvironment ) {

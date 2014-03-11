@@ -28,8 +28,8 @@
 	#define GL_GLEXT_PROTOTYPES
 	#include "GLES2/gl2.h"
 	#include "GLES2/gl2ext.h"
-	#define CINDER_GLES
-	#define CINDER_GLES2
+	#define CINDER_GL_ES
+	#define CINDER_GL_ES_2
 	#pragma comment( lib, "libEGL.lib" )
 	#pragma comment( lib, "libGLESv2.lib" )
 #elif ! defined( CINDER_COCOA_TOUCH )
@@ -48,9 +48,10 @@
 #else
 	#include <OpenGLES/ES2/gl.h>
 	#include <OpenGLES/ES2/glext.h>
-	#define CINDER_GLES
-	#define CINDER_GLES2
+	#define CINDER_GL_ES
+	#define CINDER_GL_ES_2
 #endif
+#include <boost/noncopyable.hpp>
 
 #include "cinder/gl/Texture.h"
 
@@ -80,26 +81,33 @@ namespace cinder { namespace gl {
 
 // Remember to add a matching case to uniformSemanticToString
 enum UniformSemantic {
-	UNIFORM_MODELVIEW,
-	UNIFORM_MODELVIEWPROJECTION,
-	UNIFORM_PROJECTION,
+	UNIFORM_MODEL_MATRIX,
+	UNIFORM_VIEW_MATRIX,
+	UNIFORM_VIEW_MATRIX_INVERSE,
+	UNIFORM_MODEL_VIEW,
+	UNIFORM_MODEL_VIEW_PROJECTION,
+	UNIFORM_PROJECTION_MATRIX,
 	UNIFORM_NORMAL_MATRIX,
 	UNIFORM_WINDOW_SIZE,
 	UNIFORM_ELAPSED_SECONDS
 };
 
 class Vbo;
-typedef std::shared_ptr<Vbo>		VboRef;
+typedef std::shared_ptr<Vbo>			VboRef;
 class VboMesh;
-typedef std::shared_ptr<VboMesh>	VboMeshRef;
+typedef std::shared_ptr<VboMesh>		VboMeshRef;
 class Texture;
-typedef std::shared_ptr<Texture>	TextureRef;
+typedef std::shared_ptr<Texture>		TextureRef;
+class TextureBase;
+typedef std::shared_ptr<TextureBase>	TextureBaseRef;
 class BufferObj;
-typedef std::shared_ptr<BufferObj>	BufferObjRef;
+typedef std::shared_ptr<BufferObj>		BufferObjRef;
 class GlslProg;
-typedef std::shared_ptr<GlslProg>	GlslProgRef;
+typedef std::shared_ptr<GlslProg>		GlslProgRef;
 class Vao;
-typedef std::shared_ptr<Vao>		VaoRef;
+typedef std::shared_ptr<Vao>			VaoRef;
+class Fbo;
+typedef std::shared_ptr<Fbo>			FboRef;
 
 class Context* context();
 class Environment* env();
@@ -163,48 +171,65 @@ void disableStencilRead();
 void enableStencilWrite( bool enable = true );
 void disableStencilWrite();
 
+//! Sets the View and Projection matrices based on a Camera
 void setMatrices( const ci::Camera &cam );
-void setModelView( const ci::Matrix44f &m );
-void setModelView( const ci::Camera &cam );
-void setProjection( const ci::Camera &cam );
-void setProjection( const ci::Matrix44f &m );
-void pushModelView();
-void popModelView();
-void pushProjection();
-void popProjection();
+void setModelMatrix( const ci::Matrix44f &m );
+void setViewMatrix( const ci::Matrix44f &m );
+void setProjectionMatrix( const ci::Matrix44f &m );
+void pushModelMatrix();
+void popModelMatrix();
+void pushViewMatrix();
+void popViewMatrix();
+void pushProjectionMatrix();
+void popProjectionMatrix();
+//! Pushes Model, View and Projection matrices
 void pushMatrices();
+//! Pops Model, View and Projection matrices
 void popMatrices();
-void multModelView( const ci::Matrix44f &mtx );
-void multProjection( const ci::Matrix44f &mtx );
+void multModelMatrix( const ci::Matrix44f &mtx );
+void multViewMatrix( const ci::Matrix44f &mtx );
+void multProjectionMatrix( const ci::Matrix44f &mtx );
 
+Matrix44f getModelMatrix();
+Matrix44f getViewMatrix();
+Matrix44f getProjectionMatrix();
 Matrix44f getModelView();
-Matrix44f getProjection();
 Matrix44f getModelViewProjection();
+Matrix44f calcViewMatrixInverse();
 Matrix33f calcNormalMatrix();
 
-void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 10000.0f, bool originUpperLeft = true );
-void setMatricesWindowPersp( const ci::Vec2i &screenSize, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 10000.0f, bool originUpperLeft = true );
+void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 1000.0f, bool originUpperLeft = true );
+void setMatricesWindowPersp( const ci::Vec2i &screenSize, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 1000.0f, bool originUpperLeft = true );
 void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft = true );
 void setMatricesWindow( const ci::Vec2i &screenSize, bool originUpperLeft = true );
 
+//! Rotates the Model matrix by \a angleDegrees around the axis (\a x,\a y,\a z)
 void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis );
 void rotate( const cinder::Quatf &quat );
 inline void rotate( float zDegrees ) { rotate( zDegrees, 0, 0, 1 ); }
 
+//! Scales the Model matrix by \a v
 void scale( const ci::Vec3f &v );
+//! Scales the Model matrix by (\a x,\a y, \a z)
 inline void scale( float x, float y, float z ) { scale( Vec3f( x, y, z ) ); }
+//! Scales the Model matrix by \a v
 inline void scale( const ci::Vec2f &v ) { scale( Vec3f( v.x, v.y, 1 ) ); }
+//! Scales the Model matrix by (\a x,\a y, 1)
 inline void scale( float x, float y ) { scale( Vec3f( x, y, 1 ) ); }
 
+//! Translates the Model matrix by \a v
 void translate( const ci::Vec3f &v );
+//! Translates the Model matrix by (\a x,\a y,\a z )
 inline void translate( float x, float y, float z ) { translate( Vec3f( x, y, z ) ); }
+//! Translates the Model matrix by \a v
 inline void translate( const ci::Vec2f &v ) { translate( Vec3f( v, 0 ) ); }
+//! Translates the Model matrix by (\a x,\a y)
 inline void translate( float x, float y ) { translate( Vec3f( x, y, 0 ) ); }
 	
 void begin( GLenum mode );
 void end();
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void bindBufferBase( GLenum target, int index, BufferObjRef buffer );
 	
 void beginTransformFeedback( GLenum primitiveMode );
@@ -234,7 +259,7 @@ void vertex( const ci::Vec2f &v );
 void vertex( const ci::Vec3f &v );
 void vertex( const ci::Vec4f &v );
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 void polygonMode( GLenum face, GLenum mode );
 //! Enables wireframe drawing by setting the \c PolygonMode to \c GL_LINE.
 void enableWireframe();
@@ -296,10 +321,10 @@ void drawStrokedCircle( const Vec2f &center, float radius, int numSegments = -1 
 // Vertex Attributes
 //! Analogous to glVertexAttribPointer
 void	vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 //! Analogous to glVertexAttribIPointer
 void	vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 //! Analogous to glEnableVertexAttribArray
 void	enableVertexAttribArray( GLuint index );
 
@@ -322,6 +347,132 @@ void	drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indice
 GLenum getError();
 std::string getErrorString( GLenum err );
 void checkError();
+
+
+struct ScopedVao : public boost::noncopyable {
+	ScopedVao( const VaoRef &vao );
+	~ScopedVao();
+
+  private:
+	Context		*mCtx;
+};
+
+struct ScopedBuffer : public boost::noncopyable {
+	ScopedBuffer( const BufferObjRef &bufferObj );
+	ScopedBuffer( GLenum target, GLuint id );
+	~ScopedBuffer();
+	
+  private:
+	Context		*mCtx;
+	GLenum		mTarget;
+};
+
+struct ScopedState : public boost::noncopyable {
+	ScopedState( GLenum cap, GLboolean value );
+	~ScopedState();
+
+  private:
+	Context		*mCtx;
+	GLenum		mCap;
+};
+
+struct ScopedBlend : public boost::noncopyable
+{
+	ScopedBlend( GLboolean enable );
+	//! Parallels glBlendFunc(), and implicitly enables blending
+	ScopedBlend( GLenum sfactor, GLenum dfactor );
+	//! Parallels glBlendFuncSeparate(), and implicitly enables blending
+	ScopedBlend( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
+	~ScopedBlend();
+	
+  private:
+	Context		*mCtx;
+	bool		mSaveFactors; // whether we should also set the blend factors rather than just the blend state
+};
+
+struct ScopedGlslProg : public boost::noncopyable
+{
+	ScopedGlslProg( const GlslProgRef &prog );
+	ScopedGlslProg( const std::shared_ptr<const GlslProg> &prog );
+	~ScopedGlslProg();
+
+  private:
+	Context		*mCtx;
+};
+
+struct ScopedFramebuffer : public boost::noncopyable
+{
+	ScopedFramebuffer( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
+	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
+	ScopedFramebuffer( GLenum target, GLuint framebufferId );
+	~ScopedFramebuffer();
+	
+  private:
+	Context		*mCtx;
+	GLenum		mTarget;
+};
+
+struct ScopedActiveTexture : public boost::noncopyable
+{
+	//! Sets the currently active texture through glActiveTexture. Expects values relative to \c 0, \em not GL_TEXTURE0
+	ScopedActiveTexture( uint8_t textureUnit );
+	~ScopedActiveTexture();
+	
+  private:
+	Context		*mCtx;
+};
+
+struct ScopedTextureBind : public boost::noncopyable
+{
+	ScopedTextureBind( GLenum target, GLuint textureId );
+	ScopedTextureBind( GLenum target, GLuint textureId, uint8_t textureUnit );
+	ScopedTextureBind( const TextureBaseRef &texture );
+	ScopedTextureBind( const TextureBaseRef &texture, uint8_t textureUnit );
+	~ScopedTextureBind();
+	
+  private:
+	Context		*mCtx;
+	GLenum		mTarget;
+	uint8_t		mTextureUnit;
+};
+	
+struct ScopedScissor : public boost::noncopyable
+{
+	//! Implicitly enables scissor test
+	ScopedScissor( const Vec2i &lowerLeftPostion, const Vec2i &dimension );
+	//! Implicitly enables scissor test	
+	ScopedScissor( int lowerLeftX, int lowerLeftY, int width, int height );
+	~ScopedScissor();
+
+  private:
+	Context					*mCtx;
+};
+
+struct ScopedViewport : public boost::noncopyable
+{
+	ScopedViewport( const Vec2i &lowerLeftPostion, const Vec2i &dimension );
+	ScopedViewport( int lowerLeftX, int lowerLeftY, int width, int height );
+	~ScopedViewport();
+
+  private:
+	Context					*mCtx;
+};
+
+struct ScopedModelMatrix : public boost::noncopyable {
+	ScopedModelMatrix()	{ gl::pushModelMatrix(); }
+	~ScopedModelMatrix()	{ gl::popModelMatrix(); }
+};
+
+struct ScopedProjectionMatrix : public boost::noncopyable {
+	ScopedProjectionMatrix()			{ gl::pushProjectionMatrix(); }
+	~ScopedProjectionMatrix()	{ gl::popProjectionMatrix(); }
+};
+
+//! Preserves all
+struct ScopedMatrices : public boost::noncopyable {
+	ScopedMatrices()		{ gl::pushMatrices(); }
+	~ScopedMatrices()	{ gl::popMatrices(); }
+};
 
 class Exception : public cinder::Exception {
 };

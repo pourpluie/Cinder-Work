@@ -29,7 +29,6 @@
 #include "cinder/Vector.h"
 #include "cinder/gl/Shader.h"
 
-#include <boost/noncopyable.hpp>
 #include <vector>
 #include <map>
 
@@ -43,7 +42,7 @@ class Vao;
 typedef std::shared_ptr<Vao>			VaoRef;
 class BufferObj;
 typedef std::shared_ptr<BufferObj>		BufferObjRef;
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 class TransformFeedbackObj;
 typedef std::shared_ptr<TransformFeedbackObj>	TransformFeedbackObjRef;
 #endif
@@ -77,16 +76,20 @@ class Context {
 	//! Returns the thread's currently active OpenGL Context
 	static Context*	getCurrent();
 
-	//! Returns a reference to the stack of ModelView matrices
-	std::vector<Matrix44f>&	getModelViewStack() { return mModelViewStack; }
-	//! Returns a const reference to the stack of ModelView matrices
-	const std::vector<Matrix44f>&	getModelViewStack() const { return mModelViewStack; }
+	//! Returns a reference to the stack of Model matrices
+	std::vector<Matrix44f>&			getModelMatrixStack() { return mModelMatrixStack; }
+	//! Returns a const reference to the stack of Model matrices
+	const std::vector<Matrix44f>&	getModelMatrixStack() const { return mModelMatrixStack; }
+	//! Returns a reference to the stack of View matrices
+	std::vector<Matrix44f>&			getViewMatrixStack() { return mViewMatrixStack; }
+	//! Returns a const reference to the stack of Model matrices
+	const std::vector<Matrix44f>&	getViewMatrixStack() const { return mViewMatrixStack; }
 	//! Returns a reference to the stack of Projection matrices
-	std::vector<Matrix44f>&			getProjectionStack() { return mProjectionStack; }
+	std::vector<Matrix44f>&			getProjectionMatrixStack() { return mProjectionMatrixStack; }
 	//! Returns a const reference to the stack of Projection matrices
-	const std::vector<Matrix44f>&	getProjectionStack() const { return mProjectionStack; }
+	const std::vector<Matrix44f>&	getProjectionMatrixStack() const { return mProjectionMatrixStack; }
 	
-	//! Binds a VAO. Consider using a VaoScope instead.
+	//! Binds a VAO. Consider using a ScopedVao instead.
 	void		bindVao( const VaoRef &vao );
 	//! Pushes and binds the VAO \a vao
 	void		pushVao( const VaoRef &vao );
@@ -151,7 +154,7 @@ class Context {
 	//! Returns the currently bound GlslProg
 	GlslProgRef		getGlslProg();
 	
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Binds \a ref to the specific \a index within \a target.
 	void bindBufferBase( GLenum target, int index, const BufferObjRef &ref );
 
@@ -229,9 +232,9 @@ class Context {
 	//! Enables or disables OpenGL capability \a cap. Calls \a setter rather than glEnable or glDisable. Not generally necessary to call directly.
 	void		setBoolState( GLenum cap, GLboolean value, const std::function<void(GLboolean)> &setter );
 
-	//! Analogous glBlendFunc(). Consider using a BlendScope instead.
+	//! Analogous glBlendFunc(). Consider using a ScopedBlend instead.
 	void		blendFunc( GLenum sfactor, GLenum dfactor );
-	//! Analogous to glBlendFuncSeparate(). Consider using a BlendScope instead.
+	//! Analogous to glBlendFuncSeparate(). Consider using a ScopedBlend instead.
 	void		blendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
 	//! Analogous to glBlendFuncSeparate, but pushes values rather than replaces them
 	void		pushBlendFuncSeparate( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
@@ -245,7 +248,7 @@ class Context {
 	//! Analogous to glDepthMask()
 	void		depthMask( GLboolean enable );
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Parallels glPolygonMode()
 	void		polygonMode( GLenum face, GLenum mode );
 	GLenum		getPolygonMode( GLenum face ) const;
@@ -261,10 +264,10 @@ class Context {
 	void		disableVertexAttribArray( GLuint index );
 	//! Analogous to glVertexAttribPointer()
 	void		vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Analogous to glVertexAttribIPointer()
 	void		vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 	//! Analogous to glVertexAttribDivisor()
 	void		vertexAttribDivisor( GLuint index, GLuint divisor );
 	//! Analogous to glVertexAttrib1f()
@@ -280,12 +283,12 @@ class Context {
 	void		drawArrays( GLenum mode, GLint first, GLsizei count );
 	//! Analogous to glDrawElements()
 	void		drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices );
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	//! Analogous to glDrawArraysInstanced()
 	void		drawArraysInstanced( GLenum mode, GLint first, GLsizei count, GLsizei primcount );
 	//! Analogous to glDrawElementsInstanced()
 	void		drawElementsInstanced( GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount );
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 	//! Returns the current active color, used in immediate-mode emulation and as UNIFORM_COLOR
 	const ColorAf&	getCurrentColor() const { return mColor; }
@@ -323,7 +326,7 @@ class Context {
 	std::vector<GlslProgRef>			mGlslProgStack;
 	std::vector<VaoRef>					mVaoStack;
 	
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 	TransformFeedbackObjRef				mCachedTransformFeedbackObj;
 #endif
 	
@@ -331,7 +334,7 @@ class Context {
 	std::vector<GLint>					mBlendSrcRgbStack, mBlendDstRgbStack;
 	std::vector<GLint>					mBlendSrcAlphaStack, mBlendDstAlphaStack;
 
-#if defined( CINDER_GLES ) && (! defined( CINDER_COCOA_TOUCH ))
+#if defined( CINDER_GL_ES ) && (! defined( CINDER_COCOA_TOUCH ))
 	std::vector<GLint>			mFramebufferStack;
 #else
 	std::vector<GLint>			mReadFramebufferStack, mDrawFramebufferStack;
@@ -360,8 +363,9 @@ class Context {
 	VboRef						mImmVbo; // Immediate-mode VBO
 	
 	ci::ColorAf					mColor;	
-	std::vector<Matrix44f>		mModelViewStack;
-	std::vector<Matrix44f>		mProjectionStack;
+	std::vector<Matrix44f>		mModelMatrixStack;
+	std::vector<Matrix44f>		mViewMatrixStack;	
+	std::vector<Matrix44f>		mProjectionMatrixStack;
 
 	friend class				Environment;
 	friend class				EnvironmentEs2Profile;
@@ -369,225 +373,6 @@ class Context {
 	friend class				EnvironmentCompatibilityProfile;
 	
 	friend class				Texture;
-};
-
-
-struct VaoScope : public boost::noncopyable {
-	VaoScope( const VaoRef &vao )
-		: mCtx( gl::context() )
-	{
-		mCtx->pushVao( vao );
-	}
-	
-	~VaoScope() {
-		mCtx->popVao();
-	}
-  private:
-	Context		*mCtx;
-};
-
-struct BufferScope : public boost::noncopyable {
-	BufferScope( const BufferObjRef &bufferObj );
-	BufferScope( GLenum target, GLuint id )
-		: mCtx( gl::context() ), mTarget( target )
-	{
-		mCtx->pushBufferBinding( target, id );
-	}
-
-	~BufferScope() {
-		mCtx->popBufferBinding( mTarget );
-	}
-  private:
-	Context		*mCtx;
-	GLenum		mTarget;
-};
-
-struct StateScope : public boost::noncopyable {
-	StateScope( GLenum cap, GLboolean value )
-		: mCtx( gl::context() ), mCap( cap )
-	{
-		mCtx->pushBoolState( cap, value );
-	}
-
-	~StateScope() {
-		mCtx->popBoolState( mCap );
-	}
-  private:
-	Context		*mCtx;
-	GLenum		mCap;
-};
-
-struct BlendScope : public boost::noncopyable
-{
-	BlendScope( GLboolean enable );
-	//! Parallels glBlendFunc(), and implicitly enables blending
-	BlendScope( GLenum sfactor, GLenum dfactor );
-	//! Parallels glBlendFuncSeparate(), and implicitly enables blending
-	BlendScope( GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha );
-	~BlendScope();
-	
-  private:
-	Context		*mCtx;
-	bool		mSaveFactors; // whether we should also set the blend factors rather than just the blend state
-};
-
-struct GlslProgScope : public boost::noncopyable
-{
-	GlslProgScope( const GlslProgRef &prog )
-		: mCtx( gl::context() )
-	{
-		mCtx->pushGlslProg( prog );
-	}
-
-	// this is for convenience
-	GlslProgScope( const std::shared_ptr<const GlslProg> &prog )
-		: mCtx( gl::context() )
-	{
-		mCtx->pushGlslProg( std::const_pointer_cast<GlslProg>( prog ) );
-	}
-
-	~GlslProgScope()
-	{
-		mCtx->popGlslProg();
-	}
-
-  private:
-	Context		*mCtx;
-};
-
-struct FramebufferScope : public boost::noncopyable
-{
-	FramebufferScope( const FboRef &fbo, GLenum target = GL_FRAMEBUFFER );
-	//! Prefer the FboRef variant when possible. This does not allow gl::Fbo to mark itself as needing multisample resolution.
-	FramebufferScope( GLenum target, GLuint framebufferId );
-	~FramebufferScope();
-	
-  private:
-	Context		*mCtx;
-	GLenum		mTarget;
-};
-
-struct ActiveTextureScope : public boost::noncopyable
-{
-	//! Sets the currently active texture through glActiveTexture. Expects values relative to \c 0, \em not GL_TEXTURE0
-	ActiveTextureScope( uint8_t textureUnit )
-		: mCtx( gl::context() )
-	{
-		mCtx->pushActiveTexture( textureUnit );
-	}
-	
-	~ActiveTextureScope()
-	{
-		mCtx->popActiveTexture();
-	}
-	
-  private:
-	Context		*mCtx;
-};
-
-struct TextureBindScope : public boost::noncopyable
-{
-	TextureBindScope( GLenum target, GLuint textureId )
-		: mCtx( gl::context() ), mTarget( target )
-	{
-		mTextureUnit = mCtx->getActiveTexture();
-		mCtx->pushTextureBinding( mTarget, textureId, mTextureUnit );
-	}
-
-	TextureBindScope( GLenum target, GLuint textureId, uint8_t textureUnit )
-		: mCtx( gl::context() ), mTarget( target ), mTextureUnit( textureUnit )
-	{
-		mCtx->pushTextureBinding( mTarget, textureId, mTextureUnit );
-	}
-
-	TextureBindScope( const TextureBaseRef &texture )
-		: mCtx( gl::context() ), mTarget( texture->getTarget() )
-	{
-		mTextureUnit = mCtx->getActiveTexture();
-		mCtx->pushTextureBinding( mTarget, texture->getId(), mTextureUnit );
-	}
-
-	TextureBindScope( const TextureBaseRef &texture, uint8_t textureUnit )
-		: mCtx( gl::context() ), mTarget( texture->getTarget() ), mTextureUnit( textureUnit )
-	{
-		mCtx->pushTextureBinding( mTarget, texture->getId(), mTextureUnit );
-	}
-	
-	~TextureBindScope()
-	{
-		mCtx->popTextureBinding( mTarget, mTextureUnit );
-	}
-	
-  private:
-	Context		*mCtx;
-	GLenum		mTarget;
-	uint8_t		mTextureUnit;
-};
-	
-struct ScissorScope : public boost::noncopyable
-{
-	//! Implicitly enables scissor test
-	ScissorScope( const Vec2i &lowerLeftPostion, const Vec2i &dimension )
-		: mCtx( gl::context() )
-	{
-		mCtx->pushBoolState( GL_SCISSOR_TEST, GL_TRUE );
-		mCtx->pushScissor( std::pair<Vec2i, Vec2i>( lowerLeftPostion, dimension ) ); 
-	}
-
-	//! Implicitly enables scissor test	
-	ScissorScope( int lowerLeftX, int lowerLeftY, int width, int height )
-		: mCtx( gl::context() )
-	{
-		mCtx->pushBoolState( GL_SCISSOR_TEST, GL_TRUE );
-		mCtx->pushScissor( std::pair<Vec2i, Vec2i>( Vec2i( lowerLeftX, lowerLeftY ), Vec2i( width, height ) ) );		
-	}
-	
-	~ScissorScope()
-	{
-		mCtx->popBoolState( GL_SCISSOR_TEST );
-		mCtx->popScissor();
-	}
-	
-  private:
-	Context					*mCtx;
-};
-
-struct ViewportScope : public boost::noncopyable
-{
-	ViewportScope( const Vec2i &lowerLeftPostion, const Vec2i &dimension )
-		: mCtx( gl::context() )
-	{
-		mCtx->pushViewport( std::pair<Vec2i, Vec2i>( lowerLeftPostion, dimension ) ); 
-	}
-
-	ViewportScope( int lowerLeftX, int lowerLeftY, int width, int height )
-		: mCtx( gl::context() )
-	{
-		mCtx->pushViewport( std::pair<Vec2i, Vec2i>( Vec2i( lowerLeftX, lowerLeftY ), Vec2i( width, height ) ) );		
-	}
-	
-	~ViewportScope()
-	{
-		mCtx->popViewport();
-	}
-	
-  private:
-	Context					*mCtx;
-};
-
-struct ModelViewScope : public boost::noncopyable {
-	ModelViewScope()	{ gl::pushModelView(); }
-	~ModelViewScope()	{ gl::popModelView(); }
-};
-
-struct ProjectionScope : public boost::noncopyable {
-	ProjectionScope()	{ gl::pushProjection(); }
-	~ProjectionScope()	{ gl::popProjection(); }
-};
-
-struct MatricesScope : public boost::noncopyable {
-	MatricesScope()		{ gl::pushMatrices(); }
-	~MatricesScope()	{ gl::popMatrices(); }
 };
 
 class ExcContextAllocation : public Exception {

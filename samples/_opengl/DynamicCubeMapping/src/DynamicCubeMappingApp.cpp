@@ -44,7 +44,7 @@ void DynamicCubeMappingApp::setup()
 {
 	mSkyBoxCubeMap = gl::TextureCubeMap::createHorizontalCross( loadImage( loadAsset( "env_map.jpg" ) ), gl::TextureCubeMap::Format().mipmap() );
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	auto envMapGlsl = gl::GlslProg::create( loadAsset( "env_map_es2.vert" ), loadAsset( "env_map_es2.frag" ) );
 	auto skyBoxGlsl = gl::GlslProg::create( loadAsset( "sky_box_es2.vert" ), loadAsset( "sky_box_es2.frag" ) );
 #else
@@ -99,11 +99,11 @@ void DynamicCubeMappingApp::update()
 void DynamicCubeMappingApp::drawSatellites()
 {
 	for( const auto &satellite : mSatellites ) {
-		gl::pushModelView();
+		gl::pushModelMatrix();
 		gl::translate( satellite.mPos );
 		gl::color( satellite.mColor );
 		mSatelliteBatch->draw();
-		gl::popModelView();
+		gl::popModelMatrix();
 	}
 }
 
@@ -118,12 +118,12 @@ void DynamicCubeMappingApp::drawSkyBox()
 
 void DynamicCubeMappingApp::draw()
 {
-	gl::clear( Color( 0, 0, 0 ) );
+	gl::clear( Color( 1, 0, 0 ) );
 
 	gl::pushViewport( Vec2i( 0, 0 ), mDynamicCubeMapFbo->getSize() );
 	for( uint8_t dir = 0; dir < 6; ++dir ) {
-		gl::setProjection( ci::CameraPersp( mDynamicCubeMapFbo->getWidth(), mDynamicCubeMapFbo->getHeight(), 90.0f, 1, 1000 ) );
-		gl::setModelView( mDynamicCubeMapFbo->calcViewMatrix( GL_TEXTURE_CUBE_MAP_POSITIVE_X + dir, Vec3f::zero() ) );
+		gl::setProjectionMatrix( ci::CameraPersp( mDynamicCubeMapFbo->getWidth(), mDynamicCubeMapFbo->getHeight(), 90.0f, 1, 1000 ).getProjectionMatrix() );
+		gl::setViewMatrix( mDynamicCubeMapFbo->calcViewMatrix( GL_TEXTURE_CUBE_MAP_POSITIVE_X + dir, Vec3f::zero() ) );
 		mDynamicCubeMapFbo->bindFramebufferFace( GL_TEXTURE_CUBE_MAP_POSITIVE_X + dir );
 		
 		gl::clear();
@@ -141,9 +141,7 @@ void DynamicCubeMappingApp::draw()
 	
 	mDynamicCubeMapFbo->bindTexture( 0 );
 	gl::pushMatrices();
-		gl::multModelView( mObjectRotation );
-		mTeapotBatch->getGlslProg()->uniform( "uViewMatrix", mCam.getModelViewMatrix() );
-		mTeapotBatch->getGlslProg()->uniform( "uInverseViewMatrix", mCam.getInverseModelViewMatrix() );
+		gl::multModelMatrix( mObjectRotation );
 		mTeapotBatch->draw();
 	gl::popMatrices();
 }

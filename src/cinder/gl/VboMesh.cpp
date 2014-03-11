@@ -30,7 +30,7 @@ namespace cinder { namespace gl {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // VboMeshGeomSource
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 class VboMeshSource : public geom::Source {
   public:
 	static std::shared_ptr<VboMeshSource>	create( const gl::VboMesh *vboMesh );
@@ -48,7 +48,7 @@ class VboMeshSource : public geom::Source {
   
 	const gl::VboMesh		*mVboMesh;
 };
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // VboMeshGeomTarget
@@ -243,7 +243,7 @@ uint8_t	VboMesh::getAttribDims( geom::Attrib attr ) const
 	return 0;
 }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 geom::SourceRef	VboMesh::createSource() const
 {
 	return VboMeshSource::create( this );
@@ -254,7 +254,7 @@ void VboMesh::downloadIndices( uint32_t *dest ) const
 	if( (! mElements) || (getNumIndices() == 0) )
 		return;
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	const void *data = mElements->map( GL_READ_ONLY_OES );
 #else
 	const void *data = mElements->map( GL_READ_ONLY );
@@ -410,10 +410,10 @@ void VboMesh::echoVertices( std::ostream &os, const vector<uint32_t> &elements, 
 	gl::context()->bindBuffer( GL_ARRAY_BUFFER, prevBufferBinding );
 }
 
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 
 VboMeshSource::VboMeshSource( const gl::VboMesh *vboMesh )
 	: mVboMesh( vboMesh )
@@ -477,6 +477,6 @@ uint8_t VboMeshSource::getAttribDims( geom::Attrib attr ) const
 	return mVboMesh->getAttribDims( attr );
 }
 
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( CINDER_GL_ES )
 
 } } // namespace cinder::gl

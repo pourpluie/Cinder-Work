@@ -120,7 +120,7 @@ void parseKtx( const DataSourceRef &dataSource, TextureData *resultData )
 	resultData->unmapDataStore();
 }
 
-#if ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
+#if ! defined( CINDER_GL_ES ) || defined( CINDER_GL_ANGLE )
 void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 {
 	typedef struct { // DDCOLORKEY
@@ -339,6 +339,6 @@ void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 
 	resultData->unmapDataStore();
 }
-#endif // ! defined( CINDER_GLES ) || defined( CINDER_GL_ANGLE )
+#endif // ! defined( CINDER_GL_ES ) || defined( CINDER_GL_ANGLE )
 
 } } // namespace cinder::gl

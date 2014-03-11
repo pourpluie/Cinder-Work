@@ -28,7 +28,7 @@ void CubeMappingApp::setup()
 {
 	mCubeMap = gl::TextureCubeMap::createHorizontalCross( loadImage( loadAsset( "env_map.jpg" ) ), gl::TextureCubeMap::Format().mipmap() );
 
-#if defined( CINDER_GLES )
+#if defined( CINDER_GL_ES )
 	auto envMapGlsl = gl::GlslProg::create( loadAsset( "env_map_es2.vert" ), loadAsset( "env_map_es2.frag" ) );
 	auto skyBoxGlsl = gl::GlslProg::create( loadAsset( "sky_box_es2.vert" ), loadAsset( "sky_box_es2.frag" ) );
 #else
@@ -69,9 +69,7 @@ void CubeMappingApp::draw()
 
 	mCubeMap->bind();
 	gl::pushMatrices();
-		gl::multModelView( mObjectRotation );
-		mTeapotBatch->getGlslProg()->uniform( "uViewMatrix", mCam.getModelViewMatrix() );
-		mTeapotBatch->getGlslProg()->uniform( "uInverseViewMatrix", mCam.getInverseModelViewMatrix() );
+		gl::multModelMatrix( mObjectRotation );
 		mTeapotBatch->draw();
 	gl::popMatrices();
 	
