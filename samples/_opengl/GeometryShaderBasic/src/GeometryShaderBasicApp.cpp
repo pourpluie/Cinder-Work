@@ -43,16 +43,16 @@ void GeometryShaderIntroApp::mouseDrag( MouseEvent event )
 	if( mNumSides < 2 ) mNumSides = 2;
 	else if( mNumSides > 64 ) mNumSides = 64;
 	
-	mRadius = ((float)event.getY() / getWindowHeight()) * getWindowWidth();
-	if( mRadius < 0.0f ) mRadius = 0.0f;
-	else if( mRadius > getWindowWidth() ) mRadius = getWindowWidth();
+	mRadius = ((float)event.getY() / getWindowHeight()) * ( getWindowWidth() / 2.0f );
+	if( mRadius < 1.0f ) mRadius = 1.0f;
+	else if( mRadius > getWindowWidth() / 2.0f ) mRadius = getWindowWidth() / 2.0f;
 }
 
 void GeometryShaderIntroApp::draw()
 {
 	gl::clear( ColorA( 0, 0, 0, 1 ) );
 	
-	gl::GlslProgScope glslProg( mGlsl );
+	gl::ScopedGlslProg glslProg( mGlsl );
 	
 	gl::pushMatrices();
 	gl::setMatricesWindow( getWindowWidth(), getWindowHeight() );
@@ -75,8 +75,8 @@ void GeometryShaderIntroApp::loadShader()
 									 .geometry( loadAsset( "basic.geom" ) )
 									 .attrib( geom::Attrib::POSITION, "Position" )
 									 .attrib( geom::Attrib::COLOR, "Color" )
-									 .uniform( gl::UniformSemantic::UNIFORM_MODELVIEW, "ciModelView" )
-									 .uniform( gl::UniformSemantic::UNIFORM_PROJECTION, "ciProjectionMatrix" ) );
+									 .uniform( gl::UniformSemantic::UNIFORM_MODEL_VIEW, "ciModelView" )
+									 .uniform( gl::UniformSemantic::UNIFORM_PROJECTION_MATRIX, "ciProjectionMatrix" ) );
 	}
 	catch( gl::GlslProgCompileExc ex ) {
 		cout << ex.what() << endl;

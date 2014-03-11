@@ -20,7 +20,7 @@ void main()
 	for( int i = 0; i <= uNumSides; i++ ) {
 		float ang = PI * 2.0 / uNumSides * i;
 		vec4 offset = vec4( cos(ang) * uRadius, -sin(ang) * uRadius, 0.0, 0.0 );
-		gl_Position = /* ciProjectionMatrix * (*/ gl_in[0].gl_Position + offset /* ) */;
+		gl_Position = ciProjectionMatrix * (gl_in[0].gl_Position + offset);
 		EmitVertex();
 	}
 	
