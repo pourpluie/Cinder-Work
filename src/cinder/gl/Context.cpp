@@ -117,6 +117,14 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 
 	// set default shader
 	pushGlslProg( getStockShader( ShaderDef().color() ) );
+
+	// debug context
+#if ! defined( CINDER_GLES )
+	if( mPlatformData.mDebug ) {
+		mEnableDebugLog = mPlatformData.mDebugLog;
+		glDebugMessageCallback( (GLDEBUGPROC)sDebugMessageCallback, this );
+	}
+#endif
 }
 
 Context::~Context()

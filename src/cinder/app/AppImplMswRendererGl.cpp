@@ -216,7 +216,7 @@ bool getCreateContextAttribsPtr( HDC dc, PFNWGLCREATECONTEXTATTRIBSARB *resultFn
 	}
 }
 
-HGLRC createContext( HDC dc, bool coreProfile, int majorVersion, int minorVersion )
+HGLRC createContext( HDC dc, bool coreProfile, bool debug, int majorVersion, int minorVersion )
 {
 	HGLRC result = 0;
 	static bool initializedLoadOGL = false;
@@ -230,6 +230,7 @@ HGLRC createContext( HDC dc, bool coreProfile, int majorVersion, int minorVersio
 		int attribList[] = {
 			WGL_CONTEXT_MAJOR_VERSION_ARB, majorVersion,
 			WGL_CONTEXT_MINOR_VERSION_ARB, minorVersion,
+			WGL_CONTEXT_FLAGS_ARB, (debug) ? WGL_CONTEXT_DEBUG_BIT_ARB : 0,
 			WGL_CONTEXT_PROFILE_MASK_ARB, (coreProfile) ? WGL_CONTEXT_CORE_PROFILE_BIT_ARB : WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
 			0, 0
 		};
@@ -294,7 +295,7 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 		return false;								
 	}
 
-	if( ! ( mRC = createContext( dc, mRenderer->getOptions().getCoreProfile(),
+	if( ! ( mRC = createContext( dc, mRenderer->getOptions().getDebug(), mRenderer->getOptions().getCoreProfile(),
 			mRenderer->getOptions().getVersion().first, mRenderer->getOptions().getVersion().second ) ) )	{			// Are We Able To Get A Rendering Context?
 		return false;								
 	}

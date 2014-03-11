@@ -76,6 +76,12 @@ class RendererGl : public Renderer {
 	#endif
 			mVersion = std::pair<int,int>( 3, 2 );	
 #endif
+#if ! defined( CINDER_GLES )
+			mDebugContext = false;
+			mDebugContextLog = false;
+			mDebugBreak = false;
+			mDebugBreakSeverity = GL_DEBUG_SEVERITY_HIGH;
+#endif
 			mStencil = false;
 			mDepthBufferBits = 24;
 		}
@@ -93,7 +99,20 @@ class RendererGl : public Renderer {
 		Options&	antiAliasing( int amount ) { mAntiAliasing = amount; return *this; }
 		int			getAntiAliasing() const { return mAntiAliasing; }
 		void		setAntiAliasing( int amount ) { mAntiAliasing = amount; }
-		
+
+#if ! defined( CINDER_GLES )		
+		//! Enables a debug context (per \c ARB_debug_output). Currently only implemented by MSW GL implementations. By default this is made GL_DEBUG_OUTPUT_SYNCHRONOUS
+		Options&	debug() { mDebugContext = true; return *this; }
+		//! Returns whether the context has debug enabled
+		bool		getDebug() const { return mDebugContext; }
+		//! Enables automatic logging to the app's log. Implicitly enables the debug context.
+		Options&	debugLog() { mDebugContextLog = true; mDebugContext = true; return *this; }
+		//! Returns whether the context has debug logging enabled
+		bool		getDebugLog() const { return mDebugContextLog; }
+		//! Enables breaking on an error of a given severity. The default is \c GL_DEBUG_SEVERITY_HIGH. Implicitly enables the debug context.
+		Options&	debugBreak( GLenum severity = GL_DEBUG_SEVERITY_HIGH ) { mDebugBreakSeverity = severity; mDebugContext = true; return *this; }
+#endif
+
 		//! Sets the number of bits dedicated to the depth buffer. Default is \c 24.
 		Options&	depthBufferDepth( int depthBufferBits ) { mDepthBufferBits = depthBufferBits; return *this; }
 		//! Returns the number of bits dedicated to the depth buffer. Default is 24.
@@ -114,6 +133,10 @@ class RendererGl : public Renderer {
 		int						mAntiAliasing;
 		bool					mStencil;
 		int						mDepthBufferBits;
+#if ! defined( CINDER_GLES )
+		bool					mDebugContext, mDebugContextLog, mDebugBreak;
+		GLenum					mDebugBreakSeverity;
+#endif
 	};
 
 
