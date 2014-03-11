@@ -1,12 +1,14 @@
 #version 150
 
-in vec2 position;
-in vec3 color;
+in vec4 Position;
+in vec3 Color;
+
+in mat4 ciModelView;
 
 out vec3 vColor;
 
 void main()
 {
-    gl_Position = vec4(position, 0.0, 1.0);
-	vColor = color;
+    gl_Position = ciModelView * Position;
+	vColor = Color;
 }

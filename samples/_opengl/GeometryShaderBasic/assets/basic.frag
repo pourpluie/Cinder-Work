@@ -1,10 +1,10 @@
 #version 150
 
-in vec3 fColor;
+in vec3 gColor;
 
 out vec4 outColor;
 
 void main()
 {
-    outColor = vec4(fColor, 1.0);
+    outColor = vec4(gColor, 1.0);
 }
