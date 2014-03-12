@@ -56,8 +56,6 @@ void GeometryShaderIntroApp::draw()
 	
 	gl::pushMatrices();
 	gl::setMatricesWindow( getWindowWidth(), getWindowHeight() );
-	
-	gl::setDefaultShaderVars();
 
 	mGlsl->uniform( "uNumSides", mNumSides );
 	mGlsl->uniform( "uRadius", mRadius );
@@ -72,11 +70,7 @@ void GeometryShaderIntroApp::loadShader()
 	try {
 		mGlsl = gl::GlslProg::create( gl::GlslProg::Format().vertex( loadAsset( "basic.vert" ) )
 									 .fragment( loadAsset( "basic.frag" ) )
-									 .geometry( loadAsset( "basic.geom" ) )
-									 .attrib( geom::Attrib::POSITION, "Position" )
-									 .attrib( geom::Attrib::COLOR, "Color" )
-									 .uniform( gl::UniformSemantic::UNIFORM_MODEL_VIEW, "ciModelView" )
-									 .uniform( gl::UniformSemantic::UNIFORM_PROJECTION_MATRIX, "ciProjectionMatrix" ) );
+									 .geometry( loadAsset( "basic.geom" ) ) );
 	}
 	catch( gl::GlslProgCompileExc ex ) {
 		cout << ex.what() << endl;
