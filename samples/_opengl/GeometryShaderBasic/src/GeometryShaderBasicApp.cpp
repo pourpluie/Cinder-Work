@@ -1,26 +1,18 @@
 #include "cinder/app/AppNative.h"
 #include "cinder/app/RendererGl.h"
-#include "cinder/gl/Context.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/GlslProg.h"
-#include "cinder/gl/Vao.h"
-#include "cinder/gl/Vbo.h"
 #include "cinder/gl/Batch.h"
-
-#include "Resources.h"
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
 class GeometryShaderIntroApp : public AppNative {
-public:
+  public:
 	void setup();
 	void mouseDrag( MouseEvent event );
 	void draw();
-	
-	void loadShader();
-	void loadBuffers();
 	
 	gl::VertBatchRef	mBatch;
 	gl::GlslProgRef		mGlsl;
@@ -32,41 +24,8 @@ void GeometryShaderIntroApp::setup()
 {
 	mNumSides = 2;
 	mRadius = 100;
-	
-	loadShader();
-	loadBuffers();
-}
 
-void GeometryShaderIntroApp::mouseDrag( MouseEvent event )
-{
-	mNumSides = (((float)event.getX() / getWindowWidth()) * 30) + 3;
-	if( mNumSides < 2 ) mNumSides = 2;
-	else if( mNumSides > 64 ) mNumSides = 64;
-	
-	mRadius = ((float)event.getY() / getWindowHeight()) * ( getWindowWidth() / 2.0f );
-	if( mRadius < 1.0f ) mRadius = 1.0f;
-	else if( mRadius > getWindowWidth() / 2.0f ) mRadius = getWindowWidth() / 2.0f;
-}
-
-void GeometryShaderIntroApp::draw()
-{
-	gl::clear( ColorA( 0, 0, 0, 1 ) );
-	
-	gl::ScopedGlslProg glslProg( mGlsl );
-	
-	gl::pushMatrices();
-	gl::setMatricesWindow( getWindowWidth(), getWindowHeight() );
-
-	mGlsl->uniform( "uNumSides", mNumSides );
-	mGlsl->uniform( "uRadius", mRadius );
-	
-	mBatch->draw();
-	
-	gl::popMatrices();
-}
-
-void GeometryShaderIntroApp::loadShader()
-{
+	// setup shader
 	try {
 		mGlsl = gl::GlslProg::create( gl::GlslProg::Format().vertex( loadAsset( "basic.vert" ) )
 									 .fragment( loadAsset( "basic.frag" ) )
@@ -76,13 +35,33 @@ void GeometryShaderIntroApp::loadShader()
 		cout << ex.what() << endl;
 		shutdown();
 	}
+
+	// setup VertBatch with a single point at the origin
+	mBatch = gl::VertBatch::create();
+	mBatch->vertex( Vec2f::zero() );
+	mBatch->color( 1.0f, 0.0f, 0.0f );
 }
 
-void GeometryShaderIntroApp::loadBuffers()
+void GeometryShaderIntroApp::mouseDrag( MouseEvent event )
 {
-	mBatch = gl::VertBatch::create();
-	mBatch->vertex( Vec4f( (float)getWindowWidth() / 2.0f, (float)getWindowHeight() / 2.0f, 0.0f, 1.0f ) );
-	mBatch->color( 1.0f, 0.0f, 0.0f );
+	mNumSides = (((float)event.getX() / getWindowWidth()) * 30) + 3;
+	mNumSides = constrain( mNumSides, 2, 64 );
+	
+	mRadius = ((float)event.getY() / getWindowHeight()) * ( getWindowWidth() / 2.0f );
+	mRadius = constrain( mRadius, 1.0f, getWindowWidth() / 2.0f );
+}
+
+void GeometryShaderIntroApp::draw()
+{
+	gl::clear();
+	
+	gl::setMatricesWindow( getWindowWidth(), getWindowHeight() );
+	gl::translate( getWindowCenter() );
+
+	gl::ScopedGlslProg glslProg( mGlsl );
+	mGlsl->uniform( "uNumSides", mNumSides );
+	mGlsl->uniform( "uRadius", mRadius );	
+	mBatch->draw();
 }
 
 CINDER_APP_NATIVE( GeometryShaderIntroApp, RendererGl )

@@ -60,6 +60,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		00317DB718D010B70079D48E /* Shaders */ = {
+			isa = PBXGroup;
+			children = (
+				B36523A518C79B9E002CA7A0 /* basic.vert */,
+				B36523A418C79B9E002CA7A0 /* basic.geom */,
+				B36523A318C79B9E002CA7A0 /* basic.frag */,
+			);
+			name = Shaders;
+			sourceTree = "<group>";
+		};
 		01B97315FEAEA392516A2CEA /* Blocks */ = {
 			isa = PBXGroup;
 			children = (
@@ -110,6 +120,7 @@
 		29B97314FDCFA39411CA2CEA /* GeometryShaderBasic */ = {
 			isa = PBXGroup;
 			children = (
+				00317DB718D010B70079D48E /* Shaders */,
 				01B97315FEAEA392516A2CEA /* Blocks */,
 				29B97315FDCFA39411CA2CEA /* Headers */,
 				080E96DDFE201D6D7F000001 /* Source */,
@@ -132,9 +143,6 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				B36523A518C79B9E002CA7A0 /* basic.vert */,
-				B36523A418C79B9E002CA7A0 /* basic.geom */,
-				B36523A318C79B9E002CA7A0 /* basic.frag */,
 				08D7F2DA7E2C477F8A9ABD62 /* CinderApp.icns */,
 				BD204024DCD44B1CA29A3721 /* Info.plist */,
 			);
