@@ -37,8 +37,6 @@
 
 namespace cinder { namespace log {
 
-#undef ERROR
-
 typedef enum {
 	LEVEL_VERBOSE,
 	LEVEL_INFO,
