@@ -17,7 +17,7 @@
 	#include <boost/preprocessor/control/if.hpp>
 #endif
 
-#if ( defined( CINDER_COCOA ) && DEBUG ) || ( defined( CINDER_MSW ) && defined( _DEBUG ) )
+#if ! defined( NDEBUG )
 	// by default, CI_LOG_V is enabled in debug builds, but apps can also define this elsewhere to force it on in release.
 	#define CI_ENABLE_LOG_V
 #endif
@@ -36,8 +36,6 @@
 #define CI_LOG_F( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_FATAL, stream )
 
 namespace cinder { namespace log {
-
-#undef ERROR
 
 typedef enum {
 	LEVEL_VERBOSE,
