@@ -30,6 +30,7 @@
 #include "cinder/gl/TransformFeedbackObj.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Batch.h"
+#include "cinder/Log.h"
 #include "cinder/Utilities.h"
 
 #include "cinder/app/App.h"
@@ -1378,8 +1379,22 @@ VboRef Context::getDefaultElementVbo( size_t requiredSize )
 	
 	return mDefaultElementVbo;
 }
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////
+#if defined( CINDER_MSW )
+void APIENTRY debugMessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, void *userParam )
+{
+	switch( severity ) {
+		case GL_DEBUG_SEVERITY_HIGH:
+			CI_LOG_E( message );
+		break;
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			CI_LOG_W( message );
+		break;
+		case GL_DEBUG_SEVERITY_LOW:
+			CI_LOG_I( message );
+		break;
+	}
+}
+#endif // defined( CINDER_MSW )
 
 } } // namespace cinder::gl
