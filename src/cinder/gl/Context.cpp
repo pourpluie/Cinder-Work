@@ -123,9 +123,9 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 
 	// debug context
 #if ! defined( CINDER_GLES )
-	if( mPlatformData.mDebug ) {
-		mEnableDebugLog = mPlatformData.mDebugLog;
-		glDebugMessageCallback( (GLDEBUGPROC)sDebugMessageCallback, this );
+	if( mPlatformData->mDebug ) {
+		if( mPlatformData->mEnableDebugLog )
+			glDebugMessageCallback( (GLDEBUGPROC)debugMessageCallback, this );
 	}
 #endif
 }
@@ -1381,7 +1381,7 @@ VboRef Context::getDefaultElementVbo( size_t requiredSize )
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 #if defined( CINDER_MSW )
-void APIENTRY debugMessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, void *userParam )
+void Context::debugMessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, void *userParam )
 {
 	switch( severity ) {
 		case GL_DEBUG_SEVERITY_HIGH:
