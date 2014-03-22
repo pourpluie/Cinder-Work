@@ -79,8 +79,7 @@ class RendererGl : public Renderer {
 #if ! defined( CINDER_GLES )
 			mDebugContext = false;
 			mDebugContextLog = false;
-			mDebugBreak = false;
-			mDebugBreakSeverity = GL_DEBUG_SEVERITY_HIGH;
+			mDebugBreakSeverity = 0;
 #endif
 			mStencil = false;
 			mDepthBufferBits = 24;
@@ -109,8 +108,10 @@ class RendererGl : public Renderer {
 		Options&	debugLog() { mDebugContextLog = true; mDebugContext = true; return *this; }
 		//! Returns whether the context has debug logging enabled
 		bool		getDebugLog() const { return mDebugContextLog; }
-		//! Enables breaking on an error of a given severity. The default is \c GL_DEBUG_SEVERITY_HIGH. Implicitly enables the debug context.
+		//! Enables breaking on an error of a given severity, such as \c GL_DEBUG_SEVERITY_HIGH. Implicitly enables the debug context. Off (\c 0) by default.
 		Options&	debugBreak( GLenum severity = GL_DEBUG_SEVERITY_HIGH ) { mDebugBreakSeverity = severity; mDebugContext = true; return *this; }
+		//! Returns the severity threshold for debug breaking. A value of \c 0 implies debugBreak is off.
+		GLenum		getDebugBreakSeverity() const { return mDebugBreakSeverity; }
 #endif
 
 		//! Sets the number of bits dedicated to the depth buffer. Default is \c 24.
@@ -134,8 +135,8 @@ class RendererGl : public Renderer {
 		bool					mStencil;
 		int						mDepthBufferBits;
 #if ! defined( CINDER_GLES )
-		bool					mDebugContext, mDebugContextLog, mDebugBreak;
-		GLenum					mDebugBreakSeverity;
+		bool					mDebugContext, mDebugContextLog;
+		GLenum					mDebugBreakSeverity; // initial value of 0 means debug break is disabled
 #endif
 	};
 

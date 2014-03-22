@@ -63,8 +63,8 @@ class Context {
 
 		virtual ~PlatformData() {}
 
-		bool		mDebug;
-		GLenum		mEnableDebugLog;
+		bool		mDebug, mEnableDebugLog;
+		GLenum		mDebugBreakSeverity;
 	};
 
 	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. This (essentially) must be done from the primary thread on MSW. ANGLE doesn't support multithreaded use. Destroys the platform Context on destruction.
@@ -374,6 +374,10 @@ class Context {
 	std::vector<Matrix44f>		mModelMatrixStack;
 	std::vector<Matrix44f>		mViewMatrixStack;	
 	std::vector<Matrix44f>		mProjectionMatrixStack;
+
+	// Debug
+	bool						mEnableDebugLog;
+	GLenum						mDebugBreakSeverity;
 
 	friend class				Environment;
 	friend class				EnvironmentEs2Profile;

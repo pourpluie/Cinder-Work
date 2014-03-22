@@ -124,8 +124,13 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	// debug context
 #if ! defined( CINDER_GLES )
 	if( mPlatformData->mDebug ) {
-		if( mPlatformData->mEnableDebugLog )
+		mEnableDebugLog = mPlatformData->mEnableDebugLog;
+		mDebugBreakSeverity = mPlatformData->mDebugBreakSeverity;
+		if( mEnableDebugLog || (mDebugBreakSeverity > 0) ) {
+			//setBoolState( GL_DEBUG_OUTPUT_SYNCHRONOUS, GL_TRUE );
+			glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
 			glDebugMessageCallback( (GLDEBUGPROC)debugMessageCallback, this );
+		}
 	}
 #endif
 }
@@ -1383,16 +1388,23 @@ VboRef Context::getDefaultElementVbo( size_t requiredSize )
 #if defined( CINDER_MSW )
 void Context::debugMessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, void *userParam )
 {
-	switch( severity ) {
-		case GL_DEBUG_SEVERITY_HIGH:
-			CI_LOG_E( message );
-		break;
-		case GL_DEBUG_SEVERITY_MEDIUM:
-			CI_LOG_W( message );
-		break;
-		case GL_DEBUG_SEVERITY_LOW:
-			CI_LOG_I( message );
-		break;
+	Context *ctx = reinterpret_cast<Context*>( userParam );
+	if( ctx->mEnableDebugLog ) {
+		switch( severity ) {
+			case GL_DEBUG_SEVERITY_HIGH:
+				CI_LOG_E( message );
+			break;
+			case GL_DEBUG_SEVERITY_MEDIUM:
+				CI_LOG_W( message );
+			break;
+			case GL_DEBUG_SEVERITY_LOW:
+				CI_LOG_I( message );
+			break;
+		}
+	}
+
+	if( ctx->mDebugBreakSeverity > 0 && (severity >= ctx->mDebugBreakSeverity) ) {
+		__debugbreak();	
 	}
 }
 #endif // defined( CINDER_MSW )
