@@ -259,9 +259,11 @@ void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 
 	int numMipMaps = ddsd.dwMipMapCount;
 	int dataFormat;
+	size_t blockSizeBytes = 16;
 	switch( ddsd.ddpfPixelFormat.dwFourCC ) { 
 		case FOURCC_DXT1: 
-			dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT; 
+			dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+			blockSizeBytes = 8; 
 		break; 
 		case FOURCC_DXT3: 
 			dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
@@ -269,6 +271,15 @@ void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 		case FOURCC_DXT5: 
 			dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; 
 		break;
+#if ! defined( CINDER_GL_ANGLE )
+		case 0x31495441:
+			dataFormat = GL_COMPRESSED_RED_RGTC1;
+			blockSizeBytes = 8;
+		break;
+		case 0x32495441:
+			dataFormat = GL_COMPRESSED_RG_RGTC2;
+		break;
+#endif
 		case FOURCC_DX10:
 			switch( ddsHeader10.dxgiFormat ) {
 				case 70/*DXGI_FORMAT_BC1_TYPELESS*/:
@@ -302,10 +313,7 @@ void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 		break;
 	} 
 
-	size_t blockSizeBytes;
-	if( ddsd.ddpfPixelFormat.dwFlags & DDPF_FOURCC )
-		blockSizeBytes = ( dataFormat == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ) ? 8 : 16;
-	else
+	if( ! (ddsd.ddpfPixelFormat.dwFlags & DDPF_FOURCC) )
 		blockSizeBytes = ( ddsd.ddpfPixelFormat.dwRGBBitCount + 7 ) / 8;
 
 	// Create the texture

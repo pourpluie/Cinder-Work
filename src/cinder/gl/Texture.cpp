@@ -320,6 +320,13 @@ TextureBase::Format::Format()
 	mSwizzleMask[0] = GL_RED; mSwizzleMask[1] = GL_GREEN; mSwizzleMask[2] = GL_BLUE; mSwizzleMask[3] = GL_ALPHA;	
 }
 
+void TextureBase::Format::setSwizzleMask( GLint r, GLint g, GLint b, GLint a )
+{
+	array<GLint,4> swizzleMask;
+	swizzleMask[0] = r; swizzleMask[1] = g; swizzleMask[2] = b; swizzleMask[3] = a;
+	setSwizzleMask( swizzleMask );
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // Texture
 TextureRef Texture::create( int width, int height, Format format )
@@ -1313,6 +1320,10 @@ void TextureData::init()
 	mInternalFormat = 0;
 	mDataFormat = mDataType = 0;
 	mUnpackAlignment = 0;
+	mSwizzleMask[0] = GL_RED;
+	mSwizzleMask[1] = GL_GREEN;
+	mSwizzleMask[2] = GL_BLUE;
+	mSwizzleMask[3] = GL_ALPHA;
 }
 
 TextureData::~TextureData()

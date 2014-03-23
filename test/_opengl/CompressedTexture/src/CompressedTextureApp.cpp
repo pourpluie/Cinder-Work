@@ -25,7 +25,7 @@ void CompressedTextureApp::setup()
 {
 	mIndex = 0;
 	mZoom = 2.0f;
-
+	mTextures.push_back( make_pair( "Original", gl::Texture::createFromDds( loadAsset( "bonk.dds" ), gl::Texture::Format().swizzleMask( GL_RED, GL_RED, GL_RED, GL_ALPHA ) ) ) );
 	mTextures.push_back( make_pair( "Original", gl::Texture::create( loadImage( loadAsset( "compression_test.png" ) ) ) ) );
 	Vec2i textureSize = mTextures.back().second->getSize();
 
