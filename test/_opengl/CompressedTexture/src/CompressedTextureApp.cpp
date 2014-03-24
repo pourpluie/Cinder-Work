@@ -25,7 +25,6 @@ void CompressedTextureApp::setup()
 {
 	mIndex = 0;
 	mZoom = 2.0f;
-	mTextures.push_back( make_pair( "Original", gl::Texture::createFromDds( loadAsset( "bonk.dds" ), gl::Texture::Format().swizzleMask( GL_RED, GL_RED, GL_RED, GL_ALPHA ) ) ) );
 	mTextures.push_back( make_pair( "Original", gl::Texture::create( loadImage( loadAsset( "compression_test.png" ) ) ) ) );
 	Vec2i textureSize = mTextures.back().second->getSize();
 
@@ -44,6 +43,11 @@ void CompressedTextureApp::setup()
 		mTextures.push_back( make_pair( "BC7", gl::Texture::createFromDds( loadAsset( "compression_test_bc7.dds" ), format ) ) );
 	else
 		console() << "This GL implementation doesn't support BC7 textures" << std::endl;
+
+	if( gl::isExtensionAvailable( "GL_ARB_texture_compression_rgtc" ) ) {
+		mTextures.push_back( make_pair( "Luminance DXT5A/BC4", gl::Texture::createFromDds( loadAsset( "compression_test_lum_dxt5a.dds" ), gl::Texture::Format().swizzleMask( GL_RED, GL_RED, GL_RED, GL_ONE ) ) ) );
+		mTextures.push_back( make_pair( "Luminance+Alpha 3DC/ATI2/BC5", gl::Texture::createFromDds( loadAsset( "compression_test_lum_3dc.dds" ), gl::Texture::Format().swizzleMask( GL_RED, GL_RED, GL_RED, GL_GREEN ) ) ) );
+	}
 	
 	if( gl::isExtensionAvailable( "GL_OES_compressed_ETC1_RGB8_texture" ) ) {
 		mTextures.push_back( make_pair( "ETC1", gl::Texture::createFromKtx( loadAsset( "compression_test_etc1.ktx" ), format ) ) );
@@ -85,8 +89,8 @@ void CompressedTextureApp::keyDown( KeyEvent event )
 
 void CompressedTextureApp::draw()
 {
-	// clear out the window with black
 	gl::clear( Color( 0, 0, 0 ) );
+	gl::enableAlphaBlending( true );
 
 	gl::draw( mTextures[mIndex].second, Rectf( mTextures[mIndex].second->getBounds() ) * mZoom );
 }

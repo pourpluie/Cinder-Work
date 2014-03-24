@@ -231,7 +231,8 @@ void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 		uint32_t								reserved;
 	} DdsHeader10;
 
-	enum { FOURCC_DXT1 = 0x31545844, FOURCC_DXT3 = 0x33545844, FOURCC_DXT5 = 0x35545844, FOURCC_DX10 = 0x30315844, DDPF_FOURCC = 0x4 };
+	enum { FOURCC_DXT1 = 0x31545844, FOURCC_DXT3 = 0x33545844, FOURCC_DXT5 = 0x35545844, FOURCC_DX10 = 0x30315844,
+		FOURCC_ATI1 = 0x31495441, FOURCC_ATI2= 0x32495441, DDPF_FOURCC = 0x4 };
 
 	auto ddsStream = dataSource->createStream();
 	DdSurface ddsd;
@@ -272,11 +273,11 @@ void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 			dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; 
 		break;
 #if ! defined( CINDER_GL_ANGLE )
-		case 0x31495441:
+		case FOURCC_ATI1: // aka DX10 BC4
 			dataFormat = GL_COMPRESSED_RED_RGTC1;
 			blockSizeBytes = 8;
 		break;
-		case 0x32495441:
+		case FOURCC_ATI2: // aka DX10 BC5
 			dataFormat = GL_COMPRESSED_RG_RGTC2;
 		break;
 #endif
