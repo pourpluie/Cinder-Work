@@ -123,10 +123,10 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 
 	// debug context
 #if ! defined( CINDER_GLES )
-	if( mPlatformData.mDebug ) {
+/*	if( mPlatformData.mDebug ) {
 		mEnableDebugLog = mPlatformData.mDebugLog;
 		glDebugMessageCallback( (GLDEBUGPROC)sDebugMessageCallback, this );
-	}
+	}*/
 #endif
 }
 
