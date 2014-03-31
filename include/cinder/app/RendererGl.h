@@ -78,7 +78,7 @@ class RendererGl : public Renderer {
 #endif
 #if ! defined( CINDER_GLES )
 			mDebugContext = false;
-			mDebugContextLog = false;
+			mDebugLogSeverity = 0;
 			mDebugBreakSeverity = 0;
 #endif
 			mStencil = false;
@@ -104,13 +104,13 @@ class RendererGl : public Renderer {
 		Options&	debug() { mDebugContext = true; return *this; }
 		//! Returns whether the context has debug enabled
 		bool		getDebug() const { return mDebugContext; }
-		//! Enables automatic logging to the app's log. Implicitly enables the debug context.
-		Options&	debugLog() { mDebugContextLog = true; mDebugContext = true; return *this; }
-		//! Returns whether the context has debug logging enabled
-		bool		getDebugLog() const { return mDebugContextLog; }
-		//! Enables breaking on an error of a given severity, such as \c GL_DEBUG_SEVERITY_HIGH. Implicitly enables the debug context. Off (\c 0) by default.
+		//! Enables logging of an error of a given severity (or greater), such as \c GL_DEBUG_SEVERITY_NOTIFICATION. Implicitly enables the debug context. Off (\c 0) by default.
+		Options&	debugLog( GLenum severity = GL_DEBUG_SEVERITY_NOTIFICATION ) { mDebugLogSeverity = severity; mDebugContext = true; return *this; }
+		//! Returns the severity threshold for debug logging, such as \c GL_DEBUG_SEVERITY_LOW. A value of \c 0 indicates debugLog is off.
+		GLenum		getDebugLogSeverity() const { return mDebugLogSeverity; }
+		//! Enables breaking on an error of a given severity (or greater), such as \c GL_DEBUG_SEVERITY_HIGH. Implicitly enables the debug context. Off (\c 0) by default.
 		Options&	debugBreak( GLenum severity = GL_DEBUG_SEVERITY_HIGH ) { mDebugBreakSeverity = severity; mDebugContext = true; return *this; }
-		//! Returns the severity threshold for debug breaking. A value of \c 0 implies debugBreak is off.
+		//! Returns the severity threshold for debug breaking. A value of \c 0 indicates debugBreak is off.
 		GLenum		getDebugBreakSeverity() const { return mDebugBreakSeverity; }
 #endif
 
@@ -135,7 +135,8 @@ class RendererGl : public Renderer {
 		bool					mStencil;
 		int						mDepthBufferBits;
 #if ! defined( CINDER_GLES )
-		bool					mDebugContext, mDebugContextLog;
+		bool					mDebugContext;
+		GLenum					mDebugLogSeverity; // initial value of 0 means debug logging is disabled
 		GLenum					mDebugBreakSeverity; // initial value of 0 means debug break is disabled
 #endif
 	};

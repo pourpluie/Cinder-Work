@@ -58,13 +58,13 @@ typedef std::shared_ptr<VertBatch>		VertBatchRef;
 class Context {
   public:
 	struct PlatformData {
-		PlatformData() : mDebug( false ), mEnableDebugLog( false )
+		PlatformData() : mDebug( false ), mDebugLogSeverity( 0 ), mDebugBreakSeverity( 0 )
 		{}
 
 		virtual ~PlatformData() {}
 
-		bool		mDebug, mEnableDebugLog;
-		GLenum		mDebugBreakSeverity;
+		bool		mDebug;
+		GLenum		mDebugLogSeverity, mDebugBreakSeverity;
 	};
 
 	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. This (essentially) must be done from the primary thread on MSW. ANGLE doesn't support multithreaded use. Destroys the platform Context on destruction.
@@ -376,7 +376,7 @@ class Context {
 	std::vector<Matrix44f>		mProjectionMatrixStack;
 
 	// Debug
-	bool						mEnableDebugLog;
+	GLenum						mDebugLogSeverity;
 	GLenum						mDebugBreakSeverity;
 
 	friend class				Environment;

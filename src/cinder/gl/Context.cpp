@@ -124,9 +124,9 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	// debug context
 #if ! defined( CINDER_GLES )
 	if( mPlatformData->mDebug ) {
-		mEnableDebugLog = mPlatformData->mEnableDebugLog;
+		mDebugLogSeverity = mPlatformData->mDebugLogSeverity;
 		mDebugBreakSeverity = mPlatformData->mDebugBreakSeverity;
-		if( mEnableDebugLog || (mDebugBreakSeverity > 0) ) {
+		if( (mDebugLogSeverity > 0) || (mDebugBreakSeverity > 0) ) {
 			//setBoolState( GL_DEBUG_OUTPUT_SYNCHRONOUS, GL_TRUE );
 			glEnable( GL_DEBUG_OUTPUT_SYNCHRONOUS );
 			glDebugMessageCallback( (GLDEBUGPROC)debugMessageCallback, this );
@@ -1386,10 +1386,31 @@ VboRef Context::getDefaultElementVbo( size_t requiredSize )
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 #if defined( CINDER_MSW )
+namespace {
+// because the constants aren't in sequential (or ascending) order, we need to convert it
+int debugSeverityToOrd( GLenum severity )
+{
+	switch( severity ) {
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+			return 1;
+		break;
+		case GL_DEBUG_SEVERITY_LOW:
+			return 2;
+		break;
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			return 3;
+		break;
+		default:/*GL_DEBUG_SEVERITY_HIGH:*/
+			return 4;
+		break;
+	}
+}
+} // anonymous namespace
+
 void Context::debugMessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, void *userParam )
 {
 	Context *ctx = reinterpret_cast<Context*>( userParam );
-	if( ctx->mEnableDebugLog ) {
+	if( ctx->mDebugLogSeverity && (debugSeverityToOrd(severity) >= debugSeverityToOrd(ctx->mDebugLogSeverity)) ) {
 		switch( severity ) {
 			case GL_DEBUG_SEVERITY_HIGH:
 				CI_LOG_E( message );
@@ -1398,12 +1419,13 @@ void Context::debugMessageCallback( GLenum source, GLenum type, GLuint id, GLenu
 				CI_LOG_W( message );
 			break;
 			case GL_DEBUG_SEVERITY_LOW:
+			case GL_DEBUG_SEVERITY_NOTIFICATION:
 				CI_LOG_I( message );
 			break;
 		}
 	}
 
-	if( ctx->mDebugBreakSeverity > 0 && (severity >= ctx->mDebugBreakSeverity) ) {
+	if( ctx->mDebugBreakSeverity && (debugSeverityToOrd(severity) >= debugSeverityToOrd(ctx->mDebugBreakSeverity)) ) {
 		__debugbreak();	
 	}
 }
