@@ -37,6 +37,7 @@
 		#include <ApplicationServices/ApplicationServices.h>
 	#endif
 #endif
+#include "cinder/Unicode.h"
 
 #include <set>
 
@@ -156,7 +157,7 @@ set<Font::Glyph> getNecessaryGlyphs( const Font &font, const string &supportedCh
 	GCP_RESULTS gcpResults;
 	WCHAR *glyphIndices = NULL;
 
-	wstring utf16 = toUtf16( supportedChars );
+	std::u16string utf16 = toUtf16( supportedChars );
 
 	::SelectObject( Font::getGlobalDc(), font.getHfont() );
 
@@ -178,7 +179,7 @@ set<Font::Glyph> getNecessaryGlyphs( const Font &font, const string &supportedCh
 		gcpResults.lpDx = 0;
 		gcpResults.lpGlyphs = glyphIndices;
 
-		if( ! ::GetCharacterPlacementW( Font::getGlobalDc(), utf16.c_str(), utf16.length(), 0,
+		if( ! ::GetCharacterPlacementW( Font::getGlobalDc(), (wchar_t*)utf16.c_str(), utf16.length(), 0,
 						&gcpResults, GCP_LIGATE | GCP_DIACRITIC | GCP_GLYPHSHAPE | GCP_REORDER ) ) {
 			return set<Font::Glyph>(); // failure
 		}
