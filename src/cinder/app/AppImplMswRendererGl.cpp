@@ -185,7 +185,11 @@ bool AppImplMswRendererGl::initialize( HWND wnd, HDC dc, RendererRef sharedRende
 		gl::Environment::setCore();
 	else
 		gl::Environment::setLegacy();
-	mCinderContext = gl::Context::createFromExisting( std::shared_ptr<gl::Context::PlatformData>( new gl::PlatformDataMsw( mRC, mDC ) ) );
+	auto platformData = std::shared_ptr<gl::Context::PlatformData>( new gl::PlatformDataMsw( mRC, mDC ) );
+	platformData->mDebug = mRenderer->getOptions().getDebug();
+	platformData->mDebugLogSeverity = mRenderer->getOptions().getDebugLogSeverity();
+	platformData->mDebugBreakSeverity = mRenderer->getOptions().getDebugBreakSeverity();
+	mCinderContext = gl::Context::createFromExisting( platformData );
 	mCinderContext->makeCurrent();
 
 	return true;

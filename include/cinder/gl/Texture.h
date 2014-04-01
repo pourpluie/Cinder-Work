@@ -180,6 +180,8 @@ class TextureBase {
 
 		//! Sets the swizzle mask corresponding to \c GL_TEXTURE_SWIZZLE_RGBA. Expects \c GL_RED through \c GL_ALPHA, or \c GL_ONE or \c GL_ZERO
 		void	setSwizzleMask( const std::array<GLint,4> &swizzleMask ) { mSwizzleMask = swizzleMask; }
+		//! Sets the swizzle mask corresponding to \c GL_TEXTURE_SWIZZLE_RGBA. Expects \c GL_RED through \c GL_ALPHA, or \c GL_ONE or \c GL_ZERO
+		void	setSwizzleMask( GLint r, GLint g, GLint b, GLint a );
 		//! Returns the swizzle mask corresponding to \c GL_TEXTURE_SWIZZLE_RGBA.
 		const std::array<GLint,4>&	getSwizzleMask() const { return mSwizzleMask; }
 		
@@ -251,6 +253,9 @@ class TextureData {
 	size_t				getUnpackAlignment() const { return mUnpackAlignment; }
 	void				setUnpackAlignment( size_t unpackAlignment ) { mUnpackAlignment = unpackAlignment; }
 
+	const std::array<GLint,4>&	getSwizzleMask() const { return mSwizzleMask; }
+	void						setSwizzleMask( const std::array<GLint,4> &swizzleMask ) { mSwizzleMask = swizzleMask; }
+
 	size_t						getNumLevels() const { return mLevels.size(); }
 	const Level&				getLevel( size_t index ) const { return mLevels.at( index ); }
 	const std::vector<Level>&	getLevels() const { return mLevels; }
@@ -267,10 +272,11 @@ class TextureData {
   private:
 	void		init();
 	
-	GLint		mWidth, mHeight, mDepth;
-	GLint		mInternalFormat;
-	GLenum		mDataFormat, mDataType;
-	size_t		mUnpackAlignment;
+	GLint				mWidth, mHeight, mDepth;
+	GLint				mInternalFormat;
+	GLenum				mDataFormat, mDataType;
+	size_t				mUnpackAlignment;
+	std::array<GLint,4>	mSwizzleMask;
 	
 	std::vector<Level>			mLevels;
 
@@ -307,6 +313,7 @@ class Texture : public TextureBase {
 		//! Corresponds to the 'type' parameter of glTexImage*(). Defaults to \c GL_UNSIGNED_BYTE
 		Format& pixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; return *this; }
 		Format& swizzleMask( const std::array<GLint,4> &swizzleMask ) { setSwizzleMask( swizzleMask ); return *this; }
+		Format& swizzleMask( GLint r, GLint g, GLint b, GLint a ) { setSwizzleMask( r, g, b, a ); return *this; }
 #if ! defined( CINDER_GL_ES )
 		Format& intermediatePbo( const PboRef &intermediatePbo ) { setIntermediatePbo( intermediatePbo ); return *this; }
 #endif		

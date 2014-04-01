@@ -58,13 +58,13 @@ typedef std::shared_ptr<VertBatch>		VertBatchRef;
 class Context {
   public:
 	struct PlatformData {
-		PlatformData() : mDebug( false ), mEnableDebugLog( false )
+		PlatformData() : mDebug( false ), mDebugLogSeverity( 0 ), mDebugBreakSeverity( 0 )
 		{}
 
 		virtual ~PlatformData() {}
 
 		bool		mDebug;
-		GLenum		mEnableDebugLog;
+		GLenum		mDebugLogSeverity, mDebugBreakSeverity;
 	};
 
 	//! Creates a new OpenGL context, sharing resources and pixel format with sharedContext. This (essentially) must be done from the primary thread on MSW. ANGLE doesn't support multithreaded use. Destroys the platform Context on destruction.
@@ -312,6 +312,8 @@ class Context {
 	//! Returns a reference to the immediate mode emulation structure. Generally use gl::begin() and friends instead.
 	VertBatch&		immediate() { return *mImmediateMode; }
 
+	static void		debugMessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, void *userParam );
+
   protected:
 	//! Returns \c true if \a value is different from the previous top of the stack
 	template<typename T>
@@ -372,6 +374,10 @@ class Context {
 	std::vector<Matrix44f>		mModelMatrixStack;
 	std::vector<Matrix44f>		mViewMatrixStack;	
 	std::vector<Matrix44f>		mProjectionMatrixStack;
+
+	// Debug
+	GLenum						mDebugLogSeverity;
+	GLenum						mDebugBreakSeverity;
 
 	friend class				Environment;
 	friend class				EnvironmentEs2Profile;
