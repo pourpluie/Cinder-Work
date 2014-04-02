@@ -76,7 +76,7 @@ class RendererGl : public Renderer {
 	#endif
 			mVersion = std::pair<int,int>( 3, 2 );	
 #endif
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 			mDebugContext = false;
 			mDebugContextLog = false;
 			mDebugBreak = false;
@@ -100,7 +100,7 @@ class RendererGl : public Renderer {
 		int			getAntiAliasing() const { return mAntiAliasing; }
 		void		setAntiAliasing( int amount ) { mAntiAliasing = amount; }
 
-#if ! defined( CINDER_GLES )		
+#if ! defined( CINDER_GL_ES )
 		//! Enables a debug context (per \c ARB_debug_output). Currently only implemented by MSW GL implementations. By default this is made GL_DEBUG_OUTPUT_SYNCHRONOUS
 		Options&	debug() { mDebugContext = true; return *this; }
 		//! Returns whether the context has debug enabled
@@ -133,7 +133,7 @@ class RendererGl : public Renderer {
 		int						mAntiAliasing;
 		bool					mStencil;
 		int						mDepthBufferBits;
-#if ! defined( CINDER_GLES )
+#if ! defined( CINDER_GL_ES )
 		bool					mDebugContext, mDebugContextLog, mDebugBreak;
 		GLenum					mDebugBreakSeverity;
 #endif
