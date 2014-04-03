@@ -1049,7 +1049,7 @@ class ImageSourceTexture : public ImageSource {
 			case GL_R32F: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_RED; break;
 			case GL_LUMINANCE32F_ARB: setChannelOrder( ImageIo::Y ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_LUMINANCE; break;
 			case GL_LUMINANCE_ALPHA32F_ARB: setChannelOrder( ImageIo::YA ); setColorModel( ImageIo::CM_GRAY ); setDataType( ImageIo::FLOAT32 ); format = GL_LUMINANCE_ALPHA; break;
-			default: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::FLOAT32 ); break;
+			default: setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); format = GL_RGBA; break;
 		}
 #else
 		// at least on iOS, non-RGBA appears to fail on glReadPixels, so we force RGBA
@@ -1354,13 +1354,14 @@ void TextureData::allocateDataStore( size_t requireBytes )
 void TextureData::mapDataStore()
 {
 #if ! defined( CINDER_GL_ES )
-	if( mPbo )
+	if( mPbo ) {
 		mPboMappedPtr = mPbo->map( GL_WRITE_ONLY );
-	if( ! mPboMappedPtr ) {
-		CI_LOG_W( "Failed to map PBO for TextureData. Using CPU heap instead." );
-		// a failure to map the data store means we need to resort to memory as a backup
-		if( ! mDataStoreMem )
-			mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[mDataStoreSize] );
+		if( ! mPboMappedPtr ) {
+			CI_LOG_W( "Failed to map PBO for TextureData. Using CPU heap instead." );
+			// a failure to map the data store means we need to resort to memory as a backup
+			if( ! mDataStoreMem )
+				mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[mDataStoreSize] );
+		}
 	}
 #endif
 }
