@@ -27,6 +27,7 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/TextureFormatParsers.h"
 #include "cinder/ip/Flip.h"
+#include "cinder/Log.h"
 #include <stdio.h>
 #include <algorithm>
 #include <memory>
@@ -864,7 +865,7 @@ void Texture::update( const PboRef &pbo, GLenum format, GLenum type, const Area 
 
 int Texture::getNumMipLevels() const
 {
-	return floor( log( std::max( mWidth, mHeight ) ) / log(2) ) + 1;
+	return floor( std::log( std::max( mWidth, mHeight ) ) / std::log(2) ) + 1;
 }
 	
 void Texture::setCleanTexCoords( float maxU, float maxV )
@@ -1355,6 +1356,12 @@ void TextureData::mapDataStore()
 #if ! defined( CINDER_GL_ES )
 	if( mPbo )
 		mPboMappedPtr = mPbo->map( GL_WRITE_ONLY );
+	if( ! mPboMappedPtr ) {
+		CI_LOG_W( "Failed to map PBO for TextureData. Using CPU heap instead." );
+		// a failure to map the data store means we need to resort to memory as a backup
+		if( ! mDataStoreMem )
+			mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[mDataStoreSize] );
+	}
 #endif
 }
 
@@ -1370,7 +1377,7 @@ void TextureData::unmapDataStore()
 void* TextureData::getDataStorePtr( size_t offset ) const
 {
 #if ! defined( CINDER_GL_ES )
-	if( mPbo ) {
+	if( mPbo && mPboMappedPtr ) {
 		return ((uint8_t*)mPboMappedPtr) + offset;
 	}
 	else
