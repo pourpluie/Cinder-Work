@@ -122,7 +122,7 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	pushGlslProg( getStockShader( ShaderDef().color() ) );
 
 	// debug context
-#if ! defined( CINDER_GLES ) && defined( CINDER_MSW )
+#if ! defined( CINDER_GL_ES ) && defined( CINDER_MSW )
 	if( mPlatformData->mDebug ) {
 		mDebugLogSeverity = mPlatformData->mDebugLogSeverity;
 		mDebugBreakSeverity = mPlatformData->mDebugBreakSeverity;
