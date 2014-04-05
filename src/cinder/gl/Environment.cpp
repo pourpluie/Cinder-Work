@@ -141,7 +141,7 @@ ContextRef Environment::createSharedContext( const Context *sharedContext )
 		throw ExcContextAllocation();
 	}
 	::wglMakeCurrent( sharedContextDc, rc );
-	shared_ptr<Context::PlatformData> platformData = shared_ptr<Context::PlatformData>( new PlatformDataMsw( rc, sharedContextDc ), destroyPlatformData );
+	shared_ptr<Context::PlatformData> platformData = shared_ptr<Context::PlatformData>( new PlatformDataMsw( sharedContextPlatformData, rc, sharedContextDc ), destroyPlatformData );
 #endif
 
 	ContextRef result( new Context( platformData ) );

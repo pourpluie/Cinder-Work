@@ -1407,7 +1407,7 @@ int debugSeverityToOrd( GLenum severity )
 }
 } // anonymous namespace
 
-void Context::debugMessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, void *userParam )
+void __stdcall Context::debugMessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, void *userParam )
 {
 	Context *ctx = reinterpret_cast<Context*>( userParam );
 	if( ctx->mDebugLogSeverity && (debugSeverityToOrd(severity) >= debugSeverityToOrd(ctx->mDebugLogSeverity)) ) {

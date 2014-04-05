@@ -111,6 +111,9 @@ struct PlatformDataMsw : public Context::PlatformData {
 	PlatformDataMsw( HGLRC glrc, HDC dc )
 		: mGlrc( glrc ), mDc( dc )
 	{}
+	PlatformDataMsw( const std::shared_ptr<Context::PlatformData> &sharedPlatformData, HGLRC glrc, HDC dc )
+		: Context::PlatformData( *sharedPlatformData ), mGlrc( glrc ), mDc( dc )
+	{}
 
 	HGLRC	mGlrc;
 	HDC		mDc;
