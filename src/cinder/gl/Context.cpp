@@ -426,6 +426,12 @@ void Context::bufferDeleted( GLenum target, GLuint id )
 	if( existingIt != mBufferBindingStack.end() ) {
 		if( mBufferBindingStack[target].back() == id )
 			mBufferBindingStack[target].back() = 0;
+			// alert the currently bound VAO
+			if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
+				VaoRef vao = getVao();
+				if( vao )
+					vao->reflectBindBufferImpl( target, 0 );
+			}
 	}
 	else
 		mBufferBindingStack[target].push_back( 0 );
