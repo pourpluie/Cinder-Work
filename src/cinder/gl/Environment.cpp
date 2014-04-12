@@ -164,11 +164,21 @@ ContextRef Environment::createSharedContext( const Context *sharedContext )
 void Environment::makeContextCurrent( const Context *context )
 {
 #if defined( CINDER_MAC )
-	auto platformData = dynamic_pointer_cast<PlatformDataMac>( context->getPlatformData() );
-	::CGLSetCurrentContext( platformData->mCglContext );
+	if( context ) {
+		auto platformData = dynamic_pointer_cast<PlatformDataMac>( context->getPlatformData() );
+		::CGLSetCurrentContext( platformData->mCglContext );
+	}
+	else {
+		::CGLSetCurrentContext( NULL );
+	}
 #elif defined( CINDER_COCOA_TOUCH )
-	auto platformData = dynamic_pointer_cast<PlatformDataIos>( context->getPlatformData() );
-	[EAGLContext setCurrentContext:platformData->mEaglContext];
+	if( context ) {
+		auto platformData = dynamic_pointer_cast<PlatformDataIos>( context->getPlatformData() );
+		[EAGLContext setCurrentContext:platformData->mEaglContext];
+	}
+	else {
+		[EAGLContext setCurrentContext:nil];
+	}
 #elif defined( CINDER_GL_ANGLE )
 	if( context ) {
 		auto platformData = dynamic_pointer_cast<PlatformDataAngle>( context->getPlatformData() );
