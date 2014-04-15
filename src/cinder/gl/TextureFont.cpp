@@ -325,9 +325,7 @@ void TextureFont::drawGlyphs( const vector<pair<uint16_t,Vec2f> > &glyphMeasures
 		assert( glyphMeasures.size() == colors.size() );
 
 	ScopedTextureBind texBindScp( mTextures[0] );
-	auto shaderDef = ShaderDef().texture( mTextures[0] );
-	if( ! colors.empty() )
-		shaderDef.color();
+	auto shaderDef = ShaderDef().texture( mTextures[0] ).color();
 	GlslProgRef shader = gl::getStockShader( shaderDef );
 	ScopedGlslProg glslScp( shader );
 
@@ -442,9 +440,7 @@ void TextureFont::drawGlyphs( const std::vector<std::pair<uint16_t,Vec2f> > &gly
 		assert( glyphMeasures.size() == colors.size() );
 
 	ScopedTextureBind texBindScp( mTextures[0] );
-	auto shaderDef = ShaderDef().texture( mTextures[0] );
-	if( ! colors.empty() )
-		shaderDef.color();
+	auto shaderDef = ShaderDef().texture( mTextures[0] ).color();
 	GlslProgRef shader = gl::getStockShader( shaderDef );
 	ScopedGlslProg glslScp( shader );
 
