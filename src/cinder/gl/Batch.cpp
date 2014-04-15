@@ -115,7 +115,7 @@ Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const Attr
 	mNumIndices = vboMesh->getNumIndices();
 	mIndexType = vboMesh->getIndexDataType();
 	mVertexArrayVbos = vboMesh->getVertexArrayLayoutVbos();
-	initVao();
+	initVao( attributeMapping );
 }
 
 Batch::Batch( const geom::Source &source, const gl::GlslProgRef &glsl )
@@ -152,7 +152,7 @@ void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 	initVao();
 }
 
-void Batch::initVao()
+void Batch::initVao( const AttributeMapping &attributeMapping )
 {
 	auto ctx = gl::context();
 	ctx->pushBufferBinding( GL_ARRAY_BUFFER );
@@ -167,11 +167,20 @@ void Batch::initVao()
 		vertArrayVbo.second->bind();
 		// now iterate the attributes associated with this VBO
 		for( const auto &attribInfo : vertArrayVbo.first.getAttribs() ) {
-			// get the location of the attrib semantic in the shader if it's present
-			if( mGlsl->hasAttribSemantic( attribInfo.getAttrib() ) ) {
-				int loc = mGlsl->getAttribSemanticLocation( attribInfo.getAttrib() );
+			int loc = -1;
+			// first see if we have a mapping in 'attributeMapping'
+			auto attributeMappingIt = attributeMapping.find( attribInfo.getAttrib() );
+			if( attributeMappingIt != attributeMapping.end() )
+				loc = mGlsl->getAttribLocation( attributeMappingIt->second );
+			// otherwise, try to get the location of the attrib semantic in the shader if it's present
+			else if( mGlsl->hasAttribSemantic( attribInfo.getAttrib() ) )
+				loc = mGlsl->getAttribSemanticLocation( attribInfo.getAttrib() );
+
+			if( loc != -1 ) {
 				ctx->enableVertexAttribArray( loc );
 				ctx->vertexAttribPointer( loc, attribInfo.getDims(), GL_FLOAT, GL_FALSE, attribInfo.getStride(), (const void*)attribInfo.getOffset() );
+				if( attribInfo.getInstanceDivisor() > 0 )
+					ctx->vertexAttribDivisor( loc, attribInfo.getInstanceDivisor() );
 				enabledAttribs.insert( attribInfo.getAttrib() );
 			}
 		}

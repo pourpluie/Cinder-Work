@@ -72,7 +72,7 @@ class Batch {
 	Batch( const geom::Source &source, const gl::GlslProgRef &glsl );
 
 	void	init( const geom::Source &source, const gl::GlslProgRef &glsl );
-	void	initVao();
+	void	initVao( const AttributeMapping &attributeMapping = AttributeMapping() );
 		
 	GlslProgRef		mGlsl;
 	
