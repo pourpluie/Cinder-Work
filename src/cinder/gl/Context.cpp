@@ -164,16 +164,20 @@ ContextRef Context::createFromExisting( const std::shared_ptr<PlatformData> &pla
 
 void Context::makeCurrent() const
 {
-	env()->makeContextCurrent( this );
-
 #if defined( CINDER_COCOA )
 	if( ! sThreadSpecificCurrentContextInitialized ) {
 		pthread_key_create( &sThreadSpecificCurrentContextKey, NULL );
 		sThreadSpecificCurrentContextInitialized = true;
 	}
-	pthread_setspecific( sThreadSpecificCurrentContextKey, this );
+	if( sThreadSpecificCurrentContextKey != this ) {
+		pthread_setspecific( sThreadSpecificCurrentContextKey, this );
+		env()->makeContextCurrent( this );
+	}
 #else
-	sThreadSpecificCurrentContext = const_cast<Context*>( this );
+	if( sThreadSpecificCurrentContext != this ) {
+		sThreadSpecificCurrentContext = const_cast<Context*>( this );
+		env()->makeContextCurrent( this );
+	}
 #endif
 }
 
