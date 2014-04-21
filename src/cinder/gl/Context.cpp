@@ -169,7 +169,7 @@ void Context::makeCurrent() const
 		pthread_key_create( &sThreadSpecificCurrentContextKey, NULL );
 		sThreadSpecificCurrentContextInitialized = true;
 	}
-	if( sThreadSpecificCurrentContextKey != this ) {
+	if( pthread_getspecific( sThreadSpecificCurrentContextKey ) != this ) {
 		pthread_setspecific( sThreadSpecificCurrentContextKey, this );
 		env()->makeContextCurrent( this );
 	}
