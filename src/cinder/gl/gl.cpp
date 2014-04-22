@@ -1471,6 +1471,20 @@ ScopedState::~ScopedState() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+// ScopedColor
+ScopedColor::ScopedColor( const ColorAf &color )
+	: mCtx( gl::context() )
+{
+	mColor = mCtx->getCurrentColor();
+	mCtx->setCurrentColor( color );
+}
+
+ScopedColor::~ScopedColor()
+{
+	mCtx->setCurrentColor( mColor );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 // ScopedBlend
 ScopedBlend::ScopedBlend( GLboolean enable )
 	: mCtx( gl::context() ), mSaveFactors( false )

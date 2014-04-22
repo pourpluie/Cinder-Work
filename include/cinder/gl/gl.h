@@ -376,6 +376,15 @@ struct ScopedState : public boost::noncopyable {
 	GLenum		mCap;
 };
 
+struct ScopedColor : public boost::noncopyable {
+	ScopedColor( const ColorAf &color );
+	~ScopedColor();
+
+  private:
+	Context		*mCtx;
+	ColorAf		mColor;
+};
+
 struct ScopedBlend : public boost::noncopyable
 {
 	ScopedBlend( GLboolean enable );
@@ -388,6 +397,20 @@ struct ScopedBlend : public boost::noncopyable
   private:
 	Context		*mCtx;
 	bool		mSaveFactors; // whether we should also set the blend factors rather than just the blend state
+};
+
+struct ScopedAlphaBlend : public ScopedBlend
+{
+	ScopedAlphaBlend( bool premultipliedAlpha )
+		: ScopedBlend( premultipliedAlpha ? GL_ONE : GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
+	{}
+};
+
+struct ScopedAdditiveBlend : public ScopedBlend
+{
+	ScopedAdditiveBlend()
+		: ScopedBlend( GL_SRC_ALPHA, GL_ONE )
+	{}
 };
 
 struct ScopedGlslProg : public boost::noncopyable
