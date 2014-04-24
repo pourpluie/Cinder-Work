@@ -308,6 +308,10 @@ class Context {
 	VboRef			getDefaultElementVbo( size_t requiredSize = 0 );
 	//! Returns default VAO, designed for use with convenience functions.
 	VaoRef			getDefaultVao();
+	//! Returns a VBO for drawing textured rectangles; used by gl::drawSolidRect() and gl::draw(TextureRef)
+	VboRef			getSolidRectVbo();
+	//! Returns a VBO for drawing textured rectangles; used by gl::drawSolidRect() and gl::draw(TextureRef)
+	VaoRef			getSolidRectVao();
 
 	//! Returns a reference to the immediate mode emulation structure. Generally use gl::begin() and friends instead.
 	VertBatch&		immediate() { return *mImmediateMode; }
@@ -329,6 +333,8 @@ class Context {
 	//! Returns \c true if \a result is valid; will return \c false when \a stack was empty
 	template<typename T>
 	bool		getStackState( std::vector<T> &stack, T *result );
+
+	void allocateDefaultVboAndVao();
 
 	std::map<ShaderDef,GlslProgRef>		mStockShaders;
 	
@@ -360,7 +366,9 @@ class Context {
 	VboRef						mDefaultArrayVbo[4], mDefaultElementVbo;
 	uint8_t						mDefaultArrayVboIdx;
 	VertBatchRef				mImmediateMode;
-	
+	VaoRef						mSolidRectVao;
+	VboRef						mSolidRectVbo;
+
   private:
 	Context( const std::shared_ptr<PlatformData> &platformData );
   
@@ -369,9 +377,9 @@ class Context {
 	std::vector<std::pair<Vec2i,Vec2i>>		mViewportStack;
 	std::vector<std::pair<Vec2i,Vec2i>>		mScissorStack;
 
-	VaoRef						mImmVao; // Immediate-mode VAO
-	VboRef						mImmVbo; // Immediate-mode VBO
-	
+	VaoRef		mImmVao; // Immediate-mode VAO
+	VboRef		mImmVbo; // Immediate-mode VBO
+
 	ci::ColorAf					mColor;	
 	std::vector<Matrix44f>		mModelMatrixStack;
 	std::vector<Matrix44f>		mViewMatrixStack;	

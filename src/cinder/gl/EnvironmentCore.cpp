@@ -44,6 +44,7 @@ class EnvironmentCore : public Environment {
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
+	virtual GlslProgRef		getSolidRectStockShader() override;
 };
 
 Environment* allocateEnvironmentCore()
@@ -188,6 +189,25 @@ GlslProgRef	EnvironmentCore::buildShader( const ShaderDef &shader )
 												.fragment( generateFragmentShader( shader ).c_str() )
 												.attribLocation( "ciPosition", 0 )
 												);
+}
+
+GlslProgRef	EnvironmentCore::getSolidRectStockShader()
+{
+	std::string vertShader, fragShader;
+
+	{
+	std::string s;
+	}
+
+	{
+	std::string s;
+	
+	s+=			"#version 150\n"
+				"\n"
+				"out vec4 oColor;\n"
+				;
+	vertShader = s;
+	}
 }
 
 } } // namespace cinder::gl
