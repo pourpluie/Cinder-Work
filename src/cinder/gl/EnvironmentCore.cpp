@@ -195,12 +195,12 @@ std::string	EnvironmentCore::generateFragmentShader( const ShaderDef &shader )
 
 GlslProgRef	EnvironmentCore::buildShader( const ShaderDef &shader )
 {
-//std::cout << "Core shader vert:" << std::endl << generateVertexShader( shader ).c_str() << std::endl;
-//std::cout << "Core shader frag:" << std::endl << generateFragmentShader( shader ).c_str() << std::endl;
-	return GlslProg::create( GlslProg::Format().vertex( generateVertexShader( shader ).c_str() )
+	GlslProg::Format fmt = GlslProg::Format().vertex( generateVertexShader( shader ).c_str() )
 												.fragment( generateFragmentShader( shader ).c_str() )
-												.attribLocation( "ciPosition", 0 )
-												);
+												.attribLocation( "ciPosition", 0 );
+	if( shader.mTextureMapping )
+		fmt.attribLocation( "ciTexCoord0", 1 );
+	return GlslProg::create( fmt );		
 }
 
 } } // namespace cinder::gl
