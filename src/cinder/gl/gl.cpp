@@ -1227,6 +1227,7 @@ void drawStrokedCircle( const Vec2f &center, float radius, int numSegments )
 	ctx->setDefaultShaderVars();
 	// draw
 	drawArrays( GL_LINE_LOOP, 0, positions.size() );
+	ctx->popVao();
 }
 
 void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
