@@ -870,12 +870,13 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	if( hasColors )
 		totalArrayBufferSize += 24*4;
 
-	VaoRef vao = Vao::create();
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+
 	VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( totalArrayBufferSize );
 	ScopedBuffer vboScp( defaultArrayVbo );
 	VboRef elementVbo = ctx->getDefaultElementVbo( 6*6 );
 
-	ScopedVao ScopedVao( vao );
 	elementVbo->bind();
 	size_t curBufferOffset = 0;
 	if( hasPositions ) {
@@ -908,9 +909,10 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	}
 
 	elementVbo->bufferSubData( 0, 36, elements );
-
+	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
+	ctx->popVao();
 }
 
 void draw( const TextureRef &texture, const Area &srcArea, const Rectf &dstRect )
