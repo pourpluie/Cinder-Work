@@ -64,7 +64,6 @@ class Environment {
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) = 0;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) = 0;
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) = 0;
-	virtual GlslProgRef		getSolidRectStockShader() = 0;
 
 #if ! defined( CINDER_GL_ES )	
 	virtual bool			isCoreProfile() const = 0;

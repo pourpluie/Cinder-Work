@@ -1369,25 +1369,25 @@ VaoRef Context::getDefaultVao()
 	return mDefaultVao;
 }
 
-VboRef Context::getSolidRectVbo()
+VboRef Context::getDrawTextureVbo()
 {
-	if( ! mSolidRectVbo ) {
-		allocateSolidRectVboAndVao();
+	if( ! mDrawTextureVbo ) {
+		allocateDrawTextureVboAndVao();
 	}
 
-	return mSolidRectVbo;
+	return mDrawTextureVbo;
 }
 
-VaoRef Context::getSolidRectVao()
+VaoRef Context::getDrawTextureVao()
 {
-	if( ! mSolidRectVao ) {
-		allocateSolidRectVboAndVao();
+	if( ! mDrawTextureVao ) {
+		allocateDrawTextureVboAndVao();
 	}
 
-	return mSolidRectVao;
+	return mDrawTextureVao;
 }
 
-void Context::allocateDefaultVboAndVao()
+void Context::allocateDrawTextureVboAndVao()
 {
 	GLfloat data[8+8]; // both verts and texCoords
 	GLfloat *verts = data, *texCoords = data + 8;
@@ -1401,10 +1401,10 @@ void Context::allocateDefaultVboAndVao()
 	verts[3*2+0] = 0.0f; texCoords[3*2+0] = 0.0f;
 	verts[3*2+1] = 1.0f; texCoords[3*2+1] = 1.0f;
 
-	mSolidRectVao = Vao::create();
-	ScopedVao scpVao( mSolidRectVao );
-	mSolidRectVbo = gl::Vbo::create( GL_VERTEX_ARRAY, sizeof(float)*16, data, GL_STATIC_DRAW );
-	ScopedBuffer bufferBindScp( mSolidRectVbo );
+	mDrawTextureVao = Vao::create();
+	ScopedVao scpVao( mDrawTextureVao );
+	mDrawTextureVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(float)*16, data, GL_STATIC_DRAW );
+	ScopedBuffer bufferBindScp( mDrawTextureVbo );
 
 	// position
 	enableVertexAttribArray( 0 );

@@ -44,7 +44,6 @@ class EnvironmentCore : public Environment {
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
-	virtual GlslProgRef		getSolidRectStockShader() override;
 };
 
 Environment* allocateEnvironmentCore()
@@ -91,7 +90,7 @@ bool EnvironmentCore::supportsHardwareVao()
 }
 
 std::string	EnvironmentCore::generateVertexShader( const ShaderDef &shader )
-{
+{	
 	std::string s;
 	
 	s +=		"#version 150\n"
@@ -100,6 +99,13 @@ std::string	EnvironmentCore::generateVertexShader( const ShaderDef &shader )
 				"\n"
 				"in vec4		ciPosition;\n"
 				;
+
+	if( shader.mUniformBasedPosAndTexCoord ) {
+		s +=	"uniform vec2	uPositionOffset, uPositionScale;\n";
+		if( shader.mTextureMapping ) {
+			s+= "uniform vec2	uTexCoordOffset, uTexCoordScale;\n";
+		}
+	}
 	
 	if( shader.mTextureMapping ) {
 		s +=	"in vec2		ciTexCoord0;\n"
@@ -113,15 +119,21 @@ std::string	EnvironmentCore::generateVertexShader( const ShaderDef &shader )
 	}
 
 	s +=		"void main( void )\n"
-				"{\n"
-				"	gl_Position	= ciModelViewProjection * ciPosition;\n"
+				"{\n";
+	if( shader.mUniformBasedPosAndTexCoord )
+		s +=	"	gl_Position = ciModelViewProjection * ( vec4( uPositionOffset, 0, 0 ) + vec4( uPositionScale, 1, 1 ) * ciPosition );\n";
+	else
+		s +=	"	gl_Position	= ciModelViewProjection * ciPosition;\n"
 				;
 	if( shader.mColor ) {
 		s +=	"	Color = ciColor;\n"
 				;
 	}
-	if( shader.mTextureMapping ) {	
-		s +=	"	TexCoord	= ciTexCoord0;\n"
+	if( shader.mTextureMapping ) {
+		if( shader.mUniformBasedPosAndTexCoord )
+			s+= "	TexCoord	= uTexCoordOffset + uTexCoordScale * ciTexCoord0;\n";
+		else
+			s+=	"	TexCoord	= ciTexCoord0;\n";
 				;
 	}
 	
@@ -189,25 +201,6 @@ GlslProgRef	EnvironmentCore::buildShader( const ShaderDef &shader )
 												.fragment( generateFragmentShader( shader ).c_str() )
 												.attribLocation( "ciPosition", 0 )
 												);
-}
-
-GlslProgRef	EnvironmentCore::getSolidRectStockShader()
-{
-	std::string vertShader, fragShader;
-
-	{
-	std::string s;
-	}
-
-	{
-	std::string s;
-	
-	s+=			"#version 150\n"
-				"\n"
-				"out vec4 oColor;\n"
-				;
-	vertShader = s;
-	}
 }
 
 } } // namespace cinder::gl
