@@ -98,7 +98,14 @@ std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )
 				"\n"
 				"attribute vec4		ciPosition;\n"
 				;
-			
+
+	if( shader.mUniformBasedPosAndTexCoord ) {
+		s +=	"uniform vec2	uPositionOffset, uPositionScale;\n";
+		if( shader.mTextureMapping ) {
+			s+= "uniform vec2	uTexCoordOffset, uTexCoordScale;\n";
+		}
+	}
+
 	if( shader.mTextureMapping ) {
 		s +=	"attribute vec2		ciTexCoord0;\n"
 				"varying highp vec2	TexCoord;\n"
@@ -112,11 +119,18 @@ std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )
 
 	s +=		"void main( void )\n"
 				"{\n"
-				"	gl_Position	= ciModelViewProjection * ciPosition;\n"
+				;
+	if( shader.mUniformBasedPosAndTexCoord )
+		s +=	"	gl_Position = ciModelViewProjection * ( vec4( uPositionOffset, 0, 0 ) + vec4( uPositionScale, 1, 1 ) * ciPosition );\n";
+	else
+		s +=	"	gl_Position	= ciModelViewProjection * ciPosition;\n"
 				;
 				
 	if( shader.mTextureMapping ) {	
-		s +=	"	TexCoord = ciTexCoord0;\n"
+		if( shader.mUniformBasedPosAndTexCoord )
+			s+= "	TexCoord	= uTexCoordOffset + uTexCoordScale * ciTexCoord0;\n";
+		else
+			s+=	"	TexCoord	= ciTexCoord0;\n";
 				;
 	}
 	if( shader.mColor ) {
