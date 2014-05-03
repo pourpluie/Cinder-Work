@@ -87,41 +87,41 @@ void ConvenienceDrawingMethodsApp::draw()
 	gl::drawLine( Vec2f( 10.0f, cGridStep * 1.5f ), Vec2f( getWindowWidth() - 10.0f, cGridStep * 1.5f ) );
 
 	// Draw a Path2d both stroked and filled
-	gl::pushModelView();
+	gl::pushModelMatrix();
 	gl::translate( cGridStep, cGridStep * 2.0f );
 	gl::draw( mPath );
 	gl::translate( cGridStep, 0.0f );
 	gl::color( Color( 1.0f, 1.0f, 0.0f ) );
 	gl::drawSolid( mPath );
-	gl::popModelView();
+	gl::popModelMatrix();
 
 	// Draw a 2D PolyLine both stroked and filled
-	gl::pushModelView();
+	gl::pushModelMatrix();
 	gl::translate( cGridStep, cGridStep * 3.0f );
 	gl::color( Color( 1.0f, 0.0f, 0.0f ) );
 	gl::draw( mPolyline2D );
 	gl::translate( cGridStep, 0.0f );
 	gl::color( Color( 1.0f, 1.0f, 0.0f ) );
 	gl::drawSolid( mPolyline2D );
-	gl::popModelView();
+	gl::popModelMatrix();
 
 	// Draw a 3D PolyLine
-	gl::pushModelView();
+	gl::pushModelMatrix();
 	gl::translate( cGridStep, cGridStep * 4.0f );
-	gl::pushModelView();
+	gl::pushModelMatrix();
 	gl::rotate( getElapsedSeconds() * 45.0f, 0.0f, 1.0f, 0.0f );
 	gl::color( Color( 1.0f, 0.0f, 0.0f ) );
 	gl::draw( mPolyline3D );
-	gl::popModelView();
+	gl::popModelMatrix();
 	// draw a 3D line back into space
 	gl::translate( cGridStep, 0.0f );
-	gl::pushModelView();
+	gl::pushModelMatrix();
 	gl::rotate( -getElapsedSeconds() * 90.0f, 0.0f, 0.5f, 1.0f );
 	gl::drawLine( Vec3f( 0.0f, 0.0f, cCircleRadius ), Vec3f( 0.0f, 0.0f, -cCircleRadius ) );
 	gl::drawLine( Vec3f( -cCircleRadius, 0.0f, 0.0f ), Vec3f( cCircleRadius, 0.0f, 0.0f ) );
 	gl::drawLine( Vec3f( 0.0f, -cCircleRadius, 0.0f ), Vec3f( 0.0f, cCircleRadius, 0.0f ) );
-	gl::popModelView();
-	gl::popModelView();
+	gl::popModelMatrix();
+	gl::popModelMatrix();
 }
 
 CINDER_APP_NATIVE( ConvenienceDrawingMethodsApp, RendererGl )
