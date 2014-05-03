@@ -1023,12 +1023,14 @@ void drawLine( const Vec3f &a, const Vec3f &b )
 	const int size = sizeof( Vec3f ) * 2;
 	array<Vec3f, 2> points = { a, b };
 	auto ctx = context();
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+
 	gl::GlslProgRef shader = ctx->getGlslProg();
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( size );
 	ScopedBuffer bufferBindScp( arrayVbo );
 
-	ctx->pushVao();
-	ctx->getDefaultVao()->replacementBindBegin();
 	arrayVbo->bufferSubData( 0, size, points.data() );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
@@ -1038,6 +1040,7 @@ void drawLine( const Vec3f &a, const Vec3f &b )
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_LINES, 0, points.size() );
+	ctx->popVao();
 }
 
 void drawLine( const Vec2f &a, const Vec2f &b )
@@ -1046,12 +1049,14 @@ void drawLine( const Vec2f &a, const Vec2f &b )
 	const int size = sizeof( Vec2f ) * 2;
 	array<Vec2f, 2> points = { a, b };
 	auto ctx = context();
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+
 	gl::GlslProgRef shader = ctx->getGlslProg();
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( size );
 	ScopedBuffer bufferBindScp( arrayVbo );
 
-	ctx->pushVao();
-	ctx->getDefaultVao()->replacementBindBegin();
 	arrayVbo->bufferSubData( 0, size, points.data() );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
@@ -1061,6 +1066,7 @@ void drawLine( const Vec2f &a, const Vec2f &b )
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_LINES, 0, points.size() );
+	ctx->popVao();
 }
 
 void draw( const TriMesh &mesh )
