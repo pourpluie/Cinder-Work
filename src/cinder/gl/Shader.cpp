@@ -31,7 +31,7 @@ using namespace std;
 namespace cinder { namespace gl {
 
 ShaderDef::ShaderDef()
-	: mTextureMapping( false ), mTextureMappingRectangleArb( false ), mColor( false )
+	: mTextureMapping( false ), mTextureMappingRectangleArb( false ), mColor( false ), mUniformBasedPosAndTexCoord( false )
 {
 	mTextureSwizzleMask[0] = GL_RED;
 	mTextureSwizzleMask[1] = GL_GREEN; 
@@ -59,6 +59,12 @@ ShaderDef& ShaderDef::texture( GLenum target )
 	if( target == GL_TEXTURE_RECTANGLE_ARB )
 		mTextureMappingRectangleArb = true;
 #endif
+	return *this;
+}
+
+ShaderDef& ShaderDef::uniformBasedPosAndTexCoord()
+{
+	mUniformBasedPosAndTexCoord = true;
 	return *this;
 }
 
@@ -103,6 +109,8 @@ bool ShaderDef::operator<( const ShaderDef &rhs ) const
 	if( rhs.mTextureMappingRectangleArb != mTextureMappingRectangleArb )
 		return rhs.mTextureMappingRectangleArb;
 #endif
+	if( rhs.mUniformBasedPosAndTexCoord != mUniformBasedPosAndTexCoord )
+		return rhs.mUniformBasedPosAndTexCoord;
 	if( rhs.mColor != mColor )
 		return rhs.mColor;
 	else if( rhs.mTextureSwizzleMask[0] != mTextureSwizzleMask[0] )

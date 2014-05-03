@@ -98,7 +98,14 @@ std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )
 				"\n"
 				"attribute vec4		ciPosition;\n"
 				;
-			
+
+	if( shader.mUniformBasedPosAndTexCoord ) {
+		s +=	"uniform vec2	uPositionOffset, uPositionScale;\n";
+		if( shader.mTextureMapping ) {
+			s+= "uniform vec2	uTexCoordOffset, uTexCoordScale;\n";
+		}
+	}
+
 	if( shader.mTextureMapping ) {
 		s +=	"attribute vec2		ciTexCoord0;\n"
 				"varying highp vec2	TexCoord;\n"
@@ -112,11 +119,18 @@ std::string	EnvironmentEs2::generateVertexShader( const ShaderDef &shader )
 
 	s +=		"void main( void )\n"
 				"{\n"
-				"	gl_Position	= ciModelViewProjection * ciPosition;\n"
+				;
+	if( shader.mUniformBasedPosAndTexCoord )
+		s +=	"	gl_Position = ciModelViewProjection * ( vec4( uPositionOffset, 0, 0 ) + vec4( uPositionScale, 1, 1 ) * ciPosition );\n";
+	else
+		s +=	"	gl_Position	= ciModelViewProjection * ciPosition;\n"
 				;
 				
 	if( shader.mTextureMapping ) {	
-		s +=	"	TexCoord = ciTexCoord0;\n"
+		if( shader.mUniformBasedPosAndTexCoord )
+			s+= "	TexCoord	= uTexCoordOffset + uTexCoordScale * ciTexCoord0;\n";
+		else
+			s+=	"	TexCoord	= ciTexCoord0;\n";
 				;
 	}
 	if( shader.mColor ) {
@@ -172,9 +186,12 @@ std::string	EnvironmentEs2::generateFragmentShader( const ShaderDef &shader )
 
 GlslProgRef	EnvironmentEs2::buildShader( const ShaderDef &shader )
 {
-//std::cout << "ES 2 Shader Vert: " << generateVertexShader( shader ) << std::endl;
-//std::cout << "ES 2 Shader Frag: " << generateFragmentShader( shader ) << std::endl;	
-	return GlslProg::create( generateVertexShader( shader ).c_str(), generateFragmentShader( shader ).c_str() );
+	GlslProg::Format fmt = GlslProg::Format().vertex( generateVertexShader( shader ).c_str() )
+												.fragment( generateFragmentShader( shader ).c_str() )
+												.attribLocation( "ciPosition", 0 );
+	if( shader.mTextureMapping )
+		fmt.attribLocation( "ciTexCoord0", 1 );
+	return GlslProg::create( fmt );
 }
 
 } } // namespace cinder::gl

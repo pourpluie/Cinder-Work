@@ -870,12 +870,13 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	if( hasColors )
 		totalArrayBufferSize += 24*4;
 
-	VaoRef vao = Vao::create();
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+
 	VboRef defaultArrayVbo = ctx->getDefaultArrayVbo( totalArrayBufferSize );
 	ScopedBuffer vboScp( defaultArrayVbo );
 	VboRef elementVbo = ctx->getDefaultElementVbo( 6*6 );
 
-	ScopedVao ScopedVao( vao );
 	elementVbo->bind();
 	size_t curBufferOffset = 0;
 	if( hasPositions ) {
@@ -908,54 +909,32 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	}
 
 	elementVbo->bufferSubData( 0, 36, elements );
-
+	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
+	ctx->popVao();
 }
 
 void draw( const TextureRef &texture, const Area &srcArea, const Rectf &dstRect )
 {
 	auto ctx = context();
-	GlslProgRef shader = ctx->getStockShader( ShaderDef().texture( texture ).color() );
-	ScopedGlslProg ScopedGlslProg( shader );
-	ScopedTextureBind texBindScope( texture );
-
-	shader->uniform( "uTex0", 0 );
-
-	GLfloat data[8+8]; // both verts and texCoords
-	GLfloat *verts = data, *texCoords = data + 8;
 
 	Rectf texRect = texture->getAreaTexCoords( srcArea );
 
-	verts[0*2+0] = dstRect.getX2(); texCoords[0*2+0] = texRect.x2;
-	verts[0*2+1] = dstRect.getY1(); texCoords[0*2+1] = texRect.y1;
-	verts[1*2+0] = dstRect.getX1(); texCoords[1*2+0] = texRect.x1;
-	verts[1*2+1] = dstRect.getY1(); texCoords[1*2+1] = texRect.y1;
-	verts[2*2+0] = dstRect.getX2(); texCoords[2*2+0] = texRect.x2;
-	verts[2*2+1] = dstRect.getY2(); texCoords[2*2+1] = texRect.y2;
-	verts[3*2+0] = dstRect.getX1(); texCoords[3*2+0] = texRect.x1;
-	verts[3*2+1] = dstRect.getY2(); texCoords[3*2+1] = texRect.y2;
+	ScopedVao vaoScp( ctx->getDrawTextureVao() );
+	ScopedBuffer vboScp( ctx->getDrawTextureVbo() );
+	ScopedTextureBind texBindScope( texture );
 
-	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
-	ScopedBuffer vboScp( defaultVbo );
-	ctx->pushVao();
-	ctx->getDefaultVao()->replacementBindBegin();
-		defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
-		int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
-		if( posLoc >= 0 ) {
-			enableVertexAttribArray( posLoc );
-			vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
-		}
-		int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
-		if( texLoc >= 0 ) {
-			enableVertexAttribArray( texLoc );
-			vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
-		}
-	ctx->getDefaultVao()->replacementBindEnd();
+	auto glsl = getStockShader( ShaderDef().uniformBasedPosAndTexCoord().color().texture( texture ) );
+	ScopedGlslProg glslScp( glsl );
+	glsl->uniform( "uTex0", 0 );
+	glsl->uniform( "uPositionOffset", dstRect.getUpperLeft() );
+	glsl->uniform( "uPositionScale", dstRect.getSize() );
+	glsl->uniform( "uTexCoordOffset", texRect.getUpperLeft() );
+	glsl->uniform( "uTexCoordScale", texRect.getSize() );
 
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-	ctx->popVao();
 }
 
 void draw( const TextureRef &texture, const Rectf &dstRect )
@@ -994,6 +973,7 @@ void draw( const Path2d &path, float approximationScale )
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_LINE_STRIP, 0, points.size() );
+	ctx->popVao();
 }
 
 void draw( const PolyLine<Vec2f> &polyLine )
@@ -1016,6 +996,7 @@ void draw( const PolyLine<Vec2f> &polyLine )
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_LINE_STRIP, 0, points.size() );
+	ctx->popVao();
 }
 
 void draw( const PolyLine<Vec3f> &polyLine )
@@ -1038,6 +1019,7 @@ void draw( const PolyLine<Vec3f> &polyLine )
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_LINE_STRIP, 0, points.size() );
+	ctx->popVao();
 }
 
 void drawLine( const Vec3f &a, const Vec3f &b )
@@ -1046,12 +1028,14 @@ void drawLine( const Vec3f &a, const Vec3f &b )
 	const int size = sizeof( Vec3f ) * 2;
 	array<Vec3f, 2> points = { a, b };
 	auto ctx = context();
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+
 	gl::GlslProgRef shader = ctx->getGlslProg();
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( size );
 	ScopedBuffer bufferBindScp( arrayVbo );
 
-	ctx->pushVao();
-	ctx->getDefaultVao()->replacementBindBegin();
 	arrayVbo->bufferSubData( 0, size, points.data() );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
@@ -1061,6 +1045,7 @@ void drawLine( const Vec3f &a, const Vec3f &b )
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_LINES, 0, points.size() );
+	ctx->popVao();
 }
 
 void drawLine( const Vec2f &a, const Vec2f &b )
@@ -1069,12 +1054,14 @@ void drawLine( const Vec2f &a, const Vec2f &b )
 	const int size = sizeof( Vec2f ) * 2;
 	array<Vec2f, 2> points = { a, b };
 	auto ctx = context();
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+
 	gl::GlslProgRef shader = ctx->getGlslProg();
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( size );
 	ScopedBuffer bufferBindScp( arrayVbo );
 
-	ctx->pushVao();
-	ctx->getDefaultVao()->replacementBindBegin();
 	arrayVbo->bufferSubData( 0, size, points.data() );
 	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
@@ -1084,6 +1071,7 @@ void drawLine( const Vec2f &a, const Vec2f &b )
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_LINES, 0, points.size() );
+	ctx->popVao();
 }
 
 void draw( const TriMesh &mesh )
@@ -1109,23 +1097,23 @@ void drawSolidRect( const Rectf& r )
 	drawSolidRect( r, Rectf( 0, 0, 1, 1 ) );
 }
 
-void drawSolidRect( const Rectf &r, const Rectf &texcoords )
+void drawSolidRect( const Rectf &r, const Rectf &texCoords )
 {
 	auto ctx = context();
 	GLfloat data[8+8]; // both verts and texCoords
-	GLfloat *verts = data, *texCoords = data + 8;
+	GLfloat *verts = data, *texs = data + 8;
 
-	verts[0*2+0] = r.getX2(); texCoords[0*2+0] = texcoords.getX2();
-	verts[0*2+1] = r.getY1(); texCoords[0*2+1] = texcoords.getY1();
-	verts[1*2+0] = r.getX1(); texCoords[1*2+0] = texcoords.getX1();
-	verts[1*2+1] = r.getY1(); texCoords[1*2+1] = texcoords.getY1();
-	verts[2*2+0] = r.getX2(); texCoords[2*2+0] = texcoords.getX2();
-	verts[2*2+1] = r.getY2(); texCoords[2*2+1] = texcoords.getY2();
-	verts[3*2+0] = r.getX1(); texCoords[3*2+0] = texcoords.getX1();
-	verts[3*2+1] = r.getY2(); texCoords[3*2+1] = texcoords.getY2();
+	verts[0*2+0] = r.getX2(); texs[0*2+0] = texCoords.getX2();
+	verts[0*2+1] = r.getY1(); texs[0*2+1] = texCoords.getY1();
+	verts[1*2+0] = r.getX1(); texs[1*2+0] = texCoords.getX1();
+	verts[1*2+1] = r.getY1(); texs[1*2+1] = texCoords.getY1();
+	verts[2*2+0] = r.getX2(); texs[2*2+0] = texCoords.getX2();
+	verts[2*2+1] = r.getY2(); texs[2*2+1] = texCoords.getY2();
+	verts[3*2+0] = r.getX1(); texs[3*2+0] = texCoords.getX1();
+	verts[3*2+1] = r.getY2(); texs[3*2+1] = texCoords.getY2();
 
-	VaoRef vao = Vao::create();
-	ScopedVao ScopedVao( vao );
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
 	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
@@ -1141,9 +1129,10 @@ void drawSolidRect( const Rectf &r, const Rectf &texcoords )
 		enableVertexAttribArray( texLoc );
 		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 	}
-
+	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+	ctx->popVao();
 }
 
 void drawStrokedRect( const Rectf &rect )
@@ -1155,7 +1144,10 @@ void drawStrokedRect( const Rectf &rect )
 	verts[6] = rect.x1;	verts[7] = rect.y2;
 
 	auto ctx = context();
-	ScopedVao ScopedVao( Vao::create() );
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( 8 * sizeof( float ) );
 	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, 8 * sizeof( float ), verts );
@@ -1168,7 +1160,9 @@ void drawStrokedRect( const Rectf &rect )
 	}
 
 	ctx->setDefaultShaderVars();
+	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->drawArrays( GL_LINE_LOOP, 0, 4 );
+	ctx->popVao();
 }
 
 void drawStrokedRect( const Rectf &rect, float lineWidth )
@@ -1193,7 +1187,10 @@ void drawStrokedRect( const Rectf &rect, float lineWidth )
 	verts[30] = rect.x1 - halfWidth;	verts[31] = rect.y2 + halfWidth;
 
 	auto ctx = context();
-	ScopedVao ScopedVao( Vao::create() );
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( 32 * sizeof( float ) );
 	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, 32 * sizeof( float ), verts );
@@ -1206,7 +1203,9 @@ void drawStrokedRect( const Rectf &rect, float lineWidth )
 	}
 
 	ctx->setDefaultShaderVars();
+	ctx->getDefaultVao()->replacementBindEnd();	
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 16 );
+	ctx->popVao();
 }
 
 void drawStrokedCircle( const Vec2f &center, float radius, int numSegments )
@@ -1249,6 +1248,7 @@ void drawStrokedCircle( const Vec2f &center, float radius, int numSegments )
 	ctx->setDefaultShaderVars();
 	// draw
 	drawArrays( GL_LINE_LOOP, 0, positions.size() );
+	ctx->popVao();
 }
 
 void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
@@ -1258,8 +1258,8 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 	if( ! shader )
 		return;
 
-	VaoRef vao = Vao::create();
-	ScopedVao ScopedVao( vao );
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
 
 	if( numSegments <= 0 ) {
 		numSegments = (int)math<double>::floor( radius * M_PI * 2 );
@@ -1321,9 +1321,11 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 	}
 
 	defaultVbo->bufferSubData( 0, dataSizeBytes, data.get() );
+	ctx->getDefaultVao()->replacementBindEnd();
 
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_FAN, 0, numSegments + 2 );
+	ctx->popVao();
 }
 
 void drawSphere( const Vec3f &center, float radius, int segments )
