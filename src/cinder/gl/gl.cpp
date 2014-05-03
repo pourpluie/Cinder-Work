@@ -1237,8 +1237,8 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 	if( ! shader )
 		return;
 
-	VaoRef vao = Vao::create();
-	ScopedVao ScopedVao( vao );
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
 
 	if( numSegments <= 0 ) {
 		numSegments = (int)math<double>::floor( radius * M_PI * 2 );
@@ -1300,9 +1300,12 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 	}
 
 	defaultVbo->bufferSubData( 0, dataSizeBytes, data.get() );
+	ctx->getDefaultVao()->replacementBindEnd();
 
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_FAN, 0, numSegments + 2 );
+	
+	ctx->popVao();
 }
 
 void drawSphere( const Vec3f &center, float radius, int segments )
