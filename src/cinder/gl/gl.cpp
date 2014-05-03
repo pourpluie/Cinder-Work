@@ -1015,6 +1015,7 @@ void draw( const PolyLine<Vec3f> &polyLine )
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_LINE_STRIP, 0, points.size() );
+	ctx->popVao();
 }
 
 void drawLine( const Vec3f &a, const Vec3f &b )
