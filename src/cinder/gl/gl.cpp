@@ -971,6 +971,7 @@ void draw( const Path2d &path, float approximationScale )
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_LINE_STRIP, 0, points.size() );
+	ctx->popVao();
 }
 
 void draw( const PolyLine<Vec2f> &polyLine )
@@ -993,6 +994,7 @@ void draw( const PolyLine<Vec2f> &polyLine )
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_LINE_STRIP, 0, points.size() );
+	ctx->popVao();
 }
 
 void draw( const PolyLine<Vec3f> &polyLine )
@@ -1140,7 +1142,10 @@ void drawStrokedRect( const Rectf &rect )
 	verts[6] = rect.x1;	verts[7] = rect.y2;
 
 	auto ctx = context();
-	ScopedVao ScopedVao( Vao::create() );
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( 8 * sizeof( float ) );
 	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, 8 * sizeof( float ), verts );
@@ -1153,7 +1158,9 @@ void drawStrokedRect( const Rectf &rect )
 	}
 
 	ctx->setDefaultShaderVars();
+	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->drawArrays( GL_LINE_LOOP, 0, 4 );
+	ctx->popVao();
 }
 
 void drawStrokedRect( const Rectf &rect, float lineWidth )
@@ -1178,7 +1185,10 @@ void drawStrokedRect( const Rectf &rect, float lineWidth )
 	verts[30] = rect.x1 - halfWidth;	verts[31] = rect.y2 + halfWidth;
 
 	auto ctx = context();
-	ScopedVao ScopedVao( Vao::create() );
+
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
+
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( 32 * sizeof( float ) );
 	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, 32 * sizeof( float ), verts );
@@ -1191,7 +1201,9 @@ void drawStrokedRect( const Rectf &rect, float lineWidth )
 	}
 
 	ctx->setDefaultShaderVars();
+	ctx->getDefaultVao()->replacementBindEnd();	
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 16 );
+	ctx->popVao();
 }
 
 void drawStrokedCircle( const Vec2f &center, float radius, int numSegments )
@@ -1311,7 +1323,6 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_FAN, 0, numSegments + 2 );
-	
 	ctx->popVao();
 }
 
