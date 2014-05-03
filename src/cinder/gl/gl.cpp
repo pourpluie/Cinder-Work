@@ -1101,8 +1101,8 @@ void drawSolidRect( const Rectf &r, const Rectf &texCoords )
 	verts[3*2+0] = r.getX1(); texs[3*2+0] = texCoords.getX1();
 	verts[3*2+1] = r.getY2(); texs[3*2+1] = texCoords.getY2();
 
-	VaoRef vao = Vao::create();
-	ScopedVao ScopedVao( vao );
+	ctx->pushVao();
+	ctx->getDefaultVao()->replacementBindBegin();
 	VboRef defaultVbo = ctx->getDefaultArrayVbo( sizeof(float)*16 );
 	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
@@ -1118,9 +1118,10 @@ void drawSolidRect( const Rectf &r, const Rectf &texCoords )
 		enableVertexAttribArray( texLoc );
 		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
 	}
-
+	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	ctx->drawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+	ctx->popVao();
 }
 
 void drawStrokedRect( const Rectf &rect )
