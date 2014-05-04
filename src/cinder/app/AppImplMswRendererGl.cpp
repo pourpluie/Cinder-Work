@@ -31,6 +31,7 @@
 #include "glload/wgl_load.h"
 #include "cinder/app/App.h"
 #include "cinder/Camera.h"
+#include "cinder/Log.h"
 #include <windowsx.h>
 
 namespace cinder { namespace app {
@@ -326,14 +327,19 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 		}
 	}
 
-	if( mPrevRC )
-		BOOL success = ::wglCopyContext( mPrevRC, mRC, 0xFFFFFFFF /*GL_ALL_ATTRIB_BITS*/ );
+	::wglMakeCurrent( NULL, NULL );
+	if( mPrevRC ) {
+		if( ! ::wglCopyContext( mPrevRC, mRC, 0xFFFFFFFF /*GL_ALL_ATTRIB_BITS*/ ) )
+			CI_LOG_E( "Unable to copy GL context attributes." );
+	}
 
 	if( mPrevRC )
 		::wglShareLists( mPrevRC, mRC );
 	
 	if( sharedRC )
 		::wglShareLists( sharedRC, mRC );
+
+	::wglMakeCurrent( mDC, mRC );
 
 	return true;									// Success
 }

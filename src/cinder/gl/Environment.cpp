@@ -33,6 +33,8 @@
 	#include "EGL/egl.h"
 #endif
 
+#include "cinder/Log.h"
+
 using namespace std;
 
 namespace cinder { namespace gl {
@@ -139,6 +141,9 @@ ContextRef Environment::createSharedContext( const Context *sharedContext )
 	::wglMakeCurrent( NULL, NULL );
 	if( ! ::wglShareLists( sharedContextRc, rc ) ) {
 		throw ExcContextAllocation();
+	}
+	if( ! ::wglCopyContext( sharedContextRc, rc, 0xFFFFFFFF /*GL_ALL_ATTRIB_BITS*/ ) ) {
+		CI_LOG_E( "Unable to copy GL context attributes." );
 	}
 	::wglMakeCurrent( sharedContextDc, rc );
 	shared_ptr<Context::PlatformData> platformData = shared_ptr<Context::PlatformData>( new PlatformDataMsw( sharedContextPlatformData, rc, sharedContextDc ), destroyPlatformData );
