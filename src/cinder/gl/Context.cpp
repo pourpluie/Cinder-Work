@@ -1165,9 +1165,9 @@ void Context::sanityCheck()
 
 	VaoRef boundVao = getVao();
 	if( boundVao ) {
-		assert( trueVaoBinding == boundVao->mId );
-		assert( getBufferBinding( GL_ARRAY_BUFFER ) == boundVao->getLayout().mCachedArrayBufferBinding );
-		assert( getBufferBinding( GL_ELEMENT_ARRAY_BUFFER ) == boundVao->getLayout().mElementArrayBufferBinding );		
+		CI_ASSERT( trueVaoBinding == boundVao->mId );
+		CI_ASSERT( getBufferBinding( GL_ARRAY_BUFFER ) == boundVao->getLayout().mCachedArrayBufferBinding );
+		CI_ASSERT( getBufferBinding( GL_ELEMENT_ARRAY_BUFFER ) == boundVao->getLayout().mElementArrayBufferBinding );		
 	}
 	else
 		assert( trueVaoBinding == 0 );
@@ -1176,7 +1176,7 @@ void Context::sanityCheck()
 	GLint cachedArrayBufferBinding = getBufferBinding( GL_ARRAY_BUFFER );
 	GLint trueArrayBufferBinding;
 	glGetIntegerv( GL_ARRAY_BUFFER_BINDING, &trueArrayBufferBinding );
-	assert( ( cachedArrayBufferBinding == -1 ) || ( trueArrayBufferBinding == cachedArrayBufferBinding ) );
+	CI_ASSERT( ( cachedArrayBufferBinding == -1 ) || ( trueArrayBufferBinding == cachedArrayBufferBinding ) );
 
 	// assert cached GL_ELEMENT_ARRAY_BUFFER is correct
 	GLint cachedElementArrayBufferBinding = getBufferBinding( GL_ELEMENT_ARRAY_BUFFER );

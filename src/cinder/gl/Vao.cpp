@@ -260,6 +260,30 @@ void Vao::Layout::clear()
 	mVertexAttribs.clear();
 }
 
+void Vao::Layout::instantiate( Context *context )
+{
+	auto oldBuffer = context->getBufferBinding( GL_ARRAY_BUFFER );
+
+	for( auto attribIt = mVertexAttribs.begin(); attribIt != mVertexAttribs.end(); ++attribIt ) {
+		if( attribIt->second.mEnabled ) {
+			glEnableVertexAttribArray( attribIt->first );
+			glBindBuffer( GL_ARRAY_BUFFER, attribIt->second.mArrayBufferBinding );
+			if( attribIt->second.mPointerType == Vao::VertexAttrib::FLOAT )
+				glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
+			else
+#if ! defined( CINDER_GL_ES )
+				glVertexAttribIPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mStride, attribIt->second.mPointer );
+#else
+				CI_LOG_E( "Attempt to use integer attribute data in VAO. Not supported in ES 2" );
+#endif
+		}
+	}
+
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mElementArrayBufferBinding );
+	// we need to bind this directly to prevent the gl::Context's caching from subverting our restoration of the old GL_ARRAY_BUFFER
+	glBindBuffer( GL_ARRAY_BUFFER, oldBuffer );
+}
+
 std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs )
 {
 	lhs << *rhs;

@@ -16,6 +16,8 @@ class CubeMappingApp : public AppNative {
 	void update();
 	void draw();
 
+	void keyDown( KeyEvent event ) { if( event.getChar() == 'f' ) setFullScreen( ! isFullScreen() ); }
+
 	gl::TextureCubeMapRef	mCubeMap;
 	gl::BatchRef			mTeapotBatch, mSkyBoxBatch;
 	Matrix44f				mObjectRotation;

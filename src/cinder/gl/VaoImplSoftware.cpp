@@ -90,25 +90,7 @@ void VaoImplSoftware::bindImpl( Context *context )
 	if( ! context )
 		return;
 	
-	auto oldBuffer = context->getBufferBinding( GL_ARRAY_BUFFER );
-
-	for( auto attribIt = mLayout.mVertexAttribs.begin(); attribIt != mLayout.mVertexAttribs.end(); ++attribIt ) {
-		if( attribIt->second.mEnabled ) {
-			glEnableVertexAttribArray( attribIt->first );
-			glBindBuffer( GL_ARRAY_BUFFER, attribIt->second.mArrayBufferBinding );
-			if( attribIt->second.mPointerType == VertexAttrib::FLOAT )
-				glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
-			else
-#if ! defined( CINDER_GL_ES )
-				glVertexAttribIPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mStride, attribIt->second.mPointer );
-#else
-				; // should we throw here?
-#endif
-		}
-	}
-
-	context->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
-	context->bindBuffer( GL_ARRAY_BUFFER, oldBuffer );
+	mLayout.instantiate( context );
 }
 
 void VaoImplSoftware::unbindImpl( Context *context )

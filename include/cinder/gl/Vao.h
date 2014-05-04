@@ -101,11 +101,15 @@ class Vao : public std::enable_shared_from_this<Vao> {
 
 		//! Sets to the equivalent of a newly bound VAO (which means it does not overwrite the mCachedArrayBufferBinding value)
 		void	clear();
+
+		//! Issues GL calls against the Layout. Used by VaoImplSoftware and by reassignContext()
+		void	instantiate( class Context *context );
 		
 		//! Returns \c true if found an attribute at \a loc, and sets \a result to point to the relevant VertexAttrib in \a mVertexAttribs
 		bool	findVertexAttribForLocation( GLuint loc, VertexAttrib **result );
 		//! Returns \c true if found an attribute at \a loc, and sets \a result to point to the relevant VertexAttrib in \a mVertexAttribs
 		bool	findVertexAttribForLocation( GLuint loc, const VertexAttrib **result ) const;
+
 
 		GLuint									mElementArrayBufferBinding;
 		GLuint									mCachedArrayBufferBinding; // this represent a cache of the Context's value, but VAOs do not record GL_ARRAY_BUFFER_BINDING

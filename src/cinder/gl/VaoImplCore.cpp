@@ -28,6 +28,7 @@
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Context.h"
+#include "cinder/Log.h"
 
 namespace cinder { namespace gl {
 
@@ -46,6 +47,8 @@ class VaoImplCore : public Vao {
 	virtual void	vertexAttribIPointerImpl( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer ) override;
 	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) override;
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;	
+
+	void			reassignImpl( Context *newContext );
 
 	friend class Context;
 };
@@ -74,6 +77,11 @@ VaoImplCore::~VaoImplCore()
 
 void VaoImplCore::bindImpl( Context *context )
 {
+	if( context && ( context != mCtx ) ) {
+		CI_LOG_W( "VAO bound against different context from allocation. Reassigning context." );
+		reassignImpl( context );
+	}
+
 	if( glBindVertexArray ) // not available on GL legacy
 		glBindVertexArray( mId );
 	else
@@ -82,7 +90,30 @@ void VaoImplCore::bindImpl( Context *context )
 	if( context ) {
 		context->reflectBufferBinding( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
 		mLayout.mCachedArrayBufferBinding = context->getBufferBinding( GL_ARRAY_BUFFER );
+		context->sanityCheck();
 	}
+}
+
+void VaoImplCore::reassignImpl( Context *newContext )
+{
+	if( newContext == mCtx )
+		return;
+
+	mCtx = newContext;
+
+	// generate
+	if( glGenVertexArrays ) // not available on GL legacy
+		glGenVertexArrays( 1, &mId );
+	else
+		glGenVertexArraysAPPLE( 1, &mId );
+
+	// assign
+	if( glBindVertexArray ) // not available on GL legacy
+		glBindVertexArray( mId );
+	else
+		glBindVertexArrayAPPLE( mId );
+
+	mLayout.instantiate( mCtx );
 }
 
 void VaoImplCore::unbindImpl( Context *context )
