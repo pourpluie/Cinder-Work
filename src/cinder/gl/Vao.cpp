@@ -111,13 +111,37 @@ void Vao::replacementBindBegin()
 	mCtx->bindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 }
 
+bool Vao::Layout::findVertexAttribForLocation( GLuint loc, const VertexAttrib **result ) const
+{
+	for( auto &attrib : mVertexAttribs )
+		if( attrib.first == loc ) {
+			*result = &attrib.second;
+			return true;
+		}
+
+	return false;
+}
+
+bool Vao::Layout::findVertexAttribForLocation( GLuint loc, VertexAttrib **result )
+{
+	for( auto &attrib : mVertexAttribs )
+		if( attrib.first == loc ) {
+			*result = &attrib.second;
+			return true;
+		}
+
+	return false;
+}
+
 void Vao::replacementBindEnd()
 {
 	// disable any attributes which were enabled in the previous layout
 	for( auto &attrib : mReplacementBindPrevious.mVertexAttribs ) {
-		auto existing = mLayout.mVertexAttribs.find( attrib.first );
-		if( attrib.second.mEnabled && ( ( existing == mLayout.mVertexAttribs.end() ) || ( ! existing->second.mEnabled) ) )
-			disableVertexAttribArrayImpl( attrib.first );
+		if( attrib.second.mEnabled) {
+			VertexAttrib *existing;
+			if( mLayout.findVertexAttribForLocation( attrib.first, &existing ) && existing->mEnabled )
+				disableVertexAttribArrayImpl( attrib.first );
+		}
 	}
 
 	// TODO: if the user never bound an ELEMENT_ARRAY_BUFFER, they assumed it was 0, so we should make that so by caching whether they changed it
@@ -140,64 +164,79 @@ void Vao::Layout::bindBuffer( GLenum target, GLuint buffer )
 
 void Vao::Layout::enableVertexAttribArray( GLuint index )
 {
-	auto existing = mVertexAttribs.find( index );
-	if( existing != mVertexAttribs.end() ) {
-		existing->second.mEnabled = true;
+	VertexAttrib *existing;
+	if( findVertexAttribForLocation( index, &existing ) ) {
+		existing->mEnabled = true;
 	}
 	else {
-		mVertexAttribs[index] = VertexAttrib();
-		mVertexAttribs[index].mEnabled = true;
+		mVertexAttribs.emplace_back( index, VertexAttrib() );
+		mVertexAttribs.back().second.mEnabled = true;
 	}
 }
 
 bool Vao::Layout::isVertexAttribArrayEnabled( GLuint index ) const
 {
-	auto existing = mVertexAttribs.find( index );
-	if( existing != mVertexAttribs.end() )
-		return existing->second.mEnabled;
-	else
-		return false;
-}
-
-void Vao::Layout::disableVertexAttribArray( GLuint index )
-{
-	auto existing = mVertexAttribs.find( index );
-	if( existing != mVertexAttribs.end() ) {
-		existing->second.mEnabled = false;
+	const VertexAttrib *existing;
+	if( findVertexAttribForLocation( index, &existing ) ) {
+		return existing->mEnabled;
 	}
 	else {
-		mVertexAttribs[index] = VertexAttrib();
-		mVertexAttribs[index].mEnabled = false;
+		return false;
+	}
+}
+
+// We need to make a default VertexAttrib to record the request to disable the location
+void Vao::Layout::disableVertexAttribArray( GLuint index )
+{
+	VertexAttrib *existing;
+	if( findVertexAttribForLocation( index, &existing ) ) {
+		existing->mEnabled = false;
+	}
+	else {
+		mVertexAttribs.emplace_back( index, VertexAttrib() );
+		mVertexAttribs.back().second.mEnabled = false;
 	}
 }
 
 void Vao::Layout::vertexAttribPointer( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer )
 {
-	auto existing = mVertexAttribs.find( index );
-	bool enabled = ( existing != mVertexAttribs.end() ) && ( existing->second.mEnabled );
-	mVertexAttribs[index] = Vao::VertexAttrib( size, type, normalized, stride, VertexAttrib::FLOAT, pointer, mCachedArrayBufferBinding );
-	mVertexAttribs[index].mEnabled = enabled;
+	VertexAttrib *existing;
+	if( findVertexAttribForLocation( index, &existing ) ) {
+		bool enabled = existing->mEnabled;
+		*existing = Vao::VertexAttrib( size, type, normalized, stride, VertexAttrib::FLOAT, pointer, mCachedArrayBufferBinding );
+		existing->mEnabled = enabled;
+	}
+	else {
+		mVertexAttribs.emplace_back( index, Vao::VertexAttrib( size, type, normalized, stride, VertexAttrib::FLOAT, pointer, mCachedArrayBufferBinding ) );
+		mVertexAttribs.back().second.mEnabled = false;
+	}
 }
 
 void Vao::Layout::vertexAttribIPointer( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer )
 {
-	auto existing = mVertexAttribs.find( index );
-	bool enabled = ( existing != mVertexAttribs.end() ) && ( existing->second.mEnabled );
-	mVertexAttribs[index] = Vao::VertexAttrib( size, type, false, stride, VertexAttrib::INTEGER, pointer, mCachedArrayBufferBinding );
-	mVertexAttribs[index].mEnabled = enabled;
+	VertexAttrib *existing;
+	if( findVertexAttribForLocation( index, &existing ) ) {
+		bool enabled = existing->mEnabled;
+		*existing = Vao::VertexAttrib( size, type, false, stride, VertexAttrib::INTEGER, pointer, mCachedArrayBufferBinding );
+		existing->mEnabled = enabled;
+	}
+	else {
+		mVertexAttribs.emplace_back( index, Vao::VertexAttrib( size, type, false, stride, VertexAttrib::INTEGER, pointer, mCachedArrayBufferBinding ) );
+		mVertexAttribs.back().second.mEnabled = false;
+	}
 }
 
 bool Vao::Layout::isVertexAttribEqual( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, VertexAttrib::PointerType pointerType, const GLvoid *pointer, GLuint arrayBufferBinding ) const
 {
-	auto existing = mVertexAttribs.find( index );
-	if( existing != mVertexAttribs.end() ) {
-		return existing->second.mSize == size
-			&& existing->second.mType == type
-			&& existing->second.mNormalized == normalized
-			&& existing->second.mStride == stride
-			&& existing->second.mPointerType == pointerType
-			&& existing->second.mPointer == pointer
-			&& existing->second.mArrayBufferBinding == arrayBufferBinding;
+	const VertexAttrib *existing;
+	if( findVertexAttribForLocation( index, &existing ) ) {
+		return existing->mSize == size
+			&& existing->mType == type
+			&& existing->mNormalized == normalized
+			&& existing->mStride == stride
+			&& existing->mPointerType == pointerType
+			&& existing->mPointer == pointer
+			&& existing->mArrayBufferBinding == arrayBufferBinding;
 	}
 	else
 		return false;
@@ -205,11 +244,14 @@ bool Vao::Layout::isVertexAttribEqual( GLuint index, GLint size, GLenum type, GL
 
 void Vao::Layout::vertexAttribDivisor( GLuint index, GLuint divisor )
 {
-	auto existing = mVertexAttribs.find( index );
-	if( existing == mVertexAttribs.end() )
-		mVertexAttribs[index] = Vao::VertexAttrib();
-
-	mVertexAttribs[index].mDivisor = divisor;
+	VertexAttrib *existing;
+	if( findVertexAttribForLocation( index, &existing ) ) {
+		existing->mDivisor = divisor;
+	}
+	else {
+		mVertexAttribs.emplace_back( index, Vao::VertexAttrib() );
+		mVertexAttribs.back().second.mDivisor = divisor;
+	}
 }
 
 void Vao::Layout::clear()
