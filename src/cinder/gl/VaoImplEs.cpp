@@ -31,6 +31,7 @@
 #include "cinder/gl/Vao.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/Context.h"
+#include "cinder/Log.h"
 
 namespace cinder { namespace gl {
 
@@ -49,6 +50,9 @@ class VaoImplEs : public Vao {
 	virtual void	vertexAttribIPointerImpl( GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer ) override;
 	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) override;
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;
+	
+	virtual void	reassignContext( Context *newContext ) override;
+	void			reassignImpl( Context *newContext );
 	
 	friend class Context;
 };
@@ -73,6 +77,11 @@ VaoImplEs::~VaoImplEs()
 
 void VaoImplEs::bindImpl( Context *context )
 {
+	if( context && ( context != mCtx ) ) {
+		CI_LOG_W( "VAO bound against different context from allocation. Reassigning context." );
+		reassignImpl( context );
+	}
+
 	glBindVertexArrayOES( mId );
 
 	if( context ) {
@@ -80,6 +89,44 @@ void VaoImplEs::bindImpl( Context *context )
 		mLayout.mCachedArrayBufferBinding = context->getBufferBinding( GL_ARRAY_BUFFER );
 	}
 }
+
+void VaoImplEs::reassignContext( Context *newContext )
+{
+	reassignImpl( newContext );
+}
+
+void VaoImplEs::reassignImpl( Context *newContext )
+{
+	if( newContext == mCtx )
+		return;
+
+	mCtx = newContext;
+
+	// generate
+	glGenVertexArraysOES( 1, &mId );
+	
+	// assign
+	glBindVertexArrayOES( mId );
+	
+	// instantiate the VAO using the layout
+	auto oldBuffer = mCtx->getBufferBinding( GL_ARRAY_BUFFER );
+
+	for( auto attribIt = mLayout.mVertexAttribs.begin(); attribIt != mLayout.mVertexAttribs.end(); ++attribIt ) {
+		if( attribIt->second.mEnabled ) {
+			glEnableVertexAttribArray( attribIt->first );
+			glBindBuffer( GL_ARRAY_BUFFER, attribIt->second.mArrayBufferBinding );
+			if( attribIt->second.mPointerType == Vao::VertexAttrib::FLOAT )
+				glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
+			else
+				CI_LOG_E( "Attempt to use integer AttribPointer on ES 2. Ignoring." );
+		}
+	}
+
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
+	// we need to bind this directly to prevent the gl::Context's caching from subverting our restoration of the old GL_ARRAY_BUFFER
+	glBindBuffer( GL_ARRAY_BUFFER, oldBuffer );
+}
+
 
 void VaoImplEs::unbindImpl( Context *context )
 {
