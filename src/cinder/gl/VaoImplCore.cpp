@@ -91,7 +91,6 @@ void VaoImplCore::bindImpl( Context *context )
 	if( context ) {
 		context->reflectBufferBinding( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
 		mLayout.mCachedArrayBufferBinding = context->getBufferBinding( GL_ARRAY_BUFFER );
-		context->sanityCheck();
 	}
 }
 

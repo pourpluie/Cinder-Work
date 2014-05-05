@@ -1190,6 +1190,35 @@ void Context::sanityCheck()
 	assert( platformDataMsw->mDc == wglGetCurrentDC() );
 #endif
 
+	// assert that the (first 8) vertex attribute params are the same
+	auto attribs = boundVao->getLayout().getVertexAttribs();
+	for( int idx = 0; idx < 8; ++idx ) {
+		GLint enabled;
+		glGetVertexAttribiv( idx, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &enabled );
+		int matchingIdx = -1;
+		for( auto ciVaoAttribIt = attribs.begin(); ciVaoAttribIt != attribs.end(); ++ciVaoAttribIt ) {
+			if( ciVaoAttribIt->first == idx ) {
+				matchingIdx = ciVaoAttribIt - attribs.begin();
+			}
+		}
+		if( matchingIdx == -1 ) {
+			assert( enabled == 0 );
+			continue;
+		}
+		assert( enabled == attribs[idx].second.mEnabled );
+		if( enabled ) {
+			GLint arrayBufferBinding;
+			glGetVertexAttribiv( idx, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, &arrayBufferBinding );
+			assert( arrayBufferBinding == attribs[matchingIdx].second.mArrayBufferBinding );
+			GLint arraySize;
+			glGetVertexAttribiv( idx, GL_VERTEX_ATTRIB_ARRAY_SIZE, &arraySize );
+			assert( arraySize == attribs[matchingIdx].second.mSize );
+			GLint arrayType;
+			glGetVertexAttribiv( idx, GL_VERTEX_ATTRIB_ARRAY_TYPE, &arrayType );
+			assert( arrayType == attribs[matchingIdx].second.mType );
+		}
+	}
+
 	// assert the various texture bindings are correct
 /*	for( auto& cachedTextureBinding : mTextureBindingStack ) {
 		GLenum target = cachedTextureBinding.first;

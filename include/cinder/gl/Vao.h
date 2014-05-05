@@ -111,6 +111,7 @@ class Vao : public std::enable_shared_from_this<Vao> {
 		//! Returns \c true if found an attribute at \a loc, and sets \a result to point to the relevant VertexAttrib in \a mVertexAttribs
 		bool	findVertexAttribForLocation( GLuint loc, const VertexAttrib **result ) const;
 
+		const std::vector<std::pair<GLuint,VertexAttrib>>&	getVertexAttribs() const { return mVertexAttribs; }
 
 		GLuint									mElementArrayBufferBinding;
 		GLuint									mCachedArrayBufferBinding; // this represent a cache of the Context's value, but VAOs do not record GL_ARRAY_BUFFER_BINDING
