@@ -139,7 +139,7 @@ void Vao::replacementBindEnd()
 	for( auto &attrib : mReplacementBindPrevious.mVertexAttribs ) {
 		if( attrib.second.mEnabled) {
 			VertexAttrib *existing;
-			if( mLayout.findVertexAttribForLocation( attrib.first, &existing ) && existing->mEnabled )
+			if( ( ! mLayout.findVertexAttribForLocation( attrib.first, &existing ) ) || ( ! existing->mEnabled ) )
 				disableVertexAttribArrayImpl( attrib.first );
 		}
 	}
