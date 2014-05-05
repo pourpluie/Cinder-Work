@@ -48,6 +48,7 @@ class VaoImplCore : public Vao {
 	virtual void	vertexAttribDivisorImpl( GLuint index, GLuint divisor ) override;
 	virtual void	reflectBindBufferImpl( GLenum target, GLuint buffer ) override;	
 
+	virtual void	reassignContext( Context *newContext ) override;
 	void			reassignImpl( Context *newContext );
 
 	friend class Context;
@@ -94,6 +95,11 @@ void VaoImplCore::bindImpl( Context *context )
 	}
 }
 
+void VaoImplCore::reassignContext( Context *newContext )
+{
+	reassignImpl( newContext );
+}
+
 void VaoImplCore::reassignImpl( Context *newContext )
 {
 	if( newContext == mCtx )
@@ -113,7 +119,23 @@ void VaoImplCore::reassignImpl( Context *newContext )
 	else
 		glBindVertexArrayAPPLE( mId );
 
-	mLayout.instantiate( mCtx );
+	// instantiate the VAO using the layout
+	auto oldBuffer = mCtx->getBufferBinding( GL_ARRAY_BUFFER );
+
+	for( auto attribIt = mLayout.mVertexAttribs.begin(); attribIt != mLayout.mVertexAttribs.end(); ++attribIt ) {
+		if( attribIt->second.mEnabled ) {
+			glEnableVertexAttribArray( attribIt->first );
+			glBindBuffer( GL_ARRAY_BUFFER, attribIt->second.mArrayBufferBinding );
+			if( attribIt->second.mPointerType == Vao::VertexAttrib::FLOAT )
+				glVertexAttribPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mNormalized, attribIt->second.mStride, attribIt->second.mPointer );
+			else
+				glVertexAttribIPointer( attribIt->first, attribIt->second.mSize, attribIt->second.mType, attribIt->second.mStride, attribIt->second.mPointer );
+		}
+	}
+
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
+	// we need to bind this directly to prevent the gl::Context's caching from subverting our restoration of the old GL_ARRAY_BUFFER
+	glBindBuffer( GL_ARRAY_BUFFER, oldBuffer );
 }
 
 void VaoImplCore::unbindImpl( Context *context )

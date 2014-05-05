@@ -239,6 +239,11 @@ void Batch::bind()
 	mVao->bind();
 }
 
+void Batch::reassignContext( Context *context )
+{
+	mVao->reassignContext( context );
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // VertBatch
 VertBatch::VertBatch( GLenum primType, bool useContextDefaultBuffers )

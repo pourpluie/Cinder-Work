@@ -33,6 +33,7 @@
 
 namespace cinder { namespace gl {
 
+class Context;
 typedef std::shared_ptr<class Vao> VaoRef;
 
 class Vao : public std::enable_shared_from_this<Vao> {
@@ -44,6 +45,9 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	
 	void	bind();
 	void	unbind() const;
+
+	//! Changes the GL context the VAO is associated with
+	virtual void	reassignContext( Context *context ) = 0;
 
 	GLuint			getId() const { return mId; }
 	const Layout&	getLayout() const { return mLayout; }
@@ -102,9 +106,6 @@ class Vao : public std::enable_shared_from_this<Vao> {
 		//! Sets to the equivalent of a newly bound VAO (which means it does not overwrite the mCachedArrayBufferBinding value)
 		void	clear();
 
-		//! Issues GL calls against the Layout. Used by VaoImplSoftware and by reassignContext()
-		void	instantiate( class Context *context );
-		
 		//! Returns \c true if found an attribute at \a loc, and sets \a result to point to the relevant VertexAttrib in \a mVertexAttribs
 		bool	findVertexAttribForLocation( GLuint loc, VertexAttrib **result );
 		//! Returns \c true if found an attribute at \a loc, and sets \a result to point to the relevant VertexAttrib in \a mVertexAttribs

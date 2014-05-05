@@ -17,8 +17,6 @@ class RotatingCubeApp : public AppNative {
 	void update();
 	void draw();
 	
-	void keyDown( KeyEvent event );
-
 	CameraPersp			mCam;
 	Matrix44f			mCubeRotation;
 	gl::BatchRef		mBatch;
@@ -61,12 +59,6 @@ void RotatingCubeApp::update()
 {
 	// Rotate the cube by .03 radians around an arbitrary axis
 	mCubeRotation.rotate( Vec3f( 1, 1.3, 0.5 ).normalized(), 0.03f );
-}
-
-void RotatingCubeApp::keyDown( KeyEvent event )
-{
-	if( event.getChar() == 'f' )
-		setFullScreen( ! isFullScreen() );
 }
 
 void RotatingCubeApp::draw()

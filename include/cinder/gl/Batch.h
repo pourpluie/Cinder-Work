@@ -67,6 +67,9 @@ class Batch {
 	//! Returns the VAO mapping the Batch's geometry to its shader
 	const VaoRef&		getVao() const { return mVao; }
 
+	//! Changes the GL context the Batch is associated with
+	void			reassignContext( Context *context );
+
   protected:
 	Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const AttributeMapping &attributeMapping );
 	Batch( const geom::Source &source, const gl::GlslProgRef &glsl );
