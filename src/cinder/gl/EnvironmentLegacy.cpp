@@ -146,6 +146,11 @@ std::string	EnvironmentLegacy::generateFragmentShader( const ShaderDef &shader )
 				"\n"
 				;
 
+	if( shader.mTextureMapping && shader.mTextureMappingRectangleArb )
+		s+=		"#extension GL_ARB_texture_rectangle : enable\n"
+				"\n"
+				;
+
 	if( shader.mColor ) {
 		s +=	"varying vec4		Color;\n";
 	}
