@@ -716,7 +716,7 @@ void Texture::update( const Surface &surface, int mipLevel )
 
 		ScopedTextureBind tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-		glTexImage2D( mTarget, mipLevel, getInternalFormat(), getWidth(), getHeight(), 0, dataFormat, type, surface.getData() );
+		glTexSubImage2D( mTarget, mipLevel, 0, 0, getWidth(), getHeight(), dataFormat, type, surface.getData() );
 	}
 	else {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
@@ -725,7 +725,7 @@ void Texture::update( const Surface &surface, int mipLevel )
 		
 		ScopedTextureBind tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-		glTexImage2D( mTarget, mipLevel, getInternalFormat(), mipMapSize.x, mipMapSize.y, 0, dataFormat, type, surface.getData() );
+		glTexSubImage2D( mTarget, mipLevel, 0, 0, mipMapSize.x, mipMapSize.y, dataFormat, type, surface.getData() );
 	}
 }
 
