@@ -106,5 +106,9 @@ void QuickTimeSampleApp::draw()
 	}
 }
 
+#if defined( CINDER_MAC )
 auto options = RendererGl::Options().coreProfile( false ).antiAliasing( 0 );
+#else
+auto options = RendererGl::Options().antiAliasing( 0 );
+#endif
 CINDER_APP_BASIC( QuickTimeSampleApp, RendererGl( options ) );
