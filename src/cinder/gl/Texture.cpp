@@ -996,7 +996,7 @@ gl::TextureRef TextureCache::cache( const Surface8u &data )
 			texIt->second->update( data );
 			texIt->first = mNextId++;
 			// normally this would be very wrong, but when the result TextureRef is destroyed, it calls markTextureAsFree rather than deleting the master texture
-			return TextureRef( texIt->second.get(), std::bind( &TextureCache::markTextureAsFree, this, texIt->first ) );
+			return TextureRef( texIt->second.get(), std::bind( &TextureCache::markTextureAsFree, shared_from_this(), texIt->first ) );
 		}
 	}
 	
@@ -1004,7 +1004,7 @@ gl::TextureRef TextureCache::cache( const Surface8u &data )
 	TextureRef masterTex( new Texture( data, mFormat ) );
 	mTextures.push_back( make_pair( mNextId++, masterTex ) );
 	// normally this would be very wrong, but when the result TextureRef is destroyed, it calls markTextureAsFree rather than deleting the master texture
-	return TextureRef( mTextures.back().second.get(), std::bind( &TextureCache::markTextureAsFree, this, mTextures.back().first ) );
+	return TextureRef( mTextures.back().second.get(), std::bind( &TextureCache::markTextureAsFree, shared_from_this(), mTextures.back().first ) );
 }
 
 void TextureCache::markTextureAsFree( int id )

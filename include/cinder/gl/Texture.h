@@ -544,7 +544,7 @@ class TextureCubeMap : public TextureBase
 
 typedef std::shared_ptr<class TextureCache> TextureCacheRef;
 
-class TextureCache
+class TextureCache : public std::enable_shared_from_this<TextureCache>
 {
   public:
 	static TextureCacheRef create();
