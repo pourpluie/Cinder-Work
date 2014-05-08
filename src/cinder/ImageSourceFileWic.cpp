@@ -98,14 +98,14 @@ ImageSourceFileWic::ImageSourceFileWic( DataSourceRef dataSourceRef, ImageSource
 		hr = factory->CreateStream( &pIWICStream );
 		if( ! SUCCEEDED(hr) )
 			throw ImageIoExceptionFailedLoad( "Could not create WIC Stream." );
-		std::shared_ptr<IWICStream> stream = msw::makeComShared( pIWICStream );
+		mStream = msw::makeComShared( pIWICStream );
 		
-		Buffer buffer = dataSourceRef->getBuffer();
-		hr = stream->InitializeFromMemory( reinterpret_cast<BYTE*>( buffer.getData() ), buffer.getDataSize() );
+		mBuffer = dataSourceRef->getBuffer();
+		hr = mStream->InitializeFromMemory( reinterpret_cast<BYTE*>( mBuffer.getData() ), mBuffer.getDataSize() );
 		if( ! SUCCEEDED(hr) )
 			throw ImageIoExceptionFailedLoad( "Could not initialize WIC Stream." );
 		
-		hr = factory->CreateDecoderFromStream( stream.get(), NULL, WICDecodeMetadataCacheOnDemand, &decoderP );
+		hr = factory->CreateDecoderFromStream( mStream.get(), NULL, WICDecodeMetadataCacheOnDemand, &decoderP );
 		if( ! SUCCEEDED(hr) )
 			throw ImageIoExceptionFailedLoad( "Could not create WIC Decoder from stream." );
 	}
@@ -143,12 +143,10 @@ bool ImageSourceFileWic::processFormat( const ::GUID &guid, ::GUID *convertGUID 
 		return true;
 	}
 	else if( guid == GUID_WICPixelFormat24bppBGR ) {		
-		setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); *convertGUID = GUID_WICPixelFormat32bppRGBA;
-		return true;
+		setChannelOrder( ImageIo::BGR ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 );
 	}
 	else if( guid == GUID_WICPixelFormat24bppRGB ) {
-		setChannelOrder( ImageIo::RGBA ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 ); *convertGUID = GUID_WICPixelFormat32bppRGBA;
-		return true;
+		setChannelOrder( ImageIo::RGB ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 );
 	}
 	else if( guid == GUID_WICPixelFormat32bppBGR ) {
 		setChannelOrder( ImageIo::BGRX ); setColorModel( ImageIo::CM_RGB ); setDataType( ImageIo::UINT8 );

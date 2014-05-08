@@ -28,8 +28,10 @@
 
 #include <guiddef.h>
 
+// WIC forward declarations
 struct IWICImagingFactory;
 struct IWICBitmapFrameDecode;
+struct IWICStream;
 
 namespace cinder {
 
@@ -52,6 +54,8 @@ class ImageSourceFileWic : public ImageSource {
 	bool	processFormat( const ::GUID &guid, ::GUID *convertGUID );
 
 	std::shared_ptr<IWICBitmapFrameDecode>	mFrame;
+	std::shared_ptr<IWICStream>				mStream;
+	Buffer									mBuffer;
 	bool									mRequiresConversion;
 	int32_t									mRowBytes;
 	::GUID									mPixelFormat, mConvertPixelFormat;
