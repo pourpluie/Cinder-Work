@@ -196,6 +196,7 @@ void Fbo::Format::getDepthStencilFormats( GLint depthInternalFormat, GLint *resu
 #else
 		case GL_DEPTH24_STENCIL8:
 			*resultInternalFormat = GL_DEPTH24_STENCIL8; *resultPixelDataType = GL_UNSIGNED_INT_24_8;
+		break;
 		case GL_DEPTH32F_STENCIL8:
 			*resultInternalFormat = GL_DEPTH32F_STENCIL8; *resultPixelDataType = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
 		break;
