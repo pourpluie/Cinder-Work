@@ -17,23 +17,45 @@
 	#include <boost/preprocessor/control/if.hpp>
 #endif
 
-#if ! defined( NDEBUG )
-	// by default, CI_LOG_V is enabled in debug builds, but apps can also define this elsewhere to force it on in release.
-	#define CI_ENABLE_LOG_V
-#endif
-
 #define CINDER_LOG_STREAM( level, stream ) ::cinder::log::Entry( level, ::cinder::log::Location( CINDER_CURRENT_FUNCTION, __FILE__, __LINE__ ) ) << stream
 
-#if defined( CI_ENABLE_LOG_V )
-	#define CI_LOG_V( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_VERBOSE, stream )
-#else
-	#define CI_LOG_V( stream )
+#if ! defined( CI_LOG_LEVEL )
+	#if defined( NDEBUG )
+		#define CI_LOG_LEVEL 2	// release mode default is LEVEL_INFO
+	#else
+		#define CI_LOG_LEVEL 1	// debug mode default is LEVEL_VERBOSE
+	#endif
 #endif
 
-#define CI_LOG_I( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_INFO, stream )
-#define CI_LOG_W( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_WARNING, stream )
-#define CI_LOG_E( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_ERROR, stream )
-#define CI_LOG_F( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_FATAL, stream )
+#if ( CI_LOG_LEVEL <= 1 )
+	#define CI_LOG_V( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_VERBOSE, stream )
+#else
+	#define CI_LOG_V( stream )	((void)0)
+#endif
+
+#if ( CI_LOG_LEVEL <= 2 )
+	#define CI_LOG_I( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_INFO, stream )
+#else
+	#define CI_LOG_I( stream )	((void)0)
+#endif
+
+#if ( CI_LOG_LEVEL <= 3 )
+	#define CI_LOG_W( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_WARNING, stream )
+#else
+	#define CI_LOG_W( stream )	((void)0)
+#endif
+
+#if ( CI_LOG_LEVEL <= 4 )
+	#define CI_LOG_E( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_ERROR, stream )
+#else
+	#define CI_LOG_E( stream )	((void)0)
+#endif
+
+#if ( CI_LOG_LEVEL <= 5 )
+	#define CI_LOG_F( stream )	CINDER_LOG_STREAM( ::cinder::log::LEVEL_FATAL, stream )
+#else
+	#define CI_LOG_F( stream )	((void)0)
+#endif
 
 namespace cinder { namespace log {
 
