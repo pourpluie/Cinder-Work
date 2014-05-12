@@ -114,6 +114,10 @@ class TextureBase {
 		
 		//! Enables or disables mipmapping. Default is disabled.
 		void	enableMipmapping( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; mMipmappingSpecified = true; }
+		//! Sets the base mipmap level. Default is zero.
+		void	setBaseMipmapLevel( GLuint level ) { mBaseMipmapLevel = level; }
+		//! Sets the max mipmap level. Default is 1000 (per OpenGL).
+		void	setMaxMipmapLevel( GLuint level ) { mMaxMipmapLevel = level; }
 			
 		//! Sets the Texture's internal format. A value of -1 implies selecting the best format for the context.
 		void	setInternalFormat( GLint internalFormat ) { mInternalFormat = internalFormat; }
@@ -193,6 +197,8 @@ class TextureBase {
 		GLenum				mMinFilter, mMagFilter;
 		bool				mMipmapping, mMipmappingSpecified;
 		bool				mMinFilterSpecified;
+		GLuint				mBaseMipmapLevel;
+		GLuint				mMaxMipmapLevel;
 		GLfloat				mMaxAnisotropy;
 		GLint				mInternalFormat;
 		GLint				mPixelDataFormat;
