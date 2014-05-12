@@ -148,6 +148,12 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 	mSwizzleMask = format.mSwizzleMask;
 	
 	mMipmapping = format.mMipmapping;
+
+#if ! defined( CINDER_GL_ES )
+	if( format.mBorderSpecified ) {
+		glTexParameterfv( mTarget, GL_TEXTURE_BORDER_COLOR, format.mBorderColor.data() );
+	}
+#endif
 }
 
 GLint TextureBase::getInternalFormat() const
@@ -314,6 +320,7 @@ TextureBase::Format::Format()
 	mMagFilter = GL_LINEAR;
 	mMipmapping = false;
 	mMipmappingSpecified = false;
+	mBorderSpecified = false;
 	mBaseMipmapLevel = 0;
 	mMaxMipmapLevel = 1000;
 	mInternalFormat = -1;
@@ -328,6 +335,16 @@ void TextureBase::Format::setSwizzleMask( GLint r, GLint g, GLint b, GLint a )
 	array<GLint,4> swizzleMask;
 	swizzleMask[0] = r; swizzleMask[1] = g; swizzleMask[2] = b; swizzleMask[3] = a;
 	setSwizzleMask( swizzleMask );
+}
+
+void TextureBase::Format::setBorderColor( const ColorA &color )
+{
+	array<GLfloat,4> border;
+	border[0] = color.r;
+	border[1] = color.g;
+	border[2] = color.b;
+	border[3] = color.a;
+	setBorderColor( border );
 }
 
 /////////////////////////////////////////////////////////////////////////////////

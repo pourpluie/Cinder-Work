@@ -181,6 +181,10 @@ class TextureBase {
 		//! Returns the optional intermediate PBO that Texture constructors may make use of.
 		const PboRef&	getIntermediatePbo() const { return mIntermediatePbo; }
 #endif
+		//! Sets the texture's border color. Ignored in OpenGL ES.
+		void			setBorderColor( const std::array<GLfloat, 4> &border ) { mBorderColor = border; mBorderSpecified = true; }
+		//! Sets the texture's border color. Ignored in OpenGL ES.
+		void			setBorderColor( const ColorA &color );
 
 		//! Sets the swizzle mask corresponding to \c GL_TEXTURE_SWIZZLE_RGBA. Expects \c GL_RED through \c GL_ALPHA, or \c GL_ONE or \c GL_ZERO
 		void	setSwizzleMask( const std::array<GLint,4> &swizzleMask ) { mSwizzleMask = swizzleMask; }
@@ -204,6 +208,8 @@ class TextureBase {
 		GLint				mPixelDataFormat;
 		GLenum				mPixelDataType;
 		std::array<GLint,4>	mSwizzleMask;
+		bool				mBorderSpecified;
+		std::array<GLfloat,4>	mBorderColor;
 
 #if ! defined( CINDER_GL_ES )		
 		PboRef				mIntermediatePbo;
