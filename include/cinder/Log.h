@@ -45,8 +45,6 @@ typedef enum {
 	LEVEL_FATAL
 } Level;
 
-extern std::ostream& operator<<( std::ostream &lhs, const Level &rhs );
-
 struct Location {
 	Location() {}
 
@@ -69,9 +67,10 @@ struct Metadata {
 
 	Level		mLevel;
 	Location	mLocation;
-
-	friend std::ostream& operator<<( std::ostream &os, const Metadata &rhs );
 };
+
+extern std::ostream& operator<<( std::ostream &os, const Location &rhs );
+extern std::ostream& operator<<( std::ostream &lhs, const Level &rhs );
 
 class Logger {
   public:
@@ -85,8 +84,9 @@ class Logger {
   protected:
 	Logger() : mTimeStampEnabled( false ) {}
 
-  private:
+	void writeDefault( std::ostream &stream, const Metadata &meta, const std::string &text );
 
+  private:
 	bool mTimeStampEnabled;
 };
 
