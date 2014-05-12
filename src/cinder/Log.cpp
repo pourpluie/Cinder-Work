@@ -8,6 +8,7 @@
 #endif
 
 #include <mutex>
+#include <time.h>
 
 #define DEFAULT_FILE_LOG_PATH "cinder.log"
 
@@ -36,6 +37,22 @@ public:
 private:
 	vector<unique_ptr<Logger> >	mLoggers; // TODO: make set? don't want duplicates
 };
+
+namespace  {
+
+// output format is YYYY-MM-DD.HH:mm:ss
+const std::string getCurrentDateTimeString()
+{
+	time_t timeSinceEpoch = time( NULL );
+	struct tm *now = localtime( &timeSinceEpoch );
+
+	char result[100];
+	strftime( result, sizeof( result ), "%Y-%m-%d.%X", now );
+
+	return result;
+}
+
+} // anonymous namespace
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - LogManager
@@ -187,6 +204,9 @@ void LogManager::disableSystemLogging()
 
 void LoggerConsole::write( const Metadata &meta, const string &text )
 {
+	if( isTimestampEnabled() )
+		app::console() << getCurrentDateTimeString() << " ";
+
 	app::console() << meta << text << endl;
 }
 
@@ -229,6 +249,8 @@ LoggerFile::LoggerFile( const fs::path &filePath )
 {
 	if( mFilePath.empty() )
 		mFilePath = DEFAULT_FILE_LOG_PATH;
+
+	setTimestampEnabled();
 	
 	mStream.open( mFilePath.string() );
 }
@@ -240,6 +262,9 @@ LoggerFile::~LoggerFile()
 
 void LoggerFile::write( const Metadata &meta, const string &text )
 {
+	if( isTimestampEnabled() )
+		mStream << getCurrentDateTimeString() << " ";
+
 	mStream << meta << text << endl;
 }
 

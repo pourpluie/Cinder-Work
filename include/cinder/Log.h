@@ -78,6 +78,16 @@ class Logger {
 	virtual ~Logger()	{}
 
 	virtual void write( const Metadata &meta, const std::string &text ) = 0;
+
+	void setTimestampEnabled( bool enable = true )	{ mTimeStampEnabled = enable; }
+	bool isTimestampEnabled() const					{ return mTimeStampEnabled; }
+
+  protected:
+	Logger() : mTimeStampEnabled( false ) {}
+
+  private:
+
+	bool mTimeStampEnabled;
 };
 
 class LoggerConsole : public Logger {
