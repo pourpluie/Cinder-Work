@@ -840,7 +840,7 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 			float y = math<float>::sin( -M_PI / 2 + M_PI * r * ringIncr );
 			float z = math<float>::sin( 2 * M_PI * s * segIncr ) * math<float>::sin( M_PI * r * ringIncr );
 
-			vertIt->set( x * radius, y * radius, z * radius );
+			vertIt->set( x * radius + mCenter.x, y * radius + mCenter.y, z * radius + mCenter.z );
 			++vertIt;
 
 			if( hasNormals ) {
