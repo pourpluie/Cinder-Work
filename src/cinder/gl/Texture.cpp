@@ -1338,14 +1338,14 @@ TextureData::~TextureData()
 void TextureData::allocateDataStore( size_t requireBytes )
 {
 #if defined( CINDER_GL_ES )
-	mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[requireBytes] );
+	mDataStoreMem = unique_ptr<uint8_t[]>( new uint8_t[requireBytes] );
 #else
 	if( mPbo ) {
 		if( mPbo->getSize() < requireBytes )
 			mPbo->bufferData( requireBytes, nullptr, GL_STREAM_DRAW );
 	}
 	else {
-		mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[requireBytes] );
+		mDataStoreMem = unique_ptr<uint8_t[]>( new uint8_t[requireBytes] );
 	}
 #endif
 	mDataStoreSize = requireBytes;
@@ -1360,7 +1360,7 @@ void TextureData::mapDataStore()
 			CI_LOG_W( "Failed to map PBO for TextureData. Using CPU heap instead." );
 			// a failure to map the data store means we need to resort to memory as a backup
 			if( ! mDataStoreMem )
-				mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[mDataStoreSize] );
+				mDataStoreMem = unique_ptr<uint8_t[]>( new uint8_t[mDataStoreSize] );
 		}
 	}
 #endif

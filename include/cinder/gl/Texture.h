@@ -284,7 +284,7 @@ class TextureData {
 	PboRef						mPbo;
 	void*						mPboMappedPtr;
   #endif
-	std::shared_ptr<uint8_t>	mDataStoreMem;
+	std::unique_ptr<uint8_t[]>	mDataStoreMem;
 	size_t						mDataStoreSize;
 };
 
