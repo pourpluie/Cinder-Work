@@ -38,8 +38,8 @@
 //  CINDER_VERSION % 100 is the patch level
 //  CINDER_VERSION / 100 % 1000 is the minor version
 //  CINDER_VERSION / 100000 is the major version
-#define CINDER_VERSION		806
-#define CINDER_VERSION_STR	"0.8.6dev"
+#define CINDER_VERSION		807
+#define CINDER_VERSION_STR	"0.8.7dev"
 
 namespace cinder {
 using std::int8_t;

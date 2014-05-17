@@ -148,6 +148,12 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 	mSwizzleMask = format.mSwizzleMask;
 	
 	mMipmapping = format.mMipmapping;
+
+#if ! defined( CINDER_GL_ES )
+	if( format.mBorderSpecified ) {
+		glTexParameterfv( mTarget, GL_TEXTURE_BORDER_COLOR, format.mBorderColor.data() );
+	}
+#endif
 }
 
 GLint TextureBase::getInternalFormat() const
@@ -314,6 +320,9 @@ TextureBase::Format::Format()
 	mMagFilter = GL_LINEAR;
 	mMipmapping = false;
 	mMipmappingSpecified = false;
+	mBorderSpecified = false;
+	mBaseMipmapLevel = 0;
+	mMaxMipmapLevel = 1000;
 	mInternalFormat = -1;
 	mMaxAnisotropy = -1.0f;
 	mPixelDataFormat = -1;
@@ -326,6 +335,16 @@ void TextureBase::Format::setSwizzleMask( GLint r, GLint g, GLint b, GLint a )
 	array<GLint,4> swizzleMask;
 	swizzleMask[0] = r; swizzleMask[1] = g; swizzleMask[2] = b; swizzleMask[3] = a;
 	setSwizzleMask( swizzleMask );
+}
+
+void TextureBase::Format::setBorderColor( const ColorA &color )
+{
+	array<GLfloat,4> border;
+	border[0] = color.r;
+	border[1] = color.g;
+	border[2] = color.b;
+	border[3] = color.a;
+	setBorderColor( border );
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -550,8 +569,11 @@ Texture::Texture( const TextureData &data, Format format )
 	
 	replace( data );
 
-	if( format.mMipmapping && data.getNumLevels() <= 1 ) 
+	if( format.mMipmapping && data.getNumLevels() <= 1 ) {
+		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
+		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
 		glGenerateMipmap( mTarget );
+	}
 }
 	
 void Texture::initData( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format )
@@ -569,8 +591,11 @@ void Texture::initData( const unsigned char *data, int unpackRowLength, GLenum d
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 	glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, type, data );
     
-	if( format.mMipmapping ) 
+	if( format.mMipmapping ) {
+		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
+		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
 		glGenerateMipmap( mTarget );
+	}
 }
 
 void Texture::initData( const float *data, GLint dataFormat, const Format &format )
@@ -593,8 +618,11 @@ void Texture::initData( const float *data, GLint dataFormat, const Format &forma
 		glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, GL_LUMINANCE, GL_FLOAT, 0 );  // init to black...
 	}
     
-    if( format.mMipmapping ) 
+	if( format.mMipmapping ) {
+		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
+		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
 		glGenerateMipmap( mTarget );
+	}
 }
 
 #if ! defined( CINDER_GL_ES )
@@ -700,8 +728,11 @@ void Texture::initData( const ImageSourceRef &imageSource, const Format &format 
 #else
 	initDataImageSourceImpl( imageSource, format, dataFormat, channelOrder, isGray );
 #endif	
-    if( format.mMipmapping )
+	if( format.mMipmapping ) {
+		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
+		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
 		glGenerateMipmap( mTarget );
+	}
 }
 
 
@@ -1241,8 +1272,11 @@ TextureCubeMap::TextureCubeMap( const Surface8u images[6], Format format )
 		glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + target, 0, mInternalFormat, images[target].getWidth(), images[target].getHeight(), 0,
 			( images[target].hasAlpha() ) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, images[target].getData() );
 			
-	if( format.mMipmapping ) 
-		glGenerateMipmap( mTarget );			
+	if( format.mMipmapping ) {
+		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
+		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
+		glGenerateMipmap( mTarget );
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
