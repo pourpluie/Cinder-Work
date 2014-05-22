@@ -23,6 +23,7 @@
 */
 
 #include "cinder/Timeline.h"
+#include "cinder/Log.h"
 
 #include <vector>
 
@@ -234,9 +235,11 @@ void Timeline::remove( TimelineItemRef item )
 	for( s_iter iter = mItems.begin(); iter != mItems.end(); ++iter ) {
 		if( iter->second == item ) {
 			iter->second->mMarkedForRemoval = true;
-			break;
+			return;
 		}
 	}
+
+	CI_LOG_E( "Unable to locate TimelineItem for removal." );
 }
 
 void Timeline::removeTarget( void *target )
