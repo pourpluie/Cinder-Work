@@ -1017,14 +1017,27 @@ TextureCache::TextureCache( const Surface8u &prototypeSurface, const Texture::Fo
 	: mWidth( prototypeSurface.getWidth() ), mHeight( prototypeSurface.getHeight() ),
 	mFormat( format ), mNextId( 0 )
 {
+	if( mWidth * prototypeSurface.getChannelOrder().getPixelInc() != prototypeSurface.getRowBytes() ) {
+		CI_LOG_V( "Surface rowBytes will prevent full efficiency in gl::Texture upload." );
+		mIntermediateSurface = Surface8u( prototypeSurface.getWidth(), prototypeSurface.getHeight(), 
+				prototypeSurface.hasAlpha(), prototypeSurface.getChannelOrder() );
+	}
 }
 
-gl::TextureRef TextureCache::cache( const Surface8u &data )
+gl::TextureRef TextureCache::cache( const Surface8u &originalData )
 {
+	Surface8u surfaceData = originalData;
+	// If mIntermediateSurface isn't null then we need to use that instead.
+	// This is to accommodate rowBytes values which aren't the same as width * bytesPerPixel
+	if( mIntermediateSurface ) {
+		mIntermediateSurface.copyFrom( originalData, originalData.getBounds() );
+		surfaceData = mIntermediateSurface;
+	}
+
 	// find an available slot and update that if possible
 	for( vector<pair<int,TextureRef>>::iterator texIt = mTextures.begin(); texIt != mTextures.end(); ++texIt ) {
 		if( texIt->first == -1 ) { // this texture is available, let's use it!
-			texIt->second->update( data );
+			texIt->second->update( surfaceData );
 			texIt->first = mNextId++;
 			// normally this would be very wrong, but when the result TextureRef is destroyed, it calls markTextureAsFree rather than deleting the master texture
 			return TextureRef( texIt->second.get(), std::bind( &TextureCache::markTextureAsFree, shared_from_this(), texIt->first ) );
@@ -1032,7 +1045,7 @@ gl::TextureRef TextureCache::cache( const Surface8u &data )
 	}
 	
 	// we didn't find an available slot, so let's make a new texture
-	TextureRef masterTex( new Texture( data, mFormat ) );
+	TextureRef masterTex( new Texture( surfaceData, mFormat ) );
 	mTextures.push_back( make_pair( mNextId++, masterTex ) );
 	// normally this would be very wrong, but when the result TextureRef is destroyed, it calls markTextureAsFree rather than deleting the master texture
 	return TextureRef( mTextures.back().second.get(), std::bind( &TextureCache::markTextureAsFree, shared_from_this(), mTextures.back().first ) );

@@ -572,7 +572,8 @@ class TextureCache : public std::enable_shared_from_this<TextureCache>
 	int				mWidth;
 	int				mHeight;
 	Texture::Format	mFormat;
-	
+	Surface8u		mIntermediateSurface;
+
 	int										mNextId;
 	std::vector<std::pair<int,TextureRef>>	mTextures;
 };
