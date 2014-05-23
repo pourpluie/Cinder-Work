@@ -8,6 +8,7 @@
 #endif
 
 #include <mutex>
+#include <time.h>
 
 #define DEFAULT_FILE_LOG_PATH "cinder.log"
 
@@ -36,6 +37,22 @@ public:
 private:
 	vector<unique_ptr<Logger> >	mLoggers; // TODO: make set? don't want duplicates
 };
+
+namespace  {
+
+// output format is YYYY-MM-DD.HH:mm:ss
+const std::string getCurrentDateTimeString()
+{
+	time_t timeSinceEpoch = time( NULL );
+	struct tm *now = localtime( &timeSinceEpoch );
+
+	char result[100];
+	strftime( result, sizeof( result ), "%Y-%m-%d.%X", now );
+
+	return result;
+}
+
+} // anonymous namespace
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - LogManager
@@ -182,12 +199,26 @@ void LogManager::disableSystemLogging()
 }
 
 // ----------------------------------------------------------------------------------------------------
+// MARK: - Logger
+// ----------------------------------------------------------------------------------------------------
+
+void Logger::writeDefault( std::ostream &stream, const Metadata &meta, const std::string &text )
+{
+	stream << meta.mLevel << " ";
+
+	if( isTimestampEnabled() )
+		stream << getCurrentDateTimeString() << " ";
+
+	stream << meta.mLocation << " " << text << endl;
+}
+
+// ----------------------------------------------------------------------------------------------------
 // MARK: - LoggerConsole
 // ----------------------------------------------------------------------------------------------------
 
 void LoggerConsole::write( const Metadata &meta, const string &text )
 {
-	app::console() << meta << text << endl;
+	writeDefault( app::console(), meta, text );
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -229,6 +260,8 @@ LoggerFile::LoggerFile( const fs::path &filePath )
 {
 	if( mFilePath.empty() )
 		mFilePath = DEFAULT_FILE_LOG_PATH;
+
+	setTimestampEnabled();
 	
 	mStream.open( mFilePath.string() );
 }
@@ -240,7 +273,7 @@ LoggerFile::~LoggerFile()
 
 void LoggerFile::write( const Metadata &meta, const string &text )
 {
-	mStream << meta << text << endl;
+	writeDefault( mStream, meta, text );
 }
 
 #if defined( CINDER_COCOA )
@@ -249,7 +282,7 @@ void LoggerFile::write( const Metadata &meta, const string &text )
 // MARK: - LoggerNSLog
 // ----------------------------------------------------------------------------------------------------
 
-void LoggerNSLog::write( const Metadata &meta, const string& text )
+void LoggerNSLog::write( const Metadata &meta, const string &text )
 {
 	NSString *textNs = [NSString stringWithCString:text.c_str() encoding:NSUTF8StringEncoding];
 	NSString *metaDataNs = [NSString stringWithCString:meta.toString().c_str() encoding:NSUTF8StringEncoding];
@@ -265,24 +298,24 @@ void LoggerNSLog::write( const Metadata &meta, const string& text )
 string Metadata::toString() const
 {
 	stringstream ss;
-	ss << *this;
+	ss << mLevel << " " << mLocation;
 	return ss.str();
 }
 
-ostream& operator<<( ostream &os, const Metadata &rhs )
+ostream& operator<<( ostream &os, const Location &rhs )
 {
-	os << "|" << rhs.mLevel << "| " << rhs.mLocation.getFunctionName() << "[" << rhs.mLocation.getLineNumber() << "] | ";
+	os << rhs.getFunctionName() << "[" << rhs.getLineNumber() << "]";
 	return os;
 }
 
 ostream& operator<<( ostream &lhs, const Level &rhs )
 {
 	switch( rhs ) {
-		case LEVEL_VERBOSE:		lhs << "verbose";	break;
-		case LEVEL_INFO:			lhs << "info";		break;
-		case LEVEL_WARNING:		lhs << "WARNING";	break;
-		case LEVEL_ERROR:			lhs << "ERROR";		break;
-		case LEVEL_FATAL:			lhs << "FATAL";		break;
+		case LEVEL_VERBOSE:		lhs << "|verbose|";	break;
+		case LEVEL_INFO:		lhs << "|info   |";	break;
+		case LEVEL_WARNING:		lhs << "|warning|";	break;
+		case LEVEL_ERROR:		lhs << "|error  |";	break;
+		case LEVEL_FATAL:		lhs << "|fatal  |";	break;
 		default: CI_ASSERT_NOT_REACHABLE();
 	}
 	return lhs;
