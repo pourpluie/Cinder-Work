@@ -1404,7 +1404,7 @@ void TextureData::mapDataStore()
 	if( mPbo ) {
 		mPboMappedPtr = mPbo->map( GL_WRITE_ONLY );
 		if( ! mPboMappedPtr ) {
-			CI_LOG_W( "Failed to map PBO for TextureData. Using CPU heap instead." );
+			CI_LOG_W( "Failed to map PBO for TextureData of size " << mDataStoreSize << " bytes. Using CPU heap instead." );
 			// a failure to map the data store means we need to resort to memory as a backup
 			if( ! mDataStoreMem )
 				mDataStoreMem = unique_ptr<uint8_t[]>( new uint8_t[mDataStoreSize] );
