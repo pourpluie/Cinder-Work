@@ -153,6 +153,12 @@
 		0049A34F116EE675007DDFB0 /* AxisAlignedBox.h in Headers */ = {isa = PBXBuildFile; fileRef = 0049A34C116EE675007DDFB0 /* AxisAlignedBox.h */; };
 		0049C1B41010E5A40015B4B9 /* Renderer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0049C1B31010E5A40015B4B9 /* Renderer.h */; };
 		0049C1B71010E5B10015B4B9 /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0049C1B61010E5B10015B4B9 /* Renderer.cpp */; };
+		004B15661937971C00BD5CA1 /* Sync.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 004B15651937971C00BD5CA1 /* Sync.cpp */; };
+		004B15671937971C00BD5CA1 /* Sync.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 004B15651937971C00BD5CA1 /* Sync.cpp */; };
+		004B15681937971C00BD5CA1 /* Sync.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 004B15651937971C00BD5CA1 /* Sync.cpp */; };
+		004B156A1937973000BD5CA1 /* Sync.h in Headers */ = {isa = PBXBuildFile; fileRef = 004B15691937973000BD5CA1 /* Sync.h */; };
+		004B156B1937973000BD5CA1 /* Sync.h in Headers */ = {isa = PBXBuildFile; fileRef = 004B15691937973000BD5CA1 /* Sync.h */; };
+		004B156C1937973000BD5CA1 /* Sync.h in Headers */ = {isa = PBXBuildFile; fileRef = 004B15691937973000BD5CA1 /* Sync.h */; };
 		005374F51194F584004D686E /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0005291F0FFBF4C200F19492 /* Text.cpp */; };
 		005374F61194F584004D686E /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0005291F0FFBF4C200F19492 /* Text.cpp */; };
 		005374F71194F588004D686E /* Font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00C071AF0FF16244004801EA /* Font.cpp */; };
@@ -948,6 +954,8 @@
 		0049A34C116EE675007DDFB0 /* AxisAlignedBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AxisAlignedBox.h; sourceTree = "<group>"; };
 		0049C1B31010E5A40015B4B9 /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renderer.h; path = app/Renderer.h; sourceTree = "<group>"; };
 		0049C1B61010E5B10015B4B9 /* Renderer.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = Renderer.cpp; path = app/Renderer.cpp; sourceTree = "<group>"; };
+		004B15651937971C00BD5CA1 /* Sync.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sync.cpp; path = gl/Sync.cpp; sourceTree = "<group>"; };
+		004B15691937973000BD5CA1 /* Sync.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sync.h; path = gl/Sync.h; sourceTree = "<group>"; };
 		0053819915A8CDF90019BA91 /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = app/Event.h; sourceTree = "<group>"; };
 		005783E2189CBB1600D6FB4C /* TextureFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureFont.cpp; path = gl/TextureFont.cpp; sourceTree = "<group>"; };
 		005783E6189CBB4300D6FB4C /* TextureFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureFont.h; path = gl/TextureFont.h; sourceTree = "<group>"; };
@@ -1702,6 +1710,7 @@
 		00CE73910E92DBD60059E09B /* gl */ = {
 			isa = PBXGroup;
 			children = (
+				004B15691937973000BD5CA1 /* Sync.h */,
 				008734141795901B00BC2063 /* Batch.h */,
 				00A06FB01760EFC500D8BE17 /* BufferObj.h */,
 				00A06FB11760EFC500D8BE17 /* Context.h */,
@@ -1727,6 +1736,7 @@
 		00CE73960E92DBEB0059E09B /* gl */ = {
 			isa = PBXGroup;
 			children = (
+				004B15651937971C00BD5CA1 /* Sync.cpp */,
 				00A06F6F1760EFAD00D8BE17 /* BufferObj.cpp */,
 				00A06F701760EFAD00D8BE17 /* Context.cpp */,
 				00A06F711760EFAD00D8BE17 /* Environment.cpp */,
@@ -2021,6 +2031,7 @@
 				00A06FEA1760EFC500D8BE17 /* VboMesh.h in Headers */,
 				008734161795901B00BC2063 /* Batch.h in Headers */,
 				000FAB3C17C7B771002A300D /* GeomIo.h in Headers */,
+				004B156B1937973000BD5CA1 /* Sync.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2163,6 +2174,7 @@
 				00A06FEB1760EFC500D8BE17 /* VboMesh.h in Headers */,
 				008734171795901B00BC2063 /* Batch.h in Headers */,
 				000FAB3D17C7B771002A300D /* GeomIo.h in Headers */,
+				004B156C1937973000BD5CA1 /* Sync.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2335,6 +2347,7 @@
 				000FAB3B17C7B771002A300D /* GeomIo.h in Headers */,
 				00F6BBAC181AC48700C1FFD7 /* TwOpenGLCore.h in Headers */,
 				00F6BBB0181AC82600C1FFD7 /* LoadOGLCore.h in Headers */,
+				004B156A1937973000BD5CA1 /* Sync.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2544,6 +2557,7 @@
 				0087343B17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
 				0087344617B46F0C00BC2063 /* EnvironmentEs2.cpp in Sources */,
 				0087346317BB120600BC2063 /* GeomIo.cpp in Sources */,
+				004B15671937971C00BD5CA1 /* Sync.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2668,6 +2682,7 @@
 				0087343C17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
 				0087344717B46F0C00BC2063 /* EnvironmentEs2.cpp in Sources */,
 				0087346417BB120600BC2063 /* GeomIo.cpp in Sources */,
+				004B15681937971C00BD5CA1 /* Sync.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2816,6 +2831,7 @@
 				0087346217BB120600BC2063 /* GeomIo.cpp in Sources */,
 				00F6BBAB181AC48700C1FFD7 /* TwOpenGLCore.cpp in Sources */,
 				00F6BBAF181AC82600C1FFD7 /* LoadOGLCore.cpp in Sources */,
+				004B15661937971C00BD5CA1 /* Sync.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
