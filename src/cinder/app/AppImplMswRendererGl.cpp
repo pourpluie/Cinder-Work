@@ -117,7 +117,7 @@ HWND createDummyWindow( int *width, int *height, bool fullscreen )
 
 	if( ! ::RegisterClass( &wc ) ) {								// Attempt To Register The Window Class
 		DWORD err = ::GetLastError();
-		return false;											
+		return 0;											
 	}
 
 	if( fullscreen ) {
