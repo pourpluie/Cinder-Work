@@ -570,8 +570,10 @@ Texture::Texture( const TextureData &data, Format format )
 	replace( data );
 
 	if( format.mMipmapping && data.getNumLevels() <= 1 ) {
+#if ! defined( CINDER_GL_ES )	
 		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
 		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
+#endif		
 		glGenerateMipmap( mTarget );
 	}
 }
@@ -592,8 +594,10 @@ void Texture::initData( const unsigned char *data, int unpackRowLength, GLenum d
 	glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, type, data );
     
 	if( format.mMipmapping ) {
+#if ! defined( CINDER_GL_ES )
 		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
 		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
+#endif
 		glGenerateMipmap( mTarget );
 	}
 }
@@ -619,8 +623,10 @@ void Texture::initData( const float *data, GLint dataFormat, const Format &forma
 	}
     
 	if( format.mMipmapping ) {
+#if ! defined( CINDER_GL_ES )
 		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
 		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
+#endif
 		glGenerateMipmap( mTarget );
 	}
 }
@@ -729,8 +735,10 @@ void Texture::initData( const ImageSourceRef &imageSource, const Format &format 
 	initDataImageSourceImpl( imageSource, format, dataFormat, channelOrder, isGray );
 #endif	
 	if( format.mMipmapping ) {
+#if ! defined( CINDER_GL_ES )
 		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
 		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
+#endif
 		glGenerateMipmap( mTarget );
 	}
 }
@@ -1286,8 +1294,10 @@ TextureCubeMap::TextureCubeMap( const Surface8u images[6], Format format )
 			( images[target].hasAlpha() ) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, images[target].getData() );
 			
 	if( format.mMipmapping ) {
+#if ! defined( CINDER_GL_ES )
 		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
 		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
+#endif
 		glGenerateMipmap( mTarget );
 	}
 }
