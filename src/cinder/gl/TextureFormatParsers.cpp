@@ -264,7 +264,7 @@ void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 	switch( ddsd.ddpfPixelFormat.dwFourCC ) { 
 		case FOURCC_DXT1: 
 			dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-			blockSizeBytes = 8; 
+			blockSizeBytes = 8;
 		break; 
 		case FOURCC_DXT3: 
 			dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
@@ -287,6 +287,7 @@ void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 				case 71/*DXGI_FORMAT_BC1_UNORM*/:
 				case 72/*DXGI_FORMAT_BC1_UNORM_SRGB*/:
 					dataFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+					blockSizeBytes = 8;
 				break;
 				case 73/*DXGI_FORMAT_BC2_TYPELESS*/:
 				case 74/*DXGI_FORMAT_BC2_UNORM*/:
