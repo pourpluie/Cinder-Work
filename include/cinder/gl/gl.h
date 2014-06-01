@@ -37,11 +37,7 @@
 		#pragma clang diagnostic push
 		#pragma clang diagnostic ignored "-Wtypedef-redefinition"
 	#endif
-	#if ! defined( CINDER_GL_LEGACY )
-		#include "glload/gl_core.h"
-	#else
-		#include "glload/gl_all.h"
-	#endif
+	#include "glload/gl_core.h"
 	#if defined( __clang__ )
 		#pragma clang diagnostic pop
 	#endif
