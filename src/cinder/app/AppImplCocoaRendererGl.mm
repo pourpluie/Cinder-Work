@@ -152,7 +152,7 @@ if( ! view )
 	NSSize nsSize = [view frame].size;
 	NSSize backingSize = [view convertSizeToBacking:nsSize];
 	ci::gl::viewport( 0, 0, backingSize.width, backingSize.height );
-	cinder::gl::setMatricesWindowPersp( backingSize.width, backingSize.height );
+	cinder::gl::setMatricesWindow( backingSize.width, backingSize.height );
 }
 
 - (BOOL)acceptsFirstResponder

@@ -71,7 +71,7 @@ void AppImplMswRendererGl::defaultResize() const
 	int height = clientRect.bottom - clientRect.top;
 
 	gl::viewport( 0, 0, width, height );
-	gl::setMatricesWindowPersp( width, height );
+	gl::setMatricesWindow( width, height );
 }
 
 void AppImplMswRendererGl::swapBuffers() const
