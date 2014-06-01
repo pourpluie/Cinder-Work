@@ -84,10 +84,7 @@ if( ! view )
 	if( retinaEnabled )
 		[view setWantsBestResolutionOpenGLSurface:YES];
 	
-	if( options.getCoreProfile() )
-		cinder::gl::Environment::setCore();
-	else
-		cinder::gl::Environment::setLegacy();
+	cinder::gl::Environment::setCore();
 	
 	CGLContextObj cglContext = (CGLContextObj)[[view openGLContext] CGLContextObj];
 	::CGLSetCurrentContext( cglContext );
@@ -179,10 +176,7 @@ if( ! view )
     attributes.push_back( NSOpenGLPFADoubleBuffer );
 	
 	attributes.push_back( NSOpenGLPFAOpenGLProfile );
-	if( rendererOptions.getCoreProfile() == false )
-		attributes.push_back( NSOpenGLProfileVersionLegacy );
-	else
-		attributes.push_back( NSOpenGLProfileVersion3_2Core );
+	attributes.push_back( NSOpenGLProfileVersion3_2Core );
 	
     attributes.push_back( NSOpenGLPFADepthSize );
 	attributes.push_back( (NSOpenGLPixelFormatAttribute) rendererOptions.getDepthBufferDepth() );

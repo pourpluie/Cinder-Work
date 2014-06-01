@@ -69,7 +69,6 @@ class Environment {
 	virtual bool			isCoreProfile() const = 0;
 
 	static void				setCore();
-	static void				setLegacy();
 #else
 	static void				setEs2();
 #endif
