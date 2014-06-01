@@ -182,10 +182,7 @@ bool AppImplMswRendererGl::initialize( HWND wnd, HDC dc, RendererRef sharedRende
 		return false;
 	}
 
-	if( mRenderer->getOptions().getCoreProfile() )
-		gl::Environment::setCore();
-	else
-		gl::Environment::setLegacy();
+	gl::Environment::setCore();
 	auto platformData = std::shared_ptr<gl::Context::PlatformData>( new gl::PlatformDataMsw( mRC, mDC ) );
 	platformData->mDebug = mRenderer->getOptions().getDebug();
 	platformData->mDebugLogSeverity = mRenderer->getOptions().getDebugLogSeverity();
@@ -309,10 +306,7 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 		return false;								
 	}
 
-	if( mRenderer->getOptions().getCoreProfile() )
-		gl::Environment::setCore();
-	else
-		gl::Environment::setLegacy();
+	gl::Environment::setCore();
 	gl::env()->initializeFunctionPointers();
 
 	wgl_LoadFunctions( dc );								// Initialize WGL function pointers

@@ -62,18 +62,12 @@ VaoRef createVaoImplCore()
 	
 VaoImplCore::VaoImplCore()
 {
-	if( glGenVertexArrays ) // not available on GL legacy
-		glGenVertexArrays( 1, &mId );
-	else
-		glGenVertexArraysAPPLE( 1, &mId );
+	glGenVertexArrays( 1, &mId );
 }
 
 VaoImplCore::~VaoImplCore()
 {
-	if( glDeleteVertexArrays ) // not available on GL legacy
-		glDeleteVertexArrays( 1, &mId );
-	else
-		glDeleteVertexArraysAPPLE( 1, &mId );
+	glDeleteVertexArrays( 1, &mId );
 }
 
 void VaoImplCore::bindImpl( Context *context )
@@ -83,10 +77,7 @@ void VaoImplCore::bindImpl( Context *context )
 		reassignImpl( context );
 	}
 
-	if( glBindVertexArray ) // not available on GL legacy
-		glBindVertexArray( mId );
-	else
-		glBindVertexArrayAPPLE( mId );
+	glBindVertexArray( mId );
 
 	if( context ) {
 		context->reflectBufferBinding( GL_ELEMENT_ARRAY_BUFFER, mLayout.mElementArrayBufferBinding );
@@ -107,16 +98,10 @@ void VaoImplCore::reassignImpl( Context *newContext )
 	mCtx = newContext;
 
 	// generate
-	if( glGenVertexArrays ) // not available on GL legacy
-		glGenVertexArrays( 1, &mId );
-	else
-		glGenVertexArraysAPPLE( 1, &mId );
+	glGenVertexArrays( 1, &mId );
 
 	// assign
-	if( glBindVertexArray ) // not available on GL legacy
-		glBindVertexArray( mId );
-	else
-		glBindVertexArrayAPPLE( mId );
+	glBindVertexArray( mId );
 
 	// instantiate the VAO using the layout
 	auto oldBuffer = mCtx->getBufferBinding( GL_ARRAY_BUFFER );
@@ -139,10 +124,7 @@ void VaoImplCore::reassignImpl( Context *newContext )
 
 void VaoImplCore::unbindImpl( Context *context )
 {
-	if( glBindVertexArray ) // not available on GL legacy
-		glBindVertexArray( 0 );
-	else
-		glBindVertexArrayAPPLE( 0 );
+	glBindVertexArray( 0 );
 	
 	mCtx->invalidateBufferBindingCache( GL_ELEMENT_ARRAY_BUFFER );
 }
