@@ -114,9 +114,9 @@ class TextureBase {
 		
 		//! Enables or disables mipmapping. Default is disabled.
 		void	enableMipmapping( bool enableMipmapping = true ) { mMipmapping = enableMipmapping; mMipmappingSpecified = true; }
-		//! Sets the base mipmap level. Default is zero.
+		//! Sets the base mipmap level. Default is \c 0. Ignored on ES 2.
 		void	setBaseMipmapLevel( GLuint level ) { mBaseMipmapLevel = level; }
-		//! Sets the max mipmap level. Default is 1000 (per OpenGL).
+		//! Sets the max mipmap level. Default is \c 1000 (per OpenGL). Ignored on ES 2.
 		void	setMaxMipmapLevel( GLuint level ) { mMaxMipmapLevel = level; }
 			
 		//! Sets the Texture's internal format. A value of -1 implies selecting the best format for the context.
@@ -296,7 +296,7 @@ class TextureData {
 	PboRef						mPbo;
 	void*						mPboMappedPtr;
   #endif
-	std::shared_ptr<uint8_t>	mDataStoreMem;
+	std::unique_ptr<uint8_t[]>	mDataStoreMem;
 	size_t						mDataStoreSize;
 };
 
@@ -572,7 +572,8 @@ class TextureCache : public std::enable_shared_from_this<TextureCache>
 	int				mWidth;
 	int				mHeight;
 	Texture::Format	mFormat;
-	
+	Surface8u		mIntermediateSurface;
+
 	int										mNextId;
 	std::vector<std::pair<int,TextureRef>>	mTextures;
 };

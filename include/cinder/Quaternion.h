@@ -67,8 +67,11 @@ public:
 	// get axis-angle representation's axis
 	Vec3<T> getAxis() const
 	{
-		T cos_angle = w;
-		T invLen = static_cast<T>( 1.0 ) / math<T>::sqrt( static_cast<T>( 1.0 ) - cos_angle * cos_angle );
+		T tmp1 = static_cast<T>( 1 ) - w * w;
+		if( tmp1 <= static_cast<T>( 0 ) )
+			return Vec3<T>( 0, 0, 1 );
+		
+		T invLen = static_cast<T>( 1 ) / math<T>::sqrt( tmp1 );
 
 		return v * invLen;
 	}
@@ -76,8 +79,7 @@ public:
 	// get axis-angle representation's angle in radians
 	T getAngle() const
 	{
-		T cos_angle = w;
-		return math<T>::acos( cos_angle ) * 2;
+		return math<T>::acos( w ) * (T)2;
 	}
 
 	T getPitch() const

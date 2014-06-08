@@ -1,6 +1,8 @@
 /*
- Copyright (c) 2013, The Cinder Project, All rights reserved.
- This code is intended for use with the Cinder C++ library: http://libcinder.org
+ Copyright (c) 2014, The Cinder Project
+ All rights reserved.
+ 
+ This code is designed for use with the Cinder C++ library, http://libcinder.org
 
  Redistribution and use in source and binary forms, with or without modification, are permitted provided that
  the following conditions are met:
@@ -20,39 +22,37 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
+#include "cinder/gl/Sync.h"
 
-#include "cinder/Camera.h"
-#include "cinder/gl/GlslProg.h"
+namespace cinder { namespace gl { 
 
-namespace cinder { namespace gl {
+#if ! defined( CINDER_GL_ES )
 
-class ShaderDef {
-  public:
-	ShaderDef();
+SyncRef	Sync::create( GLenum condition, GLbitfield flags )
+{
+	return std::shared_ptr<Sync>( new Sync( condition, flags ) );
+}
 
-	ShaderDef&		color();	
-	ShaderDef&		texture( const TextureRef &tex = TextureRef() );
-	ShaderDef&		texture( GLenum target );
-	// Used by draw(TextureRef&) stock shader; scales ciPosition and ciTexCoord according to
-	// uniform "uPositionScale", "uPositionOffset", "uTexCoord0Scale", "uTexCoord0Offset"
-	ShaderDef&		uniformBasedPosAndTexCoord();
+Sync::Sync( GLenum condition, GLbitfield flags )
+{
+	mSync = glFenceSync( condition, flags );	
+}
 
-	bool			isTextureSwizzleDefault() const;
-	std::string		getTextureSwizzleString() const;	
+Sync::~Sync()
+{
+	glDeleteSync( mSync );
+}
 
-	bool operator<( const ShaderDef &rhs ) const;
-	
-  protected:
-	bool					mTextureMapping;
-	bool					mTextureMappingRectangleArb;
-	std::array<GLint,4>		mTextureSwizzleMask;
-	bool					mUniformBasedPosAndTexCoord;
+GLenum Sync::clientWaitSync( GLbitfield flags, GLuint64 timeoutNanoseconds )
+{
+	return glClientWaitSync( mSync, flags, timeoutNanoseconds );
+}
 
-	bool			mColor;
-	
-	friend class EnvironmentCore;
-	friend class EnvironmentEs2;
-};
-	
+void Sync::waitSync( GLbitfield flags, GLuint64 timeoutNanoseconds )
+{
+	glWaitSync( mSync, flags, timeoutNanoseconds );
+}
+
+#endif // ! defined( CINDER_GL_ES )
+
 } } // namespace cinder::gl

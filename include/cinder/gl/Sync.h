@@ -1,6 +1,8 @@
 /*
- Copyright (c) 2013, The Cinder Project, All rights reserved.
- This code is intended for use with the Cinder C++ library: http://libcinder.org
+ Copyright (c) 2014, The Cinder Project
+ All rights reserved.
+ 
+ This code is designed for use with the Cinder C++ library, http://libcinder.org
 
  Redistribution and use in source and binary forms, with or without modification, are permitted provided that
  the following conditions are met:
@@ -22,37 +24,32 @@
 
 #pragma once
 
-#include "cinder/Camera.h"
-#include "cinder/gl/GlslProg.h"
+#include "cinder/gl/gl.h"
 
-namespace cinder { namespace gl {
+namespace cinder { namespace gl { 
 
-class ShaderDef {
+#if ! defined( CINDER_GL_ES )
+
+typedef std::shared_ptr<class Sync>		SyncRef;
+
+class Sync {
   public:
-	ShaderDef();
+	//! Analogous to glFenceSync().
+	static SyncRef	create( GLenum condition = GL_SYNC_GPU_COMMANDS_COMPLETE, GLbitfield flags = 0 );
+	~Sync();
 
-	ShaderDef&		color();	
-	ShaderDef&		texture( const TextureRef &tex = TextureRef() );
-	ShaderDef&		texture( GLenum target );
-	// Used by draw(TextureRef&) stock shader; scales ciPosition and ciTexCoord according to
-	// uniform "uPositionScale", "uPositionOffset", "uTexCoord0Scale", "uTexCoord0Offset"
-	ShaderDef&		uniformBasedPosAndTexCoord();
+	//! Analogous to glClientWaitSync(). Returns \c GL_ALREADY_SIGNALED, \c GL_TIMEOUT_EXPIRED, \c GL_CONDITION_SATISFIED, or \c GL_WAIT_FAILED
+	GLenum	clientWaitSync( GLbitfield flags = GL_SYNC_FLUSH_COMMANDS_BIT, GLuint64 timeoutNanoseconds = 0 );
 
-	bool			isTextureSwizzleDefault() const;
-	std::string		getTextureSwizzleString() const;	
+	//! Analogous to glWaitSync(). As of this writing \a flags and \a timeout must be their default values, \c 0 and \c GL_TIMEOUT_IGNORED
+	void	waitSync( GLbitfield flags = 0, GLuint64 timeout = GL_TIMEOUT_IGNORED );
 
-	bool operator<( const ShaderDef &rhs ) const;
-	
   protected:
-	bool					mTextureMapping;
-	bool					mTextureMappingRectangleArb;
-	std::array<GLint,4>		mTextureSwizzleMask;
-	bool					mUniformBasedPosAndTexCoord;
+  	Sync( GLenum condition, GLbitfield flags );
 
-	bool			mColor;
-	
-	friend class EnvironmentCore;
-	friend class EnvironmentEs2;
+	GLsync		mSync;
 };
-	
+
+#endif // ! defined( CINDER_GL_ES )
+
 } } // namespace cinder::gl

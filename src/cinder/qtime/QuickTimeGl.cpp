@@ -141,6 +141,7 @@ void MovieGl::Obj::newFrame( CVImageBufferRef cvImage )
 	CVPixelBufferRef imgRef = reinterpret_cast<CVPixelBufferRef>( cvImage );
 	CVPixelBufferLockBaseAddress( imgRef, 0 );
 	uint8_t *ptr = reinterpret_cast<uint8_t*>( CVPixelBufferGetBaseAddress( imgRef ) );
+	
 	int32_t rowBytes = CVPixelBufferGetBytesPerRow( imgRef );
 	OSType type = CVPixelBufferGetPixelFormatType( imgRef );
 	size_t width = CVPixelBufferGetWidth( imgRef );

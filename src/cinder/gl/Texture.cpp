@@ -570,8 +570,10 @@ Texture::Texture( const TextureData &data, Format format )
 	replace( data );
 
 	if( format.mMipmapping && data.getNumLevels() <= 1 ) {
+#if ! defined( CINDER_GL_ES )	
 		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
 		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
+#endif		
 		glGenerateMipmap( mTarget );
 	}
 }
@@ -592,8 +594,10 @@ void Texture::initData( const unsigned char *data, int unpackRowLength, GLenum d
 	glTexImage2D( mTarget, 0, mInternalFormat, mWidth, mHeight, 0, dataFormat, type, data );
     
 	if( format.mMipmapping ) {
+#if ! defined( CINDER_GL_ES )
 		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
 		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
+#endif
 		glGenerateMipmap( mTarget );
 	}
 }
@@ -619,8 +623,10 @@ void Texture::initData( const float *data, GLint dataFormat, const Format &forma
 	}
     
 	if( format.mMipmapping ) {
+#if ! defined( CINDER_GL_ES )
 		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
 		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
+#endif
 		glGenerateMipmap( mTarget );
 	}
 }
@@ -729,8 +735,10 @@ void Texture::initData( const ImageSourceRef &imageSource, const Format &format 
 	initDataImageSourceImpl( imageSource, format, dataFormat, channelOrder, isGray );
 #endif	
 	if( format.mMipmapping ) {
+#if ! defined( CINDER_GL_ES )
 		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
 		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
+#endif
 		glGenerateMipmap( mTarget );
 	}
 }
@@ -1017,14 +1025,27 @@ TextureCache::TextureCache( const Surface8u &prototypeSurface, const Texture::Fo
 	: mWidth( prototypeSurface.getWidth() ), mHeight( prototypeSurface.getHeight() ),
 	mFormat( format ), mNextId( 0 )
 {
+	if( mWidth * prototypeSurface.getChannelOrder().getPixelInc() != prototypeSurface.getRowBytes() ) {
+		CI_LOG_V( "Surface rowBytes will prevent full efficiency in gl::Texture upload." );
+		mIntermediateSurface = Surface8u( prototypeSurface.getWidth(), prototypeSurface.getHeight(), 
+				prototypeSurface.hasAlpha(), prototypeSurface.getChannelOrder() );
+	}
 }
 
-gl::TextureRef TextureCache::cache( const Surface8u &data )
+gl::TextureRef TextureCache::cache( const Surface8u &originalData )
 {
+	Surface8u surfaceData = originalData;
+	// If mIntermediateSurface isn't null then we need to use that instead.
+	// This is to accommodate rowBytes values which aren't the same as width * bytesPerPixel
+	if( mIntermediateSurface ) {
+		mIntermediateSurface.copyFrom( originalData, originalData.getBounds() );
+		surfaceData = mIntermediateSurface;
+	}
+
 	// find an available slot and update that if possible
 	for( vector<pair<int,TextureRef>>::iterator texIt = mTextures.begin(); texIt != mTextures.end(); ++texIt ) {
 		if( texIt->first == -1 ) { // this texture is available, let's use it!
-			texIt->second->update( data );
+			texIt->second->update( surfaceData );
 			texIt->first = mNextId++;
 			// normally this would be very wrong, but when the result TextureRef is destroyed, it calls markTextureAsFree rather than deleting the master texture
 			return TextureRef( texIt->second.get(), std::bind( &TextureCache::markTextureAsFree, shared_from_this(), texIt->first ) );
@@ -1032,7 +1053,7 @@ gl::TextureRef TextureCache::cache( const Surface8u &data )
 	}
 	
 	// we didn't find an available slot, so let's make a new texture
-	TextureRef masterTex( new Texture( data, mFormat ) );
+	TextureRef masterTex( new Texture( surfaceData, mFormat ) );
 	mTextures.push_back( make_pair( mNextId++, masterTex ) );
 	// normally this would be very wrong, but when the result TextureRef is destroyed, it calls markTextureAsFree rather than deleting the master texture
 	return TextureRef( mTextures.back().second.get(), std::bind( &TextureCache::markTextureAsFree, shared_from_this(), mTextures.back().first ) );
@@ -1273,8 +1294,10 @@ TextureCubeMap::TextureCubeMap( const Surface8u images[6], Format format )
 			( images[target].hasAlpha() ) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, images[target].getData() );
 			
 	if( format.mMipmapping ) {
+#if ! defined( CINDER_GL_ES )
 		glTexParameteri( mTarget, GL_TEXTURE_BASE_LEVEL, format.mBaseMipmapLevel );
 		glTexParameteri( mTarget, GL_TEXTURE_MAX_LEVEL, format.mMaxMipmapLevel );
+#endif
 		glGenerateMipmap( mTarget );
 	}
 }
@@ -1372,14 +1395,14 @@ TextureData::~TextureData()
 void TextureData::allocateDataStore( size_t requireBytes )
 {
 #if defined( CINDER_GL_ES )
-	mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[requireBytes] );
+	mDataStoreMem = unique_ptr<uint8_t[]>( new uint8_t[requireBytes] );
 #else
 	if( mPbo ) {
 		if( mPbo->getSize() < requireBytes )
 			mPbo->bufferData( requireBytes, nullptr, GL_STREAM_DRAW );
 	}
 	else {
-		mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[requireBytes] );
+		mDataStoreMem = unique_ptr<uint8_t[]>( new uint8_t[requireBytes] );
 	}
 #endif
 	mDataStoreSize = requireBytes;
@@ -1391,10 +1414,10 @@ void TextureData::mapDataStore()
 	if( mPbo ) {
 		mPboMappedPtr = mPbo->map( GL_WRITE_ONLY );
 		if( ! mPboMappedPtr ) {
-			CI_LOG_W( "Failed to map PBO for TextureData. Using CPU heap instead." );
+			CI_LOG_W( "Failed to map PBO for TextureData of size " << mDataStoreSize << " bytes. Using CPU heap instead." );
 			// a failure to map the data store means we need to resort to memory as a backup
 			if( ! mDataStoreMem )
-				mDataStoreMem = shared_ptr<uint8_t>( new uint8_t[mDataStoreSize] );
+				mDataStoreMem = unique_ptr<uint8_t[]>( new uint8_t[mDataStoreSize] );
 		}
 	}
 #endif

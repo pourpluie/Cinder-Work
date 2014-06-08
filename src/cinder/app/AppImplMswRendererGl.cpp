@@ -71,7 +71,7 @@ void AppImplMswRendererGl::defaultResize() const
 	int height = clientRect.bottom - clientRect.top;
 
 	gl::viewport( 0, 0, width, height );
-	gl::setMatricesWindowPersp( width, height );
+	gl::setMatricesWindow( width, height );
 }
 
 void AppImplMswRendererGl::swapBuffers() const
@@ -117,7 +117,7 @@ HWND createDummyWindow( int *width, int *height, bool fullscreen )
 
 	if( ! ::RegisterClass( &wc ) ) {								// Attempt To Register The Window Class
 		DWORD err = ::GetLastError();
-		return false;											
+		return 0;											
 	}
 
 	if( fullscreen ) {
@@ -182,10 +182,7 @@ bool AppImplMswRendererGl::initialize( HWND wnd, HDC dc, RendererRef sharedRende
 		return false;
 	}
 
-	if( mRenderer->getOptions().getCoreProfile() )
-		gl::Environment::setCore();
-	else
-		gl::Environment::setLegacy();
+	gl::Environment::setCore();
 	auto platformData = std::shared_ptr<gl::Context::PlatformData>( new gl::PlatformDataMsw( mRC, mDC ) );
 	platformData->mDebug = mRenderer->getOptions().getDebug();
 	platformData->mDebugLogSeverity = mRenderer->getOptions().getDebugLogSeverity();
@@ -309,10 +306,7 @@ bool AppImplMswRendererGl::initializeInternal( HWND wnd, HDC dc, HGLRC sharedRC 
 		return false;								
 	}
 
-	if( mRenderer->getOptions().getCoreProfile() )
-		gl::Environment::setCore();
-	else
-		gl::Environment::setLegacy();
+	gl::Environment::setCore();
 	gl::env()->initializeFunctionPointers();
 
 	wgl_LoadFunctions( dc );								// Initialize WGL function pointers

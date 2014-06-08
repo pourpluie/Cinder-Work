@@ -525,9 +525,6 @@
     <ClCompile Include="..\src\cinder\gl\EnvironmentEs2.cpp">
       <Filter>Source Files\gl</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\gl\EnvironmentLegacy.cpp">
-      <Filter>Source Files\gl</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cinder\GeomIo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -572,6 +569,9 @@
     </ClCompile>
     <ClCompile Include="..\src\cinder\CinderAssert.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cinder\gl\Sync.cpp">
+      <Filter>Source Files\gl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1141,6 +1141,9 @@
     </ClInclude>
     <ClInclude Include="..\include\cinder\CinderAssert.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\gl\Sync.h">
+      <Filter>Header Files\gl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

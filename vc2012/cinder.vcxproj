@@ -420,9 +420,9 @@
     <ClCompile Include="..\src\cinder\gl\Environment.cpp" />
     <ClCompile Include="..\src\cinder\gl\EnvironmentCore.cpp" />
     <ClCompile Include="..\src\cinder\gl\EnvironmentEs2.cpp" />
-    <ClCompile Include="..\src\cinder\gl\EnvironmentLegacy.cpp" />
     <ClCompile Include="..\src\cinder\gl\Pbo.cpp" />
     <ClCompile Include="..\src\cinder\gl\Shader.cpp" />
+    <ClCompile Include="..\src\cinder\gl\Sync.cpp" />
     <ClCompile Include="..\src\cinder\gl\TextureFont.cpp" />
     <ClCompile Include="..\src\cinder\gl\TextureFormatParsers.cpp" />
     <ClCompile Include="..\src\cinder\gl\TransformFeedbackObj.cpp" />
@@ -609,6 +609,7 @@
     <ClInclude Include="..\include\cinder\gl\Pbo.h" />
     <ClInclude Include="..\include\cinder\gl\Shader.h" />
     <ClInclude Include="..\include\cinder\gl\StereoAutoFocuser.h" />
+    <ClInclude Include="..\include\cinder\gl\Sync.h" />
     <ClInclude Include="..\include\cinder\gl\Texture.h" />
     <ClInclude Include="..\include\cinder\gl\TextureFont.h" />
     <ClInclude Include="..\include\cinder\gl\TextureFormatParsers.h" />

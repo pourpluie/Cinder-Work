@@ -945,7 +945,7 @@ void Context::pushBoolState( GLenum cap, GLboolean value )
 
 void Context::pushBoolState( GLenum cap )
 {
-	bool existingVal = getBoolState( cap );
+	GLboolean existingVal = getBoolState( cap );
 	mBoolStateStack[cap].push_back( existingVal );
 }
 
@@ -1184,7 +1184,7 @@ void Context::sanityCheck()
 	glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &trueElementArrayBufferBinding );
 	assert( ( cachedElementArrayBufferBinding == -1 ) || ( trueElementArrayBufferBinding == cachedElementArrayBufferBinding ) );
 
-#if defined( CINDER_MSW )
+#if defined( CINDER_MSW ) && ! defined( CINDER_GL_ANGLE )
 	auto platformDataMsw = dynamic_pointer_cast<PlatformDataMsw>( context()->getPlatformData() );
 	assert( platformDataMsw->mGlrc == wglGetCurrentContext() );
 	assert( platformDataMsw->mDc == wglGetCurrentDC() );
@@ -1205,7 +1205,7 @@ void Context::sanityCheck()
 			assert( enabled == 0 );
 			continue;
 		}
-		assert( enabled == attribs[idx].second.mEnabled );
+		assert( (enabled != 0) == attribs[idx].second.mEnabled );
 		if( enabled ) {
 			GLint arrayBufferBinding;
 			glGetVertexAttribiv( idx, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, &arrayBufferBinding );
@@ -1470,7 +1470,7 @@ VboRef Context::getDefaultElementVbo( size_t requiredSize )
 	return mDefaultElementVbo;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
-#if defined( CINDER_MSW )
+#if defined( CINDER_MSW ) && ! defined( CINDER_GL_ANGLE )
 namespace {
 // because the constants aren't in sequential (or ascending) order, we need to convert it
 int debugSeverityToOrd( GLenum severity )

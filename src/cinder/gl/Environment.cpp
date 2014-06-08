@@ -40,7 +40,6 @@ using namespace std;
 namespace cinder { namespace gl {
 
 extern Environment* allocateEnvironmentCore();
-extern Environment* allocateEnvironmentLegacy();
 extern Environment* allocateEnvironmentEs2();
 static Environment *sEnvironment = NULL;
 
@@ -49,13 +48,6 @@ void Environment::setCore()
 {
 	if( ! sEnvironment ) {
 		sEnvironment = allocateEnvironmentCore();
-	}
-}
-
-void Environment::setLegacy()
-{
-	if( ! sEnvironment ) {
-		sEnvironment = allocateEnvironmentLegacy();
 	}
 }
 

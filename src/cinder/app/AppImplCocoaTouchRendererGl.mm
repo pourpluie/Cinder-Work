@@ -211,7 +211,7 @@
 
 - (void)defaultResize
 {
-	cinder::gl::setMatricesWindowPersp( mCinderView.bounds.size.width, mCinderView.bounds.size.height );
+	cinder::gl::setMatricesWindow( mCinderView.bounds.size.width, mCinderView.bounds.size.height );
 	cinder::gl::viewport( 0, 0, mBackingWidth, mBackingHeight );
 }
 

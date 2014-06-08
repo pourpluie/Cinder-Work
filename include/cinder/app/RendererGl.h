@@ -69,11 +69,7 @@ class RendererGl : public Renderer {
 			mVersion = std::pair<int,int>( 2, 0 );
 #else
 			mAntiAliasing = AA_MSAA_16;
-	#if defined( CINDER_GL_LEGACY )
-			mCoreProfile = false;
-	#else
 			mCoreProfile = true;
-	#endif
 			mVersion = std::pair<int,int>( 3, 2 );	
 #endif
 #if ! defined( CINDER_GL_ES )
