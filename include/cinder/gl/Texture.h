@@ -104,6 +104,9 @@ class TextureBase {
 	//! Returns whether this hardware supports texture swizzling (via \c GL_TEXTURE_SWIZZLE_RGBA)
 	static bool		supportsHardwareSwizzle();
 
+	const std::string&	getLabel() const;
+	void				setLabel( const std::string &label );
+
 	struct Format {			
 		//! Specifies the texture's target. The default is \c GL_TEXTURE_2D
 		void	setTarget( GLenum target ) { mTarget = target; }
@@ -228,7 +231,8 @@ class TextureBase {
 	mutable GLint		mInternalFormat;
 	bool				mMipmapping;
 	bool				mDoNotDispose;
-	std::array<GLint,4>	mSwizzleMask;	
+	std::array<GLint,4>	mSwizzleMask;
+	std::string			mLabel;
 };
 
 class TextureData {

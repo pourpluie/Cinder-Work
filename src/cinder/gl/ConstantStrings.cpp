@@ -97,6 +97,14 @@ std::string	constantToString( GLenum constant )
 		sSymbols[GL_DYNAMIC_READ] = "GL_DYNAMIC_READ";
 		sSymbols[GL_DYNAMIC_COPY] = "GL_DYNAMIC_COPY";
 #endif
+		// Texture targets
+		sSymbols[GL_TEXTURE_2D] = "GL_TEXTURE_2D";
+		sSymbols[GL_TEXTURE_CUBE_MAP] = "GL_TEXTURE_CUBE_MAP";
+#if ! defined( CINDER_GL_ES )
+		sSymbols[GL_TEXTURE_1D] = "GL_TEXTURE_1D";
+		sSymbols[GL_TEXTURE_3D] = "GL_TEXTURE_3D";
+#endif
+
 		initialized = true;
 	}
 	

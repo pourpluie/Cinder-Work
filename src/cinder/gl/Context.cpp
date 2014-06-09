@@ -30,6 +30,7 @@
 #include "cinder/gl/TransformFeedbackObj.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Batch.h"
+#include "cinder/gl/ConstantStrings.h"
 #include "cinder/Log.h"
 #include "cinder/Utilities.h"
 
@@ -697,8 +698,22 @@ GLuint Context::getTextureBinding( GLenum target, uint8_t textureUnit )
 		return (GLuint)cachedIt->second.back();
 }
 
-void Context::textureDeleted( GLenum target, GLuint textureId )
+void Context::textureCreated( const TextureBase *texture )
 {
+if( texture->getId() == 82 ) {
+	int a = 3;
+}
+	mTrackedTextures.insert( texture );
+}
+
+void Context::textureDeleted( const TextureBase *texture )
+{
+	GLenum target = texture->getTarget();
+	GLuint textureId = texture->getId();
+
+	// remove from object tracking
+	mTrackedTextures.erase( texture );
+
 	for( auto &unit : mTextureBindingStack ) {
 		auto cachedIt = unit.second.find( target );
 		if( cachedIt != unit.second.end() && ( ! cachedIt->second.empty() ) && ( cachedIt->second.back() != textureId ) ) {
@@ -1246,6 +1261,13 @@ void Context::printState( std::ostream &os ) const
 	os << "GL_VERTEX_ARRAY_BINDING:" << queriedInt << "}" << std::endl;
 }
 
+void Context::printTextures( std::ostream &os ) const
+{
+	for( auto &tex : mTrackedTextures ) {
+		os << "ID: " << tex->getId() << " Target: " << gl::constantToString( tex->getTarget() ) << std::endl;
+		os << "  " << tex->getLabel() << std::endl;
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Vertex Attributes
