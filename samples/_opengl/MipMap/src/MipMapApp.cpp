@@ -181,8 +181,8 @@ void TextureMipmappingApp::setup()
 	createGlGenMip( rightFormat, mRightControl );
 	
 	// Turning off auto mipmap generation for the next two user generated mipmaps
-	leftFormat.enableMipmapping( false );
-	rightFormat.enableMipmapping( false );	
+	leftFormat.enableMipmapping( true );
+	rightFormat.enableMipmapping( true );	
 	
 	// This function creates a texture ref based upon a source that can be dynamically
 	// created and it uses cinder tools like ip::fill and Surface to place data in the
