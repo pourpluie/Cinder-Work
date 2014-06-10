@@ -154,8 +154,6 @@ class Vao : public std::enable_shared_from_this<Vao> {
 };
 
 // Convenience method for dumping VAO contents to a std::ostream
-std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs );
-// Convenience method for dumping VAO contents to a std::ostream
 std::ostream& operator<<( std::ostream &lhs, const Vao &rhs );
 // Convenience method for dumping Vao::Layout contents to a std::ostream
 std::ostream& operator<<( std::ostream &lhs, const Vao::Layout &rhs );

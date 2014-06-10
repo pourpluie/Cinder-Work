@@ -260,12 +260,6 @@ void Vao::Layout::clear()
 	mVertexAttribs.clear();
 }
 
-std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs )
-{
-	lhs << *rhs;
-	return lhs;
-}
-
 std::ostream& operator<<( std::ostream &lhs, const Vao &rhs )
 {
 	lhs << "ID: " << rhs.getId() << std::endl;
