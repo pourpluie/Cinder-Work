@@ -44,6 +44,9 @@ class Sync {
 	//! Analogous to glWaitSync(). As of this writing \a flags and \a timeout must be their default values, \c 0 and \c GL_TIMEOUT_IGNORED
 	void	waitSync( GLbitfield flags = 0, GLuint64 timeout = GL_TIMEOUT_IGNORED );
 
+	//! Returns the raw OpenGL Sync Object
+	GLsync	getObject() { return mSync; }
+
   protected:
   	Sync( GLenum condition, GLbitfield flags );
 
