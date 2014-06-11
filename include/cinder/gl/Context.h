@@ -193,7 +193,9 @@ class Context {
 	//! Returns the current texture binding for \a target for texture unit \a textureUnit. If not cached, queries the GL for the current value (and caches it).
 	GLuint		getTextureBinding( GLenum target, uint8_t textureUnit );
 	//! No-op if texture wasn't bound to target, otherwise reflects the texture unit's binding as 0 (in accordance with what GL has done automatically)
-	void		textureDeleted( GLenum target, GLuint textureId );
+	void		textureCreated( const TextureBase *texture );
+	//! No-op if texture wasn't bound to target, otherwise reflects the texture unit's binding as 0 (in accordance with what GL has done automatically)
+	void		textureDeleted( const TextureBase *texture );
 
 	//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
 	void		setActiveTexture( uint8_t textureUnit );
@@ -262,6 +264,7 @@ class Context {
 	
 	void		sanityCheck();
 	void		printState( std::ostream &os ) const;
+	void		printTextures( std::ostream &os ) const;
 
 	// Vertex Attributes
 	//! Analogous to glEnableVertexAttribArray()
@@ -390,6 +393,9 @@ class Context {
 	// Debug
 	GLenum						mDebugLogSeverity;
 	GLenum						mDebugBreakSeverity;
+
+	// Object tracking
+	std::set<const TextureBase*>	mTrackedTextures;
 
 	friend class				Environment;
 	friend class				EnvironmentEs2Profile;

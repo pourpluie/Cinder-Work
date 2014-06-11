@@ -77,11 +77,13 @@ class ImageTargetGlTexture : public ImageTarget {
 TextureBase::TextureBase()
 	: mTarget( 0 ), mTextureId( 0 ), mInternalFormat( -1 ), mDoNotDispose( false ), mMipmapping( false )
 {
+	gl::context()->textureCreated( this );
 }
 
 TextureBase::TextureBase( GLenum target, GLuint textureId, GLint internalFormat )
 	: mTarget( target ), mTextureId( textureId ), mInternalFormat( internalFormat ), mDoNotDispose( false ), mMipmapping( false )
 {
+	gl::context()->textureCreated( this );
 }
 
 TextureBase::~TextureBase()
@@ -89,7 +91,7 @@ TextureBase::~TextureBase()
 	if ( ( mTextureId > 0 ) && ( ! mDoNotDispose ) ) {
 		auto ctx = gl::context();
 		if( ctx ) {
-			ctx->textureDeleted( mTarget, mTextureId );
+			ctx->textureDeleted( this );
 			glDeleteTextures( 1, &mTextureId );
 		}
 	}
@@ -305,6 +307,16 @@ bool TextureBase::supportsHardwareSwizzle()
 		static bool supported = ( ( gl::isExtensionAvailable( "GL_EXT_texture_swizzle" ) || gl::getVersion() >= make_pair( 3, 3 ) ) );
 		return supported;
 	#endif
+}
+
+const std::string& TextureBase::getLabel() const
+{
+	return mLabel;
+}
+
+void TextureBase::setLabel( const std::string &label )
+{
+	mLabel = label;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
