@@ -107,6 +107,10 @@ class Context {
 	VaoRef		getVao();
 	//! Restores the VAO binding when code that is not caching aware has invalidated it. Not typically necessary.
 	void		restoreInvalidatedVao();
+	//! Used by object tracking.
+	void		vaoCreated( const Vao *vao );
+	//! Used by object tracking.
+	void		vaoDeleted( const Vao *vao );
 
 	//! Analogous to glViewport(). Sets the viewport based on a pair<Vec2i,Vec2i> representing the position of the lower-left corner and the size, respectively
 	void					viewport( const std::pair<Vec2i, Vec2i> &viewport );
@@ -142,8 +146,10 @@ class Context {
 	GLuint		getBufferBinding( GLenum target );
 	//! Updates the binding stack without rebinding. Not generally necessary to call directly.
 	void		reflectBufferBinding( GLenum target, GLuint id );
-	//! No-op if \a id wasn't bound to \a target, otherwise reflects the binding as 0 (in accordance with what GL has done automatically)
-	void		bufferDeleted( GLenum target, GLuint id );
+	//! Used by object tracking.
+	void		bufferCreated( const BufferObj *buffer );
+	//! No-op if BufferObj wasn't bound, otherwise reflects the binding as 0 (in accordance with what GL has done automatically). Also used by object tracking.
+	void		bufferDeleted( const BufferObj *buffer );
 	//! Marks the cache of \a target's buffer binding as invalid. Typically called when a VAO is unbound, against GL_ELEMENT_ARRAY_BUFFER.
 	void		invalidateBufferBindingCache( GLenum target );
 	//! Restores a buffer binding when code that is not caching aware has invalidated it. Not typically necessary.
@@ -159,6 +165,10 @@ class Context {
 	void			popGlslProg();
 	//! Returns the currently bound GlslProg
 	GlslProgRef		getGlslProg();
+	//! Used by object tracking.
+	void			glslProgCreated( const GlslProg *glslProg );
+	//! Used by object tracking.
+	void			glslProgDeleted( const GlslProg *glslProg );
 	
 #if ! defined( CINDER_GL_ES )
 	//! Binds \a ref to the specific \a index within \a target.
@@ -192,9 +202,9 @@ class Context {
 	GLuint		getTextureBinding( GLenum target );
 	//! Returns the current texture binding for \a target for texture unit \a textureUnit. If not cached, queries the GL for the current value (and caches it).
 	GLuint		getTextureBinding( GLenum target, uint8_t textureUnit );
-	//! No-op if texture wasn't bound to target, otherwise reflects the texture unit's binding as 0 (in accordance with what GL has done automatically)
+	//! Used by object tracking.
 	void		textureCreated( const TextureBase *texture );
-	//! No-op if texture wasn't bound to target, otherwise reflects the texture unit's binding as 0 (in accordance with what GL has done automatically)
+	//! No-op if texture wasn't bound, otherwise reflects the texture unit's binding as 0 (in accordance with what GL has done automatically). Also used by object tracking.
 	void		textureDeleted( const TextureBase *texture );
 
 	//! Sets the active texture unit; expects values relative to \c 0, \em not GL_TEXTURE0
@@ -264,7 +274,16 @@ class Context {
 	
 	void		sanityCheck();
 	void		printState( std::ostream &os ) const;
-	void		printTextures( std::ostream &os ) const;
+	
+	// Object Tracking
+	//! Returns the container of tracked Textures. Requires object tracking to be enabled.
+	const std::set<const TextureBase*>&	getTrackedTextures() const { return mTrackedTextures; }
+	//! Returns the container of tracked BufferObjs. Requires object tracking to be enabled.
+	const std::set<const BufferObj*>&	getTrackedBuffers() const { return mTrackedBuffers; }
+	//! Returns the container of tracked GlslProgs. Requires object tracking to be enabled.
+	const std::set<const GlslProg*>&	getTrackedGlslProgs() const { return mTrackedGlslProgs; }
+	//! Returns the container of tracked Vaos. Requires object tracking to be enabled.
+	const std::set<const Vao*>&			getTrackedVaos() const { return mTrackedVaos; }
 
 	// Vertex Attributes
 	//! Analogous to glEnableVertexAttribArray()
@@ -395,7 +414,11 @@ class Context {
 	GLenum						mDebugBreakSeverity;
 
 	// Object tracking
+	bool							mObjectTrackingEnabled;
 	std::set<const TextureBase*>	mTrackedTextures;
+	std::set<const BufferObj*>		mTrackedBuffers;
+	std::set<const GlslProg*>		mTrackedGlslProgs;
+	std::set<const Vao*>			mTrackedVaos;
 
 	friend class				Environment;
 	friend class				EnvironmentEs2Profile;

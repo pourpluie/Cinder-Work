@@ -42,6 +42,7 @@ BufferObj::BufferObj( GLenum target )
 #endif
 {
 	glGenBuffers( 1, &mId );
+	gl::context()->bufferCreated( this );
 }
 
 BufferObj::BufferObj( GLenum target, GLsizeiptr allocationSize, const void *data, GLenum usage )
@@ -51,15 +52,16 @@ BufferObj::BufferObj( GLenum target, GLsizeiptr allocationSize, const void *data
 	
 	ScopedBuffer bufferBind( mTarget, mId );
 	glBufferData( mTarget, mSize, data, mUsage );
+	gl::context()->bufferCreated( this );
 }
 
 BufferObj::~BufferObj()
-{
-	glDeleteBuffers( 1, &mId );
-	
+{	
 	auto ctx = gl::context();
 	if( ctx )
-		ctx->bufferDeleted( mTarget, mId );
+		ctx->bufferDeleted( this );
+		
+	glDeleteBuffers( 1, &mId );		
 }
 
 void BufferObj::bind() const

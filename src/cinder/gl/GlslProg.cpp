@@ -161,6 +161,8 @@ GlslProgRef GlslProg::create( const char *vertexShader, const char *fragmentShad
 	
 GlslProg::~GlslProg()
 {
+	gl::context()->glslProgDeleted( this );
+
 	if( mHandle ) {
 		glDeleteProgram( (GLuint)mHandle );
 	}
@@ -241,6 +243,7 @@ GlslProg::GlslProg( const Format &format )
 	link();
 	
 	setLabel( format.getLabel() );
+	gl::context()->glslProgCreated( this );
 }
 
 GlslProg::UniformSemanticMap& GlslProg::getDefaultUniformNameToSemanticMap()

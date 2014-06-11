@@ -67,6 +67,7 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL ),
 	mCachedTransformFeedbackObj( nullptr )
 #endif
+	, mObjectTrackingEnabled( true )
 {
 	// setup default VAO
 #if ! defined( CINDER_GL_ES )
@@ -258,6 +259,23 @@ void Context::restoreInvalidatedVao()
 		mVaoStack.back()->bindImpl( this );
 }
 
+void Context::vaoCreated( const Vao *vao )
+{
+	if( mObjectTrackingEnabled )
+		mTrackedVaos.insert( vao );
+}
+
+void Context::vaoDeleted( const Vao *vao )
+{
+	// remove from object tracking
+	if( mObjectTrackingEnabled )
+		mTrackedVaos.erase( vao );
+		
+	// if this was the currently bound VAO, mark the top of the stack as null
+	if( ! mVaoStack.empty() && mVaoStack.back()->getId() == vao->getId() )
+		mVaoStack.back() = nullptr;
+}
+
 //////////////////////////////////////////////////////////////////
 // Viewport
 void Context::viewport( const std::pair<Vec2i, Vec2i> &viewport )
@@ -424,12 +442,24 @@ void Context::reflectBufferBinding( GLenum target, GLuint id )
 		mBufferBindingStack[target].back() = id;
 }
 
-void Context::bufferDeleted( GLenum target, GLuint id )
+void Context::bufferCreated( const BufferObj *buffer )
 {
+	if( mObjectTrackingEnabled )
+		mTrackedBuffers.insert( buffer );
+}
+
+void Context::bufferDeleted( const BufferObj *buffer )
+{
+	// remove from object tracking
+	if( mObjectTrackingEnabled )
+		mTrackedBuffers.erase( buffer );
+
+	auto target = buffer->getTarget();
+
 	// if 'id' was bound to 'target', mark 'target's binding as 0
 	auto existingIt = mBufferBindingStack.find( target );
 	if( existingIt != mBufferBindingStack.end() ) {
-		if( mBufferBindingStack[target].back() == id )
+		if( mBufferBindingStack[target].back() == buffer->getId() )
 			mBufferBindingStack[target].back() = 0;
 			// alert the currently bound VAO
 			if( target == GL_ARRAY_BUFFER || target == GL_ELEMENT_ARRAY_BUFFER ) {
@@ -599,6 +629,18 @@ GlslProgRef Context::getGlslProg()
 	return mGlslProgStack.back();
 }
 
+void Context::glslProgCreated( const GlslProg *glslProg )
+{
+	if( mObjectTrackingEnabled )
+		mTrackedGlslProgs.insert( glslProg );
+}
+
+void Context::glslProgDeleted( const GlslProg *glslProg )
+{
+	if( mObjectTrackingEnabled )
+		mTrackedGlslProgs.erase( glslProg );
+}
+
 //////////////////////////////////////////////////////////////////
 // TextureBinding
 void Context::bindTexture( GLenum target, GLuint textureId )
@@ -700,10 +742,8 @@ GLuint Context::getTextureBinding( GLenum target, uint8_t textureUnit )
 
 void Context::textureCreated( const TextureBase *texture )
 {
-if( texture->getId() == 82 ) {
-	int a = 3;
-}
-	mTrackedTextures.insert( texture );
+	if( mObjectTrackingEnabled )
+		mTrackedTextures.insert( texture );
 }
 
 void Context::textureDeleted( const TextureBase *texture )
@@ -712,7 +752,8 @@ void Context::textureDeleted( const TextureBase *texture )
 	GLuint textureId = texture->getId();
 
 	// remove from object tracking
-	mTrackedTextures.erase( texture );
+	if( mObjectTrackingEnabled )
+		mTrackedTextures.erase( texture );
 
 	for( auto &unit : mTextureBindingStack ) {
 		auto cachedIt = unit.second.find( target );
@@ -1259,14 +1300,6 @@ void Context::printState( std::ostream &os ) const
 	glGetIntegerv( GL_VERTEX_ARRAY_BINDING, &queriedInt );
 #endif
 	os << "GL_VERTEX_ARRAY_BINDING:" << queriedInt << "}" << std::endl;
-}
-
-void Context::printTextures( std::ostream &os ) const
-{
-	for( auto &tex : mTrackedTextures ) {
-		os << "ID: " << tex->getId() << " Target: " << gl::constantToString( tex->getTarget() ) << std::endl;
-		os << "  " << tex->getLabel() << std::endl;
-	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
