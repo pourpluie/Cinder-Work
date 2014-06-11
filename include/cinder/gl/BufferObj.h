@@ -71,6 +71,11 @@ class BufferObj {
 
 	//! Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_ARRAY_BUFFER -> GL_ARRAY_BUFFER_BINDING. Returns 0 on failure.
 	static GLuint		getBindingConstantForTarget( GLenum target );
+
+	//! Returns the debugging label associated with the Buffer.
+	const std::string&	getLabel() const { return mLabel; }
+	//! Sets the debugging label associated with the Buffer. Calls glObjectLabel() when available.
+	void				setLabel( const std::string &label );
 	
   protected:
 	BufferObj( GLenum target );
@@ -80,6 +85,7 @@ class BufferObj {
 	size_t				mSize;
 	GLenum				mTarget;
 	GLenum				mUsage;
+	std::string			mLabel; // debug label
 	
 	friend std::ostream& operator<<( std::ostream &os, const BufferObj &rhs );
 };

@@ -24,6 +24,7 @@
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Context.h"
 #include "cinder/gl/ConstantStrings.h"
+#include "cinder/gl/Environment.h"
 
 namespace cinder { namespace gl {
 
@@ -193,12 +194,26 @@ GLuint BufferObj::getBindingConstantForTarget( GLenum target )
 	}
 }
 
+void BufferObj::setLabel( const std::string &label )
+{
+	mLabel = label;
+#if defined( CINDER_GL_ES )
+  #if ! defined( CINDER_GL_ANGLE )
+	env()->objectLabel( GL_BUFFER_OBJECT_EXT, mId, (GLsizei)label.size(), label.c_str() );
+  #endif
+#else
+	env()->objectLabel( GL_BUFFER, mId, (GLsizei)label.size(), label.c_str() );	
+#endif
+}
+
 std::ostream& operator<<( std::ostream &os, const BufferObj &rhs )
 {
 	os << "ID: " << rhs.mId << std::endl;
 	os << " Target: " << gl::constantToString( rhs.mTarget ) << "(" << rhs.mTarget << ")" << std::endl;
 	os << "   Size: " << rhs.mSize << std::endl;
 	os << "  Usage: " << gl::constantToString( rhs.mUsage ) << "(" << rhs.mUsage << ")" << std::endl;
+	if( ! rhs.mLabel.empty() )
+		os << "  Label: " << rhs.mLabel << std::endl;
 
 	return os;
 }

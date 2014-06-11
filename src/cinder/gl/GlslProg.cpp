@@ -23,6 +23,7 @@
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Context.h"
 #include "cinder/gl/ConstantStrings.h"
+#include "cinder/gl/Environment.h"
 #include "cinder/Log.h"
 
 using namespace std;
@@ -238,6 +239,8 @@ GlslProg::GlslProg( const Format &format )
 #endif
 	
 	link();
+	
+	setLabel( format.getLabel() );
 }
 
 GlslProg::UniformSemanticMap& GlslProg::getDefaultUniformNameToSemanticMap()
@@ -844,9 +847,23 @@ GLint GlslProg::getAttribLocation( const std::string &name ) const
 		return existing->second;
 }
 
+void GlslProg::setLabel( const std::string &label )
+{
+	mLabel = label;
+#if defined( CINDER_GL_ES )
+  #if ! defined( CINDER_GL_ANGLE )
+	env()->objectLabel( GL_PROGRAM_OBJECT_EXT, mHandle, (GLsizei)label.size(), label.c_str() );
+  #endif
+#else
+	env()->objectLabel( GL_PROGRAM, mHandle, (GLsizei)label.size(), label.c_str() );
+#endif
+}
+
 std::ostream& operator<<( std::ostream &os, const GlslProg &rhs )
 {
 	os << "ID: " << rhs.mHandle << std::endl;
+	if( ! rhs.mLabel.empty() )
+		os << "    Label: " << rhs.mLabel << std::endl;
 	os << " Uniforms: " << std::endl;
 	auto uniformTypes = rhs.getActiveUniformTypes();
 	for( auto &uni : uniformTypes ) {

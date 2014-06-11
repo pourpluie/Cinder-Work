@@ -72,6 +72,14 @@ void TransformFeedbackObj::end()
 	glEndTransformFeedback();
 }
 
+void TransformFeedbackObj::setLabel( const std::string &label )
+{
+	mLabel = label;
+#if ! defined( CINDER_GL_ES )
+	env()->objectLabel( GL_TRANSFORM_FEEDBACK, mId, (GLsizei)label.size(), label.c_str() );
+#endif
+}
+
 #endif
 	
 } } // gl // cinder

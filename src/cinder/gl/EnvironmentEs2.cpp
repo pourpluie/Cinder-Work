@@ -31,6 +31,10 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Vao.h"
 
+#if defined( CINDER_COCOA_TOUCH )
+	#include <OpenGLES/ES2/glext.h>
+#endif
+
 namespace cinder { namespace gl {
 
 class EnvironmentEs2 : public Environment {
@@ -39,7 +43,8 @@ class EnvironmentEs2 : public Environment {
 
 	virtual bool	isExtensionAvailable( const std::string &extName ) override;
 	virtual bool	supportsHardwareVao() override;
-	
+	virtual void	objectLabel( GLenum identifier, GLuint name, GLsizei length, const char *label );
+
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) override;
@@ -62,12 +67,12 @@ bool EnvironmentEs2::isExtensionAvailable( const std::string &extName )
 	std::map<std::string,bool>::const_iterator extIt = sExtMap.find( extName );
 	if ( extIt == sExtMap.end() ) {
 		bool found		= false;
-		int extNameLen	= extName.size();
+		size_t extNameLen	= extName.size();
 		const char *p	= sExtStr;
 		const char *end = sExtStr + strlen( sExtStr );
-		while ( p < end ) {
-			int n = strcspn( p, " " );
-			if ( (extNameLen == n ) && ( strncmp( extName.c_str(), p, n) == 0 ) ) {
+		while( p < end ) {
+			size_t n = strcspn( p, " " );
+			if ( (extNameLen == n) && ( strncmp( extName.c_str(), p, n) == 0 ) ) {
 				found = true;
 				break;
 			}
@@ -87,6 +92,13 @@ bool EnvironmentEs2::supportsHardwareVao()
 	return true;
 #else
 	return false;
+#endif
+}
+
+void EnvironmentEs2::objectLabel( GLenum identifier, GLuint name, GLsizei length, const char *label )
+{
+#if defined( CINDER_COCOA_TOUCH )
+	glLabelObjectEXT( identifier, name, length, label );
 #endif
 }
 

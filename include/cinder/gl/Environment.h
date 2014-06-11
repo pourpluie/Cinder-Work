@@ -61,6 +61,8 @@ class Environment {
 	virtual bool			isExtensionAvailable( const std::string &extName ) = 0;
 	virtual bool			supportsHardwareVao() = 0;
 
+	virtual void			objectLabel( GLenum identifier, GLuint name, GLsizei length, const char *label ) = 0;
+
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) = 0;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) = 0;
 	virtual GlslProgRef		buildShader( const ShaderDef &shader ) = 0;

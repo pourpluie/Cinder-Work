@@ -104,7 +104,9 @@ class TextureBase {
 	//! Returns whether this hardware supports texture swizzling (via \c GL_TEXTURE_SWIZZLE_RGBA)
 	static bool		supportsHardwareSwizzle();
 
-	const std::string&	getLabel() const;
+	//! Returns the debugging label associated with the Texture.
+	const std::string&	getLabel() const { return mLabel; }
+	//! Sets the debugging label associated with the Texture. Calls glObjectLabel() when available.
 	void				setLabel( const std::string &label );
 
 	struct Format {			
@@ -196,6 +198,13 @@ class TextureBase {
 		//! Returns the swizzle mask corresponding to \c GL_TEXTURE_SWIZZLE_RGBA.
 		const std::array<GLint,4>&	getSwizzleMask() const { return mSwizzleMask; }
 		
+		//! Returns the debugging label associated with the Texture.
+		const std::string&	getLabel() const { return mLabel; }
+		//! Sets the debugging label associated with the Texture. Calls glObjectLabel() when available.
+		void				setLabel( const std::string &label ) { mLabel = label; }
+		//! Sets the debugging label associated with the Texture. Calls glObjectLabel() when available.
+		Format&				label( const std::string &label ) { setLabel( label ); return *this; }
+		
 	protected:
 		Format();
 	
@@ -213,6 +222,7 @@ class TextureBase {
 		std::array<GLint,4>	mSwizzleMask;
 		bool				mBorderSpecified;
 		std::array<GLfloat,4>	mBorderColor;
+		std::string			mLabel; // debug label
 
 #if ! defined( CINDER_GL_ES )		
 		PboRef				mIntermediatePbo;
@@ -232,7 +242,7 @@ class TextureBase {
 	bool				mMipmapping;
 	bool				mDoNotDispose;
 	std::array<GLint,4>	mSwizzleMask;
-	std::string			mLabel;
+	std::string			mLabel; // debugging label
 };
 
 class TextureData {
@@ -333,6 +343,9 @@ class Texture : public TextureBase {
 #if ! defined( CINDER_GL_ES )
 		Format& intermediatePbo( const PboRef &intermediatePbo ) { setIntermediatePbo( intermediatePbo ); return *this; }
 #endif		
+		//! Sets the debugging label associated with the Texture. Calls glObjectLabel() when available.
+		Format&	label( const std::string &label ) { setLabel( label ); return *this; }
+
 		friend Texture;
 	};
 	
@@ -494,6 +507,8 @@ class Texture3d : public TextureBase {
 		Format& magFilter( GLenum magFilter ) { setMagFilter( magFilter ); return *this; }
 		Format& pixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; return *this; }
 		Format& pixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; return *this; }
+		//! Sets the debugging label associated with the Texture. Calls glObjectLabel() when available.
+		Format&	label( const std::string &label ) { setLabel( label ); return *this; }
 		
 		friend Texture3d;
 	};
@@ -542,6 +557,8 @@ class TextureCubeMap : public TextureBase
 #endif // ! defined( CINDER_GL_ES )
 		Format& minFilter( GLenum minFilter ) { setMinFilter( minFilter ); return *this; }
 		Format& magFilter( GLenum magFilter ) { setMagFilter( magFilter ); return *this; }
+		//! Sets the debugging label associated with the Texture. Calls glObjectLabel() when available.
+		Format&	label( const std::string &label ) { setLabel( label ); return *this; }
 		
 		friend TextureCubeMap;
 	};

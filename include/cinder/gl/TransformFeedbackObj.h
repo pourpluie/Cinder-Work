@@ -37,9 +37,9 @@ class TransformFeedbackObj : public std::enable_shared_from_this<TransformFeedba
 	static TransformFeedbackObjRef create();
 	virtual ~TransformFeedbackObj() {}
 	
-	//! Binds this Transform Feedback Obj to the system.
+	//! Binds this Transform Feedback Object to the system.
 	void bind();
-	//! Unbinds this Transform Feedback Obj from the system.
+	//! Unbinds this Transform Feedback Object from the system.
 	void unbind();
 	
 	//! Notifies the system to begin capturing Vertices
@@ -51,8 +51,13 @@ class TransformFeedbackObj : public std::enable_shared_from_this<TransformFeedba
 	//! Notifies the sytstem you are finished capturing Vertices with this object
 	void end();
 	
-	//! Returns the gl system id for this Transform Feedback Obj
+	//! Returns the gl system id for this Transform Feedback Object
 	GLuint	getId() const { return mId; }
+	
+	//! Returns the debugging label associated with the Transform Feedback Object.
+	const std::string&	getLabel() const { return mLabel; }
+	//! Sets the debugging label associated with the Transform Feedback Object. Calls glObjectLabel() when available.
+	void				setLabel( const std::string &label );	
 	
   protected:
 	TransformFeedbackObj() {}
@@ -64,6 +69,8 @@ class TransformFeedbackObj : public std::enable_shared_from_this<TransformFeedba
 	
 	GLuint								mId;
 	std::map<GLuint, gl::BufferObjRef>	mBufferBases;
+	
+	std::string							mLabel; // debug label
 	
 	friend class Context;
 };

@@ -57,6 +57,10 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	//! Assumes replacementBindBegin() was called previously and that \a this is the currently bound VAO.
 	void	replacementBindEnd();
 
+	//! Returns the debugging label associated with the VAO.
+	const std::string&	getLabel() const { return mLabel; }
+	//! Sets the debugging label associated with the VAO. Calls glObjectLabel() when available.
+	void				setLabel( const std::string &label );
 
 	struct VertexAttrib {
 		typedef enum { FLOAT, INTEGER } PointerType;
@@ -147,6 +151,7 @@ class Vao : public std::enable_shared_from_this<Vao> {
 	GLuint							mId;
 	Context							*mCtx;
 	Layout							mLayout, mReplacementBindPrevious;
+	std::string						mLabel;
 
 	friend Context;
 	friend std::ostream& operator<<( std::ostream &lhs, const VaoRef &rhs );

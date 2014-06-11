@@ -147,6 +147,16 @@ void Vao::replacementBindEnd()
 	// TODO: if the user never bound an ELEMENT_ARRAY_BUFFER, they assumed it was 0, so we should make that so by caching whether they changed it
 }
 
+void Vao::setLabel( const std::string &label )
+{
+	mLabel = label;
+#if defined( CINDER_GL_ES ) && ! defined( CINDER_GL_ANGLE )
+	env()->objectLabel( GL_VERTEX_ARRAY_OBJECT_EXT, mId, (GLsizei)label.size(), label.c_str() );
+#else
+	env()->objectLabel( GL_VERTEX_ARRAY, mId, (GLsizei)label.size(), label.c_str() );
+#endif
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Vao::Layout
 Vao::Layout::Layout()
@@ -260,32 +270,34 @@ void Vao::Layout::clear()
 	mVertexAttribs.clear();
 }
 
-std::ostream& operator<<( std::ostream &lhs, const Vao &rhs )
+std::ostream& operator<<( std::ostream &os, const Vao &rhs )
 {
-	lhs << "ID: " << rhs.getId() << std::endl;
-	lhs << rhs.getLayout();
+	os << "ID: " << rhs.getId() << std::endl;
+	if( ! rhs.mLabel.empty() )
+		os << "  Label: " << rhs.mLabel << std::endl;
+	os << "  " << rhs.getLayout();
 	
-	return lhs;
+	return os;
 }
 
-std::ostream& operator<<( std::ostream &lhs, const Vao::Layout &rhs )
+std::ostream& operator<<( std::ostream &os, const Vao::Layout &rhs )
 {
-	lhs << "Cached ARRAY_BUFFER binding: " << rhs.mCachedArrayBufferBinding << "  ELEMENT_ARRAY_BUFFER_BINDING: " << rhs.mElementArrayBufferBinding << std::endl;
-	lhs << "{" << std::endl;
+	os << "Cached ARRAY_BUFFER binding: " << rhs.mCachedArrayBufferBinding << "  ELEMENT_ARRAY_BUFFER_BINDING: " << rhs.mElementArrayBufferBinding << std::endl;
+	os << "{" << std::endl;
 	for( auto &attrib : rhs.mVertexAttribs ) {
-		lhs << " Loc: " << attrib.first << std::endl;
-		lhs << "        Enabled: " << ( attrib.second.mEnabled ? "TRUE" : "FALSE" ) << std::endl;
-		lhs << "           Size: " << attrib.second.mSize << std::endl;
-		lhs << "           Type: " << gl::constantToString( attrib.second.mType ) << "(" << attrib.second.mType << ")" << std::endl;
-		lhs << "     Normalized: " << ( attrib.second.mNormalized ? "TRUE" : "FALSE" ) << std::endl;
-		lhs << "         Stride: " << attrib.second.mStride << std::endl;
-		lhs << "        Pointer: " << attrib.second.mPointer << "(" << (size_t)attrib.second.mPointer << ")" << std::endl;
-		lhs << "   Array Buffer: " << attrib.second.mArrayBufferBinding << std::endl;
-		lhs << "        Divisor: " << attrib.second.mDivisor << std::endl;
+		os << "  Loc: " << attrib.first << std::endl;
+		os << "        Enabled: " << ( attrib.second.mEnabled ? "TRUE" : "FALSE" ) << std::endl;
+		os << "           Size: " << attrib.second.mSize << std::endl;
+		os << "           Type: " << gl::constantToString( attrib.second.mType ) << "(" << attrib.second.mType << ")" << std::endl;
+		os << "     Normalized: " << ( attrib.second.mNormalized ? "TRUE" : "FALSE" ) << std::endl;
+		os << "         Stride: " << attrib.second.mStride << std::endl;
+		os << "        Pointer: " << attrib.second.mPointer << "(" << (size_t)attrib.second.mPointer << ")" << std::endl;
+		os << "   Array Buffer: " << attrib.second.mArrayBufferBinding << std::endl;
+		os << "        Divisor: " << attrib.second.mDivisor << std::endl;
 	}
-	lhs << "}";
+	os << "}";
 
-	return lhs;
+	return os;
 }
 
 } }

@@ -40,6 +40,7 @@ class EnvironmentCore : public Environment {
 	virtual bool	isCoreProfile() const override { return true; }
 	virtual bool	isExtensionAvailable( const std::string &extName ) override;
 	virtual bool	supportsHardwareVao() override;
+	virtual void	objectLabel( GLenum identifier, GLuint name, GLsizei length, const char *label );
 
 	virtual std::string		generateVertexShader( const ShaderDef &shader ) override;
 	virtual std::string		generateFragmentShader( const ShaderDef &shader ) override;
@@ -87,6 +88,13 @@ bool EnvironmentCore::isExtensionAvailable( const std::string &extName )
 bool EnvironmentCore::supportsHardwareVao()
 {
 	return true;
+}
+
+void EnvironmentCore::objectLabel( GLenum identifier, GLuint name, GLsizei length, const char *label )
+{
+	static auto objectLabelFn = glObjectLabel;
+	if( objectLabelFn )
+		(*objectLabelFn)( identifier, name, length, label );
 }
 
 std::string	EnvironmentCore::generateVertexShader( const ShaderDef &shader )

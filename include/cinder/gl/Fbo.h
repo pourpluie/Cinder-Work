@@ -71,6 +71,11 @@ class Renderbuffer {
 	//! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none.
 	int		getCoverageSamples() const { return mCoverageSamples; }
 
+	//! Returns the debugging label associated with the Renderbuffer.
+	const std::string&	getLabel() const { return mLabel; }
+	//! Sets the debugging label associated with the Renderbuffer. Calls glObjectLabel() when available.
+	void				setLabel( const std::string &label );
+
   private:
 	//! Create a Renderbuffer \a width pixels wide and \a heigh pixels high, with an internal format of \a internalFormat, MSAA samples \a msaaSamples, and CSAA samples \a coverageSamples
 	Renderbuffer( int width, int height, GLenum internalFormat, int msaaSamples, int coverageSamples );  
@@ -81,6 +86,7 @@ class Renderbuffer {
 	GLuint				mId;
 	GLenum				mInternalFormat;
 	int					mSamples, mCoverageSamples;
+	std::string			mLabel; // debug label
 };
 
 //! Represents an OpenGL Framebuffer Object.
@@ -147,6 +153,11 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 	static GLint	getMaxSamples();
 	//! Returns the maximum number of color attachments the graphics card is capable of using for an Fbo
 	static GLint	getMaxAttachments();
+	
+	//! Returns the debugging label associated with the Fbo.
+	const std::string&	getLabel() const { return mLabel; }
+	//! Sets the debugging label associated with the Fbo. Calls glObjectLabel() when available.
+	void				setLabel( const std::string &label );
 	
 	struct Format {
 	  public:
@@ -235,6 +246,13 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 		static GLint			getDefaultDepthInternalFormat();
 		// Returns the +stencil complement of a given internalFormat; ie GL_DEPTH_COMPONENT24 -> GL_DEPTH24_STENCIL8, as well as appropriate pixelDataType for glTexImage2D
 		static void				getDepthStencilFormats( GLint depthInternalFormat, GLint *resultInternalFormat, GLenum *resultPixelDataType );
+
+		//! Returns the debugging label associated with the Fbo.
+		const std::string&	getLabel() const { return mLabel; }
+		//! Sets the debugging label associated with the Fbo. Calls glObjectLabel() when available.
+		void				setLabel( const std::string &label );
+		//! Sets the debugging label associated with the Fbo. Calls glObjectLabel() when available.
+		Format&				label( const std::string &label ) { setLabel( label ); return *this; }
 		
 	  protected:
 		GLint			mColorBufferInternalFormat, mDepthBufferInternalFormat;
@@ -243,6 +261,7 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 		bool			mDepthBuffer, mDepthTexture;
 		bool			mStencilBuffer;
 		Texture::Format	mColorTextureFormat, mDepthTextureFormat;		
+		std::string		mLabel; // debug label
 		
 		std::map<GLenum,RenderbufferRef>	mAttachmentsBuffer;
 		std::map<GLenum,RenderbufferRef>	mAttachmentsMultisampleBuffer;
@@ -272,7 +291,9 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 	std::map<GLenum,RenderbufferRef>	mAttachmentsBuffer; // map from attachment ID to Renderbuffer
 	std::map<GLenum,RenderbufferRef>	mAttachmentsMultisampleBuffer; // map from attachment ID to Renderbuffer	
 	std::map<GLenum,TextureBaseRef>		mAttachmentsTexture; // map from attachment ID to Texture
-	
+
+	std::string			mLabel; // debugging label
+
 	mutable bool		mNeedsResolve, mNeedsMipmapUpdate;
 	
 	static GLint		sMaxSamples, sMaxAttachments;
@@ -293,6 +314,9 @@ class FboCubeMap : public Fbo {
 		
 		//! Disables both a depth Texture and a depth Buffer
 		Format&	disableDepth() { mDepthTexture = mDepthBuffer = false; return *this; }
+
+		//! Sets the debugging label associated with the Fbo. Calls glObjectLabel() when available.
+		Format&	label( const std::string &label ) { setLabel( label ); return *this; }
 		
 	  protected:
 		gl::TextureCubeMap::Format	mTextureCubeMapFormat;

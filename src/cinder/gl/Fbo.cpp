@@ -33,6 +33,7 @@
 #include "cinder/gl/gl.h" // must be first
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/Context.h"
+#include "cinder/gl/Environment.h"
 #include "cinder/Camera.h"
 
 using namespace std;
@@ -123,6 +124,14 @@ Renderbuffer::~Renderbuffer()
 {
 	if( mId )
 		glDeleteRenderbuffers( 1, &mId );
+}
+
+void Renderbuffer::setLabel( const std::string &label )
+{
+	mLabel = label;
+#if ! defined( CINDER_GL_ES )
+	env()->objectLabel( GL_RENDERBUFFER, mId, (GLsizei)label.size(), label.c_str() );
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -416,6 +425,10 @@ void Fbo::init()
 	
 	mNeedsResolve = false;
 	mNeedsMipmapUpdate = false;
+	
+	mLabel = mFormat.mLabel;
+	if( ! mLabel.empty() )
+		env()->objectLabel( GL_FRAMEBUFFER, mId, (GLsizei)mLabel.size(), mLabel.c_str() );
 }
 
 void Fbo::initMultisample( bool csaa )
@@ -676,6 +689,12 @@ GLint Fbo::getMaxAttachments()
 #else
 	return 1;
 #endif
+}
+
+void Fbo::setLabel( const std::string &label )
+{
+	mLabel = label;
+	env()->objectLabel( GL_FRAMEBUFFER, mId, (GLsizei)label.size(), label.c_str() );
 }
 
 #if ! defined( CINDER_GL_ES )

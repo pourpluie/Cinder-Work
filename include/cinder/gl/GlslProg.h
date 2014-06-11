@@ -103,6 +103,13 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		//! Returns the map between attribute semantics and specified locations
 		const std::map<geom::Attrib,GLint>&	getAttribSemanticLocations() const { return mAttribSemanticLocMap; }
 		
+		//! Returns the debugging label associated with the Program.
+		const std::string&	getLabel() const { return mLabel; }
+		//! Sets the debugging label associated with the Program. Calls glObjectLabel() when available.
+		void				setLabel( const std::string &label ) { mLabel = label; }
+		//! Sets the debugging label associated with the Program. Calls glObjectLabel() when available.
+		Format&				label( const std::string &label ) { setLabel( label ); return *this; }
+		
 	  protected:
 		std::string					mVertexShader;
 		std::string					mFragmentShader;
@@ -115,6 +122,8 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 		std::map<geom::Attrib,GLint>			mAttribSemanticLocMap;
 		std::map<std::string,UniformSemantic>	mUniformSemanticMap;
 		std::map<std::string,geom::Attrib>		mAttribSemanticMap;
+		
+		std::string								mLabel;
 	};
   
 	typedef std::map<std::string,UniformSemantic>	UniformSemanticMap;
@@ -191,6 +200,11 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	
 	std::string		getShaderLog( GLuint handle ) const;
 
+	//! Returns the debugging label associated with the Program.
+	const std::string&	getLabel() const { return mLabel; }
+	//! Sets the debugging label associated with the Program. Calls glObjectLabel() when available.
+	void				setLabel( const std::string &label );
+
   protected:
 	GlslProg( const Format &format );
 
@@ -220,6 +234,8 @@ class GlslProg : public std::enable_shared_from_this<GlslProg> {
 	mutable AttribSemanticMap				mAttribSemantics;
 	// enumerates the uniforms we've already logged as missing so that we don't flood the log with the same message
 	mutable std::set<std::string>			mLoggedMissingUniforms;
+
+	std::string								mLabel; // debug label
 
 	// storage as a work-around for NVidia on MSW driver bug expecting persistent memory in calls to glTransformFeedbackVaryings
 #if ! defined( CINDER_GL_ES )

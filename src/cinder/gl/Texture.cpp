@@ -26,6 +26,7 @@
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/Context.h"
 #include "cinder/gl/TextureFormatParsers.h"
+#include "cinder/gl/Environment.h"
 #include "cinder/ip/Flip.h"
 #include "cinder/Log.h"
 #include <stdio.h>
@@ -97,7 +98,7 @@ TextureBase::~TextureBase()
 	}
 }
 
-// Expects texture to be bound
+// Expects texture to be bound and mTarget/mTextureId to be valid
 void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 {
 	// default is GL_REPEAT
@@ -156,6 +157,9 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 		glTexParameterfv( mTarget, GL_TEXTURE_BORDER_COLOR, format.mBorderColor.data() );
 	}
 #endif
+
+	if( ! format.mLabel.empty() )
+		setLabel( format.mLabel );
 }
 
 GLint TextureBase::getInternalFormat() const
@@ -309,14 +313,10 @@ bool TextureBase::supportsHardwareSwizzle()
 	#endif
 }
 
-const std::string& TextureBase::getLabel() const
-{
-	return mLabel;
-}
-
 void TextureBase::setLabel( const std::string &label )
 {
 	mLabel = label;
+	env()->objectLabel( GL_TEXTURE, mTextureId, (GLsizei)label.size(), label.c_str() );	
 }
 
 /////////////////////////////////////////////////////////////////////////////////
