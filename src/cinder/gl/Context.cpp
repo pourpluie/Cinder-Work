@@ -209,7 +209,6 @@ void Context::reflectCurrent( Context *context )
 	pthread_setspecific( sThreadSpecificCurrentContextKey, context );
 #else
 	sThreadSpecificCurrentContext = context;
-	}
 #endif	
 }
 
