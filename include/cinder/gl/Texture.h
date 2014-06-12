@@ -235,6 +235,8 @@ class TextureBase {
 	TextureBase( GLenum target, GLuint textureId, GLint internalFormat );
 	
 	void			initParams( Format &format, GLint defaultInternalFormat );
+
+	virtual void	printDims( std::ostream &os ) const = 0;
 	
 	GLenum				mTarget;
 	GLuint				mTextureId;
@@ -243,7 +245,11 @@ class TextureBase {
 	bool				mDoNotDispose;
 	std::array<GLint,4>	mSwizzleMask;
 	std::string			mLabel; // debugging label
+	
+	friend std::ostream& operator<<( std::ostream &os, const TextureBase &rhs );
 };
+
+std::ostream& operator<<( std::ostream &os, const TextureBase &rhs );
 
 class TextureData {
   public:
@@ -468,6 +474,8 @@ class Texture : public TextureBase {
 	Texture( const TextureData &data, Format format );
 
   protected:
+	virtual void	printDims( std::ostream &os ) const override;
+
 	void	initData( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format );
 	void	initData( const float *data, GLint dataFormat, const Format &format );
 	void	initData( const ImageSourceRef &imageSource, const Format &format );
@@ -532,6 +540,9 @@ class Texture3d : public TextureBase {
   protected:
   	Texture3d( GLint width, GLint height, GLint depth, Format format );
 	Texture3d( GLint width, GLint height, GLint depth, GLenum dataFormat, const uint8_t *data, Format format );
+
+	virtual void	printDims( std::ostream &os ) const override;
+
 	GLint		mWidth, mHeight, mDepth;
 };
 #endif
@@ -571,6 +582,8 @@ class TextureCubeMap : public TextureBase
   protected:
 	TextureCubeMap( int32_t width, int32_t height, Format format );
 	TextureCubeMap( const Surface8u images[6], Format format );
+
+	virtual void	printDims( std::ostream &os ) const override;
 	
 	GLint		mWidth, mHeight;
 };

@@ -81,6 +81,8 @@ class Context {
 	void			makeCurrent() const;
 	//! Returns the thread's currently active OpenGL Context
 	static Context*	getCurrent();
+	//! Set thread's local storage to reflect \a context as the active Context
+	static void		reflectCurrent( Context *context );
 
 	//! Returns a reference to the stack of Model matrices
 	std::vector<Matrix44f>&			getModelMatrixStack() { return mModelMatrixStack; }

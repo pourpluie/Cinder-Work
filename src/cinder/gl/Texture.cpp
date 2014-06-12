@@ -27,6 +27,7 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/TextureFormatParsers.h"
 #include "cinder/gl/Environment.h"
+#include "cinder/gl/ConstantStrings.h"
 #include "cinder/ip/Flip.h"
 #include "cinder/Log.h"
 #include <stdio.h>
@@ -755,7 +756,6 @@ void Texture::initData( const ImageSourceRef &imageSource, const Format &format 
 	}
 }
 
-
 void Texture::update( const Surface &surface, int mipLevel )
 {
 	GLint dataFormat;
@@ -1016,6 +1016,34 @@ float Texture::getMaxV() const
 	return mMaxV;
 }
 
+std::ostream& operator<<( std::ostream &os, const TextureBase &rhs )
+{
+	ScopedTextureBind bind( rhs.getTarget(), rhs.getId() );
+	
+	os << "Target: " << constantToString( rhs.getTarget() ) << "  ID: " << rhs.mTextureId << std::endl;
+	if( ! rhs.mLabel.empty() )
+	os << "       Label: " << rhs.mLabel << std::endl;
+	os << "  Intrnl Fmt: " << constantToString( rhs.getInternalFormat() );
+	os << "          Dims: ";
+	rhs.printDims( os );	
+#if ! defined( CINDER_GL_ES )
+	GLint compressed;
+	glGetTexLevelParameteriv( rhs.getTarget(), rhs.getId(), GL_TEXTURE_COMPRESSED, &compressed );
+	if( compressed ) {
+		GLint compressedSize;
+		glGetTexLevelParameteriv( rhs.getTarget(), 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedSize );	
+		os << "  Level 0 Size: " << compressedSize << " bytes (Compressed)" << std::endl;
+	}
+#endif
+	
+	return os;
+}
+
+void Texture::printDims( std::ostream &os ) const
+{
+	os << mWidth << " x " << mHeight;
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // TextureCache
 
@@ -1224,6 +1252,11 @@ void Texture3d::update( const Surface &surface, int depth, int mipLevel )
 		mipMapSize.x, mipMapSize.y, 1, dataFormat, type, surface.getData() );
 }
 
+void Texture3d::printDims( std::ostream &os ) const
+{
+	os << mWidth << " x " << mHeight << " x " << mDepth;
+}
+
 #endif // ! defined( CINDER_GL_ES )
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1312,6 +1345,11 @@ TextureCubeMap::TextureCubeMap( const Surface8u images[6], Format format )
 #endif
 		glGenerateMipmap( mTarget );
 	}
+}
+
+void TextureCubeMap::printDims( std::ostream &os ) const
+{
+	os << mWidth << " x " << mHeight;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
