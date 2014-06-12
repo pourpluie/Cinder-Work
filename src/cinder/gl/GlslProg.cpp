@@ -161,7 +161,9 @@ GlslProgRef GlslProg::create( const char *vertexShader, const char *fragmentShad
 	
 GlslProg::~GlslProg()
 {
-	gl::context()->glslProgDeleted( this );
+	auto ctx = gl::context();
+	if( ctx )
+		ctx->glslProgDeleted( this );
 
 	if( mHandle ) {
 		glDeleteProgram( (GLuint)mHandle );
