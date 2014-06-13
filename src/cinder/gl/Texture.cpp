@@ -1025,13 +1025,14 @@ std::ostream& operator<<( std::ostream &os, const TextureBase &rhs )
 	os << "       Label: " << rhs.mLabel << std::endl;
 	os << "  Intrnl Fmt: " << constantToString( rhs.getInternalFormat() );
 	os << "    Dims: ";
-	rhs.printDims( os );	
+	rhs.printDims( os );
 #if ! defined( CINDER_GL_ES )
 	GLint compressed;
-	glGetTexLevelParameteriv( rhs.getTarget(), rhs.getId(), GL_TEXTURE_COMPRESSED, &compressed );
+	glGetTexLevelParameteriv( rhs.getTarget(), 0, GL_TEXTURE_COMPRESSED, &compressed );
 	if( compressed ) {
 		GLint compressedSize;
-		glGetTexLevelParameteriv( rhs.getTarget(), 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedSize );	
+		glGetTexLevelParameteriv( rhs.getTarget(), 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedSize );
+		os << std::endl;
 		os << "  Level 0 Size: " << compressedSize << " bytes (Compressed)";
 	}
 #endif
