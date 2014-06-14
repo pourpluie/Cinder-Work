@@ -79,10 +79,14 @@ VaoRef Vao::create()
 Vao::Vao()
 	: mCtx( gl::context() )
 {
+	mCtx->vaoCreated( this );
 }
 
 Vao::~Vao()
 {
+	auto ctx = gl::context();
+	if( ctx )
+		ctx->vaoDeleted( this );
 }
 
 void Vao::setContext( Context *context )
