@@ -29,6 +29,7 @@
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
 #include <map>
+#include <iosfwd>
 
 namespace cinder { namespace gl {
 
@@ -87,7 +88,11 @@ class Renderbuffer {
 	GLenum				mInternalFormat;
 	int					mSamples, mCoverageSamples;
 	std::string			mLabel; // debug label
+	
+	friend std::ostream& operator<<( std::ostream &os, const Renderbuffer &rhs );
 };
+
+std::ostream& operator<<( std::ostream &os, const Renderbuffer &rhs );
 
 //! Represents an OpenGL Framebuffer Object.
 class Fbo : public std::enable_shared_from_this<Fbo> {
@@ -272,7 +277,6 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 
  protected:
 	Fbo( int width, int height, const Format &format );
-	Fbo( int width, int height, bool alpha, bool depth, bool stencil );
  
 	void		init();
 	void		initMultisample( bool csaa );
@@ -297,6 +301,8 @@ class Fbo : public std::enable_shared_from_this<Fbo> {
 	mutable bool		mNeedsResolve, mNeedsMipmapUpdate;
 	
 	static GLint		sMaxSamples, sMaxAttachments;
+	
+	friend std::ostream& operator<<( std::ostream &os, const Fbo &rhs );
 };
 
 

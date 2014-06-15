@@ -959,6 +959,19 @@ GLuint Context::getFramebuffer( GLenum target )
 #endif
 }
 
+void Context::framebufferCreated( const Fbo *fbo )
+{
+	if( mObjectTrackingEnabled )
+		mTrackedFbos.insert( fbo );
+}
+
+void Context::framebufferDeleted( const Fbo *fbo )
+{
+	// remove from object tracking
+	if( mObjectTrackingEnabled )
+		mTrackedFbos.erase( fbo );
+}
+
 //////////////////////////////////////////////////////////////////
 // States
 void Context::setBoolState( GLenum cap, GLboolean value )

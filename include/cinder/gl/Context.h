@@ -236,6 +236,10 @@ class Context {
 	void		unbindFramebuffer();
 	//! Returns the ID of the framebuffer currently bound to \a target
 	GLuint		getFramebuffer( GLenum target = GL_FRAMEBUFFER );
+	//! Used by object tracking.
+	void		framebufferCreated( const Fbo *fbo );
+	//! Used by object tracking.
+	void		framebufferDeleted( const Fbo *fbo );
 
 	//! Analogous to glEnable() or glDisable(). Enables or disables OpenGL capability \a cap
 	void		setBoolState( GLenum cap, GLboolean value );
@@ -286,6 +290,8 @@ class Context {
 	const std::set<const GlslProg*>&	getTrackedGlslProgs() const { return mTrackedGlslProgs; }
 	//! Returns the container of tracked Vaos. Requires object tracking to be enabled.
 	const std::set<const Vao*>&			getTrackedVaos() const { return mTrackedVaos; }
+	//! Returns the container of tracked Fbos. Requires object tracking to be enabled.
+	const std::set<const Fbo*>&			getTrackedFbos() const { return mTrackedFbos; }
 
 	// Vertex Attributes
 	//! Analogous to glEnableVertexAttribArray()
@@ -421,6 +427,7 @@ class Context {
 	std::set<const BufferObj*>		mTrackedBuffers;
 	std::set<const GlslProg*>		mTrackedGlslProgs;
 	std::set<const Vao*>			mTrackedVaos;
+	std::set<const Fbo*>			mTrackedFbos;
 
 	friend class				Environment;
 	friend class				EnvironmentEs2Profile;

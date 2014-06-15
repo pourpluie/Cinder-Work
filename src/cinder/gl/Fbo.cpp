@@ -35,6 +35,7 @@
 #include "cinder/gl/Context.h"
 #include "cinder/gl/Environment.h"
 #include "cinder/Camera.h"
+#include "cinder/gl/ConstantStrings.h"
 
 using namespace std;
 
@@ -132,6 +133,17 @@ void Renderbuffer::setLabel( const std::string &label )
 #if ! defined( CINDER_GL_ES )
 	env()->objectLabel( GL_RENDERBUFFER, mId, (GLsizei)label.size(), label.c_str() );
 #endif
+}
+
+std::ostream& operator<<( std::ostream &os, const Renderbuffer &rhs )
+{
+	os << "ID: " << rhs.mId << std::endl;
+	if( ! rhs.mLabel.empty() )
+		os << "       Label: " << rhs.mLabel << std::endl;
+	os << "  Intrnl Fmt: " << constantToString( rhs.getInternalFormat() );
+	os << "    Dims: " << rhs.mWidth << " x " << rhs.mHeight << std::endl;	
+	
+	return os;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -251,27 +263,27 @@ FboRef Fbo::create( int width, int height, const Format &format )
 
 FboRef Fbo::create( int width, int height, bool alpha, bool depth, bool stencil )
 {
-	return FboRef( new Fbo( width, height, alpha, depth, stencil ) );
+	Fbo::Format format;
+	format.mColorTextureFormat = Format::getDefaultColorTextureFormat( alpha );
+	format.mDepthBuffer = depth;
+	format.mStencilBuffer = stencil;
+
+	return FboRef( new Fbo( width, height, format ) );
 }
 
 Fbo::Fbo( int width, int height, const Format &format )
 	: mWidth( width ), mHeight( height ), mFormat( format ), mId( 0 ), mMultisampleFramebufferId( 0 )
 {
 	init();
-}
-
-Fbo::Fbo( int width, int height, bool alpha, bool depth, bool stencil )
-	: mWidth( width ), mHeight( height ), mId( 0 ), mMultisampleFramebufferId( 0 )
-{
-	mFormat.mColorTextureFormat = Format::getDefaultColorTextureFormat( alpha );
-	mFormat.mDepthBuffer = depth;
-	mFormat.mStencilBuffer = stencil;
-	
-	init();
+	gl::context()->framebufferCreated( this );
 }
 
 Fbo::~Fbo()
 {
+	auto ctx = gl::context();
+	if( ctx )
+		ctx->framebufferDeleted( this );
+
 	if( mId )
 		glDeleteFramebuffers( 1, &mId );
 	if( mMultisampleFramebufferId )
@@ -722,6 +734,28 @@ void Fbo::blitFromScreen( const Area &srcArea, const Area &dstArea, GLenum filte
 	glBlitFramebuffer( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
 }
 #endif
+
+std::ostream& operator<<( std::ostream &os, const Fbo &rhs )
+{
+	os << "ID: " << rhs.mId;
+	if( rhs.mMultisampleFramebufferId )
+		os << "  Multisample ID: " << rhs.mMultisampleFramebufferId;
+	os << std::endl;
+	if( ! rhs.mLabel.empty() )
+	os << "  Label: " << rhs.mLabel << std::endl;
+	os << "   Dims: " << rhs.mWidth << " x " << rhs.mHeight << std::endl;
+	for( const auto &tex : rhs.mAttachmentsTexture ) {
+		os << "-Texture Attachment: " << gl::constantToString( tex.first ) << std::endl;
+		os << *tex.second << std::endl;
+	}
+	for( const auto &ren : rhs.mAttachmentsBuffer ) {
+		os << "-Renderbuffer Attachment: " << gl::constantToString( ren.first ) << std::endl;
+		os << *ren.second << std::endl;
+	}
+	
+	return os;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FboCubeMap
