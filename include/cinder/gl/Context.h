@@ -282,16 +282,16 @@ class Context {
 	void		printState( std::ostream &os ) const;
 	
 	// Object Tracking
-	//! Returns the container of tracked Textures. Requires object tracking to be enabled.
-	const std::set<const TextureBase*>&	getTrackedTextures() const { return mTrackedTextures; }
-	//! Returns the container of tracked BufferObjs. Requires object tracking to be enabled.
-	const std::set<const BufferObj*>&	getTrackedBuffers() const { return mTrackedBuffers; }
-	//! Returns the container of tracked GlslProgs. Requires object tracking to be enabled.
-	const std::set<const GlslProg*>&	getTrackedGlslProgs() const { return mTrackedGlslProgs; }
-	//! Returns the container of tracked Vaos. Requires object tracking to be enabled.
-	const std::set<const Vao*>&			getTrackedVaos() const { return mTrackedVaos; }
-	//! Returns the container of tracked Fbos. Requires object tracking to be enabled.
-	const std::set<const Fbo*>&			getTrackedFbos() const { return mTrackedFbos; }
+	//! Returns the container of live Textures. Requires object tracking to be enabled.
+	const std::set<const TextureBase*>&	getLiveTextures() const { return mLiveTextures; }
+	//! Returns the container of live BufferObjs. Requires object tracking to be enabled.
+	const std::set<const BufferObj*>&	getLiveBuffers() const { return mLiveBuffers; }
+	//! Returns the container of live GlslProgs. Requires object tracking to be enabled.
+	const std::set<const GlslProg*>&	getLiveGlslProgs() const { return mLiveGlslProgs; }
+	//! Returns the container of live Vaos. Requires object tracking to be enabled.
+	const std::set<const Vao*>&			getLiveVaos() const { return mLiveVaos; }
+	//! Returns the container of live Fbos. Requires object tracking to be enabled.
+	const std::set<const Fbo*>&			getLiveFbos() const { return mLiveFbos; }
 
 	// Vertex Attributes
 	//! Analogous to glEnableVertexAttribArray()
@@ -423,11 +423,11 @@ class Context {
 
 	// Object tracking
 	bool							mObjectTrackingEnabled;
-	std::set<const TextureBase*>	mTrackedTextures;
-	std::set<const BufferObj*>		mTrackedBuffers;
-	std::set<const GlslProg*>		mTrackedGlslProgs;
-	std::set<const Vao*>			mTrackedVaos;
-	std::set<const Fbo*>			mTrackedFbos;
+	std::set<const TextureBase*>	mLiveTextures;
+	std::set<const BufferObj*>		mLiveBuffers;
+	std::set<const GlslProg*>		mLiveGlslProgs;
+	std::set<const Vao*>			mLiveVaos;
+	std::set<const Fbo*>			mLiveFbos;
 
 	friend class				Environment;
 	friend class				EnvironmentEs2Profile;

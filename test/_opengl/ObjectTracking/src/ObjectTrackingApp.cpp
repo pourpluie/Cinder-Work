@@ -126,15 +126,15 @@ void processObjects( vector<T> *v, const F &f, int defaultSize )
 void ObjectTrackingApp::setup()
 {
 	console() << "Textures" << std::endl;
-	processObjects( &mTexs, []() { return gl::context()->getTrackedTextures(); }, 0 );
+	processObjects( &mTexs, []() { return gl::context()->getLiveTextures(); }, 0 );
 	console() << "Buffers" << std::endl;
-	processObjects( &mVbos, []() { return gl::context()->getTrackedBuffers(); }, 0 );
+	processObjects( &mVbos, []() { return gl::context()->getLiveBuffers(); }, 0 );
 	console() << "GlslProgs" << std::endl;
-	processObjects( &mGlslProgs, []() { return gl::context()->getTrackedGlslProgs(); }, 1 );
+	processObjects( &mGlslProgs, []() { return gl::context()->getLiveGlslProgs(); }, 1 );
 	console() << "VAOs" << std::endl;
-	processObjects( &mVaos, []() { return gl::context()->getTrackedVaos(); }, 1 );
+	processObjects( &mVaos, []() { return gl::context()->getLiveVaos(); }, 1 );
 	console() << "FBOs" << std::endl;
-	processObjects( &mFbos, []() { return gl::context()->getTrackedFbos(); }, 0 );
+	processObjects( &mFbos, []() { return gl::context()->getLiveFbos(); }, 0 );
 }
 
 void ObjectTrackingApp::mouseDown( MouseEvent event )
