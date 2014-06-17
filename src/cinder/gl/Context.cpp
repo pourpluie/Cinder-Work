@@ -124,7 +124,7 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	mGlslProgStack.push_back( GlslProgRef() );
 
 	// set default shader
-	pushGlslProg( getStockShader( ShaderDef().color() ) );
+//	pushGlslProg( getStockShader( ShaderDef().color() ) );
 	// we manually need to add it to the tracking container because gl::context() isn't set yet
 	
 	// debug context

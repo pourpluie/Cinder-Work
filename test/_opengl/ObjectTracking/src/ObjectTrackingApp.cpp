@@ -61,7 +61,7 @@ void generateRandom( vector<gl::GlslProgRef> *v, size_t ct )
 				}
 			 ) )
 			.fragment(	CI_GLSL( 150,
-				varying highp vec3	oColor;
+				out vec3	oColor;
 				
 				void main( void ) {
 					oColor = vec3( 1, 1, 1 );

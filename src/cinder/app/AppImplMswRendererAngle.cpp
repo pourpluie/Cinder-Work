@@ -22,6 +22,7 @@
 */
 
 #include "cinder/app/AppImplMswRendererAngle.h"
+#include "cinder/app/RendererGl.h"
 
 #include "cinder/app/App.h"
 #include "cinder/gl/Environment.h"
@@ -45,7 +46,7 @@ void checkGlStatus();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // AppImplMswRendererAngle
 AppImplMswRendererAngle::AppImplMswRendererAngle( App *app, RendererGl *renderer )
-	: AppImplMswRenderer( app )
+	: AppImplMswRenderer( app ), mRenderer( renderer )
 {
 	
 }
@@ -115,6 +116,7 @@ bool AppImplMswRendererAngle::initialize( HWND wnd, HDC dc, RendererRef sharedRe
 	gl::Environment::setEs2();
 
 	std::shared_ptr<gl::PlatformDataAngle> platformData( new gl::PlatformDataAngle( mContext, mDisplay, mSurface, config ) );
+	platformData->mObjectTracking = mRenderer->getOptions().getObjectTracking();
 
 	mCinderContext = gl::Context::createFromExisting( platformData );
 	checkGlStatus();

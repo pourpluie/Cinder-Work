@@ -187,6 +187,7 @@ bool AppImplMswRendererGl::initialize( HWND wnd, HDC dc, RendererRef sharedRende
 	platformData->mDebug = mRenderer->getOptions().getDebug();
 	platformData->mDebugLogSeverity = mRenderer->getOptions().getDebugLogSeverity();
 	platformData->mDebugBreakSeverity = mRenderer->getOptions().getDebugBreakSeverity();
+	platformData->mObjectTracking = mRenderer->getOptions().getObjectTracking();
 	mCinderContext = gl::Context::createFromExisting( platformData );
 	mCinderContext->makeCurrent();
 
