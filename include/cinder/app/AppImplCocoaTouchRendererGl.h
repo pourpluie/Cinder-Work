@@ -44,6 +44,7 @@
 	GLuint			mMsaaFramebuffer, mMsaaRenderBuffer;
 	BOOL			mUsingMsaa;
     BOOL            mUsingStencil;
+	BOOL			mObjectTracking;
 	int				mMsaaSamples;
 }
 

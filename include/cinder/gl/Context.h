@@ -58,12 +58,12 @@ typedef std::shared_ptr<VertBatch>		VertBatchRef;
 class Context {
   public:
 	struct PlatformData {
-		PlatformData() : mDebug( false ), mDebugLogSeverity( 0 ), mDebugBreakSeverity( 0 )
+		PlatformData() : mDebug( false ), mObjectTracking( false ), mDebugLogSeverity( 0 ), mDebugBreakSeverity( 0 )
 		{}
 
 		virtual ~PlatformData() {}
 
-		bool		mDebug;
+		bool		mDebug, mObjectTracking;
 		GLenum		mDebugLogSeverity, mDebugBreakSeverity;
 	};
 

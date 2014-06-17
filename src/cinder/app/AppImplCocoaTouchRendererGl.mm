@@ -46,6 +46,7 @@
 	mMsaaSamples = cinder::app::RendererGl::sAntiAliasingSamples[aRenderer->getOptions().getAntiAliasing()];
 	mUsingMsaa = mMsaaSamples > 0;
 	mUsingStencil = aRenderer->getOptions().getStencil();
+	mObjectTracking = aRenderer->getOptions().getObjectTracking();
 	
 	[self allocateGraphics:sharedRenderer];
 	
@@ -72,6 +73,7 @@
 	
 	// force Cinder's context to be allocated
 	std::shared_ptr<cinder::gl::Context::PlatformData> platformData( new cinder::gl::PlatformDataIos( mContext ) );
+	platformData->mObjectTracking = mObjectTracking;
 	mCinderContext = cinder::gl::Context::createFromExisting( platformData );
 	mCinderContext->makeCurrent();
 
@@ -92,7 +94,7 @@
 		glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_RGBA8_OES, 0, 0 );
 		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mMsaaRenderBuffer );
 		
-		if ( !mUsingStencil ) {
+		if( ! mUsingStencil ) {
 			glGenRenderbuffers( 1, &mDepthRenderBuffer );
 			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
 			glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH_COMPONENT16, 0, 0  );
@@ -107,7 +109,7 @@
 		}
 	}
 	else {
-		if( !mUsingStencil ) {
+		if( ! mUsingStencil ) {
 			glGenRenderbuffers( 1, &mDepthRenderBuffer );
 			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
 			glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, 0, 0 );
@@ -140,7 +142,7 @@
 	
 	if( mUsingMsaa ) {
 		mCinderContext->bindFramebuffer( GL_FRAMEBUFFER, mMsaaFramebuffer );
-		if( !mUsingStencil ) {
+		if( ! mUsingStencil ) {
 			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
 			glRenderbufferStorageMultisampleAPPLE( GL_RENDERBUFFER, mMsaaSamples, GL_DEPTH_COMPONENT16, mBackingWidth, mBackingHeight );
 			glBindRenderbuffer( GL_RENDERBUFFER, mMsaaRenderBuffer );
@@ -154,7 +156,7 @@
 		}
 	}
 	else {
-		if ( !mUsingStencil ) {
+		if ( ! mUsingStencil ) {
 			glBindRenderbuffer( GL_RENDERBUFFER, mDepthRenderBuffer );
 			glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, mBackingWidth, mBackingHeight );
 		}

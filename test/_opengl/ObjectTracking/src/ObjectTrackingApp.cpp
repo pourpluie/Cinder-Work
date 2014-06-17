@@ -15,12 +15,8 @@ using namespace std;
 class ObjectTrackingApp : public AppNative {
   public:
 	void setup();
-	void mouseDown( MouseEvent event );	
-	void update();
 	void draw();
 
-	void eraseRandomTextures( size_t ct );
-	
 	vector<gl::TextureRef>		mTexs;
 	vector<gl::VboRef>			mVbos;
 	vector<gl::GlslProgRef>		mGlslProgs;
@@ -46,7 +42,7 @@ template<>
 void generateRandom( vector<gl::VboRef> *v, size_t ct )
 {
 	for( size_t i = 0; i < ct; ++i )
-		v->push_back( gl::Vbo::create( GL_VERTEX_ARRAY, 123 ) );
+		v->push_back( gl::Vbo::create( GL_ARRAY_BUFFER, 123 ) );
 }
 
 // generateRandom GlslProgs
@@ -55,6 +51,7 @@ void generateRandom( vector<gl::GlslProgRef> *v, size_t ct )
 {
 	for( size_t i = 0; i < ct; ++i ) {
 		auto temp = gl::GlslProg::create( gl::GlslProg::Format()
+#if ! defined( CINDER_GL_ES )
 			.vertex(	CI_GLSL( 150,
 				uniform mat4	ciModelViewProjection;
 				in vec4			ciPosition;
@@ -64,12 +61,18 @@ void generateRandom( vector<gl::GlslProgRef> *v, size_t ct )
 				}
 			 ) )
 			.fragment(	CI_GLSL( 150,
-				out vec3	oColor;
+				varying highp vec3	oColor;
 				
 				void main( void ) {
 					oColor = vec3( 1, 1, 1 );
 				}
 			) ) );
+			
+#else
+			.vertex(	"void main(void) { gl_Position = vec4( 1, 1, 1, 1 ); }")
+			.fragment( "void main( void ) { gl_FragColor = vec4( 1, 1, 1, 1 ); }" )
+			);
+#endif
 		v->push_back( temp );
 	}
 }
@@ -132,17 +135,13 @@ void ObjectTrackingApp::setup()
 	console() << "GlslProgs" << std::endl;
 	processObjects( &mGlslProgs, []() { return gl::context()->getLiveGlslProgs(); }, 1 );
 	console() << "VAOs" << std::endl;
+#if ! defined( CINDER_GL_ES )
 	processObjects( &mVaos, []() { return gl::context()->getLiveVaos(); }, 1 );
+#else
+	processObjects( &mVaos, []() { return gl::context()->getLiveVaos(); }, 0 );
+#endif
 	console() << "FBOs" << std::endl;
 	processObjects( &mFbos, []() { return gl::context()->getLiveFbos(); }, 0 );
-}
-
-void ObjectTrackingApp::mouseDown( MouseEvent event )
-{
-}
-
-void ObjectTrackingApp::update()
-{
 }
 
 void ObjectTrackingApp::draw()
@@ -150,4 +149,4 @@ void ObjectTrackingApp::draw()
 	gl::clear( Color( 0, 0, 0 ) ); 
 }
 
-CINDER_APP_NATIVE( ObjectTrackingApp, RendererGl )
+CINDER_APP_NATIVE( ObjectTrackingApp, RendererGl( RendererGl::Options().objectTracking() ) )

@@ -67,7 +67,7 @@ Context::Context( const std::shared_ptr<PlatformData> &platformData )
 	,mCachedFrontPolygonMode( GL_FILL ), mCachedBackPolygonMode( GL_FILL ),
 	mCachedTransformFeedbackObj( nullptr )
 #endif
-	, mObjectTrackingEnabled( true )
+	,mObjectTrackingEnabled( platformData->mObjectTracking )
 {
 	// set thread's active Context to 'this' in case anything calls gl::context() (like the GlslProg constructor)
 	Context::reflectCurrent( this );

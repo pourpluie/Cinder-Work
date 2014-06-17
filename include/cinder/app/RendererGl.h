@@ -77,6 +77,7 @@ class RendererGl : public Renderer {
 			mDebugLogSeverity = 0;
 			mDebugBreakSeverity = 0;
 #endif
+			mObjectTracking = false;
 			mStencil = false;
 			mDepthBufferBits = 24;
 		}
@@ -110,6 +111,11 @@ class RendererGl : public Renderer {
 		GLenum		getDebugBreakSeverity() const { return mDebugBreakSeverity; }
 #endif
 
+		//! Enables Context-level tracking of live objects. Defaults to \c false.
+		Options&	objectTracking( bool objectTracking = true ) { mObjectTracking = objectTracking; return *this; }
+		//! Returns whether Context-level tracking of live objects is enabled. Defaults to \c false.
+		bool		getObjectTracking() const { return mObjectTracking; }
+
 		//! Sets the number of bits dedicated to the depth buffer. Default is \c 24.
 		Options&	depthBufferDepth( int depthBufferBits ) { mDepthBufferBits = depthBufferBits; return *this; }
 		//! Returns the number of bits dedicated to the depth buffer. Default is 24.
@@ -135,6 +141,7 @@ class RendererGl : public Renderer {
 		GLenum					mDebugLogSeverity; // initial value of 0 means debug logging is disabled
 		GLenum					mDebugBreakSeverity; // initial value of 0 means debug break is disabled
 #endif
+		bool					mObjectTracking;
 	};
 
 
