@@ -24,6 +24,7 @@
 #include "cinder/gl/ConstantStrings.h"
 #include "cinder/gl/gl.h"
 
+#include <sstream>
 #include <unordered_map>
 
 namespace cinder { namespace gl {
@@ -173,16 +174,36 @@ std::string	constantToString( GLenum constant )
 		sSymbols[GL_RGBA16UI] = "GL_RGBA16UI";
 		sSymbols[GL_RGBA32I] = "GL_RGBA32I";
 		sSymbols[GL_RGBA32UI] = "GL_RGBA32UI";
-#endif
-
+#endif // ! defined( CINDER_GL_ES )
+		// framebuffer attachments
+		sSymbols[GL_STENCIL_ATTACHMENT] = "GL_STENCIL_ATTACHMENT";
+		sSymbols[GL_DEPTH_ATTACHMENT] = "GL_DEPTH_ATTACHMENT";
+		sSymbols[GL_COLOR_ATTACHMENT0] = "GL_COLOR_ATTACHMENT0";
+#if ! defined( CINDER_GL_ES_2 )
+		sSymbols[GL_DEPTH_STENCIL_ATTACHMENT] = "GL_DEPTH_STENCIL_ATTACHMENT";
+		sSymbols[GL_COLOR_ATTACHMENT1] = "GL_COLOR_ATTACHMENT1";
+		sSymbols[GL_COLOR_ATTACHMENT2] = "GL_COLOR_ATTACHMENT2";
+		sSymbols[GL_COLOR_ATTACHMENT3] = "GL_COLOR_ATTACHMENT3";
+		sSymbols[GL_COLOR_ATTACHMENT4] = "GL_COLOR_ATTACHMENT4";
+		sSymbols[GL_COLOR_ATTACHMENT5] = "GL_COLOR_ATTACHMENT5";
+		sSymbols[GL_COLOR_ATTACHMENT6] = "GL_COLOR_ATTACHMENT6";
+		sSymbols[GL_COLOR_ATTACHMENT7] = "GL_COLOR_ATTACHMENT7";
+		sSymbols[GL_COLOR_ATTACHMENT8] = "GL_COLOR_ATTACHMENT8";
+		sSymbols[GL_COLOR_ATTACHMENT9] = "GL_COLOR_ATTACHMENT9";
+#endif // ! defined( CINDER_GL_ES_2 )
+		
 		initialized = true;
 	}
 	
 	auto it = sSymbols.find( constant );
 	if( it != sSymbols.end() )
 		return it->second;
-	else
-		return std::string();
+	else {
+		// return constant as a hex integer
+		std::stringstream ss;
+		ss << "0x" << std::hex << constant;
+		return ss.str();
+	}
 }
 
 } } // namespace cinder::gl

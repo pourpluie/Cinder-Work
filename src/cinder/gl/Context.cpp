@@ -279,14 +279,14 @@ void Context::restoreInvalidatedVao()
 void Context::vaoCreated( const Vao *vao )
 {
 	if( mObjectTrackingEnabled )
-		mTrackedVaos.insert( vao );
+		mLiveVaos.insert( vao );
 }
 
 void Context::vaoDeleted( const Vao *vao )
 {
 	// remove from object tracking
 	if( mObjectTrackingEnabled )
-		mTrackedVaos.erase( vao );
+		mLiveVaos.erase( vao );
 		
 	// if this was the currently bound VAO, mark the top of the stack as null
 	if( ! mVaoStack.empty() && mVaoStack.back()->getId() == vao->getId() )
@@ -462,14 +462,14 @@ void Context::reflectBufferBinding( GLenum target, GLuint id )
 void Context::bufferCreated( const BufferObj *buffer )
 {
 	if( mObjectTrackingEnabled )
-		mTrackedBuffers.insert( buffer );
+		mLiveBuffers.insert( buffer );
 }
 
 void Context::bufferDeleted( const BufferObj *buffer )
 {
 	// remove from object tracking
 	if( mObjectTrackingEnabled )
-		mTrackedBuffers.erase( buffer );
+		mLiveBuffers.erase( buffer );
 
 	auto target = buffer->getTarget();
 
@@ -649,13 +649,13 @@ GlslProgRef Context::getGlslProg()
 void Context::glslProgCreated( const GlslProg *glslProg )
 {
 	if( mObjectTrackingEnabled )
-		mTrackedGlslProgs.insert( glslProg );
+		mLiveGlslProgs.insert( glslProg );
 }
 
 void Context::glslProgDeleted( const GlslProg *glslProg )
 {
 	if( mObjectTrackingEnabled )
-		mTrackedGlslProgs.erase( glslProg );
+		mLiveGlslProgs.erase( glslProg );
 }
 
 //////////////////////////////////////////////////////////////////
@@ -760,7 +760,7 @@ GLuint Context::getTextureBinding( GLenum target, uint8_t textureUnit )
 void Context::textureCreated( const TextureBase *texture )
 {
 	if( mObjectTrackingEnabled )
-		mTrackedTextures.insert( texture );
+		mLiveTextures.insert( texture );
 }
 
 void Context::textureDeleted( const TextureBase *texture )
@@ -770,7 +770,7 @@ void Context::textureDeleted( const TextureBase *texture )
 
 	// remove from object tracking
 	if( mObjectTrackingEnabled )
-		mTrackedTextures.erase( texture );
+		mLiveTextures.erase( texture );
 
 	for( auto &unit : mTextureBindingStack ) {
 		auto cachedIt = unit.second.find( target );
@@ -957,6 +957,19 @@ GLuint Context::getFramebuffer( GLenum target )
 		return 0; // 
 	}
 #endif
+}
+
+void Context::framebufferCreated( const Fbo *fbo )
+{
+	if( mObjectTrackingEnabled )
+		mLiveFbos.insert( fbo );
+}
+
+void Context::framebufferDeleted( const Fbo *fbo )
+{
+	// remove from object tracking
+	if( mObjectTrackingEnabled )
+		mLiveFbos.erase( fbo );
 }
 
 //////////////////////////////////////////////////////////////////
