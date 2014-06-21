@@ -49,12 +49,9 @@ class VboMesh {
 	static VboMeshRef	create( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo );
 
 	//! Maps a geom::Attrib to a named attribute in the GlslProg
-	typedef std::map<geom::Attrib,std::string> AttributeMapping;
+	typedef std::map<geom::Attrib,std::string> AttribGlslMap;
 	//! Constructs a VAO (in the currently bound VAO) that matches \a this to GlslProg \a shader, overriding the mapping of a geom::Attrib to a named attribute via the 'a attributeMapping std::map
-	void		buildVao( const GlslProgRef &shader, const AttributeMapping &attributeMapping = AttributeMapping() );
-
-	//! Issues a glDraw* call, but without binding a VAO or sending shader vars. Consider gl::draw( VboMeshRef ) instead. Knows whether to call glDrawArrays or glDrawElements
-	void		drawImpl();
+	void		buildVao( const GlslProgRef &shader, const AttribGlslMap &attributeMapping = AttribGlslMap() );
 
 	//! Returns the number of vertices in the mesh
 	uint32_t	getNumVertices() const { return mNumVertices; }
@@ -76,7 +73,113 @@ class VboMesh {
 	//! Returns the vector of pairs of (BufferLayout,VboRef) for the vertex data of the mesh
 	const std::vector<std::pair<geom::BufferLayout,VboRef>>&	getVertexArrayLayoutVbos() const { return mVertexArrayVbos; }
 	//! Adds a new VBO (paired with its geom::BufferLayout) to the VboMesh
-	void												appendVbo( const geom::BufferLayout &layout, const VboRef &vbo );
+	void												appendVbo( const geom::BufferLayout &layout, const VboRef &vbo );	
+
+	//! Returns a pair<geom::BufferLayout,VboRef>* that corresponds to \a attrib. Returns nullptr if not found
+	std::pair<geom::BufferLayout,VboRef>*		findAttrib( geom::Attrib attr );
+
+	class MappedAttribBase {
+	  public:
+		//! Must be called before object is destructed.
+		void		unmap();
+
+		~MappedAttribBase();
+		
+		MappedAttribBase( const MappedAttribBase &rhs )
+			: mMapping( rhs.mMapping ), mPtr( rhs.mPtr ), mStride( rhs.mStride )
+		{
+			mMapping->refCountInc();
+		}
+
+		MappedAttribBase& operator=( const MappedAttribBase &rhs )
+		{
+			mMapping = rhs.mMapping;
+			mMapping->refCountInc();
+			mPtr = rhs.mPtr;
+			mStride = rhs.mStride;
+			return *this;
+		}
+		
+		MappedAttribBase( MappedAttribBase &&rhs )
+		{
+			mMapping = rhs.mMapping;
+			rhs.mMapping = nullptr;
+			mPtr = rhs.mPtr;
+			mStride = rhs.mStride;
+		}
+		
+		MappedAttribBase& operator=( MappedAttribBase &&rhs )
+		{
+			mMapping = rhs.mMapping;
+			rhs.mMapping = nullptr;
+			mPtr = rhs.mPtr;
+			mStride = rhs.mStride;
+			return *this;
+		}
+	
+	  protected:
+		MappedAttribBase( VboMesh *mesh, const VboRef &vbo, void *ptr, size_t stride )
+			: mMapping( new Mapping( mesh, vbo ) ), mPtr( ptr ), mStride( stride )
+		{}
+		
+		struct Mapping {
+			Mapping( VboMesh *mesh, const VboRef &vbo )
+				: mMesh( mesh ), mVbo( vbo ), mRefCount( 1 ), mMapped( true )
+			{}
+	
+			Mapping( const Mapping &rhs ) = delete;
+			Mapping& operator=( const Mapping &rhs ) = delete;
+			
+			void		refCountInc() { ++mRefCount; }
+			//! Returns \c true if this was the last reference
+			bool		refCountDec() { --mRefCount; return mRefCount == 0; }
+			
+			void		unmap();
+			bool		isMapped() const { return mMapped; }
+			
+			
+			VboMesh		*mMesh;
+			bool		mMapped;
+			VboRef		mVbo;
+			uint32_t	mRefCount;
+		};
+		
+		friend class VboMesh;
+		
+		void		*mPtr;
+		Mapping		*mMapping;
+		size_t		mStride;	
+	};
+
+	template<typename T>
+	class MappedAttrib : public MappedAttribBase {
+	  public:
+		T&			operator*() { return *(reinterpret_cast<T*>( mPtr )); }
+		const T&	operator*() const { return *(reinterpret_cast<const T*>( mPtr )); }
+		
+		T&			operator[]( size_t i ) { *(reinterpret_cast<T*>( (uint8_t*)mPtr + mStride * i )); }
+		const T&	operator[]( size_t i ) const { *(reinterpret_cast<T*>( (uint8_t*)mPtr + mStride * i )); }
+		
+		// pre-increment
+		MappedAttrib	operator++() { mPtr = ((uint8_t*)mPtr) + mStride; return *this; }
+		// post-increment
+		MappedAttrib	operator++(int) { auto result = *this; mPtr = ((uint8_t*)mPtr) + mStride; return result; }
+
+	  protected:
+		MappedAttrib( VboMesh *mesh, const VboRef &vbo, void *ptr, size_t stride )
+			: MappedAttribBase( mesh, vbo, ptr, stride )
+		{}
+		
+		friend class VboMesh;
+	};
+
+	//! Must call unmap() on the result. Throws ExcMissingAttrib if the VboMesh doesn't contain \a attr.
+	MappedAttrib<Vec2f>		mapAttrib2f( geom::Attrib attr, bool orphanExisting = true );	
+	//! Must call unmap() on the result. Throws ExcMissingAttrib if the VboMesh doesn't contain \a attr.
+	MappedAttrib<Vec3f>		mapAttrib3f( geom::Attrib attr, bool orphanExisting = true );
+
+	//! Issues a glDraw* call, but without binding a VAO or sending shader vars. Consider gl::draw( VboMeshRef ) instead. Knows whether to call glDrawArrays or glDrawElements
+	void		drawImpl();
 
 #if ! defined( CINDER_GL_ES )
 	//! Returns a geom::Source which references 'this'. Inefficient - primarily useful for debugging. The returned geom::SourceRef should not outlive 'this' (not a shared_ptr).
@@ -97,12 +200,22 @@ class VboMesh {
 
 	void	echoVertices( std::ostream &os, const std::vector<uint32_t> &elements, bool printElements );
 
+	template<typename T>
+	MappedAttrib<T>		mapAttribImpl( geom::Attrib attr, bool orphanExisting );
+	void				unmapVboImpl( const VboRef &vbo );
+	
 	uint32_t			mNumVertices, mNumIndices;
 	GLenum				mGlPrimitive;
 	GLenum				mIndexType;
 
 	std::vector<std::pair<geom::BufferLayout,VboRef>>	mVertexArrayVbos;
 	VboRef												mElements;
+
+	struct MappedVboInfo {
+		size_t		mRefCount;
+		void		*mPtr;
+	};
+	std::map<VboRef,MappedVboInfo>		mMappedVbos;
 	
 	friend class VboMeshGeomTarget;
 };

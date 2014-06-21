@@ -68,8 +68,10 @@ class BufferLayout {
 		uint32_t	mInstanceDivisor;
 	}; 
 
-
 	BufferLayout() {}
+	BufferLayout( const std::vector<AttribInfo> &attribs )
+		: mAttribs( attribs )
+	{}
 	
 	void append( const Attrib &attrib, uint8_t dims, size_t stride, size_t offset, uint32_t instanceDivisor = 0 ) {
 		mAttribs.push_back( AttribInfo( attrib, dims, stride, offset, instanceDivisor ) );

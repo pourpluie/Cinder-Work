@@ -23,6 +23,7 @@
 #include "cinder/gl/VboMesh.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Context.h"
+#include "cinder/Log.h"
 
 using namespace std;
 
@@ -171,7 +172,7 @@ VboMesh::VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive,
 {
 }
 
-void VboMesh::buildVao( const GlslProgRef &shader, const AttributeMapping &attributeMapping )
+void VboMesh::buildVao( const GlslProgRef &shader, const AttribGlslMap &attributeMapping )
 {
 	auto ctx = gl::context();
 	
@@ -212,6 +213,110 @@ void VboMesh::drawImpl()
 		glDrawElements( mGlPrimitive, mNumIndices, mIndexType, (GLvoid*)( 0 ) );
 	else
 		glDrawArrays( mGlPrimitive, 0, mNumVertices );
+}
+
+std::pair<geom::BufferLayout,VboRef>* VboMesh::findAttrib( geom::Attrib attr )
+{
+	for( auto &vertexArrayVbo : mVertexArrayVbos ) {
+		if( vertexArrayVbo.first.hasAttrib( attr ) )
+			return &vertexArrayVbo;
+	}
+	
+	return nullptr;
+}
+
+template<typename T>
+VboMesh::MappedAttrib<T> VboMesh::mapAttribImpl( geom::Attrib attr, bool orphanExisting )
+{
+	std::pair<geom::BufferLayout,VboRef>* layoutVbo = findAttrib( attr );
+	if( ! layoutVbo )
+		throw geom::ExcMissingAttrib();
+	
+	void *dataPtr;
+	
+	// see if this VBO has already been mapped
+	auto existingIt = mMappedVbos.find( layoutVbo->second );
+	if( existingIt != mMappedVbos.end() ) {
+		existingIt->second.mRefCount++;
+		dataPtr = existingIt->second.mPtr;
+	}
+	else {
+		MappedVboInfo mappedVboInfo;
+		mappedVboInfo.mRefCount = 1;
+		if( orphanExisting ) {
+			layoutVbo->second->bufferData( layoutVbo->second->getSize(), nullptr, layoutVbo->second->getUsage() );
+		}
+#if defined( CINDER_GL_ES )
+		mappedVboInfo.mPtr = layoutVbo->second->map( GL_WRITE_ONLY_OES );
+#else
+		mappedVboInfo.mPtr = layoutVbo->second->map( GL_WRITE_ONLY );
+#endif
+		mMappedVbos[layoutVbo->second] = mappedVboInfo;
+		dataPtr = mappedVboInfo.mPtr;
+	}
+	
+	auto attribInfo = layoutVbo->first.getAttribInfo( attr );
+	auto stride = ( attribInfo.getStride() == 0 ) ? sizeof(T) : attribInfo.getStride();
+	return VboMesh::MappedAttrib<T>( this, layoutVbo->second, ((uint8_t*)dataPtr) + attribInfo.getOffset(), stride );
+}
+
+VboMesh::MappedAttrib<Vec2f> VboMesh::mapAttrib2f( geom::Attrib attr, bool orphanExisting )
+{
+	return mapAttribImpl<Vec2f>( attr, orphanExisting );
+}
+
+VboMesh::MappedAttrib<Vec3f> VboMesh::mapAttrib3f( geom::Attrib attr, bool orphanExisting )
+{
+	return mapAttribImpl<Vec3f>( attr, orphanExisting );
+}
+
+void VboMesh::MappedAttribBase::unmap()
+{
+	if( mMapping )
+		mMapping->unmap();
+	mPtr = nullptr;
+}
+
+VboMesh::MappedAttribBase::~MappedAttribBase()
+{
+	if( mMapping ) {
+		// if this was the last reference the user forgot to unmap
+		if( mMapping->refCountDec() ) {
+			// if this isn't null the user forgot to unmap
+			if( mMapping->isMapped() )
+				CI_LOG_E( "MappedAttrib was never unmapped" );
+			delete mMapping;
+		}
+	}
+}
+
+void VboMesh::MappedAttribBase::Mapping::unmap()
+{
+	if( ! mMapped ) {
+		CI_LOG_E( "MappedAttrib unmapped more than once" );
+	}
+	else {
+		mMesh->unmapVboImpl( mVbo );
+		mMapped = false;
+	}
+}
+
+void VboMesh::unmapVboImpl( const VboRef &vbo )
+{
+	// find the corresponding entry for this VBO in mMappedVbos
+	auto existingIt = mMappedVbos.find( vbo );
+	if( existingIt != mMappedVbos.end() ) {
+		CI_ASSERT( existingIt->second.mRefCount > 0 );
+		
+		existingIt->second.mRefCount--;
+		// last one out turn off the lights; unmap the VBO and erase this entry from mMappedVbos
+		if( existingIt->second.mRefCount == 0 ) {
+			existingIt->first->unmap();
+			mMappedVbos.erase( existingIt );
+		}
+	}
+	else
+		CI_LOG_E( "Attempto unmap VboMesh::MappedAttrib that was never mapped." );
 }
 
 std::vector<VboRef>	VboMesh::getVertexArrayVbos()
