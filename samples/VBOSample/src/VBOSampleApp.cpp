@@ -6,6 +6,7 @@
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/VboMesh.h"
 #include "cinder/gl/Texture.h"
+#include "cinder/gl/Shader.h"
 #include "cinder/Camera.h"
 #include "cinder/ImageIo.h"
 
@@ -35,7 +36,6 @@ void VboSampleApp::setup()
 {
 	// setup the parameters of the Vbo
 	int totalVertices = VERTICES_X * VERTICES_Z;
-	int totalQuads = ( VERTICES_X - 1 ) * ( VERTICES_Z - 1 );
 
 	// buffer our static data - the texcoords and the indices
 	vector<uint32_t> indices;
@@ -45,11 +45,11 @@ void VboSampleApp::setup()
 			// create a quad for each vertex, except for along the bottom and right edges
 			if( ( x + 1 < VERTICES_X ) && ( z + 1 < VERTICES_Z ) ) {
 				indices.push_back( (x+0) * VERTICES_Z + (z+0) );
+				indices.push_back( (x+0) * VERTICES_Z + (z+1) );
+				indices.push_back( (x+1) * VERTICES_Z + (z+1) );
+				indices.push_back( (x+1) * VERTICES_Z + (z+1) );
+				indices.push_back( (x+0) * VERTICES_Z + (z+0) );
 				indices.push_back( (x+1) * VERTICES_Z + (z+0) );
-				indices.push_back( (x+1) * VERTICES_Z + (z+1) );
-				indices.push_back( (x+0) * VERTICES_Z + (z+1) );
-				indices.push_back( (x+1) * VERTICES_Z + (z+1) );
-				indices.push_back( (x+0) * VERTICES_Z + (z+1) );
 			}
 			// the texture coordinates are mapped to [0,1.0)
 			texCoords.push_back( Vec2f( x / (float)VERTICES_X, z / (float)VERTICES_Z ) );
@@ -63,13 +63,13 @@ void VboSampleApp::setup()
 	gl::VboRef indexVbo = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW );
 	mVboMesh = gl::VboMesh::create( totalVertices, GL_TRIANGLES,
 									{ { texCoordLayout, texCoordsVbo }, { positionLayout, positionsVbo } },
-									totalQuads * 6, GL_UNSIGNED_INT, indexVbo );
+									indices.size(), GL_UNSIGNED_INT, indexVbo );
 	
 	// make a second Vbo that uses the statics from the first
 	gl::VboRef positions2Vbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(Vec3f) * totalVertices, nullptr, GL_STREAM_DRAW );
 	mVboMesh2 = gl::VboMesh::create( totalVertices, GL_TRIANGLES,
 									{ { texCoordLayout, texCoordsVbo }, { positionLayout, positions2Vbo } },
-									totalQuads * 6, GL_UNSIGNED_INT, indexVbo );
+									indices.size(), GL_UNSIGNED_INT, indexVbo );
 	
 	mTexture = gl::Texture::create( loadImage( loadResource( RES_IMAGE ) ) );
 }
@@ -93,7 +93,7 @@ void VboSampleApp::update()
 	positions.unmap();
 
 	// dynamically generate our new positions based on a simple sine wave for mesh2
-	auto positions2 = mVboMesh->mapAttrib3f( geom::Attrib::POSITION );
+	auto positions2 = mVboMesh2->mapAttrib3f( geom::Attrib::POSITION );
 	for( int x = 0; x < VERTICES_X; ++x ) {
 		for( int z = 0; z < VERTICES_Z; ++z ) {
 			float height = sin( z / (float)VERTICES_Z * zFreq * 2 + x / (float)VERTICES_X * xFreq * 3 + offset ) / 10.0f;
@@ -109,11 +109,11 @@ void VboSampleApp::draw()
 	gl::clear( Color( 0.15f, 0.15f, 0.15f ) );
 	gl::setMatrices( mCamera );
 
-	mVboMesh->echoVertexRange( console(), 0, 10 );
-
 	gl::scale( Vec3f( 10, 10, 10 ) );
 	gl::ScopedTextureBind texBind( mTexture );
+	gl::ScopedGlslProg prog( gl::getStockShader( gl::ShaderDef().texture() ) );
 	gl::draw( mVboMesh );
+	
 	gl::draw( mVboMesh2 );
 }
 
