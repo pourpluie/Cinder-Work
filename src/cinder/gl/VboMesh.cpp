@@ -87,7 +87,7 @@ void VboMeshGeomTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stri
 {
 //	mMesh->copyAttrib( attr, dims, strideBytes, srcData, count );
 	if( mBufferLayout.hasAttrib( attr ) ) {
-		geom::BufferLayout::AttribInfo attrInfo = mBufferLayout.getAttribInfo( attr );
+		geom::AttribInfo attrInfo = mBufferLayout.getAttribInfo( attr );
 		geom::copyData( dims, srcData, count, attrInfo.getDims(), attrInfo.getStride(), reinterpret_cast<float*>( mData + attrInfo.getOffset() ) ); 
 	}
 }
@@ -144,7 +144,7 @@ VboMesh::VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboR
 	for( int attribIt = 0; attribIt < (int)geom::Attrib::NUM_ATTRIBS; ++attribIt ) {
 		auto attribDims = source.getAttribDims( (geom::Attrib)attribIt );
 		if( attribDims > 0 ) {
-			bufferLayout.append( (geom::Attrib)attribIt, attribDims, 0, vertexDataSizeBytes );
+			bufferLayout.append( (geom::Attrib)attribIt, geom::DataType::FLOAT, attribDims, 0, vertexDataSizeBytes );
 			vertexDataSizeBytes += attribDims * sizeof(float) * mNumVertices;
 		}
 	}
@@ -256,6 +256,10 @@ VboMesh::MappedAttrib<T> VboMesh::mapAttribImpl( geom::Attrib attr, bool orphanE
 	}
 	
 	auto attribInfo = layoutVbo->first.getAttribInfo( attr );
+	
+	if( attribInfo.getDims() != T::DIM )
+		CI_LOG_W( "Mapping geom::Attrib of dims " << (int)attribInfo.getDims() << " as Vec" << T::DIM );
+
 	auto stride = ( attribInfo.getStride() == 0 ) ? sizeof(T) : attribInfo.getStride();
 	return VboMesh::MappedAttrib<T>( this, layoutVbo->second, ((uint8_t*)dataPtr) + attribInfo.getOffset(), stride );
 }

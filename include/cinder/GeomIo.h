@@ -37,44 +37,54 @@ class Target;
 typedef std::shared_ptr<class Source>	SourceRef;
 
 // keep this incrementing by 1 only; some code relies on that for iterating; add corresponding entry to sAttribNames
-enum class Attrib { POSITION, COLOR, TEX_COORD_0, TEX_COORD_1, TEX_COORD_2, TEX_COORD_3,
+enum Attrib { POSITION, COLOR, TEX_COORD_0, TEX_COORD_1, TEX_COORD_2, TEX_COORD_3,
 					NORMAL, TANGENT, BITANGENT, BONE_INDEX, BONE_WEIGHT, 
 					CUSTOM_0, CUSTOM_1, CUSTOM_2, CUSTOM_3, CUSTOM_4, CUSTOM_5, CUSTOM_6, CUSTOM_7, CUSTOM_8, CUSTOM_9,
 					NUM_ATTRIBS };
 extern std::string sAttribNames[(int)Attrib::NUM_ATTRIBS];
-enum class Primitive { LINES, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN }; 
+enum Primitive { LINES, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN }; 
+enum DataType { FLOAT, INTEGER, DOUBLE };
 
 //! Debug utility which returns the name of \a attrib as a std::string
 std::string attribToString( Attrib attrib );
 
+struct AttribInfo {
+	AttribInfo( const Attrib &attrib, uint8_t dims, size_t stride, size_t offset, uint32_t instanceDivisor = 0 )
+		: mAttrib( attrib ), mDims( dims ), mDataType( DataType::FLOAT ), mStride( stride ), mOffset( offset ), mInstanceDivisor( instanceDivisor )
+	{}
+	AttribInfo( const Attrib &attrib, DataType dataType, uint8_t dims, size_t stride, size_t offset, uint32_t instanceDivisor = 0 )
+		: mAttrib( attrib ), mDims( dims ), mDataType( dataType ), mStride( stride ), mOffset( offset ), mInstanceDivisor( instanceDivisor )
+	{}
+
+	Attrib		getAttrib() const { return mAttrib; }
+	uint8_t		getDims() const { return mDims; }
+	DataType	getDataType() const { return mDataType; }
+	size_t		getStride() const { return mStride; }
+	size_t		getOffset() const { return mOffset;	}
+	uint32_t	getInstanceDivisor() const { return mInstanceDivisor; }
+	
+  protected:
+	Attrib		mAttrib;
+	DataType	mDataType;
+	int32_t		mDims;
+	size_t		mStride;
+	size_t		mOffset;
+	uint32_t	mInstanceDivisor;
+}; 
+
+
 class BufferLayout {
   public:
-	struct AttribInfo {
-		AttribInfo( const Attrib &attrib, uint8_t dims, size_t stride, size_t offset, uint32_t instanceDivisor = 0 )
-			: mAttrib( attrib ), mDims( dims ), mStride( stride ), mOffset( offset ), mInstanceDivisor( instanceDivisor )
-		{}
-	
-		Attrib		getAttrib() const { return mAttrib; }
-		uint8_t		getDims() const { return mDims; }
-		size_t		getStride() const { return mStride; }
-		size_t		getOffset() const { return mOffset;	}
-		uint32_t	getInstanceDivisor() const { return mInstanceDivisor; }
-		
-	  protected:
-		Attrib		mAttrib;
-		int32_t		mDims;
-		size_t		mStride;
-		size_t		mOffset;
-		uint32_t	mInstanceDivisor;
-	}; 
-
 	BufferLayout() {}
 	BufferLayout( const std::vector<AttribInfo> &attribs )
 		: mAttribs( attribs )
 	{}
 	
 	void append( const Attrib &attrib, uint8_t dims, size_t stride, size_t offset, uint32_t instanceDivisor = 0 ) {
-		mAttribs.push_back( AttribInfo( attrib, dims, stride, offset, instanceDivisor ) );
+		mAttribs.push_back( AttribInfo( attrib, DataType::FLOAT, dims, stride, offset, instanceDivisor ) );
+	}
+	void append( const Attrib &attrib, DataType dataType, uint8_t dims, size_t stride, size_t offset, uint32_t instanceDivisor = 0 ) {
+		mAttribs.push_back( AttribInfo( attrib, dataType, dims, stride, offset, instanceDivisor ) );
 	}
 	
 	//! Returns the AttribInfo for a given Attrib, and throws ExcMissingAttrib if it is not available

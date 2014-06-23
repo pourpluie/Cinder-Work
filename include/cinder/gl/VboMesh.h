@@ -157,8 +157,8 @@ class VboMesh {
 		T&			operator*() { return *(reinterpret_cast<T*>( mPtr )); }
 		const T&	operator*() const { return *(reinterpret_cast<const T*>( mPtr )); }
 		
-		T&			operator[]( size_t i ) { *(reinterpret_cast<T*>( (uint8_t*)mPtr + mStride * i )); }
-		const T&	operator[]( size_t i ) const { *(reinterpret_cast<T*>( (uint8_t*)mPtr + mStride * i )); }
+		T&			operator[]( size_t i ) { return *(reinterpret_cast<T*>( ((uint8_t*)mPtr) + mStride * i )); }
+		const T&	operator[]( size_t i ) const { return *(reinterpret_cast<T*>( ((uint8_t*)mPtr) + mStride * i )); }
 		
 		// pre-increment
 		MappedAttrib	operator++() { mPtr = ((uint8_t*)mPtr) + mStride; return *this; }

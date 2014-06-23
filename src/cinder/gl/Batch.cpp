@@ -66,7 +66,7 @@ void BatchGeomTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride
 {
 //	mMesh->copyAttrib( attr, dims, strideBytes, srcData, count );
 	if( mBufferLayout.hasAttrib( attr ) ) {
-		geom::BufferLayout::AttribInfo attrInfo = mBufferLayout.getAttribInfo( attr );
+		geom::AttribInfo attrInfo = mBufferLayout.getAttribInfo( attr );
 		geom::copyData( dims, srcData, count, attrInfo.getDims(), attrInfo.getStride(), reinterpret_cast<float*>( mData + attrInfo.getOffset() ) ); 
 	}
 }
@@ -135,7 +135,7 @@ void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 	for( int attribIt = 0; attribIt < (int)geom::Attrib::NUM_ATTRIBS; ++attribIt ) {
 		auto attribDims = source.getAttribDims( (geom::Attrib)attribIt );
 		if( attribDims > 0 ) {
-			bufferLayout.append( (geom::Attrib)attribIt, attribDims, 0, vertexDataSizeBytes );
+			bufferLayout.append( (geom::Attrib)attribIt, geom::DataType::FLOAT, attribDims, 0, vertexDataSizeBytes );
 			vertexDataSizeBytes += attribDims * sizeof(float) * mNumVertices;
 		}
 	}
