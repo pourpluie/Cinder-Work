@@ -226,7 +226,7 @@ std::pair<geom::BufferLayout,VboRef>* VboMesh::findAttrib( geom::Attrib attr )
 }
 
 template<typename T>
-VboMesh::MappedAttrib<T> VboMesh::mapAttribImpl( geom::Attrib attr, bool orphanExisting )
+VboMesh::MappedAttrib<T> VboMesh::mapAttribImpl( geom::Attrib attr, int dims, bool orphanExisting )
 {
 	std::pair<geom::BufferLayout,VboRef>* layoutVbo = findAttrib( attr );
 	if( ! layoutVbo )
@@ -257,21 +257,32 @@ VboMesh::MappedAttrib<T> VboMesh::mapAttribImpl( geom::Attrib attr, bool orphanE
 	
 	auto attribInfo = layoutVbo->first.getAttribInfo( attr );
 	
-	if( attribInfo.getDims() != T::DIM )
-		CI_LOG_W( "Mapping geom::Attrib of dims " << (int)attribInfo.getDims() << " as Vec" << T::DIM );
+	if( dims != attribInfo.getDims() ) {
+		CI_LOG_W( "Mapping geom::Attrib of dims " << (int)attribInfo.getDims() << " to type of dims " << dims );	
+	}
 
 	auto stride = ( attribInfo.getStride() == 0 ) ? sizeof(T) : attribInfo.getStride();
 	return VboMesh::MappedAttrib<T>( this, layoutVbo->second, ((uint8_t*)dataPtr) + attribInfo.getOffset(), stride );
 }
 
+VboMesh::MappedAttrib<float> VboMesh::mapAttrib1f( geom::Attrib attr, bool orphanExisting )
+{
+	return mapAttribImpl<float>( attr, orphanExisting, 1 );
+}
+
 VboMesh::MappedAttrib<Vec2f> VboMesh::mapAttrib2f( geom::Attrib attr, bool orphanExisting )
 {
-	return mapAttribImpl<Vec2f>( attr, orphanExisting );
+	return mapAttribImpl<Vec2f>( attr, orphanExisting, 2 );
 }
 
 VboMesh::MappedAttrib<Vec3f> VboMesh::mapAttrib3f( geom::Attrib attr, bool orphanExisting )
 {
-	return mapAttribImpl<Vec3f>( attr, orphanExisting );
+	return mapAttribImpl<Vec3f>( attr, orphanExisting, 3 );
+}
+
+VboMesh::MappedAttrib<Vec4f> VboMesh::mapAttrib4f( geom::Attrib attr, bool orphanExisting )
+{
+	return mapAttribImpl<Vec4f>( attr, orphanExisting, 4 );
 }
 
 void VboMesh::MappedAttribBase::unmap()

@@ -174,9 +174,13 @@ class VboMesh {
 	};
 
 	//! Must call unmap() on the result. Throws ExcMissingAttrib if the VboMesh doesn't contain \a attr.
+	MappedAttrib<float>		mapAttrib1f( geom::Attrib attr, bool orphanExisting = true );	
+	//! Must call unmap() on the result. Throws ExcMissingAttrib if the VboMesh doesn't contain \a attr.
 	MappedAttrib<Vec2f>		mapAttrib2f( geom::Attrib attr, bool orphanExisting = true );	
 	//! Must call unmap() on the result. Throws ExcMissingAttrib if the VboMesh doesn't contain \a attr.
 	MappedAttrib<Vec3f>		mapAttrib3f( geom::Attrib attr, bool orphanExisting = true );
+	//! Must call unmap() on the result. Throws ExcMissingAttrib if the VboMesh doesn't contain \a attr.
+	MappedAttrib<Vec4f>		mapAttrib4f( geom::Attrib attr, bool orphanExisting = true );
 
 	//! Issues a glDraw* call, but without binding a VAO or sending shader vars. Consider gl::draw( VboMeshRef ) instead. Knows whether to call glDrawArrays or glDrawElements
 	void		drawImpl();
@@ -201,7 +205,7 @@ class VboMesh {
 	void	echoVertices( std::ostream &os, const std::vector<uint32_t> &elements, bool printElements );
 
 	template<typename T>
-	MappedAttrib<T>		mapAttribImpl( geom::Attrib attr, bool orphanExisting );
+	MappedAttrib<T>		mapAttribImpl( geom::Attrib attr, int dims, bool orphanExisting );
 	void				unmapVboImpl( const VboRef &vbo );
 	
 	uint32_t			mNumVertices, mNumIndices;
