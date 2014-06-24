@@ -63,6 +63,11 @@ struct AttribInfo {
 	size_t		getOffset() const { return mOffset;	}
 	uint32_t	getInstanceDivisor() const { return mInstanceDivisor; }
 	
+	void		setStride( size_t stride ) { mStride = stride; }
+	void		setOffset( size_t offset ) { mOffset = offset; }
+	
+	uint8_t		getByteSize() const { if( mDataType == geom::DataType::DOUBLE ) return mDims * 8; else return mDims * 4; }
+	
   protected:
 	Attrib		mAttrib;
 	DataType	mDataType;
@@ -354,6 +359,9 @@ class ExcIllegalPrimitiveType : public Exception {
 };
 
 class ExcNoIndices : public Exception {
+};
+
+class ExcIllegalIndexType : public Exception {
 };
 
 // Attempt to store >65535 indices into a uint16_t

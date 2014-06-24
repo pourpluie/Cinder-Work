@@ -116,6 +116,38 @@ void VboMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *
 	}
 }
 
+void VboMesh::Layout::allocate( size_t numVertices, geom::BufferLayout *resultBufferLayout, gl::VboRef *resultVbo ) const
+{
+	auto attribInfos = mAttribInfos;
+
+	// setup offsets and strides based on interleaved or planar
+	size_t totalDataBytes;
+	if( mInterleave ) {
+		size_t totalStride = 0;
+		for( const auto &attrib : attribInfos )
+			totalStride += attrib.getByteSize();
+		size_t currentOffset = 0;
+		for( auto &attrib : attribInfos ) {
+			attrib.setOffset( currentOffset );
+			attrib.setStride( totalStride );
+			currentOffset += attrib.getByteSize();
+		}
+		totalDataBytes = currentOffset * numVertices;
+	}
+	else { // planar data
+		size_t currentOffset = 0;
+		for( auto &attrib : attribInfos ) {
+			attrib.setOffset( currentOffset );
+			attrib.setStride( attrib.getByteSize() );
+			currentOffset += attrib.getByteSize() * numVertices;
+		}
+		totalDataBytes = currentOffset;
+	}
+
+	*resultBufferLayout = geom::BufferLayout( attribInfos );
+	*resultVbo = Vbo::create( GL_ARRAY_BUFFER, totalDataBytes, nullptr, mUsage );
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // VboMesh
 VboMeshRef VboMesh::create( const geom::Source &source )
@@ -131,6 +163,11 @@ VboMeshRef VboMesh::create( uint32_t numVertices, GLenum glPrimitive, const std:
 VboMeshRef VboMesh::create( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo )
 {
 	return VboMeshRef( new VboMesh( source, arrayVbo, elementArrayVbo ) );
+}
+
+VboMeshRef VboMesh::create( uint32_t numVertices, GLenum glPrimitive, const std::vector<Layout> &vertexArrayLayouts, uint32_t numIndices, GLenum indexType, const VboRef &indexVbo )
+{
+	return VboMeshRef( new VboMesh( numVertices, glPrimitive, numIndices, indexType, vertexArrayLayouts, indexVbo ) );
 }
 
 VboMesh::VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo )
@@ -170,6 +207,35 @@ VboMesh::VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboR
 VboMesh::VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo )
 	: mNumVertices( numVertices ), mNumIndices( numIndices ), mGlPrimitive( glPrimitive ), mIndexType( indexType ), mVertexArrayVbos( vertexArrayBuffers ), mElements( indexVbo )
 {
+	if( ! mElements )
+		allocateIndexVbo();
+}
+
+VboMesh::VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<Layout> &vertexArrayLayouts, const VboRef &indexVbo )
+	: mNumVertices( numVertices ), mNumIndices( numIndices ), mGlPrimitive( glPrimitive ), mIndexType( indexType ), mElements( indexVbo )
+{
+	geom::BufferLayout bufferLayout;
+	VboRef vbo;
+	for( const auto &layout : vertexArrayLayouts ) {
+		layout.allocate( numVertices, &bufferLayout, &vbo );
+		mVertexArrayVbos.push_back( make_pair( bufferLayout, vbo ) );
+	}
+	
+	if( ! mElements )
+		allocateIndexVbo();
+}
+
+void VboMesh::allocateIndexVbo()
+{
+	size_t bytesRequired = 1; // GL_UNSIGNED_BYTE
+	if( mIndexType == GL_UNSIGNED_SHORT )
+		bytesRequired = 2;
+	else if( mIndexType == GL_UNSIGNED_INT )
+		bytesRequired = 4;
+	else
+		throw geom::ExcIllegalIndexType();
+		
+	mElements = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, mNumIndices * bytesRequired, nullptr, GL_STATIC_DRAW );
 }
 
 void VboMesh::buildVao( const GlslProgRef &shader, const AttribGlslMap &attributeMapping )

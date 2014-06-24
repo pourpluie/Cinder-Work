@@ -17,9 +17,9 @@ using namespace ci::app;
 using std::vector;
 
 
-/*** This sample demonstrates the Vbo class by creating a simple grid mesh with a texture mapped onto it.
- * The mesh has static indices and texture coordinates, but its vertex positions are dynamic.
- * It also creates a second mesh which shares static and index buffers, but has its own dynamic buffer ***/
+/*** This sample demonstrates the VboMesh class by creating a pair of grid meshes with textures mapped to them.
+ * The meshes have static indices and texture coordinates, but the vertex positions are dynamic.
+ * The second mesh which shares static and index buffers with the first, but has its own dynamic buffer for positions ***/
 class VboSampleApp : public AppBasic {
  public:
 	void setup();
@@ -58,7 +58,7 @@ void VboSampleApp::setup()
 		}
 	}
 
-	geom::BufferLayout texCoordLayout = { { geom::AttribInfo( geom::TEX_COORD_0, 2, 0, 0 ) } };
+/*	geom::BufferLayout texCoordLayout = { { geom::AttribInfo( geom::TEX_COORD_0, 2, 0, 0 ) } };
 	gl::VboRef texCoordsVbo = gl::Vbo::create( GL_ARRAY_BUFFER, texCoords, GL_STATIC_DRAW );
 	geom::BufferLayout positionLayout = { { geom::AttribInfo( geom::POSITION, 3, 0, 0 ) } };
 	gl::VboRef positionsVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(Vec3f) * totalVertices, nullptr, GL_STREAM_DRAW );
@@ -66,11 +66,19 @@ void VboSampleApp::setup()
 	mVboMesh = gl::VboMesh::create( totalVertices, GL_TRIANGLES,
 									{ { texCoordLayout, texCoordsVbo }, { positionLayout, positionsVbo } },
 									indices.size(), GL_UNSIGNED_INT, indexVbo );
-	
+
+	gl::VboRef indexVbo = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW );									
+	mVboMesh = gl::VboMesh::create( totalVertices, GL_TRIANGLES,
+									{ { texCoordLayout, texCoordsVbo }, { positionLayout, positionsVbo } },
+									indices.size(), GL_UNSIGNED_INT, indexVbo );	
+*/	
 	// make a second Vbo that uses the statics from the first
+	gl::VboRef indexVbo = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW );									
+
 	gl::VboRef positions2Vbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(Vec3f) * totalVertices, nullptr, GL_STREAM_DRAW );
 	mVboMesh2 = gl::VboMesh::create( totalVertices, GL_TRIANGLES,
-									{ { texCoordLayout, texCoordsVbo }, { positionLayout, positions2Vbo } },
+									{ gl::VboMesh::Layout().attrib( geom::TEX_COORD_0, 2 ).usage( GL_STATIC_DRAW ),
+									  gl::VboMesh::Layout().attrib( geom::POSITION, 3 ).usage( GL_STREAM_DRAW ) },
 									indices.size(), GL_UNSIGNED_INT, indexVbo );
 	
 	mTexture = gl::Texture::create( loadImage( loadResource( RES_IMAGE ) ) );

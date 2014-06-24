@@ -41,10 +41,35 @@ void drawRange( const VboMeshRef& vbo, GLint start, GLsizei count );
 
 class VboMesh {
   public:
+	class Layout {
+	  public:
+		Layout() : mUsage( GL_STATIC_DRAW ), mInterleave( false ) {}
+
+		//! Specifies whether the data is stored planar or interleaved.
+		Layout&		interleave( bool interleave = true ) { mInterleave = interleave; return *this; }
+		bool		getInterleave() const { return mInterleave; }
+		/** For Desktop GL, \c GL_STREAM_DRAW, \c GL_STREAM_READ, \c GL_STREAM_COPY, \c GL_STATIC_DRAW, \c GL_STATIC_READ, \c GL_STATIC_COPY, \c GL_DYNAMIC_DRAW, \c GL_DYNAMIC_READ, or \c GL_DYNAMIC_COPY.
+			For ES 2, \c GL_STREAM_DRAW, \c GL_STATIC_DRAW, or \c GL_DYNAMIC_DRAW **/
+		Layout&		usage( GLenum usage ) { mUsage = usage; return *this; }
+		GLenum		getUsage() const { return mUsage; }
+		Layout&		attrib( geom::Attrib attrib, uint8_t dims ) { mAttribInfos.push_back( geom::AttribInfo( attrib, dims, 0, 0, 0 ) ); return *this; }
+		
+		void		clearAttribs() { mAttribInfos.clear(); }
+
+		void		allocate( size_t numVertices, geom::BufferLayout *resultBufferLayout, gl::VboRef *resultVbo ) const;
+
+	  protected:
+		GLenum							mUsage;
+		bool							mInterleave;
+		std::vector<geom::AttribInfo>	mAttribInfos;
+	};
+  
 	//! Creates a VboMesh which represents the geom::Source \a source.
 	static VboMeshRef	create( const geom::Source &source );
-	//! Creates a VboMesh which represents the user's vertex buffer objects. Allows optional \a indexVbo to enable indexed vertices.
-	static VboMeshRef	create( uint32_t numVertices, GLenum glPrimitive, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, uint32_t numIndices = 0, GLenum indexType = GL_UNSIGNED_BYTE, const VboRef &indexVbo = VboRef() );
+	//! Creates a VboMesh which represents the user's vertex buffer objects. Allows optional \a indexVbo to enable indexed vertices; creates a static VBO if none provided.
+	static VboMeshRef	create( uint32_t numVertices, GLenum glPrimitive, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, uint32_t numIndices = 0, GLenum indexType = GL_UNSIGNED_SHORT, const VboRef &indexVbo = VboRef() );
+	//! Creates a VboMesh which represents the user's vertex buffer objects. Allows optional \a indexVbo to enable indexed vertices; creates a static VBO if none provided.
+	static VboMeshRef	create( uint32_t numVertices, GLenum glPrimitive, const std::vector<Layout> &vertexArrayLayouts, uint32_t numIndices = 0, GLenum indexType = GL_UNSIGNED_SHORT, const VboRef &indexVbo = VboRef() );
 	//! Creates a VboMesh which represents the geom::Source \a source. Allows optional \a arrayVbo and \a elementArrayVbo in order to simplify recycling of VBOs.
 	static VboMeshRef	create( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo );
 
@@ -201,6 +226,9 @@ class VboMesh {
   protected:
 	VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo );
 	VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo );
+	VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<Layout> &vertexArrayLayouts, const VboRef &indexVbo );
+
+	void	allocateIndexVbo();
 
 	void	echoVertices( std::ostream &os, const std::vector<uint32_t> &elements, bool printElements );
 
