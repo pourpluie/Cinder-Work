@@ -167,7 +167,7 @@ VboMeshRef VboMesh::create( const geom::Source &source, const VboRef &arrayVbo, 
 
 VboMeshRef VboMesh::create( uint32_t numVertices, GLenum glPrimitive, const std::vector<Layout> &vertexArrayLayouts, uint32_t numIndices, GLenum indexType, const VboRef &indexVbo )
 {
-	return VboMeshRef( new VboMesh( numVertices, glPrimitive, numIndices, indexType, vertexArrayLayouts, indexVbo ) );
+	return VboMeshRef( new VboMesh( numVertices, numIndices, glPrimitive, indexType, vertexArrayLayouts, indexVbo ) );
 }
 
 VboMesh::VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo )
@@ -227,6 +227,9 @@ VboMesh::VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive,
 
 void VboMesh::allocateIndexVbo()
 {
+	if( mNumIndices == 0 )
+		return;
+
 	size_t bytesRequired = 1; // GL_UNSIGNED_BYTE
 	if( mIndexType == GL_UNSIGNED_SHORT )
 		bytesRequired = 2;
@@ -321,6 +324,16 @@ void VboMesh::bufferAttrib( geom::Attrib attrib, size_t dataSizeBytes, const voi
 		CI_LOG_E( "ANGLE does not support bufferAttrib() with interleaved data" );
 #endif		
 	}
+}
+
+void VboMesh::bufferIndices( size_t dataSizeBytes, const void *data )
+{
+	if( ! mElements ) {
+		CI_LOG_E( "VboMesh::bufferIndices() called on VboMesh with null index VBO" );
+		return;
+	}
+	
+	mElements->bufferSubData( 0, dataSizeBytes, data );
 }
 
 template<typename T>

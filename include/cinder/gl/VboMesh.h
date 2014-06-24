@@ -105,6 +105,11 @@ class VboMesh {
 
 	//! Fails with an error on ES 2 platforms which don't support buffer mapping when used with interleaved buffers. When multiple attributes are stored interleaved in a single VBO, this can be less efficient than calling mapAttrib*() or manipulating the VBO directly.
 	void		bufferAttrib( geom::Attrib attrib, size_t dataSizeBytes, const void *data );
+	//! Fails with an error on ES 2 platforms which don't support buffer mapping when used with interleaved buffers. When multiple attributes are stored interleaved in a single VBO, this can be less efficient than calling mapAttrib*() or manipulating the VBO directly.
+	template<typename T>
+	void		bufferAttrib( geom::Attrib attrib, const std::vector<T> &data ) { bufferAttrib( attrib, sizeof(T) * data.size(), data.data() ); }
+
+	void		bufferIndices( size_t dataSizeBytes, const void *data );
 
 	class MappedAttribBase {
 	  public:

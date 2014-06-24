@@ -17,9 +17,8 @@ using namespace ci::app;
 using std::vector;
 
 
-/*** This sample demonstrates the VboMesh class by creating a pair of grid meshes with textures mapped to them.
- * The meshes have static indices and texture coordinates, but the vertex positions are dynamic.
- * The second mesh which shares static and index buffers with the first, but has its own dynamic buffer for positions ***/
+/*** This sample demonstrates the VboMesh class by creating a grid as a VboMesh.
+ * The mesh has static indices and texture coordinates, but the vertex positions are dynamic. **/
 class VboSampleApp : public AppBasic {
  public:
 	void setup();
@@ -28,8 +27,8 @@ class VboSampleApp : public AppBasic {
 
 	static const int VERTICES_X = 250, VERTICES_Z = 50;
 
-	gl::VboMeshRef	mVboMesh, mVboMesh2;
-	gl::BatchRef	mBatch1, mBatch2;
+	gl::VboMeshRef	mVboMesh;
+	gl::BatchRef	mBatch;
 	gl::TextureRef	mTexture;
 	CameraPersp		mCamera;
 };
@@ -58,33 +57,17 @@ void VboSampleApp::setup()
 		}
 	}
 
-/*	geom::BufferLayout texCoordLayout = { { geom::AttribInfo( geom::TEX_COORD_0, 2, 0, 0 ) } };
-	gl::VboRef texCoordsVbo = gl::Vbo::create( GL_ARRAY_BUFFER, texCoords, GL_STATIC_DRAW );
-	geom::BufferLayout positionLayout = { { geom::AttribInfo( geom::POSITION, 3, 0, 0 ) } };
-	gl::VboRef positionsVbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(Vec3f) * totalVertices, nullptr, GL_STREAM_DRAW );
-	gl::VboRef indexVbo = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW );
-	mVboMesh = gl::VboMesh::create( totalVertices, GL_TRIANGLES,
-									{ { texCoordLayout, texCoordsVbo }, { positionLayout, positionsVbo } },
-									indices.size(), GL_UNSIGNED_INT, indexVbo );
-
-	gl::VboRef indexVbo = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW );									
-	mVboMesh = gl::VboMesh::create( totalVertices, GL_TRIANGLES,
-									{ { texCoordLayout, texCoordsVbo }, { positionLayout, positionsVbo } },
-									indices.size(), GL_UNSIGNED_INT, indexVbo );	
-*/	
-	// make a second Vbo that uses the statics from the first
-	gl::VboRef indexVbo = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW );									
-
 	mVboMesh = gl::VboMesh::create( totalVertices, GL_TRIANGLES,
 									{ gl::VboMesh::Layout().attrib( geom::TEX_COORD_0, 2 ).usage( GL_STATIC_DRAW ),
 									  gl::VboMesh::Layout().attrib( geom::POSITION, 3 ).usage( GL_STREAM_DRAW ) },
-									indices.size(), GL_UNSIGNED_INT, indexVbo );
+									indices.size(), GL_UNSIGNED_INT );
 	
-	mVboMesh->bufferAttrib( geom::TEX_COORD_0, texCoords.size() * 8, texCoords.data() );
+	mVboMesh->bufferAttrib( geom::TEX_COORD_0, texCoords );
+	mVboMesh->bufferIndices( sizeof(uint32_t) * indices.size(), indices.data() );
 	
 	mTexture = gl::Texture::create( loadImage( loadResource( RES_IMAGE ) ) );
 	
-	mBatch1 = gl::Batch::create( mVboMesh, gl::getStockShader( gl::ShaderDef().texture() ) );
+	mBatch = gl::Batch::create( mVboMesh, gl::getStockShader( gl::ShaderDef().texture() ) );
 }
 
 void VboSampleApp::update()
@@ -99,21 +82,10 @@ void VboSampleApp::update()
 	for( int x = 0; x < VERTICES_X; ++x ) {
 		for( int z = 0; z < VERTICES_Z; ++z ) {
 			float height = sin( z / (float)VERTICES_Z * zFreq + x / (float)VERTICES_X * xFreq + offset ) / 5.0f;
-			*positions = Vec3f( x / (float)VERTICES_X, height, z / (float)VERTICES_Z );
-			++positions;
+			*positions++ = Vec3f( x / (float)VERTICES_X, height, z / (float)VERTICES_Z );
 		}
 	}
 	positions.unmap();
-
-	// dynamically generate our new positions based on a simple sine wave for mesh2
-/*	auto positions2 = mVboMesh2->mapAttrib3f( geom::POSITION );
-	for( int x = 0; x < VERTICES_X; ++x ) {
-		for( int z = 0; z < VERTICES_Z; ++z ) {
-			float height = sin( z / (float)VERTICES_Z * zFreq * 2 + x / (float)VERTICES_X * xFreq * 3 + offset ) / 10.0f;
-			positions2[x*VERTICES_Z+z] = Vec3f( x / (float)VERTICES_X, height, z / (float)VERTICES_Z ) + Vec3f( 0, 0.5, 0 );
-		}
-	}
-	positions2.unmap();*/
 }
 
 void VboSampleApp::draw()
@@ -125,7 +97,7 @@ void VboSampleApp::draw()
 	gl::scale( Vec3f( 10, 10, 10 ) );
 	gl::ScopedTextureBind texBind( mTexture );
 
-	mBatch1->draw();
+	mBatch->draw();
 }
 
 CINDER_APP_BASIC( VboSampleApp, RendererGl )
