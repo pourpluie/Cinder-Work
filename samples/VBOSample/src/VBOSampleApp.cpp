@@ -41,6 +41,7 @@ void VboSampleApp::setup()
 	// buffer our static data - the texcoords and the indices
 	vector<uint32_t> indices;
 	vector<Vec2f> texCoords;
+	vector<Vec3f> colors;
 	for( int x = 0; x < VERTICES_X; ++x ) {
 		for( int z = 0; z < VERTICES_Z; ++z ) {
 			// create a quad for each vertex, except for along the bottom and right edges
@@ -54,20 +55,23 @@ void VboSampleApp::setup()
 			}
 			// the texture coordinates are mapped to [0,1.0)
 			texCoords.push_back( Vec2f( x / (float)VERTICES_X, z / (float)VERTICES_Z ) );
+			colors.push_back( Vec3f( x / (float)VERTICES_X, 1, z / (float)VERTICES_Z ) );
 		}
 	}
 
 	mVboMesh = gl::VboMesh::create( totalVertices, GL_TRIANGLES,
-									{ gl::VboMesh::Layout().attrib( geom::TEX_COORD_0, 2 ).usage( GL_STATIC_DRAW ),
-									  gl::VboMesh::Layout().attrib( geom::POSITION, 3 ).usage( GL_STREAM_DRAW ) },
+									{ gl::VboMesh::Layout().usage( GL_STATIC_DRAW ).
+											attrib( geom::TEX_COORD_0, 2 ).attrib( geom::COLOR, 3 ),
+									  gl::VboMesh::Layout().usage( GL_STREAM_DRAW ).attrib( geom::POSITION, 3 ) },
 									indices.size(), GL_UNSIGNED_INT );
 	
 	mVboMesh->bufferAttrib( geom::TEX_COORD_0, texCoords );
+	mVboMesh->bufferAttrib( geom::COLOR, colors );
 	mVboMesh->bufferIndices( sizeof(uint32_t) * indices.size(), indices.data() );
 	
 	mTexture = gl::Texture::create( loadImage( loadResource( RES_IMAGE ) ) );
 	
-	mBatch = gl::Batch::create( mVboMesh, gl::getStockShader( gl::ShaderDef().texture() ) );
+	mBatch = gl::Batch::create( mVboMesh, gl::getStockShader( gl::ShaderDef().texture().color() ) );
 }
 
 void VboSampleApp::update()

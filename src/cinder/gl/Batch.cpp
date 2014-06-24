@@ -79,13 +79,13 @@ void BatchGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *so
 		mBatch->mIndexType = GL_UNSIGNED_SHORT;
 		std::unique_ptr<uint16_t[]> indices( new uint16_t[numIndices] );
 		copyIndexData( source, numIndices, indices.get() );
-		mBatch->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint16_t), indices.get() );
+		mBatch->mIndices = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint16_t), indices.get() );
 	}
 	else {
 		mBatch->mIndexType = GL_UNSIGNED_INT;
 		std::unique_ptr<uint32_t[]> indices( new uint32_t[numIndices] );
 		copyIndexData( source, numIndices, indices.get() );
-		mBatch->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint32_t), indices.get() );
+		mBatch->mIndices = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint32_t), indices.get() );
 	}
 }
 
@@ -109,7 +109,7 @@ BatchRef Batch::create( const geom::SourceRef &sourceRef, const gl::GlslProgRef 
 Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const AttributeMapping &attributeMapping )
 	: mGlsl( glsl )
 {
-	mElements = vboMesh->getElementVbo();
+	mIndices = vboMesh->getIndexVbo();
 	mPrimitive = vboMesh->getGlPrimitive();
 	mNumVertices = vboMesh->getNumVertices();
 	mNumIndices = vboMesh->getNumIndices();
@@ -194,7 +194,7 @@ void Batch::initVao( const AttributeMapping &attributeMapping )
 	}
 	
 	if( mNumIndices > 0 )
-		mElements->bind();
+		mIndices->bind();
 
 	ctx->popBufferBinding( GL_ARRAY_BUFFER );
 }

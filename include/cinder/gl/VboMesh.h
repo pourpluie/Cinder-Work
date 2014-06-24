@@ -70,8 +70,8 @@ class VboMesh {
 	static VboMeshRef	create( uint32_t numVertices, GLenum glPrimitive, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, uint32_t numIndices = 0, GLenum indexType = GL_UNSIGNED_SHORT, const VboRef &indexVbo = VboRef() );
 	//! Creates a VboMesh which represents the user's vertex buffer objects. Allows optional \a indexVbo to enable indexed vertices; creates a static VBO if none provided.
 	static VboMeshRef	create( uint32_t numVertices, GLenum glPrimitive, const std::vector<Layout> &vertexArrayLayouts, uint32_t numIndices = 0, GLenum indexType = GL_UNSIGNED_SHORT, const VboRef &indexVbo = VboRef() );
-	//! Creates a VboMesh which represents the geom::Source \a source. Allows optional \a arrayVbo and \a elementArrayVbo in order to simplify recycling of VBOs.
-	static VboMeshRef	create( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo );
+	//! Creates a VboMesh which represents the geom::Source \a source. Allows optional \a arrayVbo and \a indexArrayVbo in order to simplify recycling of VBOs.
+	static VboMeshRef	create( const geom::Source &source, const VboRef &arrayVbo, const VboRef &indexArrayVbo );
 
 	//! Maps a geom::Attrib to a named attribute in the GlslProg
 	typedef std::map<geom::Attrib,std::string> AttribGlslMap;
@@ -84,14 +84,14 @@ class VboMesh {
 	uint32_t	getNumIndices() const { return mNumIndices; }
 	//! Returns the primitive type, such as GL_TRIANGLES, GL_TRIANGLE_STRIP, etc
 	GLenum		getGlPrimitive() const { return mGlPrimitive; }
-	//! Returns the data type of the indices contained in element vbo; either GL_UNSIGNED_SHORT or GL_UNSIGNED_INT
+	//! Returns the data type of the indices contained in index vbo; either GL_UNSIGNED_SHORT or GL_UNSIGNED_INT
 	GLenum		getIndexDataType() const { return mIndexType; }
 
 	//! Returns 0 if \a attr is not present
 	uint8_t		getAttribDims( geom::Attrib attr ) const;
 
-	//! Returns the VBO containing the elements of the mesh, or a NULL for non-indexed geometry
-	VboRef		getElementVbo() { return mElements; }
+	//! Returns the VBO containing the indices of the mesh, or a NULL for non-indexed geometry
+	VboRef		getIndexVbo() { return mIndices; }
 
 	//! Builds and returns a vector of VboRefs for the vertex data of the mesh
 	std::vector<VboRef>									getVertexArrayVbos();
@@ -227,18 +227,18 @@ class VboMesh {
 	
 	//! Echos all vertex data in range [\a startIndex, \a endIndex) to \a os. Inefficient - primarily useful for debugging.
 	void		echoVertexRange( std::ostream &os, size_t startIndex, size_t endIndex );
-	//! Echos all vertex data for the elements in range [\a startIndex, \a endIndex) to \a os. No-op for non-indexed geometry. Inefficient - primarily useful for debugging.
-	void		echoElementRange( std::ostream &os, size_t startIndex, size_t endIndex );
+	//! Echos all vertex data for the indices in range [\a startIndex, \a endIndex) to \a os. No-op for non-indexed geometry. Inefficient - primarily useful for debugging.
+	void		echoIndexRange( std::ostream &os, size_t startIndex, size_t endIndex );
 #endif
 
   protected:
-	VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo );
+	VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboRef &indexArrayVbo );
 	VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<std::pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo );
 	VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<Layout> &vertexArrayLayouts, const VboRef &indexVbo );
 
 	void	allocateIndexVbo();
 
-	void	echoVertices( std::ostream &os, const std::vector<uint32_t> &elements, bool printElements );
+	void	echoVertices( std::ostream &os, const std::vector<uint32_t> &indices, bool printElements );
 
 	template<typename T>
 	MappedAttrib<T>		mapAttribImpl( geom::Attrib attr, int dims, bool orphanExisting );
@@ -249,7 +249,7 @@ class VboMesh {
 	GLenum				mIndexType;
 
 	std::vector<std::pair<geom::BufferLayout,VboRef>>	mVertexArrayVbos;
-	VboRef												mElements;
+	VboRef												mIndices;
 
 	struct MappedVboInfo {
 		size_t		mRefCount;
