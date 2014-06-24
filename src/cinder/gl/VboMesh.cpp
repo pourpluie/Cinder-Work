@@ -291,6 +291,38 @@ std::pair<geom::BufferLayout,VboRef>* VboMesh::findAttrib( geom::Attrib attr )
 	return nullptr;
 }
 
+void VboMesh::bufferAttrib( geom::Attrib attrib, size_t dataSizeBytes, const void *data )
+{
+	auto layoutVbo = findAttrib( attrib );
+	if( ! layoutVbo )
+		throw geom::ExcMissingAttrib();
+	auto attribInfo = layoutVbo->first.getAttribInfo( attrib );
+
+	// if the attribute is stored planar, a call to glBufferSubData should suffice
+	if( attribInfo.getStride() == 0 || attribInfo.getStride() == attribInfo.getByteSize() ) {
+		layoutVbo->second->bufferSubData( attribInfo.getOffset(), dataSizeBytes, data );
+	}
+	else { // interleaved data
+#if defined( CINDER_GL_ANGLE )
+  #if defined( CINDER_GL_ES_2 )
+		uint8_t *ptr = layoutVbo->second->map( GL_WRITE_ONLY_OES )
+  #else
+		uint8_t *ptr = layoutVbo->second->map( GL_WRITE_ONLY );
+  #endif
+  
+		ptr += attribInfo.getOffset();
+		const uint8_t *srcData = data;
+		const uint8_t *endSrcData = (uint8_t*)data + dataSizeBytes;
+		while( srcData < endSrcData ) {
+			memcpy( ptr, srcData, attribInfo.getByteSize() );
+			srcData += getByteSize();
+		}
+#else
+		CI_LOG_E( "ANGLE does not support bufferAttrib() with interleaved data" );
+#endif		
+	}
+}
+
 template<typename T>
 VboMesh::MappedAttrib<T> VboMesh::mapAttribImpl( geom::Attrib attr, int dims, bool orphanExisting )
 {
@@ -333,22 +365,22 @@ VboMesh::MappedAttrib<T> VboMesh::mapAttribImpl( geom::Attrib attr, int dims, bo
 
 VboMesh::MappedAttrib<float> VboMesh::mapAttrib1f( geom::Attrib attr, bool orphanExisting )
 {
-	return mapAttribImpl<float>( attr, orphanExisting, 1 );
+	return mapAttribImpl<float>( attr, 1, orphanExisting );
 }
 
 VboMesh::MappedAttrib<Vec2f> VboMesh::mapAttrib2f( geom::Attrib attr, bool orphanExisting )
 {
-	return mapAttribImpl<Vec2f>( attr, orphanExisting, 2 );
+	return mapAttribImpl<Vec2f>( attr, 2, orphanExisting );
 }
 
 VboMesh::MappedAttrib<Vec3f> VboMesh::mapAttrib3f( geom::Attrib attr, bool orphanExisting )
 {
-	return mapAttribImpl<Vec3f>( attr, orphanExisting, 3 );
+	return mapAttribImpl<Vec3f>( attr, 3, orphanExisting );
 }
 
 VboMesh::MappedAttrib<Vec4f> VboMesh::mapAttrib4f( geom::Attrib attr, bool orphanExisting )
 {
-	return mapAttribImpl<Vec4f>( attr, orphanExisting, 4 );
+	return mapAttribImpl<Vec4f>( attr, 4, orphanExisting );
 }
 
 void VboMesh::MappedAttribBase::unmap()

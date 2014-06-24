@@ -75,16 +75,16 @@ void VboSampleApp::setup()
 	// make a second Vbo that uses the statics from the first
 	gl::VboRef indexVbo = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW );									
 
-	gl::VboRef positions2Vbo = gl::Vbo::create( GL_ARRAY_BUFFER, sizeof(Vec3f) * totalVertices, nullptr, GL_STREAM_DRAW );
-	mVboMesh2 = gl::VboMesh::create( totalVertices, GL_TRIANGLES,
+	mVboMesh = gl::VboMesh::create( totalVertices, GL_TRIANGLES,
 									{ gl::VboMesh::Layout().attrib( geom::TEX_COORD_0, 2 ).usage( GL_STATIC_DRAW ),
 									  gl::VboMesh::Layout().attrib( geom::POSITION, 3 ).usage( GL_STREAM_DRAW ) },
 									indices.size(), GL_UNSIGNED_INT, indexVbo );
 	
+	mVboMesh->bufferAttrib( geom::TEX_COORD_0, texCoords.size() * 8, texCoords.data() );
+	
 	mTexture = gl::Texture::create( loadImage( loadResource( RES_IMAGE ) ) );
 	
 	mBatch1 = gl::Batch::create( mVboMesh, gl::getStockShader( gl::ShaderDef().texture() ) );
-	mBatch2 = gl::Batch::create( mVboMesh2, gl::getStockShader( gl::ShaderDef().texture() ) );
 }
 
 void VboSampleApp::update()
@@ -106,14 +106,14 @@ void VboSampleApp::update()
 	positions.unmap();
 
 	// dynamically generate our new positions based on a simple sine wave for mesh2
-	auto positions2 = mVboMesh2->mapAttrib3f( geom::POSITION );
+/*	auto positions2 = mVboMesh2->mapAttrib3f( geom::POSITION );
 	for( int x = 0; x < VERTICES_X; ++x ) {
 		for( int z = 0; z < VERTICES_Z; ++z ) {
 			float height = sin( z / (float)VERTICES_Z * zFreq * 2 + x / (float)VERTICES_X * xFreq * 3 + offset ) / 10.0f;
 			positions2[x*VERTICES_Z+z] = Vec3f( x / (float)VERTICES_X, height, z / (float)VERTICES_Z ) + Vec3f( 0, 0.5, 0 );
 		}
 	}
-	positions2.unmap();
+	positions2.unmap();*/
 }
 
 void VboSampleApp::draw()
@@ -126,7 +126,6 @@ void VboSampleApp::draw()
 	gl::ScopedTextureBind texBind( mTexture );
 
 	mBatch1->draw();
-	mBatch2->draw();
 }
 
 CINDER_APP_BASIC( VboSampleApp, RendererGl )

@@ -52,7 +52,7 @@ class VboMesh {
 			For ES 2, \c GL_STREAM_DRAW, \c GL_STATIC_DRAW, or \c GL_DYNAMIC_DRAW **/
 		Layout&		usage( GLenum usage ) { mUsage = usage; return *this; }
 		GLenum		getUsage() const { return mUsage; }
-		Layout&		attrib( geom::Attrib attrib, uint8_t dims ) { mAttribInfos.push_back( geom::AttribInfo( attrib, dims, 0, 0, 0 ) ); return *this; }
+		Layout&		attrib( geom::Attrib attrib, uint8_t dims ) { mAttribInfos.push_back( geom::AttribInfo( attrib, geom::DataType::FLOAT, dims, 0, 0, 0 ) ); return *this; }
 		
 		void		clearAttribs() { mAttribInfos.clear(); }
 
@@ -102,6 +102,9 @@ class VboMesh {
 
 	//! Returns a pair<geom::BufferLayout,VboRef>* that corresponds to \a attrib. Returns nullptr if not found
 	std::pair<geom::BufferLayout,VboRef>*		findAttrib( geom::Attrib attr );
+
+	//! Fails with an error on ES 2 platforms which don't support buffer mapping when used with interleaved buffers. When multiple attributes are stored interleaved in a single VBO, this can be less efficient than calling mapAttrib*() or manipulating the VBO directly.
+	void		bufferAttrib( geom::Attrib attrib, size_t dataSizeBytes, const void *data );
 
 	class MappedAttribBase {
 	  public:
