@@ -682,13 +682,15 @@ bool isWireframeEnabled()
 void draw( const VboMeshRef& mesh )
 {
 	auto ctx = gl::context();
-	auto curShader = ctx->getGlslProg();
-	if( ! curShader )
+	auto curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
 		return;
+	}
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
-	mesh->buildVao( curShader );
+	mesh->buildVao( curGlslProg );
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	mesh->drawImpl();
@@ -851,14 +853,16 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 									20,21,22,20,22,23 };
 
 	Context *ctx = gl::context();
-	GlslProgRef curShader = ctx->getGlslProg();
-	if( ! curShader )
+	auto curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
 		return;
+	}
 
-	bool hasPositions = curShader->hasAttribSemantic( geom::Attrib::POSITION );
-	bool hasNormals = curShader->hasAttribSemantic( geom::Attrib::NORMAL );
-	bool hasTextureCoords = curShader->hasAttribSemantic( geom::Attrib::TEX_COORD_0 );
-	bool hasColors = curShader->hasAttribSemantic( geom::Attrib::COLOR );
+	bool hasPositions = curGlslProg->hasAttribSemantic( geom::Attrib::POSITION );
+	bool hasNormals = curGlslProg->hasAttribSemantic( geom::Attrib::NORMAL );
+	bool hasTextureCoords = curGlslProg->hasAttribSemantic( geom::Attrib::TEX_COORD_0 );
+	bool hasColors = curGlslProg->hasAttribSemantic( geom::Attrib::COLOR );
 
 	size_t totalArrayBufferSize = 0;
 	if( hasPositions )
@@ -880,28 +884,28 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	elementVbo->bind();
 	size_t curBufferOffset = 0;
 	if( hasPositions ) {
-		int loc = curShader->getAttribSemanticLocation( geom::Attrib::POSITION );
+		int loc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 		enableVertexAttribArray( loc );
 		vertexAttribPointer( loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
 		defaultArrayVbo->bufferSubData( curBufferOffset, sizeof(float)*24*3, vertices );
 		curBufferOffset += sizeof(float)*24*3;
 	}
 	if( hasNormals ) {
-		int loc = curShader->getAttribSemanticLocation( geom::Attrib::NORMAL );
+		int loc = curGlslProg->getAttribSemanticLocation( geom::Attrib::NORMAL );
 		enableVertexAttribArray( loc );
 		vertexAttribPointer( loc, 3, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
 		defaultArrayVbo->bufferSubData( curBufferOffset, sizeof(float)*24*3, normals );
 		curBufferOffset += sizeof(float)*24*3;
 	}
 	if( hasTextureCoords ) {
-		int loc = curShader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
+		int loc = curGlslProg->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 		enableVertexAttribArray( loc );
 		vertexAttribPointer( loc, 2, GL_FLOAT, GL_FALSE, 0, (void*)curBufferOffset );
 		defaultArrayVbo->bufferSubData( curBufferOffset, sizeof(float)*24*2, texs );
 		curBufferOffset += sizeof(float)*24*2;
 	}
 	if( hasColors ) {
-		int loc = curShader->getAttribSemanticLocation( geom::Attrib::COLOR );
+		int loc = curGlslProg->getAttribSemanticLocation( geom::Attrib::COLOR );
 		enableVertexAttribArray( loc );
 		vertexAttribPointer( loc, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)curBufferOffset );
 		defaultArrayVbo->bufferSubData( curBufferOffset, 24*4, colors );
@@ -956,15 +960,20 @@ void draw( const Path2d &path, float approximationScale )
 		return;
 
 	auto ctx = context();
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
+		return;
+	}
+
 	vector<Vec2f> points = path.subdivide( approximationScale );
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * points.size() );
 	arrayVbo->bufferSubData( 0, sizeof(Vec2f) * points.size(), points.data() );
-	gl::GlslProgRef shader = ctx->getGlslProg();
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
 	ScopedBuffer bufferBindScp( arrayVbo );
-	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
@@ -979,15 +988,20 @@ void draw( const Path2d &path, float approximationScale )
 void draw( const PolyLine<Vec2f> &polyLine )
 {
 	auto ctx = context();
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
+		return;
+	}
+
 	const vector<Vec2f> &points = polyLine.getPoints();
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec2f) * points.size() );
 	arrayVbo->bufferSubData( 0, sizeof(Vec2f) * points.size(), points.data() );
-	gl::GlslProgRef shader = ctx->getGlslProg();
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
 	ScopedBuffer bufferBindScp( arrayVbo );
-	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
@@ -1002,15 +1016,20 @@ void draw( const PolyLine<Vec2f> &polyLine )
 void draw( const PolyLine<Vec3f> &polyLine )
 {
 	auto ctx = context();
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
+		return;
+	}
+	
 	const vector<Vec3f> &points = polyLine.getPoints();
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( sizeof(Vec3f) * points.size() );
 	arrayVbo->bufferSubData( 0, sizeof(Vec3f) * points.size(), points.data() );
-	gl::GlslProgRef shader = ctx->getGlslProg();
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
 	ScopedBuffer bufferBindScp( arrayVbo );
-	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 3, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
@@ -1027,17 +1046,22 @@ void drawLine( const Vec3f &a, const Vec3f &b )
 	const int dims = 3;
 	const int size = sizeof( Vec3f ) * 2;
 	array<Vec3f, 2> points = { a, b };
+
 	auto ctx = context();
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
+		return;
+	}
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
 
-	gl::GlslProgRef shader = ctx->getGlslProg();
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( size );
 	ScopedBuffer bufferBindScp( arrayVbo );
 
 	arrayVbo->bufferSubData( 0, size, points.data() );
-	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, dims, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
@@ -1054,16 +1078,20 @@ void drawLine( const Vec2f &a, const Vec2f &b )
 	const int size = sizeof( Vec2f ) * 2;
 	array<Vec2f, 2> points = { a, b };
 	auto ctx = context();
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
+		return;
+	}
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
 
-	gl::GlslProgRef shader = ctx->getGlslProg();
 	VboRef arrayVbo = ctx->getDefaultArrayVbo( size );
 	ScopedBuffer bufferBindScp( arrayVbo );
 
 	arrayVbo->bufferSubData( 0, size, points.data() );
-	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, dims, GL_FLOAT, GL_FALSE, 0, (const GLvoid*)nullptr );
@@ -1100,6 +1128,12 @@ void drawSolidRect( const Rectf& r )
 void drawSolidRect( const Rectf &r, const Rectf &texCoords )
 {
 	auto ctx = context();
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
+		return;
+	}
+
 	GLfloat data[8+8]; // both verts and texCoords
 	GLfloat *verts = data, *texs = data + 8;
 
@@ -1118,13 +1152,12 @@ void drawSolidRect( const Rectf &r, const Rectf &texCoords )
 	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, sizeof(float)*16, data );
 
-	gl::GlslProgRef shader = ctx->getGlslProg();
-	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
 	}
-	int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
+	int texLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 	if( texLoc >= 0 ) {
 		enableVertexAttribArray( texLoc );
 		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*8) );
@@ -1144,6 +1177,11 @@ void drawStrokedRect( const Rectf &rect )
 	verts[6] = rect.x1;	verts[7] = rect.y2;
 
 	auto ctx = context();
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
+		return;
+	}
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
@@ -1152,8 +1190,7 @@ void drawStrokedRect( const Rectf &rect )
 	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, 8 * sizeof( float ), verts );
 
-	gl::GlslProgRef shader = ctx->getGlslProg();
-	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
@@ -1187,6 +1224,11 @@ void drawStrokedRect( const Rectf &rect, float lineWidth )
 	verts[30] = rect.x1 - halfWidth;	verts[31] = rect.y2 + halfWidth;
 
 	auto ctx = context();
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
+		return;
+	}
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
@@ -1195,8 +1237,7 @@ void drawStrokedRect( const Rectf &rect, float lineWidth )
 	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, 32 * sizeof( float ), verts );
 
-	gl::GlslProgRef shader = ctx->getGlslProg();
-	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0 );
@@ -1211,7 +1252,12 @@ void drawStrokedRect( const Rectf &rect, float lineWidth )
 void drawStrokedCircle( const Vec2f &center, float radius, int numSegments )
 {
 	auto ctx = context();
-
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
+		return;
+	}
+	
 	if( numSegments <= 0 ) {
 		numSegments = static_cast<int>(math<double>::floor( radius * M_PI * 2 ) );
 	}
@@ -1238,8 +1284,7 @@ void drawStrokedCircle( const Vec2f &center, float radius, int numSegments )
 	ctx->getDefaultVao()->replacementBindBegin();
 	ScopedBuffer bufferBindScp( arrayVbo );
 
-	auto shader = ctx->getGlslProg();
-	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)nullptr );
@@ -1254,9 +1299,11 @@ void drawStrokedCircle( const Vec2f &center, float radius, int numSegments )
 void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 {
 	auto ctx = context();
-	gl::GlslProgRef shader = ctx->getGlslProg();
-	if( ! shader )
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
 		return;
+	}
 
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
@@ -1274,21 +1321,21 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 	size_t dataSizeBytes = 0;
 
 	size_t vertsOffset, texCoordsOffset, normalsOffset;
-	int posLoc = shader->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)dataSizeBytes );
 		vertsOffset = dataSizeBytes;
 		dataSizeBytes += numVertices * 2 * sizeof(float);
 	}
-	int texLoc = shader->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
+	int texLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 	if( texLoc >= 0 ) {
 		enableVertexAttribArray( texLoc );
 		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)dataSizeBytes );
 		texCoordsOffset = dataSizeBytes;
 		dataSizeBytes += numVertices * 2 * sizeof(float);
 	}
-	int normalLoc = shader->getAttribSemanticLocation( geom::Attrib::NORMAL );
+	int normalLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::NORMAL );
 	if( normalLoc >= 0 ) {
 		enableVertexAttribArray( normalLoc );
 		vertexAttribPointer( normalLoc, 3, GL_FLOAT, GL_FALSE, 0, (void*)(dataSizeBytes) );
@@ -1331,9 +1378,11 @@ void drawSolidCircle( const Vec2f &center, float radius, int numSegments )
 void drawSphere( const Vec3f &center, float radius, int segments )
 {
 	auto ctx = gl::context();
-	auto glslProg = ctx->getGlslProg();
-	if( ! glslProg )
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
 		return;
+	}
 	//auto batch = gl::Batch::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).normals().texCoords(), glslProg );
 	//batch->draw();
 
@@ -1341,7 +1390,7 @@ void drawSphere( const Vec3f &center, float radius, int segments )
 	ctx->pushVao();
 	ctx->getDefaultVao()->replacementBindBegin();
 	gl::VboMeshRef mesh = gl::VboMesh::create( geom::Sphere().center( center ).radius( radius ).segments( segments ).enable( geom::Attrib::NORMAL ).enable( geom::Attrib::TEX_COORD_0 ), ctx->getDefaultArrayVbo(), ctx->getDefaultElementVbo() );
-	mesh->buildVao( glslProg );
+	mesh->buildVao( curGlslProg );
 	ctx->getDefaultVao()->replacementBindEnd();
 	ctx->setDefaultShaderVars();
 	mesh->drawImpl();
@@ -1351,9 +1400,11 @@ void drawSphere( const Vec3f &center, float radius, int segments )
 void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians, const Vec3f &bbRight, const Vec3f &bbUp, const Rectf &texCoords )
 {
 	auto ctx = context();
-	gl::GlslProgRef glslProg = ctx->getGlslProg();
-	if( ! glslProg )
+	GlslProgRef curGlslProg = ctx->getGlslProg();
+	if( ! curGlslProg ) {
+		CI_LOG_E( "No GLSL program bound" );
 		return;
+	}
 
 	GLfloat data[12+8]; // both verts and texCoords
 	Vec3f *verts = (Vec3f*)data;
@@ -1377,12 +1428,12 @@ void drawBillboard( const Vec3f &pos, const Vec2f &scale, float rotationRadians,
 	ScopedBuffer bufferBindScp( defaultVbo );
 	defaultVbo->bufferSubData( 0, sizeof(float)*20, data );
 
-	int posLoc = glslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
+	int posLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::POSITION );
 	if( posLoc >= 0 ) {
 		enableVertexAttribArray( posLoc );
 		vertexAttribPointer( posLoc, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 );
 	}
-	int texLoc = glslProg->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
+	int texLoc = curGlslProg->getAttribSemanticLocation( geom::Attrib::TEX_COORD_0 );
 	if( texLoc >= 0 ) {
 		enableVertexAttribArray( texLoc );
 		vertexAttribPointer( texLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float)*12) );
