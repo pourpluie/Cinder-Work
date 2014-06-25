@@ -811,7 +811,8 @@ void drawElements( GLenum mode, GLsizei count, GLenum type, const GLvoid *indice
 	context()->drawElements( mode, count, type, indices );
 }
 
-void drawCube( const Vec3f &c, const Vec3f &size )
+namespace {
+void drawCubeImpl( const Vec3f &c, const Vec3f &size, bool faceColors )
 {
 	GLfloat sx = size.x * 0.5f;
 	GLfloat sy = size.y * 0.5f;
@@ -862,7 +863,7 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	bool hasPositions = curGlslProg->hasAttribSemantic( geom::Attrib::POSITION );
 	bool hasNormals = curGlslProg->hasAttribSemantic( geom::Attrib::NORMAL );
 	bool hasTextureCoords = curGlslProg->hasAttribSemantic( geom::Attrib::TEX_COORD_0 );
-	bool hasColors = curGlslProg->hasAttribSemantic( geom::Attrib::COLOR );
+	bool hasColors = faceColors && curGlslProg->hasAttribSemantic( geom::Attrib::COLOR );
 
 	size_t totalArrayBufferSize = 0;
 	if( hasPositions )
@@ -917,6 +918,17 @@ void drawCube( const Vec3f &c, const Vec3f &size )
 	ctx->setDefaultShaderVars();
 	ctx->drawElements( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0 );
 	ctx->popVao();
+}
+}
+
+void drawCube( const Vec3f &center, const Vec3f &size )
+{
+	drawCubeImpl( center, size, false );
+}
+
+void drawColorCube( const Vec3f &center, const Vec3f &size )
+{
+	drawCubeImpl( center, size, true );
 }
 
 void draw( const TextureRef &texture, const Area &srcArea, const Rectf &dstRect )
