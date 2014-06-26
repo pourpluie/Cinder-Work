@@ -115,6 +115,10 @@ bool AppImplMswRendererAngle::initialize( HWND wnd, HDC dc, RendererRef sharedRe
 	
 	gl::Environment::setEs2();
 
+	// make this the current EGL context so that gl::Context constructor calls succeed
+	status = ::eglMakeCurrent( mDisplay, mSurface, mSurface, mContext );
+	assert( status );
+
 	std::shared_ptr<gl::PlatformDataAngle> platformData( new gl::PlatformDataAngle( mContext, mDisplay, mSurface, config ) );
 	platformData->mObjectTracking = mRenderer->getOptions().getObjectTracking();
 
