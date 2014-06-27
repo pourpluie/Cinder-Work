@@ -260,7 +260,7 @@ void GeometryApp::createPrimitive(void)
 		primitive = geom::SourceRef( new geom::Teapot( geom::Teapot() ) );
 		break;
 	case TORUS:
-		primitive = geom::SourceRef( new geom::Torus( geom::Torus().segmentsRing(4).twist(mTwist) ) );
+		primitive = geom::SourceRef( new geom::Torus( geom::Torus().segmentsRing(12).twist(mTwist) ) );
 		break;
 	}
 

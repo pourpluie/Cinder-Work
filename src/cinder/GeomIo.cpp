@@ -664,27 +664,27 @@ void Teapot::buildPatchReflect( int patchNum, float *B, float *dB, float *v, flo
     getPatch( patchNum, patchRevV, true);
 
     // Patch without modification
-    buildPatch( patch, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f::identity(), true );
+    buildPatch( patchRevV, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f::identity(), false );
 
     // Patch reflected in x
     if( reflectX ) {
-        buildPatch( patchRevV, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(-1.0f, 0.0f, 0.0f),
+        buildPatch( patch, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(-1.0f, 0.0f, 0.0f),
                                               Vec3f(0.0f, 1.0f, 0.0f),
-                                              Vec3f(0.0f, 0.0f, 1.0f) ), false );
+                                              Vec3f(0.0f, 0.0f, 1.0f) ), true );
     }
 
     // Patch reflected in y
     if( reflectY ) {
-        buildPatch( patchRevV, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(1.0f, 0.0f, 0.0f),
+        buildPatch( patch, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(1.0f, 0.0f, 0.0f),
                                               Vec3f(0.0f, -1.0f, 0.0f),
-                                              Vec3f(0.0f, 0.0f, 1.0f) ), false );
+                                              Vec3f(0.0f, 0.0f, 1.0f) ), true );
     }
 
     // Patch reflected in x and y
     if( reflectX && reflectY ) {
-        buildPatch( patch, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(-1.0f, 0.0f, 0.0f),
+        buildPatch( patchRevV, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(-1.0f, 0.0f, 0.0f),
                                               Vec3f(0.0f, -1.0f, 0.0f),
-                                              Vec3f(0.0f, 0.0f, 1.0f) ), true );
+                                              Vec3f(0.0f, 0.0f, 1.0f) ), false );
     }
 }
 
@@ -1429,7 +1429,7 @@ Cylinder::Cylinder()
 	, mDirection( 0, 1, 0 )
 	, mThickness( 0 )
 	, mRadiusBase( 1.0f )
-	, mRadiusApex( 0.0f )
+	, mRadiusApex( 1.0f )
 	, mNumSegments( 36 )
 {
 	enable( Attrib::POSITION );
