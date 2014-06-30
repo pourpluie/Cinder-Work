@@ -664,7 +664,7 @@ vector<pair<uint16_t,Vec2f> > TextBox::measureGlyphs() const
 	return result;
 }
 
-Vec2f TextBox::measure() const
+const Vec2f& TextBox::measure() const
 {
 	createLines();
 	return mCalculatedSize;
