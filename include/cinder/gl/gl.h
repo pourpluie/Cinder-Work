@@ -136,16 +136,21 @@ void stencilFunc( GLenum func, GLint ref, GLuint mask );
 void stencilOp( GLenum fail, GLenum zfail, GLenum zpass );
 
 std::pair<Vec2i, Vec2i> getViewport();
-void viewport( int x, int y, int width, int height );
-void viewport( const Vec2i &position, const Vec2i &size );
+void viewport( const std::pair<Vec2i, Vec2i> positionAndSize );
+inline void viewport( int x, int y, int width, int height ) { viewport( std::pair<Vec2i, Vec2i>( Vec2i( x, y ), Vec2i( width, height ) ) ); }
+inline void viewport( const Vec2i &position, const Vec2i &size ) { viewport( std::pair<Vec2i, Vec2i>( position, size ) ); }
 inline void viewport( const Vec2i &size ) { viewport( Vec2f::zero(), size ); }
-void pushViewport( const Vec2i &position, const Vec2i &size );
+void pushViewport( const std::pair<Vec2i, Vec2i> positionAndSize );
+inline void pushViewport() { pushViewport( getViewport() ); }
+inline void pushViewport( int x, int y, int width, int height ) { pushViewport( std::pair<Vec2i, Vec2i>( Vec2i( x, y ), Vec2i( width, height ) ) ); }
+inline void pushViewport( const Vec2i &position, const Vec2i &size ) { pushViewport( std::pair<Vec2i, Vec2i>( position, size ) ); }
 inline void pushViewport( const Vec2i &size ) { pushViewport( Vec2f::zero(), size ); }
 void popViewport();
 
 std::pair<Vec2i, Vec2i> getScissor();
-void scissor( int x, int y, int width, int height );
-void scissor( const Vec2i &position, const Vec2i &dimension );
+void scissor( const std::pair<Vec2i, Vec2i> positionAndSize );
+inline void scissor( int x, int y, int width, int height ) { scissor( std::pair<Vec2i, Vec2i>( Vec2i( x, y ), Vec2i( width, height ) ) ); }
+inline void scissor( const Vec2i &position, const Vec2i &size ) { scissor( std::pair<Vec2i, Vec2i>( position, size ) ); }
 	
 void enable( GLenum state, bool enable = true );
 inline void disable( GLenum state ) { enable( state, false ); }
@@ -178,6 +183,10 @@ void pushViewMatrix();
 void popViewMatrix();
 void pushProjectionMatrix();
 void popProjectionMatrix();
+//! Pushes Model and View matrices
+void pushModelViewMatrices();
+//! Pops Model and View matrices
+void popModelViewMatrices();
 //! Pushes Model, View and Projection matrices
 void pushMatrices();
 //! Pops Model, View and Projection matrices
@@ -199,10 +208,13 @@ void setMatricesWindowPersp( const ci::Vec2i &screenSize, float fovDegrees = 60.
 void setMatricesWindow( int screenWidth, int screenHeight, bool originUpperLeft = true );
 void setMatricesWindow( const ci::Vec2i &screenSize, bool originUpperLeft = true );
 
-//! Rotates the Model matrix by \a angleDegrees around the axis (\a x,\a y,\a z)
-void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis );
 void rotate( const cinder::Quatf &quat );
-inline void rotate( float zDegrees ) { rotate( zDegrees, 0, 0, 1 ); }
+//! Rotates the Model matrix by \a angleDegrees around the \a axis
+void rotate( float angleDegrees, const ci::Vec3f &axis );
+//! Rotates the Model matrix by \a angleDegrees around the axis (\a x,\a y,\a z)
+inline void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis ) { rotate( angleDegrees, ci::Vec3f(xAxis, yAxis, zAxis) ); }
+//! Rotates the Model matrix by \a zDegrees around the z-axis
+inline void rotate( float zDegrees ) { rotate( zDegrees, ci::Vec3f::zAxis() ); }
 
 //! Scales the Model matrix by \a v
 void scale( const ci::Vec3f &v );

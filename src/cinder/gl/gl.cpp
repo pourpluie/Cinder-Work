@@ -131,7 +131,8 @@ void bindStockShader( const class ShaderDef &shaderDef )
 
 void setDefaultShaderVars()
 {
-	gl::context()->setDefaultShaderVars();
+	auto ctx = gl::context();
+	ctx->setDefaultShaderVars();
 }
 
 void clear( const ColorA& color, bool clearDepthBuffer )
@@ -181,7 +182,8 @@ void colorMask( GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha 
 
 void depthMask( GLboolean flag )
 {
-    gl::context()->depthMask( flag );
+    auto ctx = gl::context();
+	ctx->depthMask( flag );
 }
 
 void stencilMask( GLboolean mask )
@@ -201,49 +203,46 @@ void stencilOp( GLenum fail, GLenum zfail, GLenum zpass )
 
 std::pair<Vec2i, Vec2i> getViewport()
 {
-	auto view = gl::context()->getViewport();
+	auto ctx = gl::context();
+	auto view = ctx->getViewport();
 	return view;
 }
 
-void viewport( int x, int y, int width, int height )
+void viewport( const std::pair<Vec2i, Vec2i> positionAndSize )
 {
-	viewport( Vec2i( x, y ), Vec2i( width, height ) ) ;
+	auto ctx = gl::context();
+	ctx->viewport( positionAndSize );
 }
 
-void viewport( const Vec2i &position, const Vec2i &size )
+void pushViewport( const std::pair<Vec2i, Vec2i> positionAndSize )
 {
-	gl::context()->viewport( std::pair<Vec2i, Vec2i>( position, size ) );
-}
-
-void pushViewport( const Vec2i &position, const Vec2i &size )
-{
-	gl::context()->pushViewport( std::pair<Vec2i, Vec2i>( position, size ) );
+	auto ctx = gl::context();
+	ctx->pushViewport( positionAndSize );
 }
 
 void popViewport()
 {
-	gl::context()->popViewport();
+	auto ctx = gl::context();
+	ctx->popViewport();
 }
 
 std::pair<Vec2i, Vec2i> getScissor()
 {
-	auto scissor = gl::context()->getScissor();
+	auto ctx = gl::context();
+	auto scissor = ctx->getScissor();
 	return scissor;
 }
 
-void scissor( int x, int y, int width, int height )
+void scissor( const std::pair<Vec2i, Vec2i> positionAndSize )
 {
-	scissor( Vec2i( x, y ), Vec2i( width, height ) );
-}
-
-void scissor( const Vec2i &position, const Vec2i &dimension )
-{
-	gl::context()->setScissor( std::pair<Vec2i, Vec2i>( position, dimension ) );
+	auto ctx = gl::context();
+	ctx->setScissor( positionAndSize );
 }
 
 void enable( GLenum state, bool enable )
 {
-	gl::context()->enable( state, enable );
+	auto ctx = gl::context();
+	ctx->enable( state, enable );
 }
 
 void enableAlphaBlending( bool premultiplied )
@@ -282,12 +281,14 @@ void enableDepthRead( bool enable )
 
 void enableDepthWrite( bool enable )
 {
-	gl::context()->depthMask( enable ? GL_TRUE : GL_FALSE );
+	auto ctx = gl::context();
+	ctx->depthMask( enable ? GL_TRUE : GL_FALSE );
 }
 
 void disableDepthWrite()
 {
-	gl::context()->depthMask( GL_FALSE );
+	auto ctx = gl::context();
+	ctx->depthMask( GL_FALSE );
 }
 
 void enableStencilTest( bool enable )
@@ -310,17 +311,20 @@ void setMatrices( const ci::Camera& cam )
 
 void setModelMatrix( const ci::Matrix44f &m )
 {
-	context()->getModelMatrixStack().back() = m;
+	auto ctx = context();
+	ctx->getModelMatrixStack().back() = m;
 }
 
 void setViewMatrix( const ci::Matrix44f &m )
 {
-	context()->getViewMatrixStack().back() = m;
+	auto ctx = context();
+	ctx->getViewMatrixStack().back() = m;
 }
 
 void setProjectionMatrix( const ci::Matrix44f &m )
 {
-	context()->getProjectionMatrixStack().back() = m;
+	auto ctx = context();
+	ctx->getProjectionMatrixStack().back() = m;
 }
 
 void pushModelMatrix()
@@ -331,7 +335,8 @@ void pushModelMatrix()
 
 void popModelMatrix()
 {
-	context()->getModelMatrixStack().pop_back();
+	auto ctx = context();
+	ctx->getModelMatrixStack().pop_back();
 }
 
 void pushViewMatrix()
@@ -342,7 +347,8 @@ void pushViewMatrix()
 
 void popViewMatrix()
 {
-	context()->getViewMatrixStack().pop_back();
+	auto ctx = context();
+	ctx->getViewMatrixStack().pop_back();
 }
 
 void pushProjectionMatrix()
@@ -353,7 +359,22 @@ void pushProjectionMatrix()
 
 void popProjectionMatrix()
 {
-	context()->getProjectionMatrixStack().pop_back();
+	auto ctx = context();
+	ctx->getProjectionMatrixStack().pop_back();
+}
+
+void pushModelViewMatrices()
+{
+	auto ctx = context();
+	ctx->getModelMatrixStack().push_back( ctx->getModelMatrixStack().back() );
+	ctx->getViewMatrixStack().push_back( ctx->getViewMatrixStack().back() );
+}
+
+void popModelViewMatrices()
+{
+	auto ctx = context();
+	ctx->getModelMatrixStack().pop_back();
+	ctx->getViewMatrixStack().pop_back();
 }
 
 void pushMatrices()
@@ -475,19 +496,20 @@ void setMatricesWindow( const ci::Vec2i& screenSize, bool originUpperLeft )
 	setMatricesWindow( screenSize.x, screenSize.y, originUpperLeft );
 }
 
-void rotate( float angleDegrees, float xAxis, float yAxis, float zAxis )
+void rotate( const Quatf &quat )
 {
-	auto ctx = gl::context();
-	ctx->getModelMatrixStack().back().rotate( Vec3f( xAxis, yAxis, zAxis ), toRadians( angleDegrees ) );
+	float angle;
+	Vec3f axis;
+	quat.getAxisAngle( &axis, &angle );
+	rotate( toDegrees( angle ), axis );
 }
 
-void rotate( const cinder::Quatf &quat )
+void rotate( float angleDegrees, const Vec3f &axis )
 {
-	cinder::Vec3f axis;
-	float angle;
-	quat.getAxisAngle( &axis, &angle );
-	if( math<float>::abs( angle ) > EPSILON_VALUE )
-		rotate( cinder::toDegrees( angle ), axis.x, axis.y, axis.z );
+	if( math<float>::abs( angleDegrees ) > EPSILON_VALUE ) {
+		auto ctx = gl::context();
+		ctx->getModelMatrixStack().back().rotate( axis, toRadians( angleDegrees ) );
+	}
 }
 
 void scale( const ci::Vec3f& v )
@@ -524,27 +546,32 @@ void end()
 #if ! defined( CINDER_GL_ES )
 void bindBufferBase( GLenum target, int index, BufferObjRef buffer )
 {
-	gl::context()->bindBufferBase( target, index, buffer );
+	auto ctx = gl::context();
+	ctx->bindBufferBase( target, index, buffer );
 }
 
 void beginTransformFeedback( GLenum primitiveMode )
 {
-	gl::context()->beginTransformFeedback( primitiveMode );
+	auto ctx = gl::context();
+	ctx->beginTransformFeedback( primitiveMode );
 }
 
 void pauseTransformFeedback()
 {
-	gl::context()->pauseTransformFeedback();
+	auto ctx = gl::context();
+	ctx->pauseTransformFeedback();
 }
 
 void resumeTransformFeedback()
 {
-	gl::context()->resumeTransformFeedback();
+	auto ctx = gl::context();
+	ctx->resumeTransformFeedback();
 }
 
 void endTransformFeedback()
 {
-	gl::context()->endTransformFeedback();
+	auto ctx = gl::context();
+	ctx->endTransformFeedback();
 }
 #endif
 
@@ -659,7 +686,8 @@ void vertex( const ci::Vec4f &v )
 #if ! defined( CINDER_GL_ES )
 void polygonMode( GLenum face, GLenum mode )
 {
-	gl::context()->polygonMode( face, mode );
+	auto ctx = gl::context();
+	ctx->polygonMode( face, mode );
 }
 
 void enableWireframe()
@@ -674,7 +702,8 @@ void disableWireframe()
 
 bool isWireframeEnabled()
 {
-	return gl::context()->getPolygonMode( GL_FRONT_AND_BACK ) == GL_LINE;
+	auto ctx = gl::context();
+	return ctx->getPolygonMode( GL_FRONT_AND_BACK ) == GL_LINE;
 }
 
 #endif
