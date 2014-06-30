@@ -128,7 +128,7 @@ class TextBox {
 	bool				getLigate() const { return mLigate; }
 	void				setLigate( bool ligateText ) { mLigate = ligateText; }
 
-	Vec2f									measure() const;
+	const Vec2f&							measure() const;
 	/** Returns a vector of pairs of glyph indices and the position of their left baselines
 		\warning Does not support word wrapping on Windows. **/
 	std::vector<std::pair<uint16_t,Vec2f> >	measureGlyphs() const;

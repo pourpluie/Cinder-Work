@@ -681,8 +681,8 @@ void StereoscopicRenderingApp::renderUI()
 	Surface right = columnRight.render();
 
 	gl::enableAlphaBlending();
-	float height = math<float>::max(columnLeft.getCalculatedSize().y, columnRight.getCalculatedSize().y);
-	gl::draw( gl::Texture::create( left ), Vec2f( getWindowWidth() / 2 - columnLeft.getCalculatedSize().x -10, getWindowHeight() - height - 10 ) );
+	float height = math<float>::max(columnLeft.measure().y, columnRight.measure().y);
+	gl::draw( gl::Texture::create( left ), Vec2f( getWindowWidth() / 2 - columnLeft.measure().x -10, getWindowHeight() - height - 10 ) );
 	gl::draw( gl::Texture::create( right ), Vec2f( getWindowWidth() / 2 +10, getWindowHeight() - height - 10 ) );
 	gl::disableAlphaBlending();
 }

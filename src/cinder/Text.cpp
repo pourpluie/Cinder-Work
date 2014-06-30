@@ -729,7 +729,7 @@ void TextBox::calculate() const
 	mInvalid = false;
 }
 
-Vec2f TextBox::measure() const
+const Vec2f& TextBox::measure() const
 {
 	calculate();
 	return mCalculatedSize;
