@@ -108,7 +108,6 @@ private:
 
 	gl::GlslProgRef			mShaderPhong;
 	gl::GlslProgRef			mShaderInstancedPhong;
-	gl::GlslProgRef			mShaderGrid;
 	gl::GlslProgRef			mShaderAnaglyph;
 	gl::GlslProgRef			mShaderInterlaced;
 
@@ -169,7 +168,6 @@ void StereoscopicRenderingApp::setup()
 	try {
 		mShaderPhong = gl::GlslProg::create( loadAsset("shaders/phong_vert.glsl"), loadAsset("shaders/phong_frag.glsl") );
 		mShaderInstancedPhong = gl::GlslProg::create( loadAsset("shaders/instanced_phong_vert.glsl"), loadAsset("shaders/phong_frag.glsl") );
-		mShaderGrid = gl::GlslProg::create( loadAsset("shaders/grid_vert.glsl"), loadAsset("shaders/grid_frag.glsl") );
 		mShaderAnaglyph = gl::GlslProg::create( loadAsset("shaders/anaglyph_vert.glsl"), loadAsset("shaders/anaglyph_frag.glsl") );
 		mShaderInterlaced = gl::GlslProg::create( loadAsset("shaders/interlaced_vert.glsl"), loadAsset("shaders/interlaced_frag.glsl") );
 	}
