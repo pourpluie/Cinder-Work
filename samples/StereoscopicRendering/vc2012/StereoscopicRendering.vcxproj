@@ -193,9 +193,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\AutoFocuser.cpp" />
     <ClCompile Include="..\src\StereoscopicRenderingApp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\AutoFocuser.h" />
     <ClInclude Include="..\include\Resources.h" />
   </ItemGroup>
   <ItemGroup>

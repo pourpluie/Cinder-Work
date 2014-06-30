@@ -44,7 +44,6 @@
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Shader.h"
-//#include "cinder/gl/StereoAutoFocuser.h"
 #include "cinder/gl/Vbo.h"
 #include "cinder/gl/VboMesh.h"
 
@@ -58,6 +57,8 @@
 #include "cinder/TriMesh.h"
 #include "cinder/Utilities.h"
 
+#include "AutoFocuser.h"
+
 #include <boost/format.hpp>
 
 using namespace ci;
@@ -66,7 +67,7 @@ using namespace std;
 
 class StereoscopicRenderingApp : public AppBasic {
   public:
-	typedef enum { SET_CONVERGENCE, SET_FOCUS/*, AUTO_FOCUS*/ } FocusMethod;
+	typedef enum { SET_CONVERGENCE, SET_FOCUS, AUTO_FOCUS } FocusMethod;
 	typedef enum { MONO, ANAGLYPH_RED_CYAN, SIDE_BY_SIDE, OVER_UNDER, INTERLACED_HORIZONTAL } RenderMethod;
 public:
 	void prepareSettings( Settings *settings );
@@ -103,7 +104,7 @@ private:
 	MayaCamUI				mMayaCam;
 	CameraStereo			mCamera;
 
-	//gl::StereoAutoFocuser	mAF;
+	AutoFocuser				mAF;
 
 	gl::GlslProgRef			mShaderPhong;
 	gl::GlslProgRef			mShaderInstancedPhong;
@@ -154,7 +155,7 @@ void StereoscopicRenderingApp::setup()
 	mRenderMethod = SIDE_BY_SIDE;
 
 	// Enable auto-focussing
-	mFocusMethod = SET_FOCUS; // AUTO_FOCUS;
+	mFocusMethod = AUTO_FOCUS;
 	mDrawAutoFocus = false;
 
 	// Setup the camera
@@ -273,7 +274,7 @@ void StereoscopicRenderingApp::update()
 		// because there may be objects very near to the camera compared to the point we are looking at.
 		mCamera.setConvergence( f, true );
 		break;
-/*	case AUTO_FOCUS:
+	case AUTO_FOCUS:
 		// Here, we use the gl::StereoAutoFocuser class to determine the best focal length,
 		// based on the contents of the current depth buffer. This is by far the best method of
 		// the three, because it guarantees the parallax effect will never be out of bounds.
@@ -297,21 +298,21 @@ void StereoscopicRenderingApp::update()
 			mAF.autoFocus( &mCamera, area );
 			break;
 		case ANAGLYPH_RED_CYAN:
+		case INTERLACED_HORIZONTAL:
 			// Sample the depth buffer of one of the FBO's
 			mAF.autoFocus( &mCamera, mFbo );
 			break;
 		}
 		break;
-*/
 	}
 
 	// Update our music notes
-	InstanceData *data = static_cast<InstanceData*>( mInstanceDataVbo->map( GL_WRITE_ONLY ) );
+	InstanceData *data = reinterpret_cast<InstanceData*>( mInstanceDataVbo->map( GL_WRITE_ONLY ) );
+	size_t numInstances = mInstanceDataVbo->getSize() / sizeof(InstanceData);
 
 	Rand rnd;
 	float seconds = (float) getElapsedSeconds();
-
-	for( size_t i=0; i<NUM_NOTES; ++i ) {
+	for( size_t i=0; i<numInstances; ++i ) {
 		rnd.seed(i + 1);
 
 		int x = i - NUM_NOTES/2;
@@ -354,9 +355,6 @@ void StereoscopicRenderingApp::draw()
 		renderInterlacedHorizontal( getWindowSize() );
 		break;
 	}
-
-	// Draw auto focus visualizer
-	//if( mDrawAutoFocus ) mAF.draw();
 }
 
 void StereoscopicRenderingApp::mouseDown( MouseEvent event )
@@ -406,7 +404,7 @@ void StereoscopicRenderingApp::keyDown( KeyEvent event )
 		// Toggle interface
 		mDrawUI = !mDrawUI;
 		break;
-/*	case KeyEvent::KEY_UP:
+	case KeyEvent::KEY_UP:
 		// Increase the parallax effect (towards negative parallax) 
 		if(mFocusMethod == AUTO_FOCUS)
 			mAF.setDepth( mAF.getDepth() + 0.01f );
@@ -428,7 +426,6 @@ void StereoscopicRenderingApp::keyDown( KeyEvent event )
 		// Increase the auto focus speed
 		mAF.setSpeed( mAF.getSpeed() + 0.01f );
 		break;
-*/
 	case KeyEvent::KEY_1:
 		mFocusMethod = SET_CONVERGENCE;
 		break;
@@ -436,7 +433,7 @@ void StereoscopicRenderingApp::keyDown( KeyEvent event )
 		mFocusMethod = SET_FOCUS;
 		break;
 	case KeyEvent::KEY_3:
-		//mFocusMethod = AUTO_FOCUS;
+		mFocusMethod = AUTO_FOCUS;
 		break;
 	case KeyEvent::KEY_F1:
 		mRenderMethod = MONO;
@@ -668,11 +665,11 @@ void StereoscopicRenderingApp::renderUI()
 	switch(mFocusMethod) {
 		case SET_CONVERGENCE: focusMode = "setConvergence(d, false)"; break;
 		case SET_FOCUS: focusMode = "setConvergence(d, true)"; break;
-		//case AUTO_FOCUS: focusMode = "autoFocus(cam)"; break;
+		case AUTO_FOCUS: focusMode = "autoFocus(cam)"; break;
 	}
 
 	std::string labels( "Render mode (F1-F5):\nFocus mode (1-3):\nFocal Length:\nEye Distance:\nAuto Focus Depth (Up/Down):\nAuto Focus Speed (Left/Right):" );
-	std::string values( (boost::format( "%s\n%s\n%.2f\n%.2f\n%.2f\n%.2f" ) % renderMode % focusMode % mCamera.getConvergence() % mCamera.getEyeSeparation() % 0 % 0).str() );// % mAF.getDepth() % mAF.getSpeed();
+	std::string values( (boost::format( "%s\n%s\n%.2f\n%.2f\n%.2f\n%.2f" ) % renderMode % focusMode % mCamera.getConvergence() % mCamera.getEyeSeparation() % mAF.getDepth() % mAF.getSpeed()).str() );
 
 	TextBox columnLeft = TextBox().alignment( TextBox::Alignment::LEFT ).font( mFont ).color(Color::black()).text(labels);
 	TextBox columnRight = TextBox().alignment( TextBox::Alignment::RIGHT ).font( mFont ).color(Color::black()).text(values);
@@ -681,9 +678,14 @@ void StereoscopicRenderingApp::renderUI()
 	Surface right = columnRight.render();
 
 	gl::enableAlphaBlending();
+	int margin = 10;
+	float width = columnLeft.measure().x + columnRight.measure().x;
 	float height = math<float>::max(columnLeft.measure().y, columnRight.measure().y);
-	gl::draw( gl::Texture::create( left ), Vec2f( getWindowWidth() / 2 - columnLeft.measure().x -10, getWindowHeight() - height - 10 ) );
-	gl::draw( gl::Texture::create( right ), Vec2f( getWindowWidth() / 2 +10, getWindowHeight() - height - 10 ) );
+	float x = getWindowWidth() * 0.5f - width * 0.5f - margin;
+	float y = getWindowHeight() - height - margin;
+	gl::draw( gl::Texture::create( left ), Vec2f( x, y ) );
+	x += columnLeft.measure().x + 2 * margin;
+	gl::draw( gl::Texture::create( right ), Vec2f( x, y ) );
 	gl::disableAlphaBlending();
 }
 
