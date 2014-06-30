@@ -30,10 +30,8 @@ void main()
 	Specular *= pow(max(dot(Reflect,Eye),0.0), shinyness);
 
 	// reflection term (fake ground reflection)
-	vec3  r = Reflect;
-	float m = 2.0 * sqrt(r.x * r.x + r.y * r.y + (r.z + 1.0) * (r.z + 1.0) );
-	float f = pow(0.5 - r.y / m, 5.0);
-	vec4  Reflection = vec4(f, f, f, 1.0) * specular;
+	float r = sqrt(max(dot(N,vec3(0,-1,0)), 0.0)) * 0.5;
+	vec4  Reflection = vec4(r, r, r, 1.0) * specular;
 
 	// final color
 	oColor = Ambient + Diffuse + Reflection + Specular;

@@ -54,6 +54,7 @@
 #include "cinder/MayaCamUI.h"
 #include "cinder/ObjLoader.h"
 #include "cinder/Rand.h"
+#include "cinder/Text.h"
 #include "cinder/TriMesh.h"
 #include "cinder/Utilities.h"
 
@@ -123,42 +124,48 @@ private:
 
 	Font					mFont;
 
+	// Will we draw all notes with a single draw call. This
+	// structure contains the data unique for each note.
+	// Do not change the order of the data! The Vec3f position
+	// and float rotation will be packed into a Vec4f when
+	// sent to the shader.
 	struct InstanceData
 	{
 		Vec3f   position; // 3 floats
 		float   rotation; // 1 float
+
 		ColorAf color;    // 4 floats
 	};
 };
 
 void StereoscopicRenderingApp::prepareSettings( Settings *settings )
 {
-	// create a 16:9 window
+	// Create a 16:9 window
 	settings->setWindowSize(960, 540);
 	settings->setTitle("Stereoscopic Rendering");
 
-	// allow high frame rates to test performance
+	// Allow high frame rates to test performance
 	settings->setFrameRate( 300.0f );
 }
 
 void StereoscopicRenderingApp::setup()
 {
-	// enable stereoscopic rendering
+	// Enable stereoscopic rendering
 	mRenderMethod = SIDE_BY_SIDE;
 
-	// enable auto-focussing
+	// Enable auto-focussing
 	mFocusMethod = SET_FOCUS; // AUTO_FOCUS;
 	mDrawAutoFocus = false;
 
-	// setup the camera
+	// Setup the camera
 	mCamera.setEyePoint( Vec3f(0.2f, 1.3f, -11.5f) );
 	mCamera.setCenterOfInterestPoint( Vec3f(0.5f, 1.5f, -0.1f) );
 	mCamera.setFov( 60.0f );
 
 	mMayaCam.setCurrentCam( mCamera );
 
+	// Load shader(s)
 	try {
-		// load shader(s)
 		mShaderPhong = gl::GlslProg::create( loadAsset("shaders/phong_vert.glsl"), loadAsset("shaders/phong_frag.glsl") );
 		mShaderInstancedPhong = gl::GlslProg::create( loadAsset("shaders/instanced_phong_vert.glsl"), loadAsset("shaders/phong_frag.glsl") );
 		mShaderGrid = gl::GlslProg::create( loadAsset("shaders/grid_vert.glsl"), loadAsset("shaders/grid_frag.glsl") );
@@ -166,64 +173,69 @@ void StereoscopicRenderingApp::setup()
 		mShaderInterlaced = gl::GlslProg::create( loadAsset("shaders/interlaced_vert.glsl"), loadAsset("shaders/interlaced_frag.glsl") );
 	}
 	catch( const std::exception &e ) {
-		// something went wrong, display error and quit
+		// Something went wrong, display error and quit
 		console() << e.what() << std::endl;
 		quit();
 	}
 
+	// Create models
 	try {
-		// create floor from basic cube
+		// Create floor from basic cube
 		mFloor = gl::Batch::create( geom::Cube(), gl::getStockShader( gl::ShaderDef().color() ) );
 
-		// load and create model of trombone
+		// Load and create trombone
 		TriMeshRef	triMesh = TriMesh::create();
 		triMesh->read( loadAsset("models/trombone.msh") );
 		mTrombone = gl::Batch::create( triMesh, mShaderPhong );
 		
-		// load model of music note
-		triMesh->read( loadAsset("models/note.msh") );
+		// Load music note
+		{
+			triMesh->read( loadAsset("models/note.msh") );
 
-		// create instanced data for the music notes
-		std::vector<InstanceData> instanceData(NUM_NOTES);
-		mInstanceDataVbo = gl::Vbo::create( GL_ARRAY_BUFFER, instanceData.size() * sizeof(InstanceData), instanceData.data(), GL_DYNAMIC_DRAW );
+			// Create instanced data for the music notes
+			std::vector<InstanceData> instanceData(NUM_NOTES);
+			mInstanceDataVbo = gl::Vbo::create( GL_ARRAY_BUFFER, instanceData.size() * sizeof(InstanceData), instanceData.data(), GL_DYNAMIC_DRAW );
 
-		geom::BufferLayout instanceDataLayout;
-		instanceDataLayout.append( geom::Attrib::CUSTOM_0, 4, sizeof(InstanceData), 0, 1 ); // position and rotation packed together as Vec4f
-		instanceDataLayout.append( geom::Attrib::CUSTOM_1, 4, sizeof(InstanceData), sizeof(Vec4f), 1 ); // color as Vec4f, with correct offset
+			geom::BufferLayout instanceDataLayout;
+			instanceDataLayout.append( geom::Attrib::CUSTOM_0, 4, sizeof(InstanceData), 0, 1 ); // position and rotation packed together as Vec4f
+			instanceDataLayout.append( geom::Attrib::CUSTOM_1, 4, sizeof(InstanceData), sizeof(Vec4f), 1 ); // color as Vec4f, with correct offset
 
-		gl::Batch::AttributeMapping mapping;
-		mapping[geom::Attrib::CUSTOM_0] = "vInstancePosition";
-		mapping[geom::Attrib::CUSTOM_1] = "vInstanceColor";
+			gl::Batch::AttributeMapping mapping;
+			mapping[geom::Attrib::CUSTOM_0] = "vInstancePosition";
+			mapping[geom::Attrib::CUSTOM_1] = "vInstanceColor";
 
-		// append per instance data
-		gl::VboMeshRef vboMesh = gl::VboMesh::create( *triMesh.get() );
-		vboMesh->appendVbo( instanceDataLayout, mInstanceDataVbo );
+			// Append per instance data
+			gl::VboMeshRef vboMesh = gl::VboMesh::create( *triMesh.get() );
+			vboMesh->appendVbo( instanceDataLayout, mInstanceDataVbo );
 
-		// create model of music note
-		mNote = gl::Batch::create( vboMesh, mShaderInstancedPhong, mapping );
-
-		// create grid (yup, it's painful to no longer have a gl::drawLine() convenience method)
-		std::vector<Vec3f> vertices;
-		for(int i=-100; i<=100; ++i) {
-			vertices.push_back( Vec3f((float) i, 0, -100) );
-			vertices.push_back( Vec3f((float) i, 0,  100) );
-			vertices.push_back( Vec3f(-100, 0, (float) i) );
-			vertices.push_back( Vec3f( 100, 0, (float) i) );
+			// Create music note
+			mNote = gl::Batch::create( vboMesh, mShaderInstancedPhong, mapping );
 		}
 
-		geom::BufferLayout bufferLayout;
-		bufferLayout.append( geom::Attrib::POSITION, 3, 0, 0 ); // we only provide vertices (positions)
+		// Create grid of lines (yup, it's painful to no longer have a gl::drawLine() convenience method)
+		{
+			std::vector<Vec3f> vertices;
+			for(int i=-100; i<=100; ++i) {
+				vertices.push_back( Vec3f((float) i, 0, -100) );
+				vertices.push_back( Vec3f((float) i, 0,  100) );
+				vertices.push_back( Vec3f(-100, 0, (float) i) );
+				vertices.push_back( Vec3f( 100, 0, (float) i) );
+			}
 
-		gl::VboRef vertexDataVbo = gl::Vbo::create( GL_ARRAY_BUFFER, 3 * sizeof(float) * vertices.size(), vertices.data() );
+			geom::BufferLayout bufferLayout;
+			bufferLayout.append( geom::Attrib::POSITION, 3, 0, 0 ); // we only provide vertices (positions)
 
-		std::vector<pair<geom::BufferLayout, gl::VboRef>> buffers;
-		buffers.push_back( make_pair( bufferLayout, vertexDataVbo ) );
+			gl::VboRef vertexDataVbo = gl::Vbo::create( GL_ARRAY_BUFFER, 3 * sizeof(float) * vertices.size(), vertices.data() );
 
-		gl::VboMeshRef grid = gl::VboMesh::create( vertices.size(), GL_LINES, buffers );
-		mGrid = gl::Batch::create( grid, gl::getStockShader( gl::ShaderDef().color() ) );
+			std::vector<pair<geom::BufferLayout, gl::VboRef>> buffers;
+			buffers.push_back( make_pair( bufferLayout, vertexDataVbo ) );
+
+			gl::VboMeshRef grid = gl::VboMesh::create( vertices.size(), GL_LINES, buffers );
+			mGrid = gl::Batch::create( grid, gl::getStockShader( gl::ShaderDef().color() ) );
+		}
 	}
 	catch( const std::exception &e ) {
-		// something went wrong, display error and quit
+		// Something went wrong, display error and quit
 		console() << e.what() << std::endl;
 		quit();
 	}
@@ -242,7 +254,7 @@ void StereoscopicRenderingApp::update()
 	switch( mFocusMethod )
 	{
 	case SET_CONVERGENCE:
-		// auto-focus by calculating distance to center of interest
+		// Auto-focus by calculating distance to center of interest
 		d = (mCamera.getCenterOfInterestPoint() - mCamera.getEyePoint()).length();
 		f = math<float>::min( 5.0f, d * 0.5f );
 
@@ -252,7 +264,7 @@ void StereoscopicRenderingApp::update()
 		mCamera.setEyeSeparation( 0.05f );
 		break;
 	case SET_FOCUS:
-		// auto-focus by calculating distance to center of interest
+		// Auto-focus by calculating distance to center of interest
 		d = (mCamera.getCenterOfInterestPoint() - mCamera.getEyePoint()).length();
 		f = math<float>::min( 5.0f, d * 0.5f );
 
@@ -273,19 +285,19 @@ void StereoscopicRenderingApp::update()
 		case MONO:
 			break;
 		case SIDE_BY_SIDE:
-			// sample half the left eye, half the right eye
+			// Sample half the left eye, half the right eye
 			area = gl::getViewport();
 			area.expand( -area.getWidth()/4, 0 );
 			mAF.autoFocus( &mCamera, area );
 			break;
 		case OVER_UNDER:
-			// sample half the left eye, half the right eye
+			// Sample half the left eye, half the right eye
 			area = gl::getViewport();
 			area.expand( 0, -area.getHeight()/4 );
 			mAF.autoFocus( &mCamera, area );
 			break;
 		case ANAGLYPH_RED_CYAN:
-			// sample the depth buffer of one of the FBO's
+			// Sample the depth buffer of one of the FBO's
 			mAF.autoFocus( &mCamera, mFbo );
 			break;
 		}
@@ -294,16 +306,17 @@ void StereoscopicRenderingApp::update()
 	}
 
 	// Update our music notes
+	InstanceData *data = static_cast<InstanceData*>( mInstanceDataVbo->map( GL_WRITE_ONLY ) );
+
 	Rand rnd;
 	float seconds = (float) getElapsedSeconds();
 
-	InstanceData *data = static_cast<InstanceData*>( mInstanceDataVbo->map( GL_WRITE_ONLY ) );
 	for( size_t i=0; i<NUM_NOTES; ++i ) {
 		rnd.seed(i + 1);
 
 		int x = i - NUM_NOTES/2;
 		float t = rnd.nextFloat() * 200.0f + 2.0f * seconds;
-		float r = rnd.nextFloat() * 360.0f + 60.0f * seconds;
+		float r = rnd.nextFloat() * 360.0f + 120.0f * seconds;
 		float z = fmodf( 5.0f * t, 200.0f ) - 100.0f;
 
 		data->position = Vec3f( x * 0.5f, 0.15f + 1.0f * math<float>::abs( sinf(3.0f * t) ), -z );
@@ -317,14 +330,14 @@ void StereoscopicRenderingApp::update()
 
 void StereoscopicRenderingApp::draw()
 {
-	// clear color and depth buffers
+	// Clear color and depth buffers
 	gl::clear( mColorBackground ); 
 	
-	// stereoscopic rendering
+	// Stereoscopic rendering
 	switch( mRenderMethod ) 
 	{
 	case MONO:
-		// render mono camera
+		// Render mono camera
 		mCamera.disableStereo();
 		render();
 		break;
@@ -342,24 +355,32 @@ void StereoscopicRenderingApp::draw()
 		break;
 	}
 
-	// draw auto focus visualizer
+	// Draw auto focus visualizer
 	//if( mDrawAutoFocus ) mAF.draw();
 }
 
 void StereoscopicRenderingApp::mouseDown( MouseEvent event )
 {
-	// handle camera
+	// Handle camera
+	mMayaCam.setCurrentCam( mCamera );
 	mMayaCam.mouseDown( event.getPos() );
 }
 
 void StereoscopicRenderingApp::mouseDrag( MouseEvent event )
 {
-	// handle camera
+	// Handle camera
 	mMayaCam.mouseDrag( event.getPos(), event.isLeftDown(), event.isMiddleDown(), event.isRightDown() );
 	
-	// update stereoscopic camera
-	mCamera.setEyePoint( mMayaCam.getCamera().getEyePoint() );
-	mCamera.setCenterOfInterestPoint( mMayaCam.getCamera().getCenterOfInterestPoint() );
+	// Update stereoscopic camera
+	Vec3f eye = mMayaCam.getCamera().getEyePoint();
+	Vec3f coi = mMayaCam.getCamera().getCenterOfInterestPoint();
+	Vec3f dir = coi - eye;
+
+	eye.y = math<float>::max(eye.y, 1.0f);
+	coi = eye + dir;
+
+	mCamera.setEyePoint( eye );
+	mCamera.setCenterOfInterestPoint( coi );
 }
 
 void StereoscopicRenderingApp::keyDown( KeyEvent event )
@@ -370,41 +391,41 @@ void StereoscopicRenderingApp::keyDown( KeyEvent event )
 		quit();
 		break;
 	case KeyEvent::KEY_f:
-		// toggle full screen
+		// Toggle full screen
 		setFullScreen( ! isFullScreen() );
 		break;
 	case KeyEvent::KEY_v:
-		// toggle vertical sync
+		// Toggle vertical sync
 		gl::enableVerticalSync( !gl::isVerticalSyncEnabled() );
 		break;
 	case KeyEvent::KEY_d:
-		// toggle visualizer
+		// Toggle visualizer
 		mDrawAutoFocus = !mDrawAutoFocus;
 		break;
 	case KeyEvent::KEY_u:
-		// toggle interface
+		// Toggle interface
 		mDrawUI = !mDrawUI;
 		break;
 /*	case KeyEvent::KEY_UP:
-		// increase the parallax effect (towards negative parallax) 
+		// Increase the parallax effect (towards negative parallax) 
 		if(mFocusMethod == AUTO_FOCUS)
 			mAF.setDepth( mAF.getDepth() + 0.01f );
 		break;
 	case KeyEvent::KEY_DOWN:
-		// decrease the parallax effect (towards positive parallax) 
+		// Decrease the parallax effect (towards positive parallax) 
 		if(mFocusMethod == AUTO_FOCUS)
 			mAF.setDepth( mAF.getDepth() - 0.01f );
 		break;
 	case KeyEvent::KEY_SPACE:
-		// reset the parallax effect to 'no parallax for the nearest object'
+		// Reset the parallax effect to 'no parallax for the nearest object'
 		mAF.setDepth( 1.0f );
 		break;
 	case KeyEvent::KEY_LEFT:
-		// reduce the auto focus speed
+		// Reduce the auto focus speed
 		mAF.setSpeed( mAF.getSpeed() - 0.01f );
 		break;
 	case KeyEvent::KEY_RIGHT:
-		// increase the auto focus speed
+		// Increase the auto focus speed
 		mAF.setSpeed( mAF.getSpeed() + 0.01f );
 		break;
 */
@@ -442,11 +463,11 @@ void StereoscopicRenderingApp::keyDown( KeyEvent event )
 
 void StereoscopicRenderingApp::resize()
 {
-	// make sure the camera's aspect ratio remains correct
+	// Make sure the camera's aspect ratio remains correct
 	mCamera.setAspectRatio( getWindowAspectRatio() );
 	mMayaCam.setCurrentCam( mCamera );
 
-	// create/resize the Frame Buffer Object required for some of the render methods
+	// Create/resize the Frame Buffer Object required for some of the render methods
 	createFbo();
 }
 
@@ -454,7 +475,7 @@ void StereoscopicRenderingApp::createFbo()
 {
 	Vec2i size = getWindowSize();
 
-	//
+	// Set texture format
 	gl::Texture::Format tfmt;
 	tfmt.setMagFilter( GL_LINEAR );
 
@@ -466,7 +487,7 @@ void StereoscopicRenderingApp::createFbo()
 	switch( mRenderMethod )
 	{
 	case ANAGLYPH_RED_CYAN: 
-		// by doubling the horizontal resolution, we can effectively render
+		// By doubling the horizontal resolution, we can effectively render
 		// both the left and right eye views side by side at full resolution
 		mFbo = gl::Fbo::create( size.x * 2, size.y, fmt );
 		mFbo->getColorTexture()->setFlipped(true);
@@ -480,91 +501,91 @@ void StereoscopicRenderingApp::createFbo()
 
 void StereoscopicRenderingApp::renderAnaglyph(  const Vec2i &size, const ColorA &left, const ColorA &right )
 {
-	// bind the FBO and clear its buffer
+	// Bind the FBO and clear its buffer
 	mFbo->bindFramebuffer();
 	gl::clear( mColorBackground );
 
-	// render the scene using the side-by-side technique
+	// Render the scene using the side-by-side technique
 	renderSideBySide( mFbo->getSize() );
 
-	// unbind the FBO
+	// Unbind the FBO
 	mFbo->unbindFramebuffer();
 
-	// enable the anaglyph shader
+	// Enable the anaglyph shader
 	mShaderAnaglyph->bind();
 	mShaderAnaglyph->uniform( "uColorTex", 0 );
 	mShaderAnaglyph->uniform( "uColorLeftEye", left );
 	mShaderAnaglyph->uniform( "uColorRightEye", right );
 
-	// bind the FBO texture and draw a flipped full screen rectangle
+	// Bind the FBO texture and draw a flipped full screen rectangle
 	mFbo->getColorTexture()->bind(0);
 	gl::drawSolidRect( Rectf(0, float(size.y), float(size.x), 0) );
 }
 
 void StereoscopicRenderingApp::renderSideBySide( const Vec2i &size )
 {
-	// store current viewport
+	// Store current viewport
 	gl::pushViewport( gl::getViewport() );
 
-	// draw to left half of window only
+	// Draw to left half of window only
 	gl::viewport( Vec2i(0, 0), Vec2i(size.x / 2, size.y) );
 
-	// render left camera
+	// Render left camera
 	mCamera.enableStereoLeft();
 	render();
 
-	// draw to right half of window only
+	// Draw to right half of window only
 	gl::viewport( Vec2i(size.x / 2, 0), Vec2i(size.x / 2, size.y) );
 
-	// render right camera
+	// Render right camera
 	mCamera.enableStereoRight();
 	render();
 
-	// restore viewport
+	// Restore viewport
 	gl::popViewport();
 }
 
 void StereoscopicRenderingApp::renderOverUnder( const Vec2i &size )
 {
-	// store current viewport
+	// Store current viewport
 	gl::pushViewport( gl::getViewport() );
 
-	// draw to top half of window only
+	// Draw to top half of window only
 	gl::viewport( Vec2i(0, 0), Vec2i(size.x, size.y / 2) );
 
-	// render left camera
+	// Render left camera
 	mCamera.enableStereoLeft();
 	render();
 
-	// draw to bottom half of window only
+	// Draw to bottom half of window only
 	gl::viewport( Vec2i(0, size.y / 2), Vec2i(size.x, size.y / 2) );
 
-	// render right camera
+	// Render right camera
 	mCamera.enableStereoRight();
 	render();
 
-	// restore viewport
+	// Restore viewport
 	gl::popViewport();
 }
 
 void StereoscopicRenderingApp::renderInterlacedHorizontal( const Vec2i &size )
 {
-	// bind the FBO and clear its buffer
+	// Bind the FBO and clear its buffer
 	mFbo->bindFramebuffer();
 	gl::clear( mColorBackground );
 
-	// render the scene using the over-under technique
+	// Render the scene using the over-under technique
 	renderOverUnder( mFbo->getSize() );
 
-	// unbind the FBO
+	// Unbind the FBO
 	mFbo->unbindFramebuffer();
 
-	// enable the interlace shader
+	// Enable the interlace shader
 	mShaderInterlaced->bind();
 	mShaderInterlaced->uniform( "uColorTex", 0 );
 	mShaderInterlaced->uniform( "uWindowMetrics", Vec4f( getWindowPosX(), getWindowPosY(), getWindowWidth(), getWindowHeight() ) );
 
-	// bind the FBO texture and draw a flipped full screen rectangle
+	// Bind the FBO texture and draw a flipped full screen rectangle
 	mFbo->getColorTexture()->bind(0);
 	gl::drawSolidRect( Rectf(0, float(size.y), float(size.x), 0) );
 }
@@ -573,16 +594,16 @@ void StereoscopicRenderingApp::render()
 {	
 	float seconds = (float) getElapsedSeconds();
 
-	// enable 3D rendering
+	// Enable 3D rendering
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
 
-	// set 3D camera matrices
+	// Set 3D camera matrices
 	gl::pushMatrices();
 	gl::setMatrices( mCamera );
 
 	if( mShaderPhong && mTrombone && mNote ) {
-		// draw trombone
+		// Draw trombone
 		gl::pushModelViewMatrices();
 		{
 			gl::color( Color(0.7f, 0.6f, 0.0f) );
@@ -595,7 +616,7 @@ void StereoscopicRenderingApp::render()
 		}
 		gl::popModelViewMatrices();
 
-		// draw animated notes
+		// Draw animated notes
 		gl::color( Color(1.0f, 0.0f, 1.0f) );
 		gl::pushModelViewMatrices();
 		{
@@ -608,11 +629,11 @@ void StereoscopicRenderingApp::render()
 		gl::popModelViewMatrices();
 	}
 
-	// draw grid
+	// Draw grid
 	gl::color( Color(0.8f, 0.8f, 0.8f) );
 	mGrid->draw();
 
-	// draw floor
+	// Draw floor
 	gl::pushModelViewMatrices();
 	gl::enableAlphaBlending();
 	gl::color( ColorA(1,1,1,0.75f) );
@@ -622,18 +643,17 @@ void StereoscopicRenderingApp::render()
 	gl::disableAlphaBlending();
 	gl::popModelViewMatrices();
 
-	// restore 2D rendering
+	// Restore 2D rendering
 	gl::popMatrices();
 	gl::disableDepthWrite();
 	gl::disableDepthRead();
 
-	// render UI
+	// Render UI
 	if( mDrawUI ) renderUI();
 }
 
 void StereoscopicRenderingApp::renderUI()
 {
-/*//
 	float w = (float) getWindowWidth() * 0.5f;
 	float h = (float) getWindowHeight();
 
@@ -651,28 +671,20 @@ void StereoscopicRenderingApp::renderUI()
 		//case AUTO_FOCUS: focusMode = "autoFocus(cam)"; break;
 	}
 
-    std::string labels( "Render mode (F1-F5):\nFocus mode (1-3):\nFocal Length:\nEye Distance:\nAuto Focus Depth (Up/Down):\nAuto Focus Speed (Left/Right):" );
-    boost::format values = boost::format( "%s\n%s\n%.2f\n%.2f\n%.2f\n%.2f" ) % renderMode % focusMode % mCamera.getConvergence() % mCamera.getEyeSeparation() % mAF.getDepth() % mAF.getSpeed();
+	std::string labels( "Render mode (F1-F5):\nFocus mode (1-3):\nFocal Length:\nEye Distance:\nAuto Focus Depth (Up/Down):\nAuto Focus Speed (Left/Right):" );
+	std::string values( (boost::format( "%s\n%s\n%.2f\n%.2f\n%.2f\n%.2f" ) % renderMode % focusMode % mCamera.getConvergence() % mCamera.getEyeSeparation() % 0 % 0).str() );// % mAF.getDepth() % mAF.getSpeed();
 
-#if(defined CINDER_MSW)
-	gl::enableAlphaBlending();
-	gl::drawString( labels, Vec2f( w - 350.0f, h - 150.0f ), Color::black(), mFont );
-	gl::drawStringRight( values.str(), Vec2f( w + 350.0f, h - 150.0f ), Color::black(), mFont );
-	gl::disableAlphaBlending();
-#else
-	// \n is not supported on the mac, so we draw separate strings
-	std::vector< std::string > left, right;
-	left = ci::split( labels, "\n", false );
-	right = ci::split( values.str(), "\n", false );
+	TextBox columnLeft = TextBox().alignment( TextBox::Alignment::LEFT ).font( mFont ).color(Color::black()).text(labels);
+	TextBox columnRight = TextBox().alignment( TextBox::Alignment::RIGHT ).font( mFont ).color(Color::black()).text(values);
+
+	Surface left = columnLeft.render();
+	Surface right = columnRight.render();
 
 	gl::enableAlphaBlending();
-	for(size_t i=0;i<4;++i) {       
-		gl::drawString( left[i], Vec2f( w - 350.0f, h - 150.0f + i * mFont.getSize() * 0.9f ), Color::black(), mFont );
-		gl::drawStringRight( right[i], Vec2f( w + 350.0f, h - 150.0f + i * mFont.getSize() * 0.9f ), Color::black(), mFont );
-	}
+	float height = math<float>::max(columnLeft.getCalculatedSize().y, columnRight.getCalculatedSize().y);
+	gl::draw( gl::Texture::create( left ), Vec2f( getWindowWidth() / 2 - columnLeft.getCalculatedSize().x -10, getWindowHeight() - height - 10 ) );
+	gl::draw( gl::Texture::create( right ), Vec2f( getWindowWidth() / 2 +10, getWindowHeight() - height - 10 ) );
 	gl::disableAlphaBlending();
-#endif
-//*/
 }
 
 CINDER_APP_BASIC( StereoscopicRenderingApp, RendererGl )
