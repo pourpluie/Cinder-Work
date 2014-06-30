@@ -91,6 +91,8 @@ private:
 	void render();
 	void renderUI();
 private:
+	static const int NUM_NOTES = 201;
+
 	bool					mDrawUI;
 	bool					mDrawAutoFocus;
 
@@ -103,6 +105,7 @@ private:
 	//gl::StereoAutoFocuser	mAF;
 
 	gl::GlslProgRef			mShaderPhong;
+	gl::GlslProgRef			mShaderInstancedPhong;
 	gl::GlslProgRef			mShaderGrid;
 	gl::GlslProgRef			mShaderAnaglyph;
 	gl::GlslProgRef			mShaderInterlaced;
@@ -111,12 +114,21 @@ private:
 	gl::BatchRef			mNote;
 	gl::BatchRef			mFloor;
 	gl::BatchRef			mGrid;
+	
+	gl::VboRef				mInstanceDataVbo;
 
 	gl::FboRef				mFbo;
 
 	Color					mColorBackground;
 
 	Font					mFont;
+
+	struct InstanceData
+	{
+		Vec3f   position; // 3 floats
+		float   rotation; // 1 float
+		ColorAf color;    // 4 floats
+	};
 };
 
 void StereoscopicRenderingApp::prepareSettings( Settings *settings )
@@ -148,20 +160,47 @@ void StereoscopicRenderingApp::setup()
 	try {
 		// load shader(s)
 		mShaderPhong = gl::GlslProg::create( loadAsset("shaders/phong_vert.glsl"), loadAsset("shaders/phong_frag.glsl") );
+		mShaderInstancedPhong = gl::GlslProg::create( loadAsset("shaders/instanced_phong_vert.glsl"), loadAsset("shaders/phong_frag.glsl") );
 		mShaderGrid = gl::GlslProg::create( loadAsset("shaders/grid_vert.glsl"), loadAsset("shaders/grid_frag.glsl") );
 		mShaderAnaglyph = gl::GlslProg::create( loadAsset("shaders/anaglyph_vert.glsl"), loadAsset("shaders/anaglyph_frag.glsl") );
 		mShaderInterlaced = gl::GlslProg::create( loadAsset("shaders/interlaced_vert.glsl"), loadAsset("shaders/interlaced_frag.glsl") );
+	}
+	catch( const std::exception &e ) {
+		// something went wrong, display error and quit
+		console() << e.what() << std::endl;
+		quit();
+	}
 
-		// load model(s)
-		TriMeshRef	mesh = TriMesh::create();
-
-		mesh->read( loadAsset("models/trombone.msh") );
-		mTrombone = gl::Batch::create( mesh, mShaderPhong );
-		
-		mesh->read( loadAsset("models/note.msh") );
-		mNote = gl::Batch::create( mesh, mShaderPhong );
-
+	try {
+		// create floor from basic cube
 		mFloor = gl::Batch::create( geom::Cube(), gl::getStockShader( gl::ShaderDef().color() ) );
+
+		// load and create model of trombone
+		TriMeshRef	triMesh = TriMesh::create();
+		triMesh->read( loadAsset("models/trombone.msh") );
+		mTrombone = gl::Batch::create( triMesh, mShaderPhong );
+		
+		// load model of music note
+		triMesh->read( loadAsset("models/note.msh") );
+
+		// create instanced data for the music notes
+		std::vector<InstanceData> instanceData(NUM_NOTES);
+		mInstanceDataVbo = gl::Vbo::create( GL_ARRAY_BUFFER, instanceData.size() * sizeof(InstanceData), instanceData.data(), GL_DYNAMIC_DRAW );
+
+		geom::BufferLayout instanceDataLayout;
+		instanceDataLayout.append( geom::Attrib::CUSTOM_0, 4, sizeof(InstanceData), 0, 1 ); // position and rotation packed together as Vec4f
+		instanceDataLayout.append( geom::Attrib::CUSTOM_1, 4, sizeof(InstanceData), sizeof(Vec4f), 1 ); // color as Vec4f, with correct offset
+
+		gl::Batch::AttributeMapping mapping;
+		mapping[geom::Attrib::CUSTOM_0] = "vInstancePosition";
+		mapping[geom::Attrib::CUSTOM_1] = "vInstanceColor";
+
+		// append per instance data
+		gl::VboMeshRef vboMesh = gl::VboMesh::create( *triMesh.get() );
+		vboMesh->appendVbo( instanceDataLayout, mInstanceDataVbo );
+
+		// create model of music note
+		mNote = gl::Batch::create( vboMesh, mShaderInstancedPhong, mapping );
 
 		// create grid (yup, it's painful to no longer have a gl::drawLine() convenience method)
 		std::vector<Vec3f> vertices;
@@ -253,6 +292,27 @@ void StereoscopicRenderingApp::update()
 		break;
 */
 	}
+
+	// Update our music notes
+	Rand rnd;
+	float seconds = (float) getElapsedSeconds();
+
+	InstanceData *data = static_cast<InstanceData*>( mInstanceDataVbo->map( GL_WRITE_ONLY ) );
+	for( size_t i=0; i<NUM_NOTES; ++i ) {
+		rnd.seed(i + 1);
+
+		int x = i - NUM_NOTES/2;
+		float t = rnd.nextFloat() * 200.0f + 2.0f * seconds;
+		float r = rnd.nextFloat() * 360.0f + 60.0f * seconds;
+		float z = fmodf( 5.0f * t, 200.0f ) - 100.0f;
+
+		data->position = Vec3f( x * 0.5f, 0.15f + 1.0f * math<float>::abs( sinf(3.0f * t) ), -z );
+		data->rotation = toRadians(r);
+		data->color = Color( CM_HSV, rnd.nextFloat(), 1.0f, 1.0f );
+
+		data++;
+	}
+	mInstanceDataVbo->unmap();
 }
 
 void StereoscopicRenderingApp::draw()
@@ -408,10 +468,12 @@ void StereoscopicRenderingApp::createFbo()
 	case ANAGLYPH_RED_CYAN: 
 		// by doubling the horizontal resolution, we can effectively render
 		// both the left and right eye views side by side at full resolution
-		mFbo = gl::Fbo::create( size.x * 2, size.y, fmt ); 
+		mFbo = gl::Fbo::create( size.x * 2, size.y, fmt );
+		mFbo->getColorTexture()->setFlipped(true);
 		break;
 	default:
-		mFbo = gl::Fbo::create( size.x, size.y, fmt ); 
+		mFbo = gl::Fbo::create( size.x, size.y, fmt );
+		mFbo->getColorTexture()->setFlipped(true);
 		break;
 	}
 }
@@ -436,7 +498,7 @@ void StereoscopicRenderingApp::renderAnaglyph(  const Vec2i &size, const ColorA 
 
 	// bind the FBO texture and draw a full screen rectangle,
 	// which conveniently is exactly what the following line does
-	gl::draw( mFbo->getColorTexture(), Rectf(0, float(size.y), float(size.x), 0) );
+	gl::draw( mFbo->getColorTexture(), Rectf(0, 0, float(size.x), float(size.y)) );
 }
 
 void StereoscopicRenderingApp::renderSideBySide( const Vec2i &size )
@@ -505,7 +567,7 @@ void StereoscopicRenderingApp::renderInterlacedHorizontal( const Vec2i &size )
 
 	// bind the FBO texture and draw a full screen rectangle,
 	// which conveniently is exactly what the following line does
-	gl::draw( mFbo->getColorTexture(), Rectf(0, float(size.y), float(size.x), 0) );
+	gl::draw( mFbo->getColorTexture(), Rectf(0, 0, float(size.x), float(size.y)) );
 }
 
 void StereoscopicRenderingApp::render()
@@ -535,30 +597,16 @@ void StereoscopicRenderingApp::render()
 		gl::popModelViewMatrices();
 
 		// draw animated notes
-		Rand rnd;
-		for(int i=-100; i<=100; ++i) {
-			rnd.seed(i + 1000);
-
-			float t = rnd.nextFloat() * 200.0f + 2.0f * seconds;
-			float r = rnd.nextFloat() * 360.0f + 60.0f * seconds;
-			float z = fmodf( 5.0f * t, 200.0f ) - 100.0f;
-
-			gl::color( Color( CM_HSV, rnd.nextFloat(), 1.0f, 1.0f ) );
-			
-			gl::pushModelViewMatrices();
-			gl::translate( i * 0.5f, 0.15f + 1.0f * math<float>::abs( sinf(3.0f * t) ), -z );
-			gl::rotate( r, Vec3f::yAxis() );
-			mNote->draw();
-			gl::popModelViewMatrices();
+		gl::color( Color(1.0f, 0.0f, 1.0f) );
+		gl::pushModelViewMatrices();
+		{
+			mNote->drawInstanced(NUM_NOTES);
 				
 			// reflection
-			gl::pushModelViewMatrices();
 			gl::scale( 1.0f, -1.0f, 1.0f );
-			gl::translate( i * 0.5f, 0.15f + 1.0f * math<float>::abs( sinf(3.0f * t) ), -z );
-			gl::rotate( r, Vec3f::yAxis() );
-			mNote->draw();
-			gl::popModelViewMatrices();
-		}//*/
+			mNote->drawInstanced(NUM_NOTES);
+		}
+		gl::popModelViewMatrices();
 	}
 
 	// draw grid

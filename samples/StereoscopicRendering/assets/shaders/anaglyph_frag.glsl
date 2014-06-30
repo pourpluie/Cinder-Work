@@ -1,16 +1,15 @@
-#version 110
+#version 150
 
-uniform sampler2D	tex0;
-uniform vec4		clr_left;
-uniform vec4		clr_right;
+uniform sampler2D tex0;
+uniform vec4      clr_left;
+uniform vec4      clr_right;
 
-// find the correct half of the texture to sample (side-by-side FBO)
-const vec2			halfOffset = vec2(0.5, 1.0);
-const vec2			offset = vec2(0.5, 0.0);
+in vec2 TexCoord;
+
+out vec4 oColor;
 
 void main()
-{	
-	vec2 st = gl_TexCoord[0].st * halfOffset;
-
-	gl_FragColor = clr_left * texture2D( tex0, st ) + clr_right * texture2D( tex0, st + offset );
+{
+	vec4 uv = TexCoord.xyxy * vec4(0.5, 1.0, 0.5, 1.0) + vec4(0.0, 0.0, 0.5, 0.0);
+	oColor = clr_left * texture( tex0, uv.xy ) + clr_right * texture( tex0, uv.zw );
 }

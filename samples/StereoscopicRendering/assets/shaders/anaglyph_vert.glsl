@@ -1,8 +1,15 @@
-#version 110
+#version 150
+
+in vec4 ciPosition;
+in vec2 ciTexCoord0;
+
+uniform mat4 ciModelViewProjection;
+
+out highp vec2 TexCoord;
 
 void main()
 {
-	gl_FrontColor = gl_Color;
-	gl_Position = ftransform();
-	gl_TexCoord[0] = gl_MultiTexCoord0;
+	TexCoord = ciTexCoord0;
+	gl_Position = ciModelViewProjection * ciPosition;
 }
+
