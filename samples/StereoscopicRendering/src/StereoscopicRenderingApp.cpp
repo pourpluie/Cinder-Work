@@ -492,13 +492,13 @@ void StereoscopicRenderingApp::renderAnaglyph(  const Vec2i &size, const ColorA 
 
 	// enable the anaglyph shader
 	mShaderAnaglyph->bind();
-	mShaderAnaglyph->uniform( "tex0", 0 );
-	mShaderAnaglyph->uniform( "clr_left", left );
-	mShaderAnaglyph->uniform( "clr_right", right );	
+	mShaderAnaglyph->uniform( "uColorTex", 0 );
+	mShaderAnaglyph->uniform( "uColorLeftEye", left );
+	mShaderAnaglyph->uniform( "uColorRightEye", right );
 
-	// bind the FBO texture and draw a full screen rectangle,
-	// which conveniently is exactly what the following line does
-	gl::draw( mFbo->getColorTexture(), Rectf(0, 0, float(size.x), float(size.y)) );
+	// bind the FBO texture and draw a flipped full screen rectangle
+	mFbo->getColorTexture()->bind(0);
+	gl::drawSolidRect( Rectf(0, float(size.y), float(size.x), 0) );
 }
 
 void StereoscopicRenderingApp::renderSideBySide( const Vec2i &size )
@@ -561,13 +561,12 @@ void StereoscopicRenderingApp::renderInterlacedHorizontal( const Vec2i &size )
 
 	// enable the interlace shader
 	mShaderInterlaced->bind();
-	mShaderInterlaced->uniform( "tex0", 0 );
-	mShaderInterlaced->uniform( "window_origin", Vec2f( getWindowPos() ) );
-	mShaderInterlaced->uniform( "window_size", Vec2f( getWindowSize() ) );
+	mShaderInterlaced->uniform( "uColorTex", 0 );
+	mShaderInterlaced->uniform( "uWindowMetrics", Vec4f( getWindowPosX(), getWindowPosY(), getWindowWidth(), getWindowHeight() ) );
 
-	// bind the FBO texture and draw a full screen rectangle,
-	// which conveniently is exactly what the following line does
-	gl::draw( mFbo->getColorTexture(), Rectf(0, 0, float(size.x), float(size.y)) );
+	// bind the FBO texture and draw a flipped full screen rectangle
+	mFbo->getColorTexture()->bind(0);
+	gl::drawSolidRect( Rectf(0, float(size.y), float(size.x), 0) );
 }
 
 void StereoscopicRenderingApp::render()
