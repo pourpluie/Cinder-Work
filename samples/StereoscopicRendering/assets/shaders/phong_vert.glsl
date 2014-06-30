@@ -1,16 +1,26 @@
-#version 110
+#version 150
 
-varying vec3 v;
-varying vec3 N;
-varying vec3 r;
+in vec4 ciPosition;
+in vec3 ciNormal;
+in vec2 ciTexCoord0;
+in vec4 ciColor;
+
+uniform mat4 ciModelViewProjection;
+uniform mat4 ciModelView;
+uniform mat3 ciNormalMatrix;
+
+out highp vec3 Position;
+out highp vec3 Normal;
+out highp vec2 TexCoord;
+out lowp  vec4 Color;
 
 void main()
 {
-	v = vec3(gl_ModelViewMatrix * gl_Vertex);       
-	N = normalize(gl_NormalMatrix * gl_Normal);
-	r = reflect( v, N);
+	Position = vec3(ciModelView * ciPosition);
+	Normal   = vec3(ciNormalMatrix * ciNormal);
 
-	gl_TexCoord[0] = gl_MultiTexCoord0;
-	gl_Position = ftransform();
-	gl_FrontColor = gl_Color;
+	TexCoord = ciTexCoord0;
+	Color    = ciColor;
+
+	gl_Position = ciModelViewProjection * ciPosition;
 }
