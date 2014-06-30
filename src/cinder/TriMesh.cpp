@@ -46,8 +46,10 @@ void TriMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *
 // TriMesh::Format
 TriMesh::Format::Format()
 {
-	mPositionsDims = mNormalsDims = mTangentsDims = mBitangentsDims = mColorsDims = 0;
-	mTexCoords0Dims = mTexCoords1Dims = mTexCoords2Dims = mTexCoords3Dims = 0;
+	mPositionsDims = mNormalsDims = 3;
+	mTangentsDims = mBitangentsDims = mColorsDims = 0;
+	mTexCoords0Dims = 2;
+	mTexCoords1Dims = mTexCoords2Dims = mTexCoords3Dims = 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
