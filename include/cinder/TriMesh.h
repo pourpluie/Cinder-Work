@@ -63,7 +63,8 @@ class TriMesh : public geom::Source {
 		uint8_t		mTexCoords0Dims, mTexCoords1Dims, mTexCoords2Dims, mTexCoords3Dims;
 	};
 
-	static TriMeshRef	create( const Format &format = Format() ) { return TriMeshRef( new TriMesh( format ) ); }
+	static TriMeshRef	create() { return TriMeshRef( new TriMesh( Format().positions().normals().texCoords() ) ); }
+	static TriMeshRef	create( const Format &format ) { return TriMeshRef( new TriMesh( format ) ); }
 	static TriMeshRef	create( const geom::Source &source ) { return TriMeshRef( new TriMesh( source ) ); }
 
 	TriMesh( const Format &format );
