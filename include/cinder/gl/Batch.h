@@ -80,7 +80,7 @@ class Batch {
 	GlslProgRef		mGlsl;
 	
 	std::vector<std::pair<geom::BufferLayout,VboRef>>	mVertexArrayVbos;
-	VboRef					mElements;
+	VboRef					mIndices;
 	VaoRef					mVao;
 	
 	GLenum		mPrimitive;

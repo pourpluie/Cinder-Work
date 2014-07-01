@@ -44,7 +44,7 @@ std::string attribToString( Attrib attrib )
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // BufferLayout
-BufferLayout::AttribInfo BufferLayout::getAttribInfo( Attrib attrib ) const
+AttribInfo BufferLayout::getAttribInfo( Attrib attrib ) const
 {
 	for( const auto &atIt : mAttribs )
 		if( atIt.getAttrib() == attrib )

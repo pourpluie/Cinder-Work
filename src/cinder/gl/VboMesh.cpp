@@ -23,6 +23,7 @@
 #include "cinder/gl/VboMesh.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Context.h"
+#include "cinder/Log.h"
 
 using namespace std;
 
@@ -86,7 +87,7 @@ void VboMeshGeomTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stri
 {
 //	mMesh->copyAttrib( attr, dims, strideBytes, srcData, count );
 	if( mBufferLayout.hasAttrib( attr ) ) {
-		geom::BufferLayout::AttribInfo attrInfo = mBufferLayout.getAttribInfo( attr );
+		geom::AttribInfo attrInfo = mBufferLayout.getAttribInfo( attr );
 		geom::copyData( dims, srcData, count, attrInfo.getDims(), attrInfo.getStride(), reinterpret_cast<float*>( mData + attrInfo.getOffset() ) ); 
 	}
 }
@@ -99,20 +100,52 @@ void VboMeshGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *
 		mVboMesh->mIndexType = GL_UNSIGNED_SHORT;
 		std::unique_ptr<uint16_t[]> indices( new uint16_t[numIndices] );
 		copyIndexData( source, numIndices, indices.get() );
-		if( ! mVboMesh->mElements )
-			mVboMesh->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint16_t), indices.get() );
+		if( ! mVboMesh->mIndices )
+			mVboMesh->mIndices = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint16_t), indices.get() );
 		else
-			mVboMesh->mElements->copyData( numIndices * sizeof(uint16_t), indices.get() );
+			mVboMesh->mIndices->copyData( numIndices * sizeof(uint16_t), indices.get() );
 	}
 	else {
 		mVboMesh->mIndexType = GL_UNSIGNED_INT;
 		std::unique_ptr<uint32_t[]> indices( new uint32_t[numIndices] );
 		copyIndexData( source, numIndices, indices.get() );
-		if( ! mVboMesh->mElements )
-			mVboMesh->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint32_t), indices.get() );
+		if( ! mVboMesh->mIndices )
+			mVboMesh->mIndices = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint32_t), indices.get() );
 		else
-			mVboMesh->mElements->copyData( numIndices * sizeof(uint32_t), indices.get() );
+			mVboMesh->mIndices->copyData( numIndices * sizeof(uint32_t), indices.get() );
 	}
+}
+
+void VboMesh::Layout::allocate( size_t numVertices, geom::BufferLayout *resultBufferLayout, gl::VboRef *resultVbo ) const
+{
+	auto attribInfos = mAttribInfos;
+
+	// setup offsets and strides based on interleaved or planar
+	size_t totalDataBytes;
+	if( mInterleave ) {
+		size_t totalStride = 0;
+		for( const auto &attrib : attribInfos )
+			totalStride += attrib.getByteSize();
+		size_t currentOffset = 0;
+		for( auto &attrib : attribInfos ) {
+			attrib.setOffset( currentOffset );
+			attrib.setStride( totalStride );
+			currentOffset += attrib.getByteSize();
+		}
+		totalDataBytes = currentOffset * numVertices;
+	}
+	else { // planar data
+		size_t currentOffset = 0;
+		for( auto &attrib : attribInfos ) {
+			attrib.setOffset( currentOffset );
+			attrib.setStride( attrib.getByteSize() );
+			currentOffset += attrib.getByteSize() * numVertices;
+		}
+		totalDataBytes = currentOffset;
+	}
+
+	*resultBufferLayout = geom::BufferLayout( attribInfos );
+	*resultVbo = Vbo::create( GL_ARRAY_BUFFER, totalDataBytes, nullptr, mUsage );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -127,12 +160,17 @@ VboMeshRef VboMesh::create( uint32_t numVertices, GLenum glPrimitive, const std:
 	return VboMeshRef( new VboMesh( numVertices, numIndices, glPrimitive, indexType, vertexArrayBuffers, indexVbo ) );
 }
 
-VboMeshRef VboMesh::create( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo )
+VboMeshRef VboMesh::create( const geom::Source &source, const VboRef &arrayVbo, const VboRef &indexArrayVbo )
 {
-	return VboMeshRef( new VboMesh( source, arrayVbo, elementArrayVbo ) );
+	return VboMeshRef( new VboMesh( source, arrayVbo, indexArrayVbo ) );
 }
 
-VboMesh::VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboRef &elementArrayVbo )
+VboMeshRef VboMesh::create( uint32_t numVertices, GLenum glPrimitive, const std::vector<Layout> &vertexArrayLayouts, uint32_t numIndices, GLenum indexType, const VboRef &indexVbo )
+{
+	return VboMeshRef( new VboMesh( numVertices, numIndices, glPrimitive, indexType, vertexArrayLayouts, indexVbo ) );
+}
+
+VboMesh::VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboRef &indexArrayVbo )
 {
 	mNumVertices = source.getNumVertices();
 
@@ -143,7 +181,7 @@ VboMesh::VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboR
 	for( int attribIt = 0; attribIt < (int)geom::Attrib::NUM_ATTRIBS; ++attribIt ) {
 		auto attribDims = source.getAttribDims( (geom::Attrib)attribIt );
 		if( attribDims > 0 ) {
-			bufferLayout.append( (geom::Attrib)attribIt, attribDims, 0, vertexDataSizeBytes );
+			bufferLayout.append( (geom::Attrib)attribIt, geom::DataType::FLOAT, attribDims, 0, vertexDataSizeBytes );
 			vertexDataSizeBytes += attribDims * sizeof(float) * mNumVertices;
 		}
 	}
@@ -151,8 +189,8 @@ VboMesh::VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboR
 	// TODO: this should use mapBuffer when available
 	std::unique_ptr<uint8_t[]> buffer( new uint8_t[vertexDataSizeBytes] );
 	
-	// Set our elements VBO to elementArrayVBO, which may well be empty, so that the target doesn't blow it away. Must do this before we loadInto().
-	mElements = elementArrayVbo;
+	// Set our indices VBO to indexArrayVBO, which may well be empty, so that the target doesn't blow it away. Must do this before we loadInto().
+	mIndices = indexArrayVbo;
 	
 	VboMeshGeomTarget target( source.getPrimitive(), bufferLayout, buffer.get(), this );
 	source.loadInto( &target );
@@ -167,11 +205,43 @@ VboMesh::VboMesh( const geom::Source &source, const VboRef &arrayVbo, const VboR
 }
 
 VboMesh::VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<pair<geom::BufferLayout,VboRef>> &vertexArrayBuffers, const VboRef &indexVbo )
-	: mNumVertices( numVertices ), mNumIndices( numIndices ), mGlPrimitive( glPrimitive ), mIndexType( indexType ), mVertexArrayVbos( vertexArrayBuffers ), mElements( indexVbo )
+	: mNumVertices( numVertices ), mNumIndices( numIndices ), mGlPrimitive( glPrimitive ), mIndexType( indexType ), mVertexArrayVbos( vertexArrayBuffers ), mIndices( indexVbo )
 {
+	if( ! mIndices )
+		allocateIndexVbo();
 }
 
-void VboMesh::buildVao( const GlslProgRef &shader, const AttributeMapping &attributeMapping )
+VboMesh::VboMesh( uint32_t numVertices, uint32_t numIndices, GLenum glPrimitive, GLenum indexType, const std::vector<Layout> &vertexArrayLayouts, const VboRef &indexVbo )
+	: mNumVertices( numVertices ), mNumIndices( numIndices ), mGlPrimitive( glPrimitive ), mIndexType( indexType ), mIndices( indexVbo )
+{
+	geom::BufferLayout bufferLayout;
+	VboRef vbo;
+	for( const auto &layout : vertexArrayLayouts ) {
+		layout.allocate( numVertices, &bufferLayout, &vbo );
+		mVertexArrayVbos.push_back( make_pair( bufferLayout, vbo ) );
+	}
+	
+	if( ! mIndices )
+		allocateIndexVbo();
+}
+
+void VboMesh::allocateIndexVbo()
+{
+	if( mNumIndices == 0 )
+		return;
+
+	size_t bytesRequired = 1; // GL_UNSIGNED_BYTE
+	if( mIndexType == GL_UNSIGNED_SHORT )
+		bytesRequired = 2;
+	else if( mIndexType == GL_UNSIGNED_INT )
+		bytesRequired = 4;
+	else
+		throw geom::ExcIllegalIndexType();
+		
+	mIndices = gl::Vbo::create( GL_ELEMENT_ARRAY_BUFFER, mNumIndices * bytesRequired, nullptr, GL_STATIC_DRAW );
+}
+
+void VboMesh::buildVao( const GlslProgRef &shader, const AttribGlslMap &attributeMapping )
 {
 	auto ctx = gl::context();
 	
@@ -203,7 +273,7 @@ void VboMesh::buildVao( const GlslProgRef &shader, const AttributeMapping &attri
 	}
 	
 	if( mNumIndices > 0 )
-		mElements->bind();
+		mIndices->bind();
 }
 
 void VboMesh::drawImpl()
@@ -212,6 +282,174 @@ void VboMesh::drawImpl()
 		glDrawElements( mGlPrimitive, mNumIndices, mIndexType, (GLvoid*)( 0 ) );
 	else
 		glDrawArrays( mGlPrimitive, 0, mNumVertices );
+}
+
+std::pair<geom::BufferLayout,VboRef>* VboMesh::findAttrib( geom::Attrib attr )
+{
+	for( auto &vertexArrayVbo : mVertexArrayVbos ) {
+		if( vertexArrayVbo.first.hasAttrib( attr ) )
+			return &vertexArrayVbo;
+	}
+	
+	return nullptr;
+}
+
+void VboMesh::bufferAttrib( geom::Attrib attrib, size_t dataSizeBytes, const void *data )
+{
+	auto layoutVbo = findAttrib( attrib );
+	if( ! layoutVbo )
+		throw geom::ExcMissingAttrib();
+	auto attribInfo = layoutVbo->first.getAttribInfo( attrib );
+
+	// if the attribute is stored planar, a call to glBufferSubData should suffice
+	if( attribInfo.getStride() == 0 || attribInfo.getStride() == attribInfo.getByteSize() ) {
+		layoutVbo->second->bufferSubData( attribInfo.getOffset(), dataSizeBytes, data );
+	}
+	else { // interleaved data
+#if ! defined( CINDER_GL_ANGLE )
+  #if defined( CINDER_GL_ES_2 )
+		uint8_t *ptr = reinterpret_cast<uint8_t*>( layoutVbo->second->map( GL_WRITE_ONLY_OES ) );
+  #else
+		uint8_t *ptr = reinterpret_cast<uint8_t*>( layoutVbo->second->map( GL_WRITE_ONLY ) );
+  #endif
+		if( ! ptr ) {
+			CI_LOG_E( "Failed to map VBO" );
+			return;
+		}
+  
+		ptr += attribInfo.getOffset();
+		const uint8_t *srcData = reinterpret_cast<const uint8_t*>( data );
+		const uint8_t *endSrcData = (uint8_t*)data + dataSizeBytes;
+		while( srcData < endSrcData ) {
+			memcpy( ptr, srcData, attribInfo.getByteSize() );
+			srcData += attribInfo.getByteSize();
+			ptr += attribInfo.getStride();
+		}
+		
+		layoutVbo->second->unmap();
+#else
+		CI_LOG_E( "ANGLE does not support bufferAttrib() with interleaved data" );
+#endif		
+	}
+}
+
+void VboMesh::bufferIndices( size_t dataSizeBytes, const void *data )
+{
+	if( ! mIndices ) {
+		CI_LOG_E( "VboMesh::bufferIndices() called on VboMesh with null index VBO" );
+		return;
+	}
+	
+	mIndices->bufferSubData( 0, dataSizeBytes, data );
+}
+
+template<typename T>
+VboMesh::MappedAttrib<T> VboMesh::mapAttribImpl( geom::Attrib attr, int dims, bool orphanExisting )
+{
+	std::pair<geom::BufferLayout,VboRef>* layoutVbo = findAttrib( attr );
+	if( ! layoutVbo )
+		throw geom::ExcMissingAttrib();
+	
+	void *dataPtr;
+	
+	// see if this VBO has already been mapped
+	auto existingIt = mMappedVbos.find( layoutVbo->second );
+	if( existingIt != mMappedVbos.end() ) {
+		existingIt->second.mRefCount++;
+		dataPtr = existingIt->second.mPtr;
+	}
+	else {
+		MappedVboInfo mappedVboInfo;
+		mappedVboInfo.mRefCount = 1;
+		if( orphanExisting ) {
+			layoutVbo->second->bufferData( layoutVbo->second->getSize(), nullptr, layoutVbo->second->getUsage() );
+		}
+#if defined( CINDER_GL_ES )
+		mappedVboInfo.mPtr = layoutVbo->second->map( GL_WRITE_ONLY_OES );
+#else
+		mappedVboInfo.mPtr = layoutVbo->second->map( GL_WRITE_ONLY );
+#endif
+		mMappedVbos[layoutVbo->second] = mappedVboInfo;
+		dataPtr = mappedVboInfo.mPtr;
+	}
+	
+	auto attribInfo = layoutVbo->first.getAttribInfo( attr );
+	
+	if( dims != attribInfo.getDims() ) {
+		CI_LOG_W( "Mapping geom::Attrib of dims " << (int)attribInfo.getDims() << " to type of dims " << dims );	
+	}
+
+	auto stride = ( attribInfo.getStride() == 0 ) ? sizeof(T) : attribInfo.getStride();
+	return VboMesh::MappedAttrib<T>( this, layoutVbo->second, ((uint8_t*)dataPtr) + attribInfo.getOffset(), stride );
+}
+
+VboMesh::MappedAttrib<float> VboMesh::mapAttrib1f( geom::Attrib attr, bool orphanExisting )
+{
+	return mapAttribImpl<float>( attr, 1, orphanExisting );
+}
+
+VboMesh::MappedAttrib<Vec2f> VboMesh::mapAttrib2f( geom::Attrib attr, bool orphanExisting )
+{
+	return mapAttribImpl<Vec2f>( attr, 2, orphanExisting );
+}
+
+VboMesh::MappedAttrib<Vec3f> VboMesh::mapAttrib3f( geom::Attrib attr, bool orphanExisting )
+{
+	return mapAttribImpl<Vec3f>( attr, 3, orphanExisting );
+}
+
+VboMesh::MappedAttrib<Vec4f> VboMesh::mapAttrib4f( geom::Attrib attr, bool orphanExisting )
+{
+	return mapAttribImpl<Vec4f>( attr, 4, orphanExisting );
+}
+
+void VboMesh::MappedAttribBase::unmap()
+{
+	if( mMapping )
+		mMapping->unmap();
+	mPtr = nullptr;
+}
+
+VboMesh::MappedAttribBase::~MappedAttribBase()
+{
+	if( mMapping ) {
+		// if this was the last reference the user forgot to unmap
+		if( mMapping->refCountDec() ) {
+			// if this isn't null the user forgot to unmap
+			if( mMapping->isMapped() )
+				CI_LOG_E( "MappedAttrib was never unmapped" );
+			delete mMapping;
+		}
+	}
+}
+
+void VboMesh::MappedAttribBase::Mapping::unmap()
+{
+	if( ! mMapped ) {
+		CI_LOG_E( "MappedAttrib unmapped more than once" );
+	}
+	else {
+		mMesh->unmapVboImpl( mVbo );
+		mMapped = false;
+	}
+}
+
+void VboMesh::unmapVboImpl( const VboRef &vbo )
+{
+	// find the corresponding entry for this VBO in mMappedVbos
+	auto existingIt = mMappedVbos.find( vbo );
+	if( existingIt != mMappedVbos.end() ) {
+		CI_ASSERT( existingIt->second.mRefCount > 0 );
+		
+		existingIt->second.mRefCount--;
+		// last one out turn off the lights; unmap the VBO and erase this entry from mMappedVbos
+		if( existingIt->second.mRefCount == 0 ) {
+			existingIt->first->unmap();
+			mMappedVbos.erase( existingIt );
+		}
+	}
+	else
+		CI_LOG_E( "Attempto unmap VboMesh::MappedAttrib that was never mapped." );
 }
 
 std::vector<VboRef>	VboMesh::getVertexArrayVbos()
@@ -251,13 +489,13 @@ geom::SourceRef	VboMesh::createSource() const
 
 void VboMesh::downloadIndices( uint32_t *dest ) const
 {
-	if( (! mElements) || (getNumIndices() == 0) )
+	if( (! mIndices) || (getNumIndices() == 0) )
 		return;
 
 #if defined( CINDER_GL_ES )
-	const void *data = mElements->map( GL_READ_ONLY_OES );
+	const void *data = mIndices->map( GL_READ_ONLY_OES );
 #else
-	const void *data = mElements->map( GL_READ_ONLY );
+	const void *data = mIndices->map( GL_READ_ONLY );
 #endif
 	if( mIndexType == GL_UNSIGNED_SHORT ) {
 		const uint16_t *source = reinterpret_cast<const uint16_t*>( data );
@@ -267,51 +505,51 @@ void VboMesh::downloadIndices( uint32_t *dest ) const
 	else
 		memcpy( dest, data, getNumIndices() * sizeof(uint32_t) );
 		
-	mElements->unmap();
+	mIndices->unmap();
 }
 
-void VboMesh::echoElementRange( std::ostream &os, size_t startIndex, size_t endIndex )
+void VboMesh::echoIndexRange( std::ostream &os, size_t startIndex, size_t endIndex )
 {
-	if( ( mNumIndices == 0 ) || ( ! mElements ) )
+	if( ( mNumIndices == 0 ) || ( ! mIndices ) )
 		return;
 
-	vector<uint32_t> elements;
+	vector<uint32_t> indices;
 	startIndex = std::min<size_t>( startIndex, mNumIndices );
 	endIndex = std::min<size_t>( endIndex, mNumIndices );
 
-	const void *rawData = mElements->map( GL_READ_ONLY );
+	const void *rawData = mIndices->map( GL_READ_ONLY );
 	switch( mIndexType ) {
 		case GL_UNSIGNED_BYTE:
 			for( size_t v = startIndex; v < endIndex; ++v )
-				elements.push_back( reinterpret_cast<const uint8_t*>( rawData )[v] );
+				indices.push_back( reinterpret_cast<const uint8_t*>( rawData )[v] );
 		break;
 		case GL_UNSIGNED_SHORT:
 			for( size_t v = startIndex; v < endIndex; ++v )
-				elements.push_back( reinterpret_cast<const uint16_t*>( rawData )[v] );
+				indices.push_back( reinterpret_cast<const uint16_t*>( rawData )[v] );
 		break;
 		case GL_UNSIGNED_INT:
 			for( size_t v = startIndex; v < endIndex; ++v )
-				elements.push_back( reinterpret_cast<const uint32_t*>( rawData )[v] );
+				indices.push_back( reinterpret_cast<const uint32_t*>( rawData )[v] );
 		break;
 		default:
 			return;
 	}
 
-	echoVertices( os, elements, true );
+	echoVertices( os, indices, true );
 }
 
 void VboMesh::echoVertexRange( std::ostream &os, size_t startIndex, size_t endIndex )
 {
-	vector<uint32_t> elements;
+	vector<uint32_t> indices;
 	startIndex = std::min<size_t>( startIndex, mNumVertices );
 	endIndex = std::min<size_t>( endIndex, mNumVertices );
-	elements.resize( endIndex - startIndex );
+	indices.resize( endIndex - startIndex );
 	for( size_t s = 0; s < endIndex - startIndex; ++s )
-		elements[s] = s + startIndex;
-	echoVertices( os, elements, false );
+		indices[s] = s + startIndex;
+	echoVertices( os, indices, false );
 }
 
-void VboMesh::echoVertices( std::ostream &os, const vector<uint32_t> &elements, bool printElements )
+void VboMesh::echoVertices( std::ostream &os, const vector<uint32_t> &indices, bool printIndices )
 {
 	vector<string> attribSemanticNames;
 	vector<vector<string>> attribData;
@@ -330,7 +568,7 @@ void VboMesh::echoVertices( std::ostream &os, const vector<uint32_t> &elements, 
 			attribSemanticNames.push_back( geom::attribToString( attribInfo.getAttrib() ) );
 			attribData.push_back( vector<string>() );
 			size_t stride = ( attribInfo.getStride() == 0 ) ? attribInfo.getDims() * sizeof(float) : attribInfo.getStride();
-			for( size_t vIt : elements ) {
+			for( size_t vIt : indices ) {
 				ostringstream ss;
 				const float *dataFloat = reinterpret_cast<const float*>( (const uint8_t*)rawData + attribInfo.getOffset() + vIt * stride );
 				for( uint8_t d = 0; d < attribInfo.getDims(); ++d ) {
@@ -353,8 +591,8 @@ void VboMesh::echoVertices( std::ostream &os, const vector<uint32_t> &elements, 
 
 	// if we're printing indices then we need to determine the widest as a string
 	size_t rowStart = 0;
-	if( printElements ) {
-		for( uint32_t v : elements )
+	if( printIndices ) {
+		for( uint32_t v : indices )
 			rowStart = std::max( rowStart, to_string( v ).length() );
 		rowStart += 2; // account for ": "
 	}
@@ -378,10 +616,10 @@ void VboMesh::echoVertices( std::ostream &os, const vector<uint32_t> &elements, 
 	os << std::endl;
 
 	// print data rows
-	for( size_t v = 0; v < elements.size(); ++v ) {
+	for( size_t v = 0; v < indices.size(); ++v ) {
 		ostringstream ss;
-		if( printElements ) {
-			string elementStr = to_string( elements[v] ) + ":";
+		if( printIndices ) {
+			string elementStr = to_string( indices[v] ) + ":";
 			for( size_t space = 0; space < rowStart - elementStr.length(); ++space )
 				ss << ' ';
 			ss << elementStr;

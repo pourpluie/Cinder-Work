@@ -66,7 +66,7 @@ void BatchGeomTarget::copyAttrib( geom::Attrib attr, uint8_t dims, size_t stride
 {
 //	mMesh->copyAttrib( attr, dims, strideBytes, srcData, count );
 	if( mBufferLayout.hasAttrib( attr ) ) {
-		geom::BufferLayout::AttribInfo attrInfo = mBufferLayout.getAttribInfo( attr );
+		geom::AttribInfo attrInfo = mBufferLayout.getAttribInfo( attr );
 		geom::copyData( dims, srcData, count, attrInfo.getDims(), attrInfo.getStride(), reinterpret_cast<float*>( mData + attrInfo.getOffset() ) ); 
 	}
 }
@@ -79,13 +79,13 @@ void BatchGeomTarget::copyIndices( geom::Primitive primitive, const uint32_t *so
 		mBatch->mIndexType = GL_UNSIGNED_SHORT;
 		std::unique_ptr<uint16_t[]> indices( new uint16_t[numIndices] );
 		copyIndexData( source, numIndices, indices.get() );
-		mBatch->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint16_t), indices.get() );
+		mBatch->mIndices = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint16_t), indices.get() );
 	}
 	else {
 		mBatch->mIndexType = GL_UNSIGNED_INT;
 		std::unique_ptr<uint32_t[]> indices( new uint32_t[numIndices] );
 		copyIndexData( source, numIndices, indices.get() );
-		mBatch->mElements = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint32_t), indices.get() );
+		mBatch->mIndices = Vbo::create( GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint32_t), indices.get() );
 	}
 }
 
@@ -109,7 +109,7 @@ BatchRef Batch::create( const geom::SourceRef &sourceRef, const gl::GlslProgRef 
 Batch::Batch( const VboMeshRef &vboMesh, const gl::GlslProgRef &glsl, const AttributeMapping &attributeMapping )
 	: mGlsl( glsl )
 {
-	mElements = vboMesh->getElementVbo();
+	mIndices = vboMesh->getIndexVbo();
 	mPrimitive = vboMesh->getGlPrimitive();
 	mNumVertices = vboMesh->getNumVertices();
 	mNumIndices = vboMesh->getNumIndices();
@@ -135,7 +135,7 @@ void Batch::init( const geom::Source &source, const gl::GlslProgRef &glsl )
 	for( int attribIt = 0; attribIt < (int)geom::Attrib::NUM_ATTRIBS; ++attribIt ) {
 		auto attribDims = source.getAttribDims( (geom::Attrib)attribIt );
 		if( attribDims > 0 ) {
-			bufferLayout.append( (geom::Attrib)attribIt, attribDims, 0, vertexDataSizeBytes );
+			bufferLayout.append( (geom::Attrib)attribIt, geom::DataType::FLOAT, attribDims, 0, vertexDataSizeBytes );
 			vertexDataSizeBytes += attribDims * sizeof(float) * mNumVertices;
 		}
 	}
@@ -194,7 +194,7 @@ void Batch::initVao( const AttributeMapping &attributeMapping )
 	}
 	
 	if( mNumIndices > 0 )
-		mElements->bind();
+		mIndices->bind();
 
 	ctx->popBufferBinding( GL_ARRAY_BUFFER );
 }
