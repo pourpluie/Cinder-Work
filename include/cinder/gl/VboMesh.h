@@ -159,18 +159,19 @@ class VboMesh {
 			Mapping( VboMesh *mesh, const VboRef &vbo )
 				: mMesh( mesh ), mVbo( vbo ), mRefCount( 1 ), mMapped( true )
 			{}
-	
-			Mapping( const Mapping &rhs ) = delete;
-			Mapping& operator=( const Mapping &rhs ) = delete;
-			
+				
 			void		refCountInc() { ++mRefCount; }
 			//! Returns \c true if this was the last reference
 			bool		refCountDec() { --mRefCount; return mRefCount == 0; }
 			
 			void		unmap();
 			bool		isMapped() const { return mMapped; }
-			
-			
+	
+		  private:
+  			Mapping( const Mapping &rhs );
+			Mapping& operator=( const Mapping &rhs );
+
+		  public:		
 			VboMesh		*mMesh;
 			bool		mMapped;
 			VboRef		mVbo;
