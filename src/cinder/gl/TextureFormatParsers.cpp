@@ -254,10 +254,6 @@ void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 	resultData->setHeight( ddsd.dwHeight );
 	resultData->setDepth( 1 );
 
-	// how big (worst case) is it going to be including all mipmaps?
-	uint32_t maxBufSize = ( ddsd.dwMipMapCount > 1 ) ? ( ddsd.dwWidth * ddsd.dwHeight * 4 * 2 ) : ( ddsd.dwWidth * ddsd.dwHeight * 4 ); 
-	resultData->allocateDataStore( maxBufSize );
-
 	int numMipMaps = ddsd.dwMipMapCount;
 	int dataFormat;
 	size_t blockSizeBytes = 16;
@@ -324,15 +320,28 @@ void parseDds( const DataSourceRef &dataSource, TextureData *resultData )
 	resultData->setInternalFormat( dataFormat );
 	resultData->setDataType( 0 ); // implies compressed
 
-	resultData->mapDataStore();
-	size_t byteOffset = 0;
-	for( int level = 0; level <= numMipMaps && (ddsd.dwWidth || ddsd.dwHeight); ++level ) { 
+	// fn which calculates memory requirements for a given MIP level 'level'
+	auto calcImageLevelSize = [ddsd,blockSizeBytes]( int level ) {
 		int levelWidth = std::max<int>( 1, (ddsd.dwWidth>>level) );
 		int levelHeight = std::max<int>( 1, (ddsd.dwHeight>>level) );
 		int blockWidth = std::max<int>( 1, (levelWidth+3) / 4 );
 		int blockHeight = std::max<int>( 1, (levelHeight+3) / 4 );
 		int rowBytes = blockWidth * blockSizeBytes;
-		uint32_t imageSize = blockHeight * rowBytes;
+		return blockHeight * rowBytes;
+	};
+
+	// calculate the space we need
+	uint32_t spaceRequired = 0;
+	for( int level = 0; level <= numMipMaps && (ddsd.dwWidth || ddsd.dwHeight); ++level )
+		spaceRequired += calcImageLevelSize( level );
+	resultData->allocateDataStore( spaceRequired );
+
+	resultData->mapDataStore();
+	size_t byteOffset = 0;
+	for( int level = 0; level <= numMipMaps && (ddsd.dwWidth || ddsd.dwHeight); ++level ) { 
+		int levelWidth = std::max<int>( 1, (ddsd.dwWidth>>level) );
+		int levelHeight = std::max<int>( 1, (ddsd.dwHeight>>level) );
+		const uint32_t imageSize = calcImageLevelSize( level );
 
 		resultData->push_back( TextureData::Level() );
 		resultData->back().dataSize = imageSize;
