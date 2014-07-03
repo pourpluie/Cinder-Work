@@ -48,5 +48,14 @@
     <None Include="..\assets\normal_mapping_vert.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\assets\wireframe_frag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\wireframe_geom.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\wireframe_vert.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

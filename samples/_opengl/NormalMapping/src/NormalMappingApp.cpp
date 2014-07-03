@@ -54,8 +54,12 @@ struct LightSource
 };
 
 class NormalMappingApp : public AppNative {
-	
-	typedef enum { Default, Glossy, LightingOnly, NormalMap } ViewMode;
+
+#if ! defined( CINDER_GL_ES )
+	typedef enum { Default, Glossy, Normals, Lighting, Mesh } ViewMode;
+#else
+	typedef enum { Default, Glossy, Normals, Lighting } ViewMode;
+#endif
 
 public:
 	void	prepareSettings( Settings* settings );
@@ -73,7 +77,7 @@ public:
 	void	keyDown( KeyEvent event );
 
 	bool	isInitialized() const {
-		return (mDiffuseMap && mSpecularMap && mNormalMap && mCopyrightMap && mShader && mMesh);
+		return (mDiffuseMap && mSpecularMap && mNormalMap && mCopyrightMap && mShaderNormalMapping && mMesh);
 	}
 
 private:
@@ -100,7 +104,9 @@ private:
 	gl::TextureRef		mNormalMap;
 	gl::TextureRef		mEmmisiveMap;
 
-	gl::GlslProgRef		mShader;
+	gl::GlslProgRef		mShaderNormalMapping;
+	gl::GlslProgRef		mShaderWireframe;
+
 	gl::VboMeshRef		mMesh;
 	gl::VboMeshRef		mMeshDebug;
 
@@ -148,7 +154,7 @@ void NormalMappingApp::setup()
 	// default settings
 	mMeshBounds = AxisAlignedBox3f( Vec3f::zero(), Vec3f::one() );
 
-	bAutoRotate = false;
+	bAutoRotate = true;
 	fAutoRotateAngle = 0.0f;
 
 	bAnimateLantern = true;
@@ -169,22 +175,28 @@ void NormalMappingApp::setup()
 		mNormalMap = gl::Texture::create( loadImage( loadAsset("leprechaun_normal.jpg") ) );
 		mEmmisiveMap = gl::Texture::create( loadImage( loadAsset("leprechaun_emmisive.png") ) );
 
-		// load our shader and set the non-varying uniforms
+		// load our shaders and set the non-varying uniforms
 #if ! defined( CINDER_GL_ES )
-		mShader = gl::GlslProg::create( loadAsset("normal_mapping_vert.glsl"), loadAsset("normal_mapping_frag.glsl") );
+		mShaderNormalMapping = gl::GlslProg::create( loadAsset("normal_mapping_vert.glsl"), loadAsset("normal_mapping_frag.glsl") );
+
+		gl::GlslProg::Format fmt;
+		fmt.vertex( loadAsset("wireframe_vert.glsl") );
+		fmt.geometry( loadAsset("wireframe_geom.glsl") );
+		fmt.fragment( loadAsset("wireframe_frag.glsl") );
+		mShaderWireframe = gl::GlslProg::create( fmt );
 #else
-		mShader = gl::GlslProg::create( loadAsset("normal_mapping_vert_es2.glsl"), loadAsset("normal_mapping_frag_es2.glsl") );
+		mShaderNormalMapping = gl::GlslProg::create( loadAsset("normal_mapping_vert_es2.glsl"), loadAsset("normal_mapping_frag_es2.glsl") );
 #endif
 
-		mShader->uniform( "uDiffuseMap", 0 );
-		mShader->uniform( "uSpecularMap", 1 );
-		mShader->uniform( "uNormalMap", 2 );
-		mShader->uniform( "uEmmisiveMap", 3 );
-		mShader->uniform( "uLights[0].diffuse", mLightLantern.diffuse );
-		mShader->uniform( "uLights[0].specular", mLightLantern.specular );
-		mShader->uniform( "uLights[1].diffuse", mLightAmbient.diffuse );
-		mShader->uniform( "uLights[1].specular", mLightAmbient.specular );
-		mShader->uniform( "uNumOfLights", 2 );
+		mShaderNormalMapping->uniform( "uDiffuseMap", 0 );
+		mShaderNormalMapping->uniform( "uSpecularMap", 1 );
+		mShaderNormalMapping->uniform( "uNormalMap", 2 );
+		mShaderNormalMapping->uniform( "uEmmisiveMap", 3 );
+		mShaderNormalMapping->uniform( "uLights[0].diffuse", mLightLantern.diffuse );
+		mShaderNormalMapping->uniform( "uLights[0].specular", mLightLantern.specular );
+		mShaderNormalMapping->uniform( "uLights[1].diffuse", mLightAmbient.diffuse );
+		mShaderNormalMapping->uniform( "uLights[1].specular", mLightAmbient.specular );
+		mShaderNormalMapping->uniform( "uNumOfLights", 2 );
 	}
 	catch( const std::exception& e ) {
 		console() << "Error loading asset: " << e.what() << std::endl;
@@ -208,23 +220,23 @@ void NormalMappingApp::setup()
 
 	// create a parameter window, so we can toggle stuff
 	std::vector<std::string> viewmodes;
-	viewmodes.push_back("Final Render      ");
-	viewmodes.push_back("Glossy Render     ");
-	viewmodes.push_back("Lighting Only     ");
-	viewmodes.push_back("Calculated Normals");
+	viewmodes.push_back("Final");
+	viewmodes.push_back("Glossy");
+	viewmodes.push_back("Normals");
+	viewmodes.push_back("Lighting");
+	viewmodes.push_back("Mesh");
 
 #if ! defined( CINDER_GL_ES )
 	mParams = params::InterfaceGl::create( getWindow(), "Normal Mapping Demo", Vec2i(340, 150) );
-	mParams->setOptions( "", "valueswidth=fit" );
+	mParams->setOptions( "", "valueswidth=100" );
 
-	mParams->addParam( "Rotate Model", &bAutoRotate );
-	mParams->addParam( "Animate Light", &bAnimateLantern );
-
-	mParams->addSeparator();
 	mParams->addParam( "Enable Normal Mapping", &bEnableNormalMap );
 	mParams->addParam( "Viewing Mode", viewmodes, (int*) &mViewMode );
 
 	mParams->addSeparator();
+
+	mParams->addParam( "Rotate Model", &bAutoRotate );
+	mParams->addParam( "Animate Light", &bAnimateLantern );
 	mParams->addParam( "Show Normals & Tangents", &bShowNormalsAndTangents );
 #endif
 
@@ -259,14 +271,18 @@ void NormalMappingApp::update()
 	mLightAmbient.position = Vec4f::zero();
 
 	// set the varying shader uniforms
-	mShader->uniform( "bShowNormals", mViewMode == ViewMode::NormalMap );
-	mShader->uniform( "bUseDiffuseMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::Glossy) );
-	mShader->uniform( "bUseSpecularMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::LightingOnly) );
-	mShader->uniform( "bUseEmmisiveMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::Glossy) );
-	mShader->uniform( "bUseNormalMap", bEnableNormalMap );
+	mShaderNormalMapping->uniform( "bShowNormals", mViewMode == ViewMode::Normals );
+	mShaderNormalMapping->uniform( "bUseDiffuseMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::Glossy) );
+	mShaderNormalMapping->uniform( "bUseSpecularMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::Lighting) );
+	mShaderNormalMapping->uniform( "bUseEmmisiveMap", (mViewMode == ViewMode::Default || mViewMode == ViewMode::Glossy) );
+	mShaderNormalMapping->uniform( "bUseNormalMap", bEnableNormalMap );
 
-	mShader->uniform( "uLights[0].position", mLightLantern.position );
-	mShader->uniform( "uLights[1].position", mLightAmbient.position );
+	mShaderNormalMapping->uniform( "uLights[0].position", mLightLantern.position );
+	mShaderNormalMapping->uniform( "uLights[1].position", mLightAmbient.position );
+
+#if ! defined( CINDER_GL_ES )
+	mShaderWireframe->uniform( "uViewportSize", Vec2f( getWindowSize() ) );
+#endif
 }
 
 void NormalMappingApp::draw()
@@ -291,9 +307,22 @@ void NormalMappingApp::draw()
 		mEmmisiveMap->bind(3);
 
 		// render our model
+#if ! defined( CINDER_GL_ES )
+		if(mViewMode == ViewMode::Mesh)
+		{
+			// use our wireframe shader for this scope
+			gl::ScopedGlslProg GlslProgScope( mShaderWireframe );
+	
+			gl::pushModelMatrix();
+			gl::multModelMatrix( mMeshTransform );
+			gl::draw( mMesh );
+			gl::popModelMatrix();
+		}
+		else
+#endif
 		{
 			// use our own normal mapping shader for this scope
-			gl::ScopedGlslProg GlslProgScope( mShader );
+			gl::ScopedGlslProg GlslProgScope( mShaderNormalMapping );
 	
 			gl::pushModelMatrix();
 			gl::multModelMatrix( mMeshTransform );
