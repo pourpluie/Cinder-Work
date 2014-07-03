@@ -281,7 +281,8 @@ void NormalMappingApp::update()
 	mShaderNormalMapping->uniform( "uLights[1].position", mLightAmbient.position );
 
 #if ! defined( CINDER_GL_ES )
-	mShaderWireframe->uniform( "uViewportSize", Vec2f( getWindowSize() ) );
+	if(mShaderWireframe)
+		mShaderWireframe->uniform( "uViewportSize", Vec2f( getWindowSize() ) );
 #endif
 }
 
@@ -308,7 +309,7 @@ void NormalMappingApp::draw()
 
 		// render our model
 #if ! defined( CINDER_GL_ES )
-		if(mViewMode == ViewMode::Mesh)
+		if(mViewMode == ViewMode::Mesh && mShaderWireframe)
 		{
 			// use our wireframe shader for this scope
 			gl::ScopedGlslProg GlslProgScope( mShaderWireframe );

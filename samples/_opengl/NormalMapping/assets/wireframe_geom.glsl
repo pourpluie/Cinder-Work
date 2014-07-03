@@ -1,5 +1,4 @@
 #version 150
-#extension GL_EXT_gpu_shader4 : enable
 #extension GL_EXT_geometry_shader4 : enable
 
 // we expect the model to be made of triangles (GL_TRIANGLES)
