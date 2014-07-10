@@ -38,6 +38,9 @@ class Area {
  public:
 	Area() {}
 	Area( const Vec2i &UL, const Vec2i &LR );
+	explicit Area( const std::pair<Vec2i, Vec2i> offsetAndSize )
+		{ set( offsetAndSize.first.x, offsetAndSize.first.y, 
+			offsetAndSize.first.x + offsetAndSize.second.x, offsetAndSize.first.x + offsetAndSize.second.y ); }
 	Area( int32_t aX1, int32_t aY1, int32_t aX2, int32_t aY2 )
 		{ set( aX1, aY1, aX2, aY2 ); }
 	explicit Area( const RectT<float> &r );
