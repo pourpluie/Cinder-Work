@@ -248,7 +248,11 @@ void StereoscopicRenderingApp::setup()
 void StereoscopicRenderingApp::update()
 {
 	float	d, f;
-	Area	area;
+
+	// note: viewport is defined with the lower left corner as the origin, whereas area is
+	//  defined with the upper left corner as the origin. It's safe to ignore that difference for now.
+	const auto viewport = gl::getViewport();
+	Area       area = Area( viewport.first, viewport.first + viewport.second );
 
 	switch( mFocusMethod )
 	{
@@ -285,13 +289,11 @@ void StereoscopicRenderingApp::update()
 			break;
 		case SIDE_BY_SIDE:
 			// Sample half the left eye, half the right eye
-			area = gl::getViewport();
 			area.expand( -area.getWidth()/4, 0 );
 			mAF.autoFocus( &mCamera, area );
 			break;
 		case OVER_UNDER:
 			// Sample half the left eye, half the right eye
-			area = gl::getViewport();
 			area.expand( 0, -area.getHeight()/4 );
 			mAF.autoFocus( &mCamera, area );
 			break;
