@@ -285,13 +285,13 @@ void StereoscopicRenderingApp::update()
 			break;
 		case SIDE_BY_SIDE:
 			// Sample half the left eye, half the right eye
-			area = gl::getViewport();
+			area = Area( gl::getViewport() );
 			area.expand( -area.getWidth()/4, 0 );
 			mAF.autoFocus( &mCamera, area );
 			break;
 		case OVER_UNDER:
 			// Sample half the left eye, half the right eye
-			area = gl::getViewport();
+			area = Area( gl::getViewport() );
 			area.expand( 0, -area.getHeight()/4 );
 			mAF.autoFocus( &mCamera, area );
 			break;

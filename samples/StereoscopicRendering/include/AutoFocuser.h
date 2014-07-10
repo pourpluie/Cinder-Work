@@ -44,7 +44,7 @@ class AutoFocuser {
 		\a cam is the CameraStereo you use to render the scene and which should be auto-focussed.
 		If your autoFocusSpeed is less than 1.0, repeatedly call this function from your update() method.
 	*/
-	void					autoFocus( ci::CameraStereo *cam ) { autoFocus( cam, ci::gl::getViewport(), GL_NONE ); }
+	void					autoFocus( ci::CameraStereo *cam ) { autoFocus( cam, ci::Area( ci::gl::getViewport() ), GL_NONE ); }
 	/** Attempts to set an ideal convergence and eye separation. 
 		\a cam is the CameraStereo you use to render the scene and which should be auto-focussed.
 		\a area is the area that you want to sample.
