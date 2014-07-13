@@ -473,7 +473,7 @@ class Cylinder : public Source {
 	//! Specifies the base and apex radius.
 	virtual Cylinder&	radius( float radius ) { mRadiusBase = mRadiusApex = math<float>::max(0.f, radius); mCalculationsCached = false; return *this; }
 	//! Specifies the axis of the cylinder.
-	virtual Cylinder&	direction( const Vec3f &direction ) { mDirection = direction;  mCalculationsCached = false; return *this; }
+	virtual Cylinder&	direction( const Vec3f &direction ) { mDirection = direction.normalized();  mCalculationsCached = false; return *this; }
 	//! Conveniently sets origin, height and direction.
 	virtual Cylinder&	set( const Vec3f &from, const Vec3f &to );
 
