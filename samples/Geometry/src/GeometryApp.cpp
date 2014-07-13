@@ -42,15 +42,15 @@ private:
 	bool				mColored;
 	bool				mShowNormals;
 	unsigned			mTwist;
-	float				mHeight;
 
 	CameraPersp			mCamera;
 	MayaCamUI			mMayaCam;
 
 	gl::VertBatchRef	mGrid;
 
-	gl::VboMeshRef		mPrimitive;
-	gl::VboMeshRef		mNormals;
+	gl::BatchRef		mPrimitive;
+	gl::BatchRef		mPrimitiveWireframe;
+	gl::BatchRef		mNormals;
 
 	gl::GlslProgRef		mWireframeShader;
 
@@ -116,11 +116,6 @@ void GeometryApp::setup()
 
 void GeometryApp::update()
 {
-	mHeight = 5.0f + 3.0f * math<float>::sin( (float) getElapsedSeconds() );
-
-	if( mSelected == HELIX ) {
-		createPrimitive();
-	}
 }
 
 void GeometryApp::draw()
@@ -129,30 +124,33 @@ void GeometryApp::draw()
 	gl::setMatrices( mCamera );
 
 	{
-		gl::GlslProgScope glslProgScope( gl::context()->getStockShader( gl::ShaderDef().color() ) );
+		gl::ScopedGlslProg scopedGlslProg( gl::context()->getStockShader( gl::ShaderDef().color() ) );
 		
 		if(mGrid)
 			mGrid->draw();
-
-		if(mNormals && mShowNormals)
-			gl::draw( mNormals );
 	}
+
+	if(mNormals && mShowNormals)
+		mNormals->draw();
 
 	if(mPrimitive)
 	{
-		gl::TextureBindScope textureBindScope( mTexture );
-
-		gl::GlslProgScope glslProgScope( mWireframe ? mWireframeShader :
-			gl::context()->getStockShader( gl::ShaderDef().color().texture( mTexture ) ) );
+		gl::ScopedTextureBind scopedTextureBind( mTexture );
 			
 		gl::enableAlphaBlending();
 		gl::enable( GL_CULL_FACE );
 
 		glCullFace( GL_FRONT );
-		gl::draw( mPrimitive );
+		if(mWireframe)
+			mPrimitiveWireframe->draw();
+		else
+			mPrimitive->draw();
 
 		glCullFace( GL_BACK );
-		gl::draw( mPrimitive );
+		if(mWireframe)
+			mPrimitiveWireframe->draw();
+		else
+			mPrimitive->draw();
 		
 		gl::disable( GL_CULL_FACE );
 		gl::disableAlphaBlending();
@@ -276,8 +274,9 @@ void GeometryApp::createPrimitive(void)
 			mesh.subdivide( mSubdivision, false );
 	}
 
-	mPrimitive = gl::VboMesh::create( mesh );
-	mNormals = gl::VboMesh::create( DebugMesh( mesh, Color(1,1,0) ) );
+	mPrimitive = gl::Batch::create( mesh, gl::context()->getStockShader( gl::ShaderDef().color() ) );
+	mPrimitiveWireframe = gl::Batch::create( mesh, mWireframeShader );
+	mNormals = gl::Batch::create( DebugMesh( mesh, Color(1,1,0) ), gl::context()->getStockShader( gl::ShaderDef().color() ) );
 }
 
 void GeometryApp::createShader(void)
