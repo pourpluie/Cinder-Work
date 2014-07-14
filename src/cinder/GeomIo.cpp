@@ -830,7 +830,7 @@ Circle&	Circle::radius( float radius )
 void Circle::updateVertexCounts()
 {
 	if( mRequestedSegments <= 0 )
-		mNumSegments = (int)math<double>::floor( mRadius * (float)M_TWO_PI );
+		mNumSegments = (int)math<double>::floor( mRadius * float(M_PI * 2) );
 	else
 		mNumSegments = mRequestedSegments;
 	
@@ -912,7 +912,7 @@ void Sphere::calculate() const
 
 	int numSegments = mNumSegments;
 	if( numSegments < 4 )
-		numSegments = std::max( 12, (int)math<double>::floor( mRadius * (float)M_TWO_PI ) );
+		numSegments = std::max( 12, (int)math<double>::floor( mRadius * float(M_PI * 2) ) );
 
 	// numRings = numSegments / 2
 	int numRings = ( numSegments >> 1 );
@@ -945,9 +945,9 @@ void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 		float v = r * ringIncr;
 		for( size_t s = 0; s < segments; s++ ) {
 			float u = 1.0f - s * segIncr;
-			float x = math<float>::sin( (float)M_TWO_PI * u ) * math<float>::sin( (float)M_PI * v );
-			float y = math<float>::sin( (float)M_PI * (v - 0.5f) );
-			float z = math<float>::cos( (float)M_TWO_PI * u ) * math<float>::sin( (float)M_PI * v );
+			float x = math<float>::sin( float(M_PI * 2) * u ) * math<float>::sin( float(M_PI) * v );
+			float y = math<float>::sin( float(M_PI) * (v - 0.5f) );
+			float z = math<float>::cos( float(M_PI * 2) * u ) * math<float>::sin( float(M_PI) * v );
 
 			vertIt->set( x * radius + mCenter.x, y * radius + mCenter.y, z * radius + mCenter.z );
 			++vertIt;
@@ -1071,7 +1071,7 @@ void Icosphere::calculateImplUV() const
 	mTexCoords.assign( mNormals.size(), Vec2f::zero() );
 	for( size_t i = 0; i < mNormals.size(); ++i ) {
 		const Vec3f &normal = mNormals[i];
-		mTexCoords[i].x = (math<float>::atan2( normal.z, -normal.x ) / (float)M_PI) * 0.5f + 0.5f;
+		mTexCoords[i].x = (math<float>::atan2( normal.z, -normal.x ) / float(M_PI)) * 0.5f + 0.5f;
 		mTexCoords[i].y = -normal.y * 0.5f + 0.5f;
 	}
 
@@ -1212,7 +1212,7 @@ void Capsule::calculate() const
 
 	int numSegments = mNumSegments;
 	if( numSegments < 4 )
-		numSegments = std::max( 12, (int)math<double>::floor( mRadius * (float)M_TWO_PI ) );
+		numSegments = std::max( 12, (int)math<double>::floor( mRadius * float(M_PI * 2) ) );
 
 	// numRings = numSegments / 2 and should always be an even number
 	int numRings = ( numSegments >> 2 ) << 1;
@@ -1241,15 +1241,15 @@ void Capsule::calculateImplUV( size_t segments, size_t rings ) const
 	float bodyIncr = 1.0f / (float)( ringsBody - 1 );
 	float ringIncr = 1.0f / (float)( rings - 1 );
 	for( size_t r = 0; r < rings / 2; r++ ) {
-		calculateRing( segments, math<float>::sin( (float)M_PI * r * ringIncr),
-			math<float>::sin( (float)M_PI * ( r * ringIncr - 0.5f ) ), -0.5f );
+		calculateRing( segments, math<float>::sin( float(M_PI) * r * ringIncr),
+			math<float>::sin( float(M_PI) * ( r * ringIncr - 0.5f ) ), -0.5f );
 	}
 	for( size_t r = 0; r < ringsBody; r++ ) {
 		calculateRing( segments, 1.0f, 0.0f, r * bodyIncr - 0.5f );
 	}
 	for( size_t r = rings / 2; r < rings; r++ ) {
-		calculateRing( segments, math<float>::sin( (float)M_PI * r * ringIncr),
-			math<float>::sin( (float)M_PI * ( r * ringIncr - 0.5f ) ), +0.5f );
+		calculateRing( segments, math<float>::sin( float(M_PI) * r * ringIncr),
+			math<float>::sin( float(M_PI) * ( r * ringIncr - 0.5f ) ), +0.5f );
 	}
 
 	for( size_t r = 0; r < ringsTotal - 1; r++ ) {
@@ -1275,8 +1275,8 @@ void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) 
 
 	float segIncr = 1.0f / (float)( segments - 1 );
 	for( size_t s = 0; s < segments; s++ ) {
-		float x = math<float>::cos( (float)M_TWO_PI * s * segIncr ) * radius;
-		float z = math<float>::sin( (float)M_TWO_PI * s * segIncr ) * radius;
+		float x = math<float>::cos( float(M_PI * 2) * s * segIncr ) * radius;
+		float z = math<float>::sin( float(M_PI * 2) * s * segIncr ) * radius;
 
 		mPositions.push_back( mCenter + ( quaternion * Vec3f( mRadius * x, mRadius * y + mLength * dy, mRadius * z ) ) );
 
@@ -1322,11 +1322,11 @@ void Torus::calculate() const
 
 	int numAxis = (int) math<float>::ceil( mNumSegmentsAxis * mCoils );
 	if( numAxis < 4 )
-		numAxis = std::max( 12, (int)math<double>::floor( mRadiusMajor * (float)M_TWO_PI ) );
+		numAxis = std::max( 12, (int)math<double>::floor( mRadiusMajor * float(M_PI * 2) ) );
 
 	int numRing = mNumSegmentsRing;
 	if( numRing < 3 )
-		numRing = std::max( 12, (int)math<double>::floor( mRadiusMajor * (float)M_TWO_PI ) );
+		numRing = std::max( 12, (int)math<double>::floor( mRadiusMajor * float(M_PI * 2) ) );
 
 	calculateImplUV( numAxis + 1, numRing + 1 );
 	mCalculationsCached = true;
@@ -1347,7 +1347,7 @@ void Torus::calculateImplUV( size_t segments, size_t rings ) const
 	float majorIncr = 1.0f / (segments - 1);
 	float minorIncr = 1.0f / (rings - 1);
 	float radiusDiff = mRadiusMajor - mRadiusMinor;
-	float angle = (float)M_TWO_PI * mCoils;
+	float angle = float(M_PI * 2) * mCoils;
 	float twist = angle * mTwist * minorIncr * majorIncr;
 
 	// vertex, normal, tex coord and color buffers
@@ -1357,7 +1357,7 @@ void Torus::calculateImplUV( size_t segments, size_t rings ) const
 		float sinPhi =  math<float>::sin( phi );
 
 		for( size_t j = 0; j < rings; ++j ) {
-			float theta = j * minorIncr * (float)M_TWO_PI + i * twist + mTwistOffset;
+			float theta = j * minorIncr * float(M_PI * 2) + i * twist + mTwistOffset;
 			float cosTheta = -math<float>::cos( theta );
 			float sinTheta =  math<float>::sin( theta );
 
@@ -1427,7 +1427,6 @@ Cylinder::Cylinder()
 	: mOrigin( 0, 0, 0 )
 	, mHeight( 2.0f )
 	, mDirection( 0, 1, 0 )
-	, mThickness( 0 )
 	, mRadiusBase( 1.0f )
 	, mRadiusApex( 1.0f )
 	, mNumSegments( 36 )
@@ -1455,7 +1454,7 @@ void Cylinder::calculate() const
 	int numSegments = mNumSegments;
 	if( numSegments < 4 ) {
 		float radius = math<float>::max( mRadiusBase, mRadiusApex );
-		numSegments = std::max( 12, (int)math<double>::floor( radius * (float)M_TWO_PI ) );
+		numSegments = std::max( 12, (int)math<double>::floor( radius * float(M_PI * 2) ) );
 	}
 
 	calculateImplUV( numSegments + 1, (numSegments >> 1) + 1 );
@@ -1481,8 +1480,8 @@ void Cylinder::calculateImplUV( size_t segments, size_t rings ) const
 	// vertex, normal, tex coord and color buffers
 	for( size_t j = 0; j < rings; ++j ) {
 		for( size_t i = 0; i < segments; ++i ) {
-			float cosPhi = -math<float>::cos( i * segmentIncr * (float)M_TWO_PI );
-			float sinPhi =  math<float>::sin( i * segmentIncr * (float)M_TWO_PI );
+			float cosPhi = -math<float>::cos( i * segmentIncr * float(M_PI * 2) );
+			float sinPhi =  math<float>::sin( i * segmentIncr * float(M_PI * 2) );
 
 			float r = lerp<float>( mRadiusBase, mRadiusApex, j * ringIncr );
 			float x = r * cosPhi;
@@ -1549,8 +1548,8 @@ void Cylinder::calculateCap( bool flip, float height, float radius, size_t segme
 		mTexCoords[index + i * 2 + 0] = Vec2f( i * segmentIncr, 1.0f - height / mHeight );
 
 		// edge point
-		float cosPhi = -math<float>::cos( i * segmentIncr * (float)M_TWO_PI );
-		float sinPhi =  math<float>::sin( i * segmentIncr * (float)M_TWO_PI );
+		float cosPhi = -math<float>::cos( i * segmentIncr * float(M_PI * 2) );
+		float sinPhi =  math<float>::sin( i * segmentIncr * float(M_PI * 2) );
 			
 		float x = radius * cosPhi;
 		float y = height;

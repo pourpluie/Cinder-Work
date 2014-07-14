@@ -468,8 +468,6 @@ class Cylinder : public Source {
 	virtual Cylinder&	origin( const Vec3f &origin ) { mOrigin = origin; mCalculationsCached = false; return *this; }
 	virtual Cylinder&	segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
 	virtual Cylinder&	height( float height ) { mHeight = height; mCalculationsCached = false; return *this; }
-	//! Allows you to specify a \a thickness.
-	virtual Cylinder&	thickness( float thickness ) { mThickness = thickness; mCalculationsCached = false; return *this; }
 	//! Specifies the base and apex radius.
 	virtual Cylinder&	radius( float radius ) { mRadiusBase = mRadiusApex = math<float>::max(0.f, radius); mCalculationsCached = false; return *this; }
 	//! Specifies the axis of the cylinder.
@@ -490,7 +488,6 @@ class Cylinder : public Source {
 	
 	Vec3f		mOrigin;
 	float		mHeight;
-	float		mThickness;
 	Vec3f		mDirection;
 	float		mRadiusBase;
 	float		mRadiusApex;
@@ -515,8 +512,6 @@ class Cone : public Cylinder {
 	virtual Cone&	origin( const Vec3f &origin ) override { Cylinder::origin( origin ); return *this; }
 	virtual Cone&	segments( int segments ) override { Cylinder::segments( segments ); return *this; }
 	virtual Cone&	height( float height ) override { Cylinder::height( height ); return *this; }
-	//! Allows you to specify a \a thickness.
-	virtual Cone&	thickness( float thickness ) override {  Cylinder::thickness( thickness ); return *this; }
 	//! Specifies the base and apex radius.
 	virtual Cone&	radius( float radius ) override {  Cylinder::radius( radius ); return *this; }
 	//! Specifies the base radius.

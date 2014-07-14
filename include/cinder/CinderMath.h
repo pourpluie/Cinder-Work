@@ -117,16 +117,8 @@ struct math<float>
 	static float clamp(float x, float min=0, float max=1)	{return ( x < min ) ? min : ( ( x > max ) ? max : x );}
 };
 
-#ifndef M_HALF_PI
-#define M_HALF_PI      1.57079632679489661923
-#endif
-
 #ifndef M_PI
 #define M_PI           3.14159265358979323846
-#endif
-
-#ifndef M_TWO_PI
-#define M_TWO_PI       6.28318530717958647693
 #endif
 
 const double EPSILON_VALUE = 4.37114e-05;
