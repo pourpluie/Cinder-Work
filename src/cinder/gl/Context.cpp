@@ -1277,7 +1277,7 @@ void Context::sanityCheck()
 
 	// assert that the (first 8) vertex attribute params are the same
 	auto attribs = boundVao->getLayout().getVertexAttribs();
-	for( int idx = 0; idx < 8; ++idx ) {
+	for( int idx = 0; idx < std::min<int>( 8, boundVao->getLayout().getVertexAttribs().size() ); ++idx ) {
 		GLint enabled;
 		glGetVertexAttribiv( idx, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &enabled );
 		int matchingIdx = -1;
