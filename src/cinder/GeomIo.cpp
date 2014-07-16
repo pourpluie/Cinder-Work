@@ -60,7 +60,7 @@ bool BufferLayout::hasAttrib( Attrib attrib ) const
 	for( const auto &atIt : mAttribs )
 		if( atIt.getAttrib() == attrib )
 			return true;
-	
+
 	return false;
 }
 
@@ -83,10 +83,10 @@ void copyDataImpl( const float *srcData, size_t numElements, size_t dstStrideByt
 {
 	static const float sFillerData[4] = { 0, 0, 0, 1 };
 	const uint8_t MINDIM = (SRCDIM < DSTDIM) ? SRCDIM : DSTDIM;
-	
+
 	if( dstStrideBytes == 0 )
 		dstStrideBytes = DSTDIM * sizeof(float);
-	
+
 	for( size_t v = 0; v < numElements; ++v ) {
 		uint8_t d;
 		for( d = 0; d < MINDIM; ++d ) {
@@ -105,10 +105,10 @@ void copyDataMultAddImpl( const float *srcData, size_t numElements, size_t dstSt
 {
 	static const float sFillerData[4] = { 0, 0, 0, 1 };
 	const uint8_t MINDIM = (2 < DSTDIM) ? 2 : DSTDIM;
-	
+
 	if( dstStrideBytes == 0 )
 		dstStrideBytes = DSTDIM * sizeof(float);
-	
+
 	for( size_t v = 0; v < numElements; ++v ) {
 		uint8_t d;
 		for( d = 0; d < MINDIM; ++d ) {
@@ -127,10 +127,10 @@ void copyDataMultAddImpl( const float *srcData, size_t numElements, size_t dstSt
 {
 	static const float sFillerData[4] = { 0, 0, 0, 1 };
 	const uint8_t MINDIM = (3 < DSTDIM) ? 3 : DSTDIM;
-	
+
 	if( dstStrideBytes == 0 )
 		dstStrideBytes = DSTDIM * sizeof(float);
-	
+
 	for( size_t v = 0; v < numElements; ++v ) {
 		uint8_t d;
 		for( d = 0; d < MINDIM; ++d ) {
@@ -154,55 +154,55 @@ void copyData( uint8_t srcDimensions, const float *srcData, size_t numElements, 
 	}
 	else {
 		switch( srcDimensions ) {
-			case 2:
-				switch( dstDimensions ) {
-					case 2: copyDataImpl<2,2>( srcData, numElements, dstStrideBytes, dstData ); break;
-					case 3: copyDataImpl<2,3>( srcData, numElements, dstStrideBytes, dstData ); break;
-					case 4: copyDataImpl<2,4>( srcData, numElements, dstStrideBytes, dstData ); break;
-					default: throw ExcIllegalDestDimensions();
-				}
+		case 2:
+			switch( dstDimensions ) {
+			case 2: copyDataImpl<2,2>( srcData, numElements, dstStrideBytes, dstData ); break;
+			case 3: copyDataImpl<2,3>( srcData, numElements, dstStrideBytes, dstData ); break;
+			case 4: copyDataImpl<2,4>( srcData, numElements, dstStrideBytes, dstData ); break;
+			default: throw ExcIllegalDestDimensions();
+			}
 			break;
-			case 3:
-				switch( dstDimensions ) {
-					case 2: copyDataImpl<3,2>( srcData, numElements, dstStrideBytes, dstData ); break;
-					case 3: copyDataImpl<3,3>( srcData, numElements, dstStrideBytes, dstData ); break;
-					case 4: copyDataImpl<3,4>( srcData, numElements, dstStrideBytes, dstData ); break;
-					default: throw ExcIllegalDestDimensions();
-				}
+		case 3:
+			switch( dstDimensions ) {
+			case 2: copyDataImpl<3,2>( srcData, numElements, dstStrideBytes, dstData ); break;
+			case 3: copyDataImpl<3,3>( srcData, numElements, dstStrideBytes, dstData ); break;
+			case 4: copyDataImpl<3,4>( srcData, numElements, dstStrideBytes, dstData ); break;
+			default: throw ExcIllegalDestDimensions();
+			}
 			break;
-			case 4:
-				switch( dstDimensions ) {
-					case 2: copyDataImpl<4,2>( srcData, numElements, dstStrideBytes, dstData ); break;
-					case 3: copyDataImpl<4,3>( srcData, numElements, dstStrideBytes, dstData ); break;
-					case 4: copyDataImpl<4,4>( srcData, numElements, dstStrideBytes, dstData ); break;
-					default: throw ExcIllegalDestDimensions();
-				}
+		case 4:
+			switch( dstDimensions ) {
+			case 2: copyDataImpl<4,2>( srcData, numElements, dstStrideBytes, dstData ); break;
+			case 3: copyDataImpl<4,3>( srcData, numElements, dstStrideBytes, dstData ); break;
+			case 4: copyDataImpl<4,4>( srcData, numElements, dstStrideBytes, dstData ); break;
+			default: throw ExcIllegalDestDimensions();
+			}
 			break;
-			default:
-				throw ExcIllegalSourceDimensions();
+		default:
+			throw ExcIllegalSourceDimensions();
 		}
 	}
 }
 
 void Source::copyDataMultAdd( const float *srcData, size_t numElements,
-		uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add )
+	uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec3f &mult, const Vec3f &add )
 {
 	switch( dstDimensions) {
-		case 2: copyDataMultAddImpl<2>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
-		case 3: copyDataMultAddImpl<3>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
-		case 4: copyDataMultAddImpl<4>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
-		default: throw ExcIllegalDestDimensions();
+	case 2: copyDataMultAddImpl<2>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
+	case 3: copyDataMultAddImpl<3>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
+	case 4: copyDataMultAddImpl<4>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
+	default: throw ExcIllegalDestDimensions();
 	}
 }
 
 void Source::copyDataMultAdd( const float *srcData, size_t numElements,
-		uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec2f &mult, const Vec2f &add )
+	uint8_t dstDimensions, size_t dstStrideBytes, float *dstData, const Vec2f &mult, const Vec2f &add )
 {
 	switch( dstDimensions) {
-		case 2: copyDataMultAddImpl<2>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
-		case 3: copyDataMultAddImpl<3>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
-		case 4: copyDataMultAddImpl<4>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
-		default: throw ExcIllegalDestDimensions();
+	case 2: copyDataMultAddImpl<2>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
+	case 3: copyDataMultAddImpl<3>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
+	case 4: copyDataMultAddImpl<4>( srcData, numElements, dstStrideBytes, dstData, mult, add ); break;
+	default: throw ExcIllegalDestDimensions();
 	}
 }
 
@@ -212,40 +212,40 @@ template<typename T>
 void copyIndexDataForceTrianglesImpl( Primitive primitive, const uint32_t *source, size_t numIndices, T *target )
 {
 	switch( primitive ) {
-		case Primitive::LINES:
-		case Primitive::TRIANGLES:
-			memcpy( target, source, sizeof(uint32_t) * numIndices );
+	case Primitive::LINES:
+	case Primitive::TRIANGLES:
+		memcpy( target, source, sizeof(uint32_t) * numIndices );
 		break;
-		case Primitive::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
-			if( numIndices < 3 )
-				return;
-			size_t outIdx = 0; // (012, 213), (234, 435), etc : (odd,even), (odd,even), etc
-			for( size_t i = 0; i < numIndices - 2; ++i ) {
-				if( i & 1 ) { // odd
-					target[outIdx++] = source[i+1];
-					target[outIdx++] = source[0];
-					target[outIdx++] = source[i+2];
-				}
-				else { // even
-					target[outIdx++] = source[i];
-					target[outIdx++] = source[i+1];
-					target[outIdx++] = source[i+2];
-				}
-			}
-		}
-		break;
-		case Primitive::TRIANGLE_FAN: { // ABC, ACD, ADE, etc
-			if( numIndices < 3 )
-				return;
-			size_t outIdx = 0;
-			for( size_t i = 0; i < numIndices - 2; ++i ) {
+	case Primitive::TRIANGLE_STRIP: { // ABC, CBD, CDE, EDF, etc
+		if( numIndices < 3 )
+			return;
+		size_t outIdx = 0; // (012, 213), (234, 435), etc : (odd,even), (odd,even), etc
+		for( size_t i = 0; i < numIndices - 2; ++i ) {
+			if( i & 1 ) { // odd
+				target[outIdx++] = source[i+1];
 				target[outIdx++] = source[0];
+				target[outIdx++] = source[i+2];
+			}
+			else { // even
+				target[outIdx++] = source[i];
 				target[outIdx++] = source[i+1];
 				target[outIdx++] = source[i+2];
 			}
 		}
-		default:
-			throw ExcIllegalPrimitiveType();			
+									}
+									break;
+	case Primitive::TRIANGLE_FAN: { // ABC, ACD, ADE, etc
+		if( numIndices < 3 )
+			return;
+		size_t outIdx = 0;
+		for( size_t i = 0; i < numIndices - 2; ++i ) {
+			target[outIdx++] = source[0];
+			target[outIdx++] = source[i+1];
+			target[outIdx++] = source[i+2];
+		}
+									}
+	default:
+		throw ExcIllegalPrimitiveType();			
 		break;
 	}
 }
@@ -286,7 +286,7 @@ void Target::generateIndices( Primitive sourcePrimitive, size_t sourceNumIndices
 
 	uint32_t count = 0;
 	std::generate( indices.get(), indices.get() + sourceNumIndices, [&] { return count++; } );
-	
+
 	uint8_t requiredBytesPerIndex = 4;
 	if( sourceNumIndices < 256 )
 		requiredBytesPerIndex = 1;
@@ -329,51 +329,51 @@ void Rect::loadInto( Target *target ) const
 uint8_t	Rect::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
-		case Attrib::POSITION: return 2;
-		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
-		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
-		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
-		default:
-			return 0;
+	case Attrib::POSITION: return 2;
+	case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+	case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+	case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+	default:
+		return 0;
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Cube
 float Cube::sPositions[24*3] = {  1.0f, 1.0f, 1.0f,   1.0f,-1.0f, 1.0f,	 1.0f,-1.0f,-1.0f,   1.0f, 1.0f,-1.0f,	// +X
-								 1.0f, 1.0f, 1.0f,   1.0f, 1.0f,-1.0f,  -1.0f, 1.0f,-1.0f,  -1.0f, 1.0f, 1.0f,	// +Y
-								 1.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 1.0f,  -1.0f,-1.0f, 1.0f,   1.0f,-1.0f, 1.0f,	// +Z
-								-1.0f, 1.0f, 1.0f,  -1.0f, 1.0f,-1.0f,  -1.0f,-1.0f,-1.0f,  -1.0f,-1.0f, 1.0f,	// -X
-								-1.0f,-1.0f,-1.0f,   1.0f,-1.0f,-1.0f,   1.0f,-1.0f, 1.0f,  -1.0f,-1.0f, 1.0f,	// -Y
-								 1.0f,-1.0f,-1.0f,  -1.0f,-1.0f,-1.0f,  -1.0f, 1.0f,-1.0f,   1.0f, 1.0f,-1.0f };// -Z
+	1.0f, 1.0f, 1.0f,   1.0f, 1.0f,-1.0f,  -1.0f, 1.0f,-1.0f,  -1.0f, 1.0f, 1.0f,	// +Y
+	1.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 1.0f,  -1.0f,-1.0f, 1.0f,   1.0f,-1.0f, 1.0f,	// +Z
+	-1.0f, 1.0f, 1.0f,  -1.0f, 1.0f,-1.0f,  -1.0f,-1.0f,-1.0f,  -1.0f,-1.0f, 1.0f,	// -X
+	-1.0f,-1.0f,-1.0f,   1.0f,-1.0f,-1.0f,   1.0f,-1.0f, 1.0f,  -1.0f,-1.0f, 1.0f,	// -Y
+	1.0f,-1.0f,-1.0f,  -1.0f,-1.0f,-1.0f,  -1.0f, 1.0f,-1.0f,   1.0f, 1.0f,-1.0f };// -Z
 
 uint32_t Cube::sIndices[6*6] ={	0, 1, 2, 0, 2, 3,
-								4, 5, 6, 4, 6, 7,
-								8, 9,10, 8, 10,11,
-								12,13,14,12,14,15,
-								16,17,18,16,18,19,
-								20,21,22,20,22,23 };
-								
+	4, 5, 6, 4, 6, 7,
+	8, 9,10, 8, 10,11,
+	12,13,14,12,14,15,
+	16,17,18,16,18,19,
+	20,21,22,20,22,23 };
+
 float Cube::sColors[24*3]	={  1,0,0,	1,0,0,	1,0,0,	1,0,0,		// +X = red
-								0,1,0,	0,1,0,	0,1,0,	0,1,0,		// +Y = green
-								0,0,1,	0,0,1,	0,0,1,	0,0,1,		// +Z = blue
-								0,1,1,	0,1,1,	0,1,1,	0,1,1,		// -X = cyan
-								1,0,1,	1,0,1,	1,0,1,	1,0,1,		// -Y = purple
-								1,1,0,	1,1,0,	1,1,0,	1,1,0 };	// -Z = yellow
-								
+	0,1,0,	0,1,0,	0,1,0,	0,1,0,		// +Y = green
+	0,0,1,	0,0,1,	0,0,1,	0,0,1,		// +Z = blue
+	0,1,1,	0,1,1,	0,1,1,	0,1,1,		// -X = cyan
+	1,0,1,	1,0,1,	1,0,1,	1,0,1,		// -Y = purple
+	1,1,0,	1,1,0,	1,1,0,	1,1,0 };	// -Z = yellow
+
 float Cube::sTexCoords[24*2]={	0,0,	1,0,	1,1,	0,1,
-								1,0,	1,1,	0,1,	0,0,
-								0,0,	1,0,	1,1,	0,1,
-								1,0,	1,1,	0,1,	0,0,
-								1,1,	0,1,	0,0,	1,0,
-								1,1,	0,1,	0,0,	1,0 };
-								
+	1,0,	1,1,	0,1,	0,0,
+	0,0,	1,0,	1,1,	0,1,
+	1,0,	1,1,	0,1,	0,0,
+	1,1,	0,1,	0,0,	1,0,
+	1,1,	0,1,	0,0,	1,0 };
+
 float Cube::sNormals[24*3]=	{	1,0,0,	1,0,0,	1,0,0,	1,0,0,
-								0,1,0,	0,1,0,	0,1,0,	0,1,0,
-								0,0,1,	0,0,1,	0,0,1,	0,0,1,
-								-1,0,0,	-1,0,0,	-1,0,0,	-1,0,0,
-								0,-1,0,	0,-1,0,  0,-1,0,0,-1,0,
-								0,0,-1,	0,0,-1,	0,0,-1,	0,0,-1 };
+	0,1,0,	0,1,0,	0,1,0,	0,1,0,
+	0,0,1,	0,0,1,	0,0,1,	0,0,1,
+	-1,0,0,	-1,0,0,	-1,0,0,	-1,0,0,
+	0,-1,0,	0,-1,0,  0,-1,0,0,-1,0,
+	0,0,-1,	0,0,-1,	0,0,-1,	0,0,-1 };
 
 
 Cube::Cube()
@@ -386,12 +386,12 @@ Cube::Cube()
 uint8_t	Cube::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
-		case Attrib::POSITION: return 3;
-		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
-		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
-		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
-		default:
-			return 0;
+	case Attrib::POSITION: return 3;
+	case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+	case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+	case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+	default:
+		return 0;
 	}	
 }
 
@@ -415,15 +415,15 @@ void Cube::loadInto( Target *target ) const
 #define PHI (1.0f / ((1.0f + math<float>::sqrt(5.0f)) / 2.0f))
 
 float Icosahedron::sPositions[12*3] = {  
-								 -PHI, 1.0f, 0.0f,    PHI, 1.0f, 0.0f,   -PHI,-1.0f, 0.0f,    PHI,-1.0f, 0.0f,
-								 0.0f, -PHI, 1.0f,   0.0f,  PHI, 1.0f,   0.0f, -PHI,-1.0f,   0.0f,  PHI,-1.0f,
-								 1.0f, 0.0f, -PHI,   1.0f, 0.0f,  PHI,  -1.0f, 0.0f, -PHI,  -1.0f, 0.0f,  PHI };
+	-PHI, 1.0f, 0.0f,    PHI, 1.0f, 0.0f,   -PHI,-1.0f, 0.0f,    PHI,-1.0f, 0.0f,
+	0.0f, -PHI, 1.0f,   0.0f,  PHI, 1.0f,   0.0f, -PHI,-1.0f,   0.0f,  PHI,-1.0f,
+	1.0f, 0.0f, -PHI,   1.0f, 0.0f,  PHI,  -1.0f, 0.0f, -PHI,  -1.0f, 0.0f,  PHI };
 
 uint32_t Icosahedron::sIndices[60] ={	
-								 0,11, 5, 0, 5, 1, 0, 1, 7, 0, 7,10, 0,10,11,
-								 1, 5, 9, 5,11, 4,11,10, 2,10, 7, 6, 7, 1, 8,
-								 3, 9, 4, 3, 4, 2, 3, 2, 6, 3, 6, 8, 3, 8, 9,
-								 4, 9, 5, 2, 4,11, 6, 2,10, 8, 6, 7, 9, 8, 1 };
+	0,11, 5, 0, 5, 1, 0, 1, 7, 0, 7,10, 0,10,11,
+	1, 5, 9, 5,11, 4,11,10, 2,10, 7, 6, 7, 1, 8,
+	3, 9, 4, 3, 4, 2, 3, 2, 6, 3, 6, 8, 3, 8, 9,
+	4, 9, 5, 2, 4,11, 6, 2,10, 8, 6, 7, 9, 8, 1 };
 
 Icosahedron::Icosahedron()
 	: mCalculationsCached( false )
@@ -482,11 +482,11 @@ void Icosahedron::calculate() const
 uint8_t	Icosahedron::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
-		case Attrib::POSITION: return 3;
-		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
-		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
-		default:
-			return 0;
+	case Attrib::POSITION: return 3;
+	case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+	case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+	default:
+		return 0;
 	}
 }
 
@@ -552,7 +552,7 @@ const float Teapot::sCurveData[][3] =
 	-1.5f, 0.075f}, {0.f, -1.425f, 0.f}, {1.5f, -0.84f, 0.075f}, {0.84f, -1.5f, 0.075f} };
 
 Teapot::Teapot()
-	: mSubdivision( 4 ), mCalculationsCached( false )
+	: mSubdivision( 6 ), mCalculationsCached( false )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::TEX_COORD_0 );
@@ -593,11 +593,11 @@ size_t Teapot::getNumIndices() const
 uint8_t	Teapot::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
-		case Attrib::POSITION: return 3;
-		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
-		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
-		default:
-			return 0;
+	case Attrib::POSITION: return 3;
+	case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+	case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+	default:
+		return 0;
 	}
 }
 
@@ -656,40 +656,40 @@ void Teapot::generatePatches( float *v, float *n, float *tc, uint32_t *el, int g
 }
 
 void Teapot::buildPatchReflect( int patchNum, float *B, float *dB, float *v, float *n, float *tc, unsigned int *el,
-                                    int &index, int &elIndex, int &tcIndex, int grid, bool reflectX, bool reflectY )
+	int &index, int &elIndex, int &tcIndex, int grid, bool reflectX, bool reflectY )
 {
-    Vec3f patch[4][4];
-    Vec3f patchRevV[4][4];
-    getPatch( patchNum, patch, false);
-    getPatch( patchNum, patchRevV, true);
+	Vec3f patch[4][4];
+	Vec3f patchRevV[4][4];
+	getPatch( patchNum, patch, false);
+	getPatch( patchNum, patchRevV, true);
 
-    // Patch without modification
-    buildPatch( patchRevV, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f::identity(), false );
+	// Patch without modification
+	buildPatch( patchRevV, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f::identity(), false );
 
-    // Patch reflected in x
-    if( reflectX ) {
-        buildPatch( patch, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(-1.0f, 0.0f, 0.0f),
-                                              Vec3f(0.0f, 1.0f, 0.0f),
-                                              Vec3f(0.0f, 0.0f, 1.0f) ), true );
-    }
+	// Patch reflected in x
+	if( reflectX ) {
+		buildPatch( patch, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(-1.0f, 0.0f, 0.0f),
+			Vec3f(0.0f, 1.0f, 0.0f),
+			Vec3f(0.0f, 0.0f, 1.0f) ), true );
+	}
 
-    // Patch reflected in y
-    if( reflectY ) {
-        buildPatch( patch, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(1.0f, 0.0f, 0.0f),
-                                              Vec3f(0.0f, -1.0f, 0.0f),
-                                              Vec3f(0.0f, 0.0f, 1.0f) ), true );
-    }
+	// Patch reflected in y
+	if( reflectY ) {
+		buildPatch( patch, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(1.0f, 0.0f, 0.0f),
+			Vec3f(0.0f, -1.0f, 0.0f),
+			Vec3f(0.0f, 0.0f, 1.0f) ), true );
+	}
 
-    // Patch reflected in x and y
-    if( reflectX && reflectY ) {
-        buildPatch( patchRevV, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(-1.0f, 0.0f, 0.0f),
-                                              Vec3f(0.0f, -1.0f, 0.0f),
-                                              Vec3f(0.0f, 0.0f, 1.0f) ), false );
-    }
+	// Patch reflected in x and y
+	if( reflectX && reflectY ) {
+		buildPatch( patchRevV, B, dB, v, n, tc, el, index, elIndex, tcIndex, grid, Matrix33f( Vec3f(-1.0f, 0.0f, 0.0f),
+			Vec3f(0.0f, -1.0f, 0.0f),
+			Vec3f(0.0f, 0.0f, 1.0f) ), false );
+	}
 }
 
 void Teapot::buildPatch( Vec3f patch[][4], float *B, float *dB, float *v, float *n, float *tc, 
-                           unsigned int *el, int &index, int &elIndex, int &tcIndex, int grid, Matrix33f reflect, bool invertNormal )
+	unsigned int *el, int &index, int &elIndex, int &tcIndex, int grid, Matrix33f reflect, bool invertNormal )
 {
 	int startIndex = index / 3;
 	float tcFactor = 1.0f / grid;
@@ -833,7 +833,7 @@ void Circle::updateVertexCounts()
 		mNumSegments = (int)math<double>::floor( mRadius * float(M_PI * 2) );
 	else
 		mNumSegments = mRequestedSegments;
-	
+
 	if( mNumSegments < 3 ) mNumSegments = 3;
 	mNumVertices = mNumSegments + 1 + 1;
 }
@@ -852,7 +852,7 @@ void Circle::calculate() const
 		mTexCoords.get()[0] = Vec2f( 0.5f, 0.5f );
 	if( isEnabled( Attrib::NORMAL ) )
 		mNormals.get()[0] = Vec3f( 0, 0, 1 );
-	
+
 	// iterate the segments
 	const float tDelta = 1 / (float)mNumSegments * 2.0f * 3.14159f;
 	float t = 0;
@@ -886,11 +886,11 @@ void Circle::loadInto( Target *target ) const
 uint8_t	Circle::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
-		case Attrib::POSITION: return 2;
-		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
-		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
-		default:
-			return 0;
+	case Attrib::POSITION: return 2;
+	case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+	case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+	default:
+		return 0;
 	}
 }
 
@@ -898,7 +898,7 @@ uint8_t	Circle::getAttribDims( Attrib attr ) const
 // Sphere
 
 Sphere::Sphere()
-	: mNumSegments( 36 ), mCenter( 0, 0, 0 ), mRadius( 1.0f ), mCalculationsCached( false )
+	: mNumSegments( 36 ), mNumSlices( 0 ), mCenter( 0, 0, 0 ), mRadius( 1.0f ), mCalculationsCached( false )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::NORMAL );
@@ -920,7 +920,7 @@ void Sphere::calculate() const
 	calculateImplUV( numSegments + 1, numRings + 1 );
 	mCalculationsCached = true;
 }
-	
+
 void Sphere::calculateImplUV( size_t segments, size_t rings ) const
 {
 	mPositions.resize( segments * rings );
@@ -996,12 +996,12 @@ size_t Sphere::getNumIndices() const
 uint8_t Sphere::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
-		case Attrib::POSITION: return 3;
-		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
-		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
-		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
-		default:
-			return 0;
+	case Attrib::POSITION: return 3;
+	case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+	case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+	case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+	default:
+		return 0;
 	}
 }
 
@@ -1024,7 +1024,7 @@ void Sphere::loadInto( Target *target ) const
 // Icosphere
 
 Icosphere::Icosphere()
-	: mSubdivision( 1 ), mCalculationsCached( false )
+	: mSubdivision( 3 ), mCalculationsCached( false )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::TEX_COORD_0 );
@@ -1086,7 +1086,7 @@ void Icosphere::calculateImplUV() const
 		if( isEnabled( Attrib::COLOR ) )
 			mColors.push_back( mColors[index] );
 	};
-	
+
 	// fix texture seams (this is where the magic happens)
 	size_t numTriangles = mIndices.size() / 3;
 	for( size_t i = 0; i < numTriangles; ++i ) {
@@ -1129,7 +1129,7 @@ void Icosphere::subdivide() const
 			// add new triangles
 			mIndices[i * 3 + 1] = index3;
 			mIndices[i * 3 + 2] = index5;
-			
+
 			mIndices.push_back( index3 );
 			mIndices.push_back( index1 );
 			mIndices.push_back( index4 );
@@ -1158,12 +1158,12 @@ void Icosphere::subdivide() const
 uint8_t Icosphere::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
-		case Attrib::POSITION: return 3;
-		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
-		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
-		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
-		default:
-			return 0;
+	case Attrib::POSITION: return 3;
+	case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+	case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+	case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+	default:
+		return 0;
 	}
 }
 
@@ -1189,6 +1189,7 @@ Capsule::Capsule()
 	: mDirection( 0, 1, 0 ), mLength( 1.0f )
 {
 	radius( 0.5f );
+	slices( 6 );
 
 	enable( Attrib::POSITION );
 	enable( Attrib::NORMAL );
@@ -1220,10 +1221,10 @@ void Capsule::calculate() const
 	calculateImplUV( numSegments + 1, numRings + 1 );
 	mCalculationsCached = true;
 }
-	
+
 void Capsule::calculateImplUV( size_t segments, size_t rings ) const
 {
-	size_t ringsBody = rings / 2;
+	size_t ringsBody = mNumSlices + 1;
 	size_t ringsTotal = rings + ringsBody;
 
 	mPositions.clear();
@@ -1300,15 +1301,8 @@ void Capsule::calculateRing( size_t segments, float radius, float y, float dy ) 
 // Torus
 
 Torus::Torus()
-	: mCenter( 0, 0, 0)
-	, mRadiusMajor( 1.0f )
-	, mRadiusMinor( 0.75f )
-	, mCoils( 1 )
-	, mHeight( 0 )
-	, mNumSegmentsAxis( 36 )
-	, mNumSegmentsRing( 36 )
-	, mTwist( 0 )
-	, mTwistOffset( 0 )
+	: mCenter( 0, 0, 0), mRadiusMajor( 1.0f ), mRadiusMinor( 0.75f ), mCoils( 1 ), mHeight( 0 )
+	, mNumSegmentsAxis( 36 ), mNumSegmentsRing( 36 ), mTwist( 0 ), mTwistOffset( 0 )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::NORMAL );
@@ -1331,7 +1325,7 @@ void Torus::calculate() const
 	calculateImplUV( numAxis + 1, numRing + 1 );
 	mCalculationsCached = true;
 }
-	
+
 void Torus::calculateImplUV( size_t segments, size_t rings ) const
 {
 	mPositions.assign( segments * rings, Vec3f::zero() );
@@ -1396,12 +1390,12 @@ void Torus::calculateImplUV( size_t segments, size_t rings ) const
 uint8_t Torus::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
-		case Attrib::POSITION: return 3;
-		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
-		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
-		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
-		default:
-			return 0;
+	case Attrib::POSITION: return 3;
+	case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+	case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+	case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+	default:
+		return 0;
 	}
 }
 
@@ -1424,12 +1418,7 @@ void Torus::loadInto( Target *target ) const
 // Cylinder
 
 Cylinder::Cylinder()
-	: mOrigin( 0, 0, 0 )
-	, mHeight( 2.0f )
-	, mDirection( 0, 1, 0 )
-	, mRadiusBase( 1.0f )
-	, mRadiusApex( 1.0f )
-	, mNumSegments( 36 )
+	: mOrigin( 0, 0, 0 ), mHeight( 2.0f ), mDirection( 0, 1, 0 ), mRadiusBase( 1.0f ), mRadiusApex( 1.0f ), mNumSegments( 36 ), mNumSlices( 6 )
 {
 	enable( Attrib::POSITION );
 	enable( Attrib::NORMAL );
@@ -1456,11 +1445,12 @@ void Cylinder::calculate() const
 		float radius = math<float>::max( mRadiusBase, mRadiusApex );
 		numSegments = std::max( 12, (int)math<double>::floor( radius * float(M_PI * 2) ) );
 	}
+	int numSlices = math<int>::max( mNumSlices, 1 );
 
-	calculateImplUV( numSegments + 1, (numSegments >> 1) + 1 );
+	calculateImplUV( numSegments + 1, numSlices + 1 );
 	mCalculationsCached = true;
 }
-	
+
 void Cylinder::calculateImplUV( size_t segments, size_t rings ) const
 {
 	mPositions.assign( segments * rings, Vec3f::zero() );
@@ -1518,7 +1508,7 @@ void Cylinder::calculateImplUV( size_t segments, size_t rings ) const
 	if( mRadiusBase > 0.0f ) {
 		calculateCap( true, 0.0f, mRadiusBase, segments );
 	}
-	
+
 	if( mRadiusApex > 0.0f ) {
 		calculateCap( false, mHeight, mRadiusApex, segments );
 	}
@@ -1531,7 +1521,7 @@ void Cylinder::calculateCap( bool flip, float height, float radius, size_t segme
 	mPositions.resize( index + segments * 2, Vec3f::zero() );
 	mTexCoords.resize( index + segments * 2, Vec2f::zero() );
 	mNormals.resize( index + segments * 2, flip ? -mDirection : mDirection );
-	
+
 	if( isEnabled( Attrib::COLOR ) ) {
 		const Vec3f n = flip ? -mDirection : mDirection;
 		mColors.resize( index + segments * 2, 
@@ -1550,7 +1540,7 @@ void Cylinder::calculateCap( bool flip, float height, float radius, size_t segme
 		// edge point
 		float cosPhi = -math<float>::cos( i * segmentIncr * float(M_PI * 2) );
 		float sinPhi =  math<float>::sin( i * segmentIncr * float(M_PI * 2) );
-			
+
 		float x = radius * cosPhi;
 		float y = height;
 		float z = radius * sinPhi;
@@ -1579,12 +1569,12 @@ void Cylinder::calculateCap( bool flip, float height, float radius, size_t segme
 uint8_t Cylinder::getAttribDims( Attrib attr ) const
 {
 	switch( attr ) {
-		case Attrib::POSITION: return 3;
-		case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
-		case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
-		case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
-		default:
-			return 0;
+	case Attrib::POSITION: return 3;
+	case Attrib::TEX_COORD_0: return isEnabled( Attrib::TEX_COORD_0 ) ? 2 : 0;
+	case Attrib::NORMAL: return isEnabled( Attrib::NORMAL ) ? 3 : 0;
+	case Attrib::COLOR: return isEnabled( Attrib::COLOR ) ? 3 : 0;
+	default:
+		return 0;
 	}
 }
 
@@ -1623,9 +1613,9 @@ void SplineExtrusion::calculateCurve( const std::function<Vec3f(float)> &pathCur
 	mTexCoords = unique_ptr<float[]>( new float[mNumVertices * 2] );	
 	mNormals = unique_ptr<float[]>( new float[mNumVertices * 3] );
 	mIndices = unique_ptr<uint32_t[]>( new uint32_t[mNumIndices] );
-	
+
 	for( int pathSeg = 0; pathSeg < pathSegments; ++pathSeg ) {
-		
+
 	}
 }
 
@@ -1633,7 +1623,7 @@ void SplineExtrusion::calculate() const
 {
 	if( mCalculationsCached )
 		return;
-	
+
 	mNumVertices = 32 * (mSubdivision + 1) * (mSubdivision + 1);
 	int numFaces = mSubdivision * mSubdivision * 32;
 	mNumIndices = numFaces * 6;
@@ -1643,7 +1633,7 @@ void SplineExtrusion::calculate() const
 	mIndices = unique_ptr<uint32_t[]>( new uint32_t[mNumIndices] );
 
 	generatePatches( mPositions.get(), mNormals.get(), mTexCoords.get(), mIndices.get(), mSubdivision );
-	
+
 	mCalculationsCached = true;
 }
 
@@ -1651,30 +1641,30 @@ void SplineExtrusion::calculate() const
 size_t SplineExtrusion::getNumVertices() const
 {
 	calculate();
-	
+
 	return mNumVertices;
 }
 
 bool SplineExtrusion::hasAttrib( Attrib attr ) const
 {
 	switch( attr ) {
-		case Attrib::POSITION: return true;
-		case Attrib::TEX_COORD_0: return mHasTexCoord0;
-		case Attrib::NORMAL: return mHasNormals;
-		default:
-			return false;
+	case Attrib::POSITION: return true;
+	case Attrib::TEX_COORD_0: return mHasTexCoord0;
+	case Attrib::NORMAL: return mHasNormals;
+	default:
+		return false;
 	}
 }
 
 bool SplineExtrusion::canProvideAttrib( Attrib attr ) const
 {
 	switch( attr ) {
-		case Attrib::POSITION:
-		case Attrib::TEX_COORD_0:
-		case Attrib::NORMAL:
-			return true;
-		default:
-			return false;
+	case Attrib::POSITION:
+	case Attrib::TEX_COORD_0:
+	case Attrib::NORMAL:
+		return true;
+	default:
+		return false;
 	}
 }
 
@@ -1684,11 +1674,11 @@ uint8_t	SplineExtrusion::getAttribDims( Attrib attr ) const
 		return 0;
 
 	switch( attr ) {
-		case Attrib::POSITION: return 3;
-		case Attrib::TEX_COORD_0: return 2;
-		case Attrib::NORMAL: return 3;
-		default:
-			return 0;
+	case Attrib::POSITION: return 3;
+	case Attrib::TEX_COORD_0: return 2;
+	case Attrib::NORMAL: return 3;
+	default:
+		return 0;
 	}
 }
 
@@ -1697,31 +1687,31 @@ void SplineExtrusion::copyAttrib( Attrib attr, uint8_t dimensions, size_t stride
 	calculate();
 
 	switch( attr ) {
-		case Attrib::POSITION:
-			copyDataMultAdd( mPositions.get(), mNumVertices, dimensions, stride, dest, mScale, mPos );
+	case Attrib::POSITION:
+		copyDataMultAdd( mPositions.get(), mNumVertices, dimensions, stride, dest, mScale, mPos );
 		break;
-		case Attrib::TEX_COORD_0:
-			copyData( 2, mTexCoords.get(), mNumVertices, dimensions, stride, dest );
+	case Attrib::TEX_COORD_0:
+		copyData( 2, mTexCoords.get(), mNumVertices, dimensions, stride, dest );
 		break;
-		case Attrib::NORMAL:
-			copyData( 3, mNormals.get(), mNumVertices, dimensions, stride, dest );
+	case Attrib::NORMAL:
+		copyData( 3, mNormals.get(), mNumVertices, dimensions, stride, dest );
 		break;
-		default:
-			throw ExcMissingAttrib();
+	default:
+		throw ExcMissingAttrib();
 	}
 }
 
 size_t SplineExtrusion::getNumIndices() const
 {
 	calculate();
-	
+
 	return mNumIndices;
 }
 
 void SplineExtrusion::copyIndices( uint16_t *dest ) const
 {
 	calculate();
-	
+
 	for( int i = 0; i < mNumIndices; ++i )
 		dest[i] = mIndices.get()[i];
 }
@@ -1729,10 +1719,10 @@ void SplineExtrusion::copyIndices( uint16_t *dest ) const
 void SplineExtrusion::copyIndices( uint32_t *dest ) const
 {
 	calculate();
-			
+
 	memcpy( dest, mIndices.get(), mNumIndices * sizeof(uint32_t) );		
 }
 
 #endif
 
-} } // namespace cinder::geo
+} } // namespace cinder::geom

@@ -33,7 +33,8 @@ public:
 
 	void resize();
 private:
-	void createShader();
+	void createPhongShader();
+	void createWireframeShader();
 	void createPrimitive();
 
 	Primitive			mSelected;
@@ -41,7 +42,6 @@ private:
 	bool				mWireframe;
 	bool				mColored;
 	bool				mShowNormals;
-	unsigned			mTwist;
 
 	CameraPersp			mCamera;
 	MayaCamUI			mMayaCam;
@@ -52,6 +52,7 @@ private:
 	gl::BatchRef		mPrimitiveWireframe;
 	gl::BatchRef		mNormals;
 
+	gl::GlslProgRef		mPhongShader;
 	gl::GlslProgRef		mWireframeShader;
 
 	gl::TextureRef		mTexture;
@@ -61,10 +62,9 @@ void GeometryApp::setup()
 {
 	mSelected = SPHERE;
 	mSubdivision = 1;
-	mWireframe = true;
+	mWireframe = false;
 	mColored = true;
-	mShowNormals = true;
-	mTwist = 0;
+	mShowNormals = false;
 
 	//
 	gl::Texture::Format fmt;
@@ -105,7 +105,8 @@ void GeometryApp::setup()
 	mGrid->end();
 
 	//
-	createShader();
+	createPhongShader();
+	createWireframeShader();
 	createPrimitive();
 
 	mCamera.setEyePoint( Vec3f(3, 4, 6) );
@@ -179,8 +180,6 @@ void GeometryApp::resize(void)
 
 void GeometryApp::keyDown( KeyEvent event )
 {
-	char str[1024];
-
 	switch( event.getCode() )
 	{
 	case KeyEvent::KEY_SPACE:
@@ -207,79 +206,146 @@ void GeometryApp::keyDown( KeyEvent event )
 	case KeyEvent::KEY_w:
 		mWireframe = !mWireframe;
 		break;
-	case KeyEvent::KEY_RIGHT:
-		mTwist++;
-		sprintf_s(str, 1024, "Geometry - Twist: %d", mTwist);
-		getWindow()->setTitle( std::string(str) );
-		createPrimitive();
-		break;
-	case KeyEvent::KEY_LEFT:
-		if(mTwist > 0) mTwist--;
-		sprintf_s(str, 1024, "Geometry - Twist: %d", mTwist);
-		getWindow()->setTitle( std::string(str) );
-		createPrimitive();
-		break;
 	}
 }
 
 void GeometryApp::createPrimitive(void)
 {
 	geom::SourceRef primitive;
+	std::string     name;
 
-	switch( mSelected )
-	{
+	switch( mSelected ) {
 	default:
 		mSelected = CAPSULE;
 	case CAPSULE:
 		primitive = geom::SourceRef( new geom::Capsule( geom::Capsule() ) );
+		name = "Capsule";
 		break;
 	case CONE:
 		primitive = geom::SourceRef( new geom::Cone( geom::Cone() ) );
+		name = "Cone";
 		break;
 	case CUBE:
 		primitive = geom::SourceRef( new geom::Cube( geom::Cube() ) );
+		name = "Cube";
 		break;
 	case CYLINDER:
 		primitive = geom::SourceRef( new geom::Cylinder( geom::Cylinder() ) );
+		name = "Cylinder";
 		break;
 	case HELIX:
-		primitive = geom::SourceRef( new geom::Helix( geom::Helix().coils(1.5f).height(2) ) );
+		primitive = geom::SourceRef( new geom::Helix( geom::Helix() ) );
+		name = "Helix";
 		break;
 	case ICOSAHEDRON:
 		primitive = geom::SourceRef( new geom::Icosahedron( geom::Icosahedron() ) );
+		name = "Icosahedron";
 		break;
 	case ICOSPHERE:
-		primitive = geom::SourceRef( new geom::Icosphere( geom::Icosphere().subdivision(3) ) );
+		primitive = geom::SourceRef( new geom::Icosphere( geom::Icosphere().subdivision( mSubdivision ) ) );
+		name = "Icosphere";
 		break;
 	case SPHERE:
 		primitive = geom::SourceRef( new geom::Sphere( geom::Sphere() ) );
+		name = "Sphere";
 		break;
 	case TEAPOT:
-		primitive = geom::SourceRef( new geom::Teapot( geom::Teapot() ) );
+		primitive = geom::SourceRef( new geom::Teapot( geom::Teapot()/*.subdivision( mSubdivision )*/ ) );
+		name = "Teapot";
 		break;
 	case TORUS:
-		primitive = geom::SourceRef( new geom::Torus( geom::Torus().segmentsRing(12).twist(mTwist) ) );
+		primitive = geom::SourceRef( new geom::Torus( geom::Torus() ) );
+		name = "Torus";
 		break;
 	}
+
+	getWindow()->setTitle( std::string("Geometry Sample: ") + name );
 
 	if( mColored )
 		primitive->enable( geom::Attrib::COLOR );
 	
 	TriMesh mesh( *primitive );
 
-	if( mSubdivision > 0 && mSelected != ICOSPHERE ) {
+	if( mSubdivision > 0 && mSelected != ICOSPHERE && mSelected != TEAPOT ) {
 		if( mSelected == SPHERE )
 			mesh.subdivide( mSubdivision, true );
 		else
 			mesh.subdivide( mSubdivision, false );
 	}
 
-	mPrimitive = gl::Batch::create( mesh, gl::context()->getStockShader( gl::ShaderDef().color() ) );
+	mPrimitive = gl::Batch::create( mesh, mPhongShader );
 	mPrimitiveWireframe = gl::Batch::create( mesh, mWireframeShader );
 	mNormals = gl::Batch::create( DebugMesh( mesh, Color(1,1,0) ), gl::context()->getStockShader( gl::ShaderDef().color() ) );
 }
 
-void GeometryApp::createShader(void)
+void GeometryApp::createPhongShader(void)
+{
+	try {
+		mPhongShader = gl::GlslProg::create( gl::GlslProg::Format()
+			.vertex(
+				"#version 150\n"
+				"\n"
+				"uniform mat4	ciModelViewProjection;\n"
+				"uniform mat4	ciModelView;\n"
+				"uniform mat3	ciNormalMatrix;\n"
+				"\n"
+				"in vec4		ciPosition;\n"
+				"in vec3		ciNormal;\n"
+				"\n"
+				"out VertexData {\n"
+				"	vec4 position;\n"
+				"	vec3 normal;\n"
+				"} vVertexOut;\n"
+				"\n"
+				"void main(void) {\n"
+				"	vVertexOut.position = ciModelView * ciPosition;\n"
+				"	vVertexOut.normal = ciNormalMatrix * ciNormal;\n"
+				"	gl_Position = ciModelViewProjection * ciPosition;\n"
+				"}\n"
+			)
+			.fragment(
+				"#version 150\n"
+				"\n"
+				"uniform sampler2D uTexture;\n"
+				"\n"
+				"in VertexData	{\n"
+				"	vec4 position;\n"
+				"	vec3 normal;\n"
+				"} vVertexIn;\n"
+				"\n"
+				"out vec4 oColor;\n"
+				"\n"
+				"void main(void) {\n"
+				"	const float shininess = 10.0;\n"
+				"	const vec4  color = vec4(0.6, 0.4, 0.0, 1.0);\n"
+				"\n"
+				"	vec3 vNormal = normalize( vVertexIn.normal );\n"
+				"	vec3 vToLight = normalize( -vVertexIn.position.xyz );\n"
+				"	vec3 vToEye = normalize( -vVertexIn.position.xyz );\n"
+				"	vec3 vReflect = normalize( -reflect(vToLight, vNormal) );\n"
+				"\n"
+				"	// ambient coefficient\n"
+				"	vec4 ambient = 0.1 * color;\n"
+				"\n"
+				"	// diffuse coefficient\n"
+				"	vec4 diffuse = max( dot( vNormal, vToLight ), 0.0 ) * color;\n"
+				"\n"
+				"	// specular coefficient\n"
+				"	vec4 specular = vec4( pow( max( dot( vReflect, vToEye ), 0.0 ), shininess ) * 0.25 );\n"
+				"\n"
+				"	// final color\n"
+				"	oColor.rgb = vec3(ambient + diffuse + specular);\n"
+				"	oColor.a = 1.0;\n"
+				"}\n"
+			)
+		);
+	}
+	catch( const std::exception& e ) {
+		console() << e.what() << std::endl;
+	}
+}
+
+void GeometryApp::createWireframeShader(void)
 {
 	try {
 		mWireframeShader = gl::GlslProg::create( gl::GlslProg::Format()
