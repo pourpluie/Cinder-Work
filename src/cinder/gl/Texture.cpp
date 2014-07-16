@@ -148,6 +148,30 @@ void TextureBase::initParams( Format &format, GLint defaultInternalFormat )
 		if( format.mSwizzleMask[0] != GL_RED || format.mSwizzleMask[1] != GL_GREEN || format.mSwizzleMask[2] != GL_BLUE || format.mSwizzleMask[3] != GL_ALPHA )
 			glTexParameteriv( mTarget, GL_TEXTURE_SWIZZLE_RGBA, format.mSwizzleMask.data() );
 	}
+// Compare Mode and Func for Depth Texture
+	if( format.mCompareMode > -1 ) {
+		glTexParameteri( mTarget, GL_TEXTURE_COMPARE_MODE, format.mCompareMode );
+	}
+	if( format.mCompareFunc > -1 ) {
+		glTexParameteri( mTarget, GL_TEXTURE_COMPARE_FUNC, format.mCompareFunc );
+	}
+#else
+	if( format.mCompareMode > -1 ) {
+		if( supportsShadowSampler() ) {
+			glTexParameteri( mTarget, GL_TEXTURE_COMPARE_MODE_EXT, format.mCompareMode );
+		}
+		else {
+			CI_LOG_E("This device doesn't support GL_TEXTURE_COMPARE_MODE from EXT_shadow_samplers");
+		}
+	}
+	if( format.mCompareFunc > -1 ) {
+		if( supportsShadowSampler() ) {
+			glTexParameteri( mTarget, GL_TEXTURE_COMPARE_FUNC_EXT, format.mCompareFunc );
+		}
+		else {
+			CI_LOG_E("This device doesn't support GL_TEXTURE_COMPARE_FUNC from EXT_shadow_samplers");
+		}
+	}
 #endif
 	mSwizzleMask = format.mSwizzleMask;
 	
@@ -262,6 +286,37 @@ void TextureBase::setMaxAnisotropy( GLfloat maxAnisotropy )
 	glTexParameterf( mTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy );
 }
 
+void TextureBase::setCompareMode( GLenum compareMode )
+{
+#if ! defined( CINDER_GL_ES )
+	ScopedTextureBind tbs( mTarget, mTextureId );
+	glTexParameteri( mTarget, GL_TEXTURE_COMPARE_MODE, compareMode );
+#else
+	if( supportsShadowSampler() ) {
+		ScopedTextureBind tbs( mTarget, mTextureId );
+		glTexParameteri( mTarget, GL_TEXTURE_COMPARE_MODE_EXT, compareMode );
+	}
+	else {
+		CI_LOG_E("This device doesn't support GL_TEXTURE_COMPARE_MODE from EXT_shadow_samplers");
+	}
+#endif
+}
+	
+void TextureBase::setCompareFunc( GLenum compareFunc )
+{
+#if ! defined( CINDER_GL_ES )
+	ScopedTextureBind tbs( mTarget, mTextureId );
+	glTexParameteri( mTarget, GL_TEXTURE_COMPARE_FUNC, compareFunc );
+#else
+	if( supportsShadowSampler() ) {
+		ScopedTextureBind tbs( mTarget, mTextureId );
+		glTexParameteri( mTarget, GL_TEXTURE_COMPARE_FUNC_EXT, compareFunc );
+	}
+	else {
+		CI_LOG_E("This device doesn't support GL_TEXTURE_COMPARE_FUNC from EXT_shadow_samplers");
+	}
+#endif
+}
 void TextureBase::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )
 {
 	switch( sco.getCode() ) {
@@ -314,6 +369,14 @@ bool TextureBase::supportsHardwareSwizzle()
 	#endif
 }
 
+#if defined( CINDER_GL_ES )
+bool TextureBase::supportsShadowSampler()
+{
+	static bool supported = gl::isExtensionAvailable( "GL_EXT_shadow_samplers" );
+	return supported;
+}
+#endif
+
 void TextureBase::setLabel( const std::string &label )
 {
 	mLabel = label;
@@ -340,7 +403,9 @@ TextureBase::Format::Format()
 	mMaxAnisotropy = -1.0f;
 	mPixelDataFormat = -1;
 	mPixelDataType = GL_UNSIGNED_BYTE;
-	mSwizzleMask[0] = GL_RED; mSwizzleMask[1] = GL_GREEN; mSwizzleMask[2] = GL_BLUE; mSwizzleMask[3] = GL_ALPHA;	
+	mSwizzleMask[0] = GL_RED; mSwizzleMask[1] = GL_GREEN; mSwizzleMask[2] = GL_BLUE; mSwizzleMask[3] = GL_ALPHA;
+	mCompareMode = -1;
+	mCompareFunc = -1;	
 }
 
 void TextureBase::Format::setSwizzleMask( GLint r, GLint g, GLint b, GLint a )
