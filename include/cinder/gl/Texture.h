@@ -89,7 +89,10 @@ class TextureBase {
 	void			setMaxAnisotropy( GLfloat maxAnisotropy );
 	//! Returns whether the Texture has Mipmapping enabled
 	bool			hasMipmapping() const { return mMipmapping; }
-	
+	// Specifies the texture comparison mode for currently bound depth textures.
+	void			setCompareMode( GLenum compareMode );
+	// Specifies the comparison operator used when \c GL_TEXTURE_COMPARE_MODE is set to \c GL_COMPARE_R_TO_TEXTURE
+	void			setCompareFunc( GLenum compareFunc );	
 	//! Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_TEXTURE_2D -> GL_TEXTURE_BINDING_2D. Returns 0 on failure.
 	static GLenum	getBindingConstantForTarget( GLenum target );
 	//! Converts a SurfaceChannelOrder into an appropriate OpenGL dataFormat and type
@@ -103,7 +106,10 @@ class TextureBase {
 	std::array<GLint,4>	getSwizzleMask() const { return mSwizzleMask; }
 	//! Returns whether this hardware supports texture swizzling (via \c GL_TEXTURE_SWIZZLE_RGBA)
 	static bool		supportsHardwareSwizzle();
-
+#if defined( CINDER_GL_ES )
+	//! Returns whether this hardware supports shadow sampling.
+	static bool		supportsShadowSampler();
+#endif
 	//! Returns the debugging label associated with the Texture.
 	const std::string&	getLabel() const { return mLabel; }
 	//! Sets the debugging label associated with the Texture. Calls glObjectLabel() when available.
@@ -132,7 +138,10 @@ class TextureBase {
 		void	setPixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; }
 			
 		void	setPixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; }
-		
+		// Specifies the texture comparison mode for currently bound depth textures.
+		void	setCompareMode( GLenum compareMode ) { mCompareMode = compareMode; }
+		// Specifies the comparison operator used when \c GL_TEXTURE_COMPARE_MODE is set to \c GL_COMPARE_R_TO_TEXTURE
+		void	setCompareFunc( GLenum compareFunc ) { mCompareFunc = compareFunc; }		
 		//! Sets the wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_CLAMP_TO_EDGE.
 		void	setWrap( GLenum wrapS, GLenum wrapT ) { setWrapS( wrapS ); setWrapT( wrapT ); }
 		//! Sets the horizontal wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_REPEAT, \c GL_CLAMP_TO_EDGE, etc. Default is \c GL_CLAMP_TO_EDGE.
@@ -211,6 +220,7 @@ class TextureBase {
 		GLenum				mTarget;
 		GLenum				mWrapS, mWrapT, mWrapR;
 		GLenum				mMinFilter, mMagFilter;
+		GLint				mCompareMode, mCompareFunc;		
 		bool				mMipmapping, mMipmappingSpecified;
 		bool				mMinFilterSpecified;
 		GLuint				mBaseMipmapLevel;
@@ -344,7 +354,10 @@ class Texture : public TextureBase {
 		Format& pixelDataFormat( GLenum pixelDataFormat ) { mPixelDataFormat = pixelDataFormat; return *this; }
 		//! Corresponds to the 'type' parameter of glTexImage*(). Defaults to \c GL_UNSIGNED_BYTE
 		Format& pixelDataType( GLenum pixelDataType ) { mPixelDataType = pixelDataType; return *this; }
-		Format& swizzleMask( const std::array<GLint,4> &swizzleMask ) { setSwizzleMask( swizzleMask ); return *this; }
+		// Specifies the texture comparison mode for currently bound depth textures.
+		Format& compareMode( GLenum compareMode ) { mCompareMode = compareMode; return *this; }
+		// Specifies the comparison operator used when \c GL_TEXTURE_COMPARE_MODE is set to \c GL_COMPARE_R_TO_TEXTURE.
+		Format& compareFunc( GLenum compareFunc ) { mCompareFunc = compareFunc; return *this; }		Format& swizzleMask( const std::array<GLint,4> &swizzleMask ) { setSwizzleMask( swizzleMask ); return *this; }
 		Format& swizzleMask( GLint r, GLint g, GLint b, GLint a ) { setSwizzleMask( r, g, b, a ); return *this; }
 #if ! defined( CINDER_GL_ES )
 		Format& intermediatePbo( const PboRef &intermediatePbo ) { setIntermediatePbo( intermediatePbo ); return *this; }
