@@ -29,7 +29,7 @@ class InstancedTeapotsApp : public AppNative {
 const int NUM_INSTANCES_X = 33;
 const int NUM_INSTANCES_Y = 33;
 const float DRAW_SCALE = 200;
-const pair<float,float> CAMERA_Y_RANGE( 20, 80 );
+const pair<float,float> CAMERA_Y_RANGE( 32, 80 );
 
 void InstancedTeapotsApp::setup()
 {
