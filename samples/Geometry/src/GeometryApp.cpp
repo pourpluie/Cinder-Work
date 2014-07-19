@@ -10,6 +10,7 @@
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/VboMesh.h"
+#include "cinder/params/Params.h"
 
 #include "DebugMesh.h"
 
@@ -21,7 +22,10 @@ class GeometryApp : public AppNative
 {
 public:
 	typedef enum { CAPSULE, CONE, CUBE, CYLINDER, HELIX, ICOSAHEDRON, ICOSPHERE, SPHERE, TEAPOT, TORUS } Primitive;
+	typedef enum { LOW, DEFAULT, HIGH } Quality;
+	typedef enum { SHADED, WIREFRAME } ViewMode;
 
+	void prepareSettings(Settings* settings);
 	void setup();
 	void update();
 	void draw();
@@ -33,18 +37,34 @@ public:
 
 	void resize();
 private:
+	void createGrid();
 	void createPhongShader();
 	void createWireframeShader();
 	void createPrimitive();
+	void createParams();
 
-	Primitive			mSelected;
-	uint8_t				mSubdivision;
-	bool				mWireframe;
-	bool				mColored;
+	void setSubdivision(int subdivision) { mSubdivision = math<int>::clamp(subdivision, 1, 5); createPrimitive(); }
+	int  getSubdivision() const { return mSubdivision; }
+
+	void enableColors(bool enabled=true) { mShowColors = enabled; createPrimitive(); }
+	bool isColorsEnabled() const { return mShowColors; }
+
+	Primitive			mPrimitiveSelected;
+	Primitive			mPrimitiveCurrent;
+	Quality				mQualitySelected;
+	Quality				mQualityCurrent;
+	ViewMode			mViewMode;
+
+	int					mSubdivision;
+
+	bool				mShowColors;
 	bool				mShowNormals;
+	bool				mShowGrid;
 
 	CameraPersp			mCamera;
 	MayaCamUI			mMayaCam;
+	bool				mRecenterCamera;
+	Vec3f				mCameraCOI;
 
 	gl::VertBatchRef	mGrid;
 
@@ -56,110 +76,141 @@ private:
 	gl::GlslProgRef		mWireframeShader;
 
 	gl::TextureRef		mTexture;
+	
+#if ! defined( CINDER_GL_ES )
+	params::InterfaceGlRef	mParams;
+#endif
 };
+
+void GeometryApp::prepareSettings(Settings* settings)
+{
+	settings->setWindowSize(1024, 768);
+}
 
 void GeometryApp::setup()
 {
-	mSelected = SPHERE;
-	mSubdivision = 1;
-	mWireframe = false;
-	mColored = true;
+	// Initialize variables.
+	mPrimitiveSelected = mPrimitiveCurrent = ICOSAHEDRON;
+	mQualitySelected = mQualityCurrent = HIGH;
+	mViewMode = SHADED;
+
+	mShowColors = false;
 	mShowNormals = false;
+	mShowGrid = false;
 
-	//
+	mSubdivision = 1;
+	
+	// Load the textures.
 	gl::Texture::Format fmt;
-	fmt.setWrap( GL_REPEAT, GL_CLAMP_TO_EDGE );
-	mTexture = gl::Texture::create( loadImage( loadAsset("stripes.jpg") ), fmt );
+	fmt.setAutoInternalFormat();
+	fmt.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
+	mTexture = gl::Texture::create( loadImage( loadAsset("arealight.png") ), fmt );
 
-	//
+	// Setup the camera.
+	mCamera.setEyePoint( Vec3f(3, 3, 6).normalized() * 5.0f );
+	mCamera.setCenterOfInterestPoint( mCameraCOI );
+
+	// Load and compile the shaders.
+	createPhongShader();
+	createWireframeShader();
+
+	// Create the meshes.
+	createGrid();
+	createPrimitive();
+
+	// Enable the depth buffer.
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
 
-	//
-	mGrid = gl::VertBatch::create( GL_LINES );
-	mGrid->begin( GL_LINES );
-	mGrid->color( Color(0.5f, 0.5f, 0.5f) ); mGrid->vertex( -10.0f, 0.0f, 0.0f );
-	mGrid->color( Color(0.5f, 0.5f, 0.5f) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
-	mGrid->color( Color(1, 0, 0) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
-	mGrid->color( Color(1, 0, 0) ); mGrid->vertex( 20.0f, 0.0f, 0.0f );
-	mGrid->color( Color(0, 1, 0) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
-	mGrid->color( Color(0, 1, 0) ); mGrid->vertex( 0.0f, 20.0f, 0.0f );
-	mGrid->color( Color(0.5f, 0.5f, 0.5f) ); mGrid->vertex( 0.0f, 0.0f, -10.0f );
-	mGrid->color( Color(0.5f, 0.5f, 0.5f) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
-	mGrid->color( Color(0, 0, 1) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
-	mGrid->color( Color(0, 0, 1) ); mGrid->vertex( 0.0f, 0.0f, 20.0f );
-	for( int i = -10; i <= 10; ++i ) {
-		if( i == 0 )
-			continue;
-
-		mGrid->color( Color(0.5f, 0.5f, 0.5f) );
-		mGrid->color( Color(0.5f, 0.5f, 0.5f) );
-		mGrid->color( Color(0.5f, 0.5f, 0.5f) );
-		mGrid->color( Color(0.5f, 0.5f, 0.5f) );
-		
-		mGrid->vertex( float(i), 0.0f, -10.0f );
-		mGrid->vertex( float(i), 0.0f, +10.0f );
-		mGrid->vertex( -10.0f, 0.0f, float(i) );
-		mGrid->vertex( +10.0f, 0.0f, float(i) );
-	}
-	mGrid->end();
-
-	//
-	createPhongShader();
-	createWireframeShader();
-	createPrimitive();
-
-	mCamera.setEyePoint( Vec3f(3, 4, 6) );
-	mCamera.setCenterOfInterestPoint( Vec3f(0, 0, 0) );
-
-	mWireframeShader->uniform( "uTexture", 0 );
+	// Create a parameter window, so we can toggle stuff.
+	createParams();
 }
 
 void GeometryApp::update()
 {
+	// If another primitive or quality was selected, reset the subdivision and recreate the primitive.
+	if(mPrimitiveCurrent != mPrimitiveSelected || mQualitySelected != mQualityCurrent) {
+		mSubdivision = 1;
+		mPrimitiveCurrent = mPrimitiveSelected;
+		mQualityCurrent = mQualitySelected;
+		createPrimitive();
+	}
+
+	// After creating a new primitive, gradually move the camera to get a good view.
+	if(mRecenterCamera) {
+		float distance = mCamera.getEyePoint().distance(mCameraCOI);
+		mCamera.setEyePoint( mCameraCOI - lerp(distance, 5.0f, 0.1f) * mCamera.getViewDirection() );
+		mCamera.setCenterOfInterestPoint( lerp(mCamera.getCenterOfInterestPoint(), mCameraCOI, 0.25f) );
+	}
 }
 
 void GeometryApp::draw()
 {
+	// Prepare for drawing.
 	gl::clear( Color::black() );
 	gl::setMatrices( mCamera );
-
-	{
+	
+	// Draw the grid.
+	if(mShowGrid && mGrid) {
 		gl::ScopedGlslProg scopedGlslProg( gl::context()->getStockShader( gl::ShaderDef().color() ) );
-		
-		if(mGrid)
-			mGrid->draw();
+		mGrid->draw();
 	}
-
-	if(mNormals && mShowNormals)
-		mNormals->draw();
 
 	if(mPrimitive)
 	{
 		gl::ScopedTextureBind scopedTextureBind( mTexture );
+
+		// Rotate it slowly around the y-axis.
+		gl::pushModelViewMatrices();
+		gl::rotate( 20.0f* float( getElapsedSeconds() ), 0.0f, 1.0f, 0.0f );
+
+		// Draw the normals.
+		if(mShowNormals && mNormals)
+			mNormals->draw();
+
+		// Draw the primitive.
+		gl::color( Color(0.7f, 0.5f, 0.3f) );
+		
+		// (If transparent, render the back side first).
+		if(mViewMode == WIREFRAME) {
+			gl::enableAlphaBlending();
+
+			gl::enable( GL_CULL_FACE );
+			glCullFace( GL_FRONT );
+
+			mWireframeShader->uniform("uBrightness", 0.5f);
+			mPrimitiveWireframe->draw();
+		}
+
+		// (Now render the front side.)
+		if(mViewMode == WIREFRAME) {
+			glCullFace( GL_BACK );
+
+			mWireframeShader->uniform("uBrightness", 1.0f);
+			mPrimitiveWireframe->draw();
 			
-		gl::enableAlphaBlending();
-		gl::enable( GL_CULL_FACE );
+			gl::disable( GL_CULL_FACE );
 
-		glCullFace( GL_FRONT );
-		if(mWireframe)
-			mPrimitiveWireframe->draw();
-		else
-			mPrimitive->draw();
-
-		glCullFace( GL_BACK );
-		if(mWireframe)
-			mPrimitiveWireframe->draw();
+			gl::disableAlphaBlending();
+		}
 		else
 			mPrimitive->draw();
 		
-		gl::disable( GL_CULL_FACE );
-		gl::disableAlphaBlending();
+		// Done.
+		gl::popModelViewMatrices();
 	}
+
+	// Render the parameter window.
+#if ! defined( CINDER_GL_ES )
+	if( mParams )
+		mParams->draw();
+#endif
 }
 
 void GeometryApp::mouseDown( MouseEvent event )
 {
+	mRecenterCamera = false;
+
 	mMayaCam.setCurrentCam( mCamera );
 	mMayaCam.mouseDown( event.getPos() );
 }
@@ -183,30 +234,98 @@ void GeometryApp::keyDown( KeyEvent event )
 	switch( event.getCode() )
 	{
 	case KeyEvent::KEY_SPACE:
-		mSelected = static_cast<Primitive>( static_cast<int>(mSelected) + 1 );
-		mSubdivision = 1;
-		createPrimitive();
-		break;
-	case KeyEvent::KEY_UP:
-		mSubdivision++;
-		createPrimitive();
-		break;
-	case KeyEvent::KEY_DOWN:
-		if( mSubdivision > 1 )
-			mSubdivision--;
+		mPrimitiveSelected = static_cast<Primitive>( static_cast<int>(mPrimitiveSelected) + 1 );
 		createPrimitive();
 		break;
 	case KeyEvent::KEY_c:
-		mColored = !mColored;
+		mShowColors = !mShowColors;
 		createPrimitive();
 		break;
 	case KeyEvent::KEY_n:
 		mShowNormals = !mShowNormals;
 		break;
+	case KeyEvent::KEY_g:
+		mShowGrid = !mShowGrid;
+		break;
+	case KeyEvent::KEY_q:
+		mQualitySelected = Quality( (int)(mQualitySelected + 1) % 3 );
+		break;
 	case KeyEvent::KEY_w:
-		mWireframe = !mWireframe;
+		if(mViewMode == WIREFRAME)
+			mViewMode = SHADED;
+		else
+			mViewMode = WIREFRAME;
+		break;
+	case KeyEvent::KEY_RETURN:
+		createPhongShader();
+		createPrimitive();
 		break;
 	}
+}
+
+void GeometryApp::createParams()
+{
+#if ! defined( CINDER_GL_ES )
+	std::string primitives[] = { "Capsule", "Cone", "Cube", "Cylinder", "Helix", "Icosahedron", "Icosphere", "Sphere", "Teapot", "Torus" };
+	std::string qualities[] = { "Low", "Default", "High" };
+	std::string viewmodes[] = { "Shaded", "Wireframe" };
+
+	mParams = params::InterfaceGl::create( getWindow(), "Geometry Demo", Vec2i(340, 200) );
+	mParams->setOptions( "", "valueswidth=100 refresh=0.1" );
+
+	mParams->addParam( "Primitive", vector<string>(primitives,primitives+10), (int*) &mPrimitiveSelected );
+	mParams->addParam( "Quality", vector<string>(qualities,qualities+3), (int*) &mQualitySelected );
+	mParams->addParam( "Viewing Mode", vector<string>(viewmodes,viewmodes+2), (int*) &mViewMode );
+
+	mParams->addSeparator();
+	
+	{
+		std::function<void(int)> setter	= std::bind( &GeometryApp::setSubdivision, this, std::placeholders::_1 );
+		std::function<int()> getter		= std::bind( &GeometryApp::getSubdivision, this );
+		mParams->addParam( "Subdivision", setter, getter );
+	}
+
+	mParams->addSeparator();
+
+	mParams->addParam( "Show Grid", &mShowGrid );
+	mParams->addParam( "Show Normals", &mShowNormals );
+	{
+		std::function<void(bool)> setter	= std::bind( &GeometryApp::enableColors, this, std::placeholders::_1 );
+		std::function<bool()> getter		= std::bind( &GeometryApp::isColorsEnabled, this );
+		mParams->addParam( "Show Colors", setter, getter );
+	}
+#endif
+}
+
+void GeometryApp::createGrid()
+{
+	mGrid = gl::VertBatch::create( GL_LINES );
+	mGrid->begin( GL_LINES );
+	mGrid->color( Color(0.25f, 0.25f, 0.25f) ); mGrid->vertex( -10.0f, 0.0f, 0.0f );
+	mGrid->color( Color(0.25f, 0.25f, 0.25f) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
+	mGrid->color( Color(1, 0, 0) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
+	mGrid->color( Color(1, 0, 0) ); mGrid->vertex( 20.0f, 0.0f, 0.0f );
+	mGrid->color( Color(0, 1, 0) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
+	mGrid->color( Color(0, 1, 0) ); mGrid->vertex( 0.0f, 20.0f, 0.0f );
+	mGrid->color( Color(0.25f, 0.25f, 0.25f) ); mGrid->vertex( 0.0f, 0.0f, -10.0f );
+	mGrid->color( Color(0.25f, 0.25f, 0.25f) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
+	mGrid->color( Color(0, 0, 1) ); mGrid->vertex( 0.0f, 0.0f, 0.0f );
+	mGrid->color( Color(0, 0, 1) ); mGrid->vertex( 0.0f, 0.0f, 20.0f );
+	for( int i = -10; i <= 10; ++i ) {
+		if( i == 0 )
+			continue;
+
+		mGrid->color( Color(0.25f, 0.25f, 0.25f) );
+		mGrid->color( Color(0.25f, 0.25f, 0.25f) );
+		mGrid->color( Color(0.25f, 0.25f, 0.25f) );
+		mGrid->color( Color(0.25f, 0.25f, 0.25f) );
+		
+		mGrid->vertex( float(i), 0.0f, -10.0f );
+		mGrid->vertex( float(i), 0.0f, +10.0f );
+		mGrid->vertex( -10.0f, 0.0f, float(i) );
+		mGrid->vertex( +10.0f, 0.0f, float(i) );
+	}
+	mGrid->end();
 }
 
 void GeometryApp::createPrimitive(void)
@@ -214,68 +333,91 @@ void GeometryApp::createPrimitive(void)
 	geom::SourceRef primitive;
 	std::string     name;
 
-	switch( mSelected ) {
+	switch( mPrimitiveCurrent ) {
 	default:
-		mSelected = CAPSULE;
+		mPrimitiveSelected = CAPSULE;
 	case CAPSULE:
-		primitive = geom::SourceRef( new geom::Capsule( geom::Capsule() ) );
-		name = "Capsule";
+		switch(mQualityCurrent) {
+			case DEFAULT: primitive = geom::SourceRef( new geom::Capsule( geom::Capsule() ) ); break;
+			case LOW: primitive = geom::SourceRef( new geom::Capsule( geom::Capsule().segments(6).slices(1) ) ); break;
+			case HIGH: primitive = geom::SourceRef( new geom::Capsule( geom::Capsule().segments(60).slices(20) ) ); break;
+		}
 		break;
 	case CONE:
-		primitive = geom::SourceRef( new geom::Cone( geom::Cone() ) );
-		name = "Cone";
+		switch(mQualityCurrent) {
+			case DEFAULT: primitive = geom::SourceRef( new geom::Cone( geom::Cone() ) ); break;
+			case LOW: primitive = geom::SourceRef( new geom::Cone( geom::Cone().segments(6).slices(1) ) ); break;
+			case HIGH: primitive = geom::SourceRef( new geom::Cone( geom::Cone().segments(60).slices(60) ) ); break;
+		}
 		break;
 	case CUBE:
 		primitive = geom::SourceRef( new geom::Cube( geom::Cube() ) );
-		name = "Cube";
 		break;
 	case CYLINDER:
-		primitive = geom::SourceRef( new geom::Cylinder( geom::Cylinder() ) );
-		name = "Cylinder";
+		switch(mQualityCurrent) {
+			case DEFAULT: primitive = geom::SourceRef( new geom::Cylinder( geom::Cylinder() ) ); break;
+			case LOW: primitive = geom::SourceRef( new geom::Cylinder( geom::Cylinder().segments(6).slices(1) ) ); break;
+			case HIGH: primitive = geom::SourceRef( new geom::Cylinder( geom::Cylinder().segments(60).slices(20) ) ); break;
+		}
 		break;
 	case HELIX:
-		primitive = geom::SourceRef( new geom::Helix( geom::Helix() ) );
-		name = "Helix";
+		switch(mQualityCurrent) {
+			case DEFAULT: primitive = geom::SourceRef( new geom::Helix( geom::Helix() ) ); break;
+			case LOW: primitive = geom::SourceRef( new geom::Helix( geom::Helix().segmentsAxis(12).segmentsRing(6) ) ); break;
+			case HIGH: primitive = geom::SourceRef( new geom::Helix( geom::Helix().segmentsAxis(60).segmentsRing(60) ) ); break;
+		}
 		break;
 	case ICOSAHEDRON:
 		primitive = geom::SourceRef( new geom::Icosahedron( geom::Icosahedron() ) );
-		name = "Icosahedron";
 		break;
 	case ICOSPHERE:
-		primitive = geom::SourceRef( new geom::Icosphere( geom::Icosphere().subdivision( mSubdivision ) ) );
-		name = "Icosphere";
+		switch(mQualityCurrent) {
+			case DEFAULT: primitive = geom::SourceRef( new geom::Icosphere( geom::Icosphere() ) ); break;
+			case LOW: primitive = geom::SourceRef( new geom::Icosphere( geom::Icosphere().subdivision(1) ) ); break;
+			case HIGH: primitive = geom::SourceRef( new geom::Icosphere( geom::Icosphere().subdivision(5) ) ); break;
+		}
 		break;
 	case SPHERE:
-		primitive = geom::SourceRef( new geom::Sphere( geom::Sphere() ) );
-		name = "Sphere";
+		switch(mQualityCurrent) {
+			case DEFAULT: primitive = geom::SourceRef( new geom::Sphere( geom::Sphere() ) ); break;
+			case LOW: primitive = geom::SourceRef( new geom::Sphere( geom::Sphere().segments(6) ) ); break;
+			case HIGH: primitive = geom::SourceRef( new geom::Sphere( geom::Sphere().segments(60) ) ); break;
+		}
 		break;
 	case TEAPOT:
-		primitive = geom::SourceRef( new geom::Teapot( geom::Teapot()/*.subdivision( mSubdivision )*/ ) );
-		name = "Teapot";
+		switch(mQualityCurrent) {
+			case DEFAULT: primitive = geom::SourceRef( new geom::Teapot( geom::Teapot() ) ); break;
+			case LOW: primitive = geom::SourceRef( new geom::Teapot( geom::Teapot().subdivision( 2 ) ) ); break;
+			case HIGH: primitive = geom::SourceRef( new geom::Teapot( geom::Teapot().subdivision( 12 ) ) ); break;
+		}
 		break;
 	case TORUS:
-		primitive = geom::SourceRef( new geom::Torus( geom::Torus() ) );
-		name = "Torus";
+		switch(mQualityCurrent) {
+			case DEFAULT: primitive = geom::SourceRef( new geom::Torus( geom::Torus() ) ); break;
+			case LOW: primitive = geom::SourceRef( new geom::Torus( geom::Torus().segmentsAxis(12).segmentsRing(6) ) ); break;
+			case HIGH: primitive = geom::SourceRef( new geom::Torus( geom::Torus().segmentsAxis(60).segmentsRing(60) ) ); break;
+		}
 		break;
 	}
 
-	getWindow()->setTitle( std::string("Geometry Sample: ") + name );
-
-	if( mColored )
+	if( mShowColors )
 		primitive->enable( geom::Attrib::COLOR );
 	
 	TriMesh mesh( *primitive );
+	mCameraCOI = mesh.calcBoundingBox().getCenter();
+	mRecenterCamera = true;
 
-	if( mSubdivision > 0 && mSelected != ICOSPHERE && mSelected != TEAPOT ) {
-		if( mSelected == SPHERE )
-			mesh.subdivide( mSubdivision, true );
-		else
-			mesh.subdivide( mSubdivision, false );
-	}
+	if(mSubdivision > 1)
+		mesh.subdivide(mSubdivision);
 
 	mPrimitive = gl::Batch::create( mesh, mPhongShader );
 	mPrimitiveWireframe = gl::Batch::create( mesh, mWireframeShader );
 	mNormals = gl::Batch::create( DebugMesh( mesh, Color(1,1,0) ), gl::context()->getStockShader( gl::ShaderDef().color() ) );
+
+	char str[256];
+	sprintf( str, "Geometry - %d vertices", mesh.getNumVertices() );
+	getWindow()->setTitle( str );
+
 }
 
 void GeometryApp::createPhongShader(void)
@@ -291,50 +433,62 @@ void GeometryApp::createPhongShader(void)
 				"\n"
 				"in vec4		ciPosition;\n"
 				"in vec3		ciNormal;\n"
+				"in vec4		ciColor;\n"
 				"\n"
 				"out VertexData {\n"
 				"	vec4 position;\n"
 				"	vec3 normal;\n"
+				"	vec4 color;\n"
 				"} vVertexOut;\n"
 				"\n"
 				"void main(void) {\n"
 				"	vVertexOut.position = ciModelView * ciPosition;\n"
 				"	vVertexOut.normal = ciNormalMatrix * ciNormal;\n"
+				"	vVertexOut.color = ciColor;\n"
 				"	gl_Position = ciModelViewProjection * ciPosition;\n"
 				"}\n"
 			)
 			.fragment(
 				"#version 150\n"
 				"\n"
-				"uniform sampler2D uTexture;\n"
-				"\n"
 				"in VertexData	{\n"
 				"	vec4 position;\n"
 				"	vec3 normal;\n"
+				"	vec4 color;\n"
 				"} vVertexIn;\n"
 				"\n"
 				"out vec4 oColor;\n"
 				"\n"
 				"void main(void) {\n"
-				"	const float shininess = 10.0;\n"
-				"	const vec4  color = vec4(0.6, 0.4, 0.0, 1.0);\n"
+				"	// set diffuse and specular colors\n"
+				"	vec3 cDiffuse = vVertexIn.color.rgb;\n"
+				"	vec3 cSpecular = vec3(0.3, 0.3, 0.3);\n"
 				"\n"
+				"	// light properties in view space\n"
+				"	vec3 vLightPosition = vec3(0.0, 0.0, 0.0);\n"
+				"\n"
+				"	// lighting calculations\n"
+				"	vec3 vVertex = vVertexIn.position.xyz;\n"
 				"	vec3 vNormal = normalize( vVertexIn.normal );\n"
-				"	vec3 vToLight = normalize( -vVertexIn.position.xyz );\n"
-				"	vec3 vToEye = normalize( -vVertexIn.position.xyz );\n"
+				"	vec3 vToLight = normalize( vLightPosition - vVertex );\n"
+				"	vec3 vToEye = normalize( -vVertex );\n"
 				"	vec3 vReflect = normalize( -reflect(vToLight, vNormal) );\n"
 				"\n"
-				"	// ambient coefficient\n"
-				"	vec4 ambient = 0.1 * color;\n"
-				"\n"
 				"	// diffuse coefficient\n"
-				"	vec4 diffuse = max( dot( vNormal, vToLight ), 0.0 ) * color;\n"
+				"	vec3 diffuse = max( dot( vNormal, vToLight ), 0.0 ) * cDiffuse;\n"
 				"\n"
-				"	// specular coefficient\n"
-				"	vec4 specular = vec4( pow( max( dot( vReflect, vToEye ), 0.0 ), shininess ) * 0.25 );\n"
+				"	// specular coefficient with energy conservation\n"
+				"	const float shininess = 20.0;\n"
+				"	const float coeff = (2.0 + shininess) / (2.0 * 3.14159265);\n"
+				"	vec3 specular = pow( max( dot( vReflect, vToEye ), 0.0 ), shininess ) * coeff * cSpecular;\n"
+				"\n"
+				"	// to conserve energy, diffuse and specular colors should not exceed one\n"
+				"	float maxDiffuse = max(diffuse.r, max(diffuse.g, diffuse.b));\n"
+				"	float maxSpecular = max(specular.r, max(specular.g, specular.b));\n"
+				"	float fConserve = 1.0 / max(1.0, maxDiffuse + maxSpecular);\n"
 				"\n"
 				"	// final color\n"
-				"	oColor.rgb = vec3(ambient + diffuse + specular);\n"
+				"	oColor.rgb = (diffuse + specular) * fConserve;\n"
 				"	oColor.a = 1.0;\n"
 				"}\n"
 			)
@@ -423,7 +577,7 @@ void GeometryApp::createWireframeShader(void)
 			.fragment(
 				"#version 150\n"
 				"\n"
-				"uniform sampler2D uTexture;\n"
+				"uniform float uBrightness;\n"
 				"\n"
 				"in VertexData	{\n"
 				"	noperspective vec3 distance;\n"
@@ -439,9 +593,10 @@ void GeometryApp::createWireframeShader(void)
 				"	float fEdgeIntensity = exp2(-1.0*fNearest*fNearest);\n"
 				"\n"
 				"	// blend between edge color and face color\n"
-				"	vec4 vFaceColor = texture( uTexture, vVertexIn.texcoord ) * vVertexIn.color; vFaceColor.a = 0.85;\n"
-				"	vec4 vEdgeColor = vec4(1.0, 1.0, 1.0, 0.85);\n"
-				"	oColor = mix(vFaceColor, vEdgeColor, fEdgeIntensity);\n"
+				"	vec3 vFaceColor = vVertexIn.color.rgb;\n"
+				"	vec3 vEdgeColor = vec3(0.2, 0.2, 0.2);\n"
+				"	oColor.rgb = mix(vFaceColor, vEdgeColor, fEdgeIntensity) * uBrightness;\n"
+				"	oColor.a = 0.65;\n"
 				"}\n"
 			)
 		);

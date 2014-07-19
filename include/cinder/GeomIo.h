@@ -110,8 +110,8 @@ class Source {
 public:
 	virtual size_t		getNumVertices() const = 0;
 	virtual size_t		getNumIndices() const = 0;
-	virtual Primitive	getPrimitive() const = 0;	
-	virtual uint8_t		getAttribDims( Attrib attr ) const = 0;	
+	virtual Primitive	getPrimitive() const = 0;
+	virtual uint8_t		getAttribDims( Attrib attr ) const = 0;
 
 	virtual void		loadInto( Target *target ) const = 0;
 
@@ -260,13 +260,13 @@ protected:
 
 	int			mSubdivision;
 
-	mutable bool						mCalculationsCached;
-	mutable	size_t						mNumVertices;
-	mutable size_t						mNumIndices;
-	mutable std::unique_ptr<float[]>	mPositions;
-	mutable std::unique_ptr<float[]>	mTexCoords;
-	mutable std::unique_ptr<float[]>	mNormals;	
-	mutable std::unique_ptr<uint32_t[]>	mIndices;
+	mutable bool					mCalculationsCached;
+	mutable	size_t					mNumVertices;
+	mutable size_t					mNumIndices;
+	mutable std::vector<float>		mPositions;
+	mutable std::vector<float>		mTexCoords;
+	mutable std::vector<float>		mNormals;
+	mutable std::vector<uint32_t>	mIndices;
 
 	static const uint8_t	sPatchIndices[][16];
 	static const float		sCurveData[][3];
@@ -297,10 +297,10 @@ private:
 	float		mRadius;
 	int			mRequestedSegments, mNumSegments;
 
-	size_t		mNumVertices;
-	mutable std::unique_ptr<Vec2f[]>		mPositions;
-	mutable std::unique_ptr<Vec2f[]>		mTexCoords;
-	mutable std::unique_ptr<Vec3f[]>		mNormals;	
+	size_t						mNumVertices;
+	mutable std::vector<Vec2f>	mPositions;
+	mutable std::vector<Vec2f>	mTexCoords;
+	mutable std::vector<Vec3f>	mNormals;
 };
 
 class Sphere : public Source {
@@ -372,7 +372,7 @@ public:
 	Capsule&		center( const Vec3f &center ) { mCenter = center; mCalculationsCached = false; return *this; }
 	//! Specifies the number of segments, which determines the roundness of the capsule.
 	Capsule&		segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
-	//! Specifies the number of slices between the caps. Defaults to 1.
+	//! Specifies the number of slices between the caps. Defaults to 6. Add more slices to improve texture mapping and lighting, or if you intend to bend the capsule.
 	Capsule&		slices( int slices ) { mNumSlices = slices > 1 ? slices : 1; mCalculationsCached = false; return *this; }
 	Capsule&		radius( float radius ) { mRadius = math<float>::max(0.f, radius); mCalculationsCached = false; return *this; }
 	Capsule&		length( float length ) { mLength = math<float>::max(0.f, length); mCalculationsCached = false; return *this; }
@@ -479,7 +479,7 @@ public:
 	virtual Cylinder&	origin( const Vec3f &origin ) { mOrigin = origin; mCalculationsCached = false; return *this; }
 	//! Specifies the number of segments, which determines the roundness of the cylinder.
 	virtual Cylinder&	segments( int segments ) { mNumSegments = segments; mCalculationsCached = false; return *this; }
-	//! Specifies the number of slices. Defaults to 1. Add more slices if you intend to bend the cylinder.
+	//! Specifies the number of slices. Defaults to 6. Add more slices to improve texture mapping and lighting, or if you intend to bend the cylinder.
 	virtual Cylinder&	slices( int slices ) { mNumSlices = slices; mCalculationsCached = false; return *this; }
 	//! Specifies the height of the cylinder.
 	virtual Cylinder&	height( float height ) { mHeight = height; mCalculationsCached = false; return *this; }
@@ -526,17 +526,19 @@ public:
 	virtual Cone&	enable( Attrib attrib ) override { Cylinder::enable( attrib ); return *this; }
 	virtual Cone&	disable( Attrib attrib ) override { Cylinder::disable( attrib ); return *this; }
 	virtual Cone&	origin( const Vec3f &origin ) override { Cylinder::origin( origin ); return *this; }
+	//! Specifies the number of segments, which determines the roundness of the cone.
 	virtual Cone&	segments( int segments ) override { Cylinder::segments( segments ); return *this; }
+	//! Specifies the number of slices. Defaults to 6. Add more slices to improve texture mapping and lighting, or if you intend to bend the cone.
 	virtual Cone&	slices( int slices ) override { Cylinder::slices( slices ); return *this; }
 	virtual Cone&	height( float height ) override { Cylinder::height( height ); return *this; }
 	//! Specifies the base and apex radius.
 	virtual Cone&	radius( float radius ) override {  Cylinder::radius( radius ); return *this; }
 	//! Specifies the base radius.
-	Cone&	base( float base ) { mRadiusBase = base; mCalculationsCached = false; return *this; }
+	Cone&	base( float base ) { mRadiusBase = math<float>::max( base, 0.f ); mCalculationsCached = false; return *this; }
 	//! Specifies the apex radius.
-	Cone&	apex( float apex ) { mRadiusApex = apex; mCalculationsCached = false; return *this; }
+	Cone&	apex( float apex ) { mRadiusApex = math<float>::max( apex, 0.f ); mCalculationsCached = false; return *this; }
 	//! Specifies the apex radius as a \a ratio of the height. A value of 1.0f yields a cone angle of 45 degrees.
-	Cone&	ratio( float ratio ) { mRadiusApex = mRadiusBase + ratio * mHeight; mCalculationsCached = false; return *this; }
+	Cone&	ratio( float ratio ) { mRadiusApex = math<float>::max( mRadiusBase + ratio * mHeight, 0.f ); mCalculationsCached = false; return *this; }
 	//! Specifies the base and apex radius separately.
 	Cone&	radius( float base, float apex ) { 
 		mRadiusBase = math<float>::max(0.f, base); 
