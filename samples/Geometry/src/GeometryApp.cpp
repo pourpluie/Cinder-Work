@@ -414,10 +414,7 @@ void GeometryApp::createPrimitive(void)
 	mPrimitiveWireframe = gl::Batch::create( mesh, mWireframeShader );
 	mNormals = gl::Batch::create( DebugMesh( mesh, Color(1,1,0) ), gl::context()->getStockShader( gl::ShaderDef().color() ) );
 
-	char str[256];
-	sprintf( str, "Geometry - %d vertices", mesh.getNumVertices() );
-	getWindow()->setTitle( str );
-
+	getWindow()->setTitle( "Geometry - " + to_string( mesh.getNumVertices() ) + " vertices" );
 }
 
 void GeometryApp::createPhongShader(void)
