@@ -82,6 +82,7 @@ class Batch {
 	std::vector<std::pair<geom::BufferLayout,VboRef>>	mVertexArrayVbos;
 	VboRef					mIndices;
 	VaoRef					mVao;
+	AttributeMapping		mAttribMapping;
 	
 	GLenum		mPrimitive;
 	size_t		mNumVertices;

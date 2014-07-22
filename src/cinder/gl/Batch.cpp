@@ -197,12 +197,14 @@ void Batch::initVao( const AttributeMapping &attributeMapping )
 		mIndices->bind();
 
 	ctx->popBufferBinding( GL_ARRAY_BUFFER );
+
+	mAttribMapping = attributeMapping;
 }
 
 void Batch::setGlslProg( const GlslProgRef& glsl )
 {
 	mGlsl = glsl;
-	initVao();
+	initVao( mAttribMapping );
 }
 
 void Batch::draw()
