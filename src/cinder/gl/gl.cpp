@@ -454,6 +454,36 @@ Matrix33f calcNormalMatrix()
 	mv.transpose();
 	return mv;
 }
+	
+Matrix33f calcModelInverseTranspose()
+{
+	Matrix33f m = getModelMatrix().subMatrix33( 0, 0 );
+	m.invert( FLT_MIN );
+	m.transpose();
+	return m;
+}
+	
+Matrix44f calcViewportMatrix()
+{
+	auto curViewport = getViewport();
+	
+	const float a = ( curViewport.second.x - curViewport.first.x ) / 2.0f;
+	const float b = ( curViewport.second.y - curViewport.first.y ) / 2.0f;
+	const float c = 1.0f / 2.0f;
+	
+	const float tx = ( curViewport.second.x + curViewport.first.x ) / 2.0f;
+	const float ty = ( curViewport.second.y + curViewport.second.y ) / 2.0f;
+	const float tz = 1.0f / 2.0f;
+	
+	float result[16] = {
+		a, 0, 0, 0,
+		0, b, 0, 0,
+		0, 0, c, 0,
+		tx, ty, tz, 1
+	};
+	
+	return Matrix44f( result );
+}
 
 void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees, float nearPlane, float farPlane, bool originUpperLeft )
 {
@@ -816,12 +846,19 @@ std::string uniformSemanticToString( UniformSemantic uniformSemantic )
 {
 	switch( uniformSemantic ) {
 		case UNIFORM_MODEL_MATRIX: return "UNIFORM_MODEL_MATRIX";
+		case UNIFORM_MODEL_MATRIX_INVERSE: return "UNIFORM_MODEL_MATRIX_INVERSE";
+		case UNIFORM_MODEL_MATRIX_INVERSE_TRANSPOSE: return "UNIFORM_MODEL_MATRIX_INVERSE_TRANSPOSE";
 		case UNIFORM_VIEW_MATRIX: return "UNIFORM_VIEW_MATRIX";
 		case UNIFORM_VIEW_MATRIX_INVERSE: return "UNIFORM_VIEW_MATRIX_INVERSE";
 		case UNIFORM_MODEL_VIEW: return "UNIFORM_MODEL_VIEW";
+		case UNIFORM_MODEL_VIEW_INVERSE: return "UNIFORM_MODEL_VIEW_INVERSE";
+		case UNIFORM_MODEL_VIEW_INVERSE_TRANSPOSE: return "UNIFORM_MODEL_VIEW_INVERSE_TRANSPOSE";
 		case UNIFORM_MODEL_VIEW_PROJECTION: return "UNIFORM_MODEL_VIEW_PROJECTION";
+		case UNIFORM_MODEL_VIEW_PROJECTION_INVERSE: return "UNIFORM_MODEL_VIEW_PROJECTION_INVERSE";
 		case UNIFORM_PROJECTION_MATRIX: return "UNIFORM_PROJECTION_MATRIX";
+		case UNIFORM_PROJECTION_MATRIX_INVERSE: return "UNIFORM_PROJECTION_MATRIX_INVERSE";
 		case UNIFORM_NORMAL_MATRIX: return "UNIFORM_NORMAL_MATRIX";
+		case UNIFORM_VIEWPORT_MATRIX: return "UNIFORM_VIEWPORT_MATRIX";
 		case UNIFORM_WINDOW_SIZE: return "UNIFORM_WINDOW_SIZE";
 		case UNIFORM_ELAPSED_SECONDS: return "UNIFORM_ELAPSED_SECONDS";
 		default: return "";

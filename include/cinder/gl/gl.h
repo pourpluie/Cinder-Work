@@ -78,12 +78,19 @@ namespace cinder { namespace gl {
 // Remember to add a matching case to uniformSemanticToString
 enum UniformSemantic {
 	UNIFORM_MODEL_MATRIX,
+	UNIFORM_MODEL_MATRIX_INVERSE,
+	UNIFORM_MODEL_MATRIX_INVERSE_TRANSPOSE,
 	UNIFORM_VIEW_MATRIX,
 	UNIFORM_VIEW_MATRIX_INVERSE,
 	UNIFORM_MODEL_VIEW,
+	UNIFORM_MODEL_VIEW_INVERSE,
+	UNIFORM_MODEL_VIEW_INVERSE_TRANSPOSE,
 	UNIFORM_MODEL_VIEW_PROJECTION,
+	UNIFORM_MODEL_VIEW_PROJECTION_INVERSE,
 	UNIFORM_PROJECTION_MATRIX,
+	UNIFORM_PROJECTION_MATRIX_INVERSE,
 	UNIFORM_NORMAL_MATRIX,
+	UNIFORM_VIEWPORT_MATRIX,
 	UNIFORM_WINDOW_SIZE,
 	UNIFORM_ELAPSED_SECONDS
 };
@@ -201,7 +208,9 @@ Matrix44f getProjectionMatrix();
 Matrix44f getModelView();
 Matrix44f getModelViewProjection();
 Matrix44f calcViewMatrixInverse();
+Matrix33f calcModelMatrixInverseTranspose();
 Matrix33f calcNormalMatrix();
+Matrix44f calcViewportMatrix();
 
 void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 1000.0f, bool originUpperLeft = true );
 void setMatricesWindowPersp( const ci::Vec2i &screenSize, float fovDegrees = 60.0f, float nearPlane = 1.0f, float farPlane = 1000.0f, bool originUpperLeft = true );
