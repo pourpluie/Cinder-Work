@@ -20,7 +20,10 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#if ! defined( __LP64__ )
+// This path is not used on 64-bit Mac or Windows. On the Mac we only use this path for <=Mac OS 10.7
+#if ( defined( CINDER_MAC ) && ( ! defined( __LP64__ ) ) && ( MAC_OS_X_VERSION_MAX_ALLOWED <= 1070 ) )
+	|| ( defined( CINDER_MSW ) && ( ! defined( _LP64__ ) ) )
+
 
 #include "cinder/qtime/QuickTimeGl.h"
 #include "cinder/qtime/QuickTimeUtils.h"

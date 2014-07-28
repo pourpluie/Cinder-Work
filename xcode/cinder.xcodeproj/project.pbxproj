@@ -166,6 +166,19 @@
 		0053819A15A8CDF90019BA91 /* Event.h in Headers */ = {isa = PBXBuildFile; fileRef = 0053819915A8CDF90019BA91 /* Event.h */; };
 		0053819B15A8CDF90019BA91 /* Event.h in Headers */ = {isa = PBXBuildFile; fileRef = 0053819915A8CDF90019BA91 /* Event.h */; };
 		0053819C15A8CDF90019BA91 /* Event.h in Headers */ = {isa = PBXBuildFile; fileRef = 0053819915A8CDF90019BA91 /* Event.h */; };
+		00566CF81986DDC70069F252 /* Avf.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF61986DDC70069F252 /* Avf.mm */; };
+		00566CF91986DDC70069F252 /* Avf.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF61986DDC70069F252 /* Avf.mm */; };
+		00566CFA1986DDC70069F252 /* Avf.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF61986DDC70069F252 /* Avf.mm */; };
+		00566CFB1986DDC70069F252 /* AvfUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF71986DDC70069F252 /* AvfUtils.mm */; };
+		00566CFC1986DDC70069F252 /* AvfUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF71986DDC70069F252 /* AvfUtils.mm */; };
+		00566CFD1986DDC70069F252 /* AvfUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF71986DDC70069F252 /* AvfUtils.mm */; };
+		00566D001986DDE20069F252 /* Avf.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFE1986DDE20069F252 /* Avf.h */; };
+		00566D011986DDE20069F252 /* Avf.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFE1986DDE20069F252 /* Avf.h */; };
+		00566D021986DDE20069F252 /* Avf.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFE1986DDE20069F252 /* Avf.h */; };
+		00566D031986DDE20069F252 /* AvfUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFF1986DDE20069F252 /* AvfUtils.h */; };
+		00566D041986DDE20069F252 /* AvfUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFF1986DDE20069F252 /* AvfUtils.h */; };
+		00566D051986DDE20069F252 /* AvfUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFF1986DDE20069F252 /* AvfUtils.h */; };
+		00566D061986E1270069F252 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7B9305B121C94E900093AFE /* AVFoundation.framework */; };
 		005783E3189CBB1600D6FB4C /* TextureFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783E2189CBB1600D6FB4C /* TextureFont.cpp */; };
 		005783E4189CBB1600D6FB4C /* TextureFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783E2189CBB1600D6FB4C /* TextureFont.cpp */; };
 		005783E5189CBB1600D6FB4C /* TextureFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783E2189CBB1600D6FB4C /* TextureFont.cpp */; };
@@ -956,6 +969,10 @@
 		004B15651937971C00BD5CA1 /* Sync.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sync.cpp; path = gl/Sync.cpp; sourceTree = "<group>"; };
 		004B15691937973000BD5CA1 /* Sync.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sync.h; path = gl/Sync.h; sourceTree = "<group>"; };
 		0053819915A8CDF90019BA91 /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = app/Event.h; sourceTree = "<group>"; };
+		00566CF61986DDC70069F252 /* Avf.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Avf.mm; path = qtime/Avf.mm; sourceTree = "<group>"; };
+		00566CF71986DDC70069F252 /* AvfUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AvfUtils.mm; path = qtime/AvfUtils.mm; sourceTree = "<group>"; };
+		00566CFE1986DDE20069F252 /* Avf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Avf.h; path = qtime/Avf.h; sourceTree = "<group>"; };
+		00566CFF1986DDE20069F252 /* AvfUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AvfUtils.h; path = qtime/AvfUtils.h; sourceTree = "<group>"; };
 		005783E2189CBB1600D6FB4C /* TextureFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureFont.cpp; path = gl/TextureFont.cpp; sourceTree = "<group>"; };
 		005783E6189CBB4300D6FB4C /* TextureFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureFont.h; path = gl/TextureFont.h; sourceTree = "<group>"; };
 		005783F218A5627600D6FB4C /* ConstantStrings.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = ConstantStrings.h; path = gl/ConstantStrings.h; sourceTree = "<group>"; };
@@ -1244,6 +1261,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00566D061986E1270069F252 /* AVFoundation.framework in Frameworks */,
 				5391FE660E95CB01002A13D5 /* AppKit.framework in Frameworks */,
 				D2AAC088055469A000DB518D /* Cocoa.framework in Frameworks */,
 				0091D8F10E81B9110029341E /* OpenGL.framework in Frameworks */,
@@ -1412,6 +1430,8 @@
 		00611D4E174AD27700BE54C2 /* qtime */ = {
 			isa = PBXGroup;
 			children = (
+				00566CFE1986DDE20069F252 /* Avf.h */,
+				00566CFF1986DDE20069F252 /* AvfUtils.h */,
 				00611D4F174AD29D00BE54C2 /* MovieWriter.h */,
 				00611D50174AD29D00BE54C2 /* QuickTime.h */,
 				00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */,
@@ -1449,6 +1469,8 @@
 		00954472167CF92E008ECA02 /* qtime */ = {
 			isa = PBXGroup;
 			children = (
+				00566CF61986DDC70069F252 /* Avf.mm */,
+				00566CF71986DDC70069F252 /* AvfUtils.mm */,
 				00E3914117A327BF00952CA0 /* QuickTimeGl.cpp */,
 				0095448E167D2A3E008ECA02 /* MovieWriter.cpp */,
 				0095448F167D2A3E008ECA02 /* QuickTime.cpp */,
@@ -1910,6 +1932,7 @@
 				00704FDF1114F93F003FCAE4 /* KeyEvent.h in Headers */,
 				00704FE01114F93F003FCAE4 /* Stream.h in Headers */,
 				00704FE21114F93F003FCAE4 /* Capture.h in Headers */,
+				00566D011986DDE20069F252 /* Avf.h in Headers */,
 				00704FE41114F93F003FCAE4 /* Color.h in Headers */,
 				00704FE51114F93F003FCAE4 /* Filter.h in Headers */,
 				00704FE61114F93F003FCAE4 /* Rect.h in Headers */,
@@ -1963,6 +1986,7 @@
 				009D6B021157FCA60037C77C /* CinderViewCocoaTouch.h in Headers */,
 				009D6B181157FCFB0037C77C /* AppCocoaTouch.h in Headers */,
 				0039FD26115B125400BA0BAD /* CinderCocoaTouch.h in Headers */,
+				00566D041986DDE20069F252 /* AvfUtils.h in Headers */,
 				001E3563115D5F14000C228C /* Xml.h in Headers */,
 				00B729E9115DAC2B00CD71B9 /* Timer.h in Headers */,
 				0049A34E116EE675007DDFB0 /* AxisAlignedBox.h in Headers */,
@@ -2046,6 +2070,7 @@
 				00CFD9351135C3520091E310 /* Quaternion.h in Headers */,
 				00CFD9361135C3520091E310 /* Rand.h in Headers */,
 				00CFD9371135C3520091E310 /* Vector.h in Headers */,
+				00566D051986DDE20069F252 /* AvfUtils.h in Headers */,
 				00CFD9381135C3520091E310 /* MouseEvent.h in Headers */,
 				00CFD93B1135C3520091E310 /* Channel.h in Headers */,
 				00CFD93C1135C3520091E310 /* Surface.h in Headers */,
@@ -2099,6 +2124,7 @@
 				00CFD9981135C3520091E310 /* Premultiply.h in Headers */,
 				00CFD9991135C3520091E310 /* Resize.h in Headers */,
 				00CFD99A1135C3520091E310 /* Threshold.h in Headers */,
+				00566D021986DDE20069F252 /* Avf.h in Headers */,
 				00CFD99B1135C3520091E310 /* Trim.h in Headers */,
 				0005630811513B1D00ECFD91 /* AppImplCocoaTouchRendererQuartz.h in Headers */,
 				009D6AEE1157FB340037C77C /* AppImplCocoaTouchRendererGl.h in Headers */,
@@ -2225,6 +2251,7 @@
 				005783E7189CBB4300D6FB4C /* TextureFont.h in Headers */,
 				000529010FFBE14900F19492 /* Text.h in Headers */,
 				0049C1B41010E5A40015B4B9 /* Renderer.h in Headers */,
+				00566D031986DDE20069F252 /* AvfUtils.h in Headers */,
 				EAC3D1A91011F2E700FFBC9E /* Serial.h in Headers */,
 				003ADB621038846A00ACF6F2 /* Params.h in Headers */,
 				003ADB7F1038973700ACF6F2 /* TwBar.h in Headers */,
@@ -2301,6 +2328,7 @@
 				277C2CF01366632B00178A29 /* Matrix22.h in Headers */,
 				005783F318A5627600D6FB4C /* ConstantStrings.h in Headers */,
 				277C2CF11366632B00178A29 /* Matrix33.h in Headers */,
+				00566D001986DDE20069F252 /* Avf.h in Headers */,
 				277C2CF21366632B00178A29 /* Matrix44.h in Headers */,
 				11C0947B18B80D9E00276534 /* CurrentFunction.h in Headers */,
 				277C2CF31366632B00178A29 /* MatrixAlgo.h in Headers */,
@@ -2540,7 +2568,9 @@
 				00A06F801760EFAD00D8BE17 /* BufferObj.cpp in Sources */,
 				00A06F831760EFAD00D8BE17 /* Context.cpp in Sources */,
 				00A06F861760EFAD00D8BE17 /* Environment.cpp in Sources */,
+				00566CF91986DDC70069F252 /* Avf.mm in Sources */,
 				00A06F891760EFAD00D8BE17 /* Fbo.cpp in Sources */,
+				00566CFC1986DDC70069F252 /* AvfUtils.mm in Sources */,
 				00A06F8F1760EFAD00D8BE17 /* gl.cpp in Sources */,
 				00A06F951760EFAD00D8BE17 /* GlslProg.cpp in Sources */,
 				00A06F9E1760EFAD00D8BE17 /* Pbo.cpp in Sources */,
@@ -2665,7 +2695,9 @@
 				00A06F811760EFAD00D8BE17 /* BufferObj.cpp in Sources */,
 				00A06F841760EFAD00D8BE17 /* Context.cpp in Sources */,
 				00A06F871760EFAD00D8BE17 /* Environment.cpp in Sources */,
+				00566CFA1986DDC70069F252 /* Avf.mm in Sources */,
 				00A06F8A1760EFAD00D8BE17 /* Fbo.cpp in Sources */,
+				00566CFD1986DDC70069F252 /* AvfUtils.mm in Sources */,
 				00A06F901760EFAD00D8BE17 /* gl.cpp in Sources */,
 				00A06F961760EFAD00D8BE17 /* GlslProg.cpp in Sources */,
 				00A06F9F1760EFAD00D8BE17 /* Pbo.cpp in Sources */,
@@ -2792,6 +2824,7 @@
 				0034C321151A5B9F003F2E30 /* linebreak.c in Sources */,
 				0034C327151A5B9F003F2E30 /* linebreakdata.c in Sources */,
 				0034C32A151A5B9F003F2E30 /* linebreakdef.c in Sources */,
+				00566CF81986DDC70069F252 /* Avf.mm in Sources */,
 				B38243A7189DC328008B94AC /* BufferTexture.cpp in Sources */,
 				005B02FE152CD16E00F2C237 /* json_reader.cpp in Sources */,
 				005B0304152CD16E00F2C237 /* json_value.cpp in Sources */,
@@ -2819,6 +2852,7 @@
 				003C69F4178C8FE3008C1643 /* gl_load.c in Sources */,
 				003C69F8178C9FED008C1643 /* gl_load_cpp.cpp in Sources */,
 				0087340E17958FBA00BC2063 /* Batch.cpp in Sources */,
+				00566CFB1986DDC70069F252 /* AvfUtils.mm in Sources */,
 				0087343217A4769E00BC2063 /* VaoImplCore.cpp in Sources */,
 				005783E3189CBB1600D6FB4C /* TextureFont.cpp in Sources */,
 				0087343A17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
@@ -2956,7 +2990,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				CHECKED_STL = "-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -2969,8 +3003,8 @@
 				GENERATE_MASTER_OBJECT_FILE = YES;
 				INSTALL_PATH = /usr/local/lib;
 				LINK_WITH_STANDARD_LIBRARIES = NO;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					../lib/macosx/libboost_filesystem.a,
 					../lib/macosx/libz.a,
@@ -2987,7 +3021,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
@@ -3001,8 +3035,8 @@
 				GENERATE_MASTER_OBJECT_FILE = YES;
 				INSTALL_PATH = /usr/local/lib;
 				LINK_WITH_STANDARD_LIBRARIES = NO;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					../lib/macosx/libboost_filesystem.a,

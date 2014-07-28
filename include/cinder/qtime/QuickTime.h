@@ -22,8 +22,9 @@
 
 #pragma once
 
-// None of this works in 64 bit on the mac or Windows. We'll need to move to QTKit on the mac.
-#if ! defined( __LP64__ )
+// This path is not used on 64-bit Mac or Windows. On the Mac we only use this path for <=Mac OS 10.7
+#if ( defined( CINDER_MAC ) && ( ! defined( __LP64__ ) ) && ( MAC_OS_X_VERSION_MAX_ALLOWED <= 1070 ) )
+	|| ( defined( CINDER_MSW ) && ( ! defined( _LP64__ ) ) )
 
 #include "cinder/Cinder.h"
 #include "cinder/Surface.h"
@@ -336,5 +337,6 @@ class QuickTimeErrorLoadingExc : public QuickTimeExc {
 class QuickTimeExcFft : public QuickTimeExc {
 };
 
-} /* namespace qtime */ } /* namespace cinder */
-#endif // ! defined( __LP64__ )
+} } // namespace qtime::cinder
+
+#endif // end of 64-bit / 10.8+ test

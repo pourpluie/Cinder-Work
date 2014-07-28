@@ -22,6 +22,10 @@
 
 #pragma once
 
+// This path is not used on 64-bit Mac or Windows. On the Mac we only use this path for <=Mac OS 10.7
+#if ( defined( CINDER_MAC ) && ( ! defined( __LP64__ ) ) && ( MAC_OS_X_VERSION_MAX_ALLOWED <= 1070 ) )
+	|| ( defined( CINDER_MSW ) && ( ! defined( _LP64__ ) ) )
+
 #include "cinder/Cinder.h"
 #include "cinder/Url.h"
 #include "cinder/Surface.h"
@@ -127,3 +131,5 @@ GWorldPtr createGWorld( ImageSourceRef imageSource );
 #endif // defined( CINDER_MSW )
 
 } } // namespace cinder::qtime
+
+#endif // end of 64-bit / 10.8+ test
