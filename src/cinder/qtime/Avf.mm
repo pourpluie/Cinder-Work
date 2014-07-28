@@ -526,7 +526,7 @@ void MovieBase::initFromLoader( const MovieLoader& loader )
 	mPlayerDelegate = [[MovieDelegate alloc] initWithResponder:mResponder];
 
 	// process asset and prepare for playback...
-	processAsssetTracks(mAsset);
+	processAssetTracks(mAsset);
 	
 	// collect asset information
 	mLoaded = true;
@@ -556,7 +556,7 @@ void MovieBase::loadAsset()
 			NSError* error = nil;
 			AVKeyValueStatus status = [mAsset statusOfValueForKey:@"tracks" error:&error];
 			if (status == AVKeyValueStatusLoaded && !error) {
-				processAsssetTracks(mAsset);
+				processAssetTracks(mAsset);
 			}
 			
 			error = nil;
@@ -624,7 +624,7 @@ uint32_t MovieBase::countFrames() const
 	return static_cast<uint32_t>(dur_seconds / one_frame_seconds);
 }
 
-void MovieBase::processAsssetTracks(AVAsset* asset)
+void MovieBase::processAssetTracks(AVAsset* asset)
 {
 	// process video tracks
 	NSArray* video_tracks = [asset tracksWithMediaType:AVMediaTypeVideo];
@@ -750,17 +750,20 @@ void MovieBase::outputWasFlushed(AVPlayerItemOutput* output)
 
 /////////////////////////////////////////////////////////////////////////////////
 // MovieSurface
-MovieSurface::MovieSurface( const Url& url ) : MovieBase()
+MovieSurface::MovieSurface( const Url& url )
+	: MovieBase()
 {
 	MovieBase::initFromUrl( url );
 }
 
-MovieSurface::MovieSurface( const fs::path& path ) : MovieBase()
+MovieSurface::MovieSurface( const fs::path& path )
+	: MovieBase()
 {
 	MovieBase::initFromPath( path );
 }
 
-MovieSurface::MovieSurface( const MovieLoader& loader ) : MovieBase()
+MovieSurface::MovieSurface( const MovieLoader& loader )
+	: MovieBase()
 {
 	MovieBase::initFromLoader( loader );
 }
@@ -994,11 +997,11 @@ void MovieGl::releaseFrame()
 /////////////////////////////////////////////////////////////////////////////////
 // MovieLoader
 MovieLoader::MovieLoader( const Url &url )
-:	mUrl(url), mBufferFull(false), mBufferEmpty(false), mLoaded(false),
-	mPlayable(false), mPlayThroughOK(false), mProtected(false), mOwnsMovie(true)
+	:mUrl(url), mBufferFull(false), mBufferEmpty(false), mLoaded(false),
+		mPlayable(false), mPlayThroughOK(false), mProtected(false), mOwnsMovie(true)
 {
 	NSURL* asset_url = [NSURL URLWithString:[NSString stringWithCString:mUrl.c_str() encoding:[NSString defaultCStringEncoding]]];
-	if (!asset_url)
+	if( ! asset_url )
 		throw AvfUrlInvalidExc();
 	
 	AVPlayerItem* playerItem = [[AVPlayerItem alloc] initWithURL:asset_url];

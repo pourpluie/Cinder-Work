@@ -52,7 +52,7 @@ class MovieLoader;
 typedef std::shared_ptr<MovieLoader> MovieLoaderRef;
 	
 class MovieBase {
- public:
+  public:
 	virtual		~MovieBase();
 	
 	//! Returns the width of the movie in pixels
@@ -155,8 +155,8 @@ class MovieBase {
 	void loadAsset();
 	void updateFrame();
 	uint32_t countFrames() const;
-	void processAsssetTracks(AVAsset* asset);
-	void createPlayerItemOutput(const AVPlayerItem* playerItem);
+	void processAssetTracks( AVAsset* asset );
+	void createPlayerItemOutput( const AVPlayerItem* playerItem );
 	
 	void lock() { mMutex.lock(); }
 	void unlock() { mMutex.unlock(); }
@@ -192,7 +192,7 @@ class MovieBase {
 	void playerItemEnded();
 	void playerItemCancelled();
 	void playerItemJumped();
-	void outputWasFlushed(AVPlayerItemOutput* output);
+	void outputWasFlushed( AVPlayerItemOutput* output );
 	
 	friend class MovieResponder;
 	MovieResponder* mResponder;
@@ -220,10 +220,10 @@ class MovieSurface : public MovieBase {
 	Surface		getSurface();
 
  protected:
-	virtual void		allocateVisualContext() { /* no-op */ }
-	virtual void		deallocateVisualContext() { /* no-op */ }
-	virtual void		newFrame( CVImageBufferRef cvImage );		
-	virtual void		releaseFrame(); 
+	virtual void		allocateVisualContext() override { /* no-op */ }
+	virtual void		deallocateVisualContext() override { /* no-op */ }
+	virtual void		newFrame( CVImageBufferRef cvImage ) override;
+	virtual void		releaseFrame() override;
 
 	Surface				mSurface;
 };
@@ -253,10 +253,10 @@ class MovieGl : public MovieBase {
 	gl::TextureRef	getTexture();
 
   protected:
-	virtual void		allocateVisualContext();
-	virtual void		deallocateVisualContext();
-	virtual void		newFrame( CVImageBufferRef cvImage );	
-	virtual void		releaseFrame();
+	virtual void		allocateVisualContext() override;
+	virtual void		deallocateVisualContext() override;
+	virtual void		newFrame( CVImageBufferRef cvImage ) override;
+	virtual void		releaseFrame() override;
 	
 #if defined( CINDER_COCOA )
 	#if defined( CINDER_COCOA_TOUCH )
