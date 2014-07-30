@@ -110,9 +110,9 @@ class VertBatch {
 	void	normal( float x, float y, float z ) { normal( Vec3f( x, y, z ) ); }
 	void	normal( const Vec3f &n );
 
-	void	vertex( float x, float y, float z = 0, float w = 1 ) { vertex( Vec4f( x, y, z, w ) ); }
-	void	vertex( const Vec2f &v ) { vertex( Vec4f( v.x, v.y, 0, 1 ) ); }
-	void	vertex( const Vec3f &v ) { vertex( Vec4f( v.x, v.y, v.z, 1 ) ); }
+	void	vertex( float x, float y, float z = 0, float w = 1 ) { addVertex( Vec4f( x, y, z, w ) ); }
+	void	vertex( const Vec2f &v ) { addVertex( Vec4f( v.x, v.y, 0, 1 ) ); }
+	void	vertex( const Vec3f &v ) { addVertex( Vec4f( v.x, v.y, v.z, 1 ) ); }
 	void	vertex( const Vec4f &v );
 	//! Sets the vertex and the color simultaneously. Should not be called if you have called color() prior.
 	void	vertex( const Vec4f &v, const ColorAf &c );
