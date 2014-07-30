@@ -1438,18 +1438,32 @@ void Context::setDefaultShaderVars()
 			switch( unifIt.second ) {
 				case UNIFORM_MODEL_MATRIX:
 					glslProg->uniform( unifIt.first, gl::getModelMatrix() ); break;
+				case UNIFORM_MODEL_MATRIX_INVERSE:
+					glslProg->uniform( unifIt.first, gl::getModelMatrix().inverted() ); break;
+				case UNIFORM_MODEL_MATRIX_INVERSE_TRANSPOSE:
+					glslProg->uniform( unifIt.first, gl::calcModelMatrixInverseTranspose() ); break;
 				case UNIFORM_VIEW_MATRIX:
 					glslProg->uniform( unifIt.first, gl::getViewMatrix() ); break;
 				case UNIFORM_VIEW_MATRIX_INVERSE:
 					glslProg->uniform( unifIt.first, gl::calcViewMatrixInverse() ); break;
 				case UNIFORM_MODEL_VIEW:
 					glslProg->uniform( unifIt.first, gl::getModelView() ); break;
+				case UNIFORM_MODEL_VIEW_INVERSE:
+					glslProg->uniform( unifIt.first, gl::getModelView().inverted() ); break;
+				case UNIFORM_MODEL_VIEW_INVERSE_TRANSPOSE:
+					glslProg->uniform( unifIt.first, gl::calcNormalMatrix() ); break;
 				case UNIFORM_MODEL_VIEW_PROJECTION:
 					glslProg->uniform( unifIt.first, gl::getModelViewProjection() ); break;
+				case UNIFORM_MODEL_VIEW_PROJECTION_INVERSE:
+					glslProg->uniform( unifIt.first, gl::getModelViewProjection().inverted() ); break;
 				case UNIFORM_PROJECTION_MATRIX:
 					glslProg->uniform( unifIt.first, gl::getProjectionMatrix() ); break;
+				case UNIFORM_PROJECTION_MATRIX_INVERSE:
+					glslProg->uniform( unifIt.first, gl::getProjectionMatrix().inverted() ); break;
 				case UNIFORM_NORMAL_MATRIX:
 					glslProg->uniform( unifIt.first, gl::calcNormalMatrix() ); break;
+				case UNIFORM_VIEWPORT_MATRIX:
+					glslProg->uniform( unifIt.first, gl::calcViewportMatrix() ); break;
 				case UNIFORM_WINDOW_SIZE:
 					glslProg->uniform( unifIt.first, app::getWindowSize() ); break;
 				case UNIFORM_ELAPSED_SECONDS:
