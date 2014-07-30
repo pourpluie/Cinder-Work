@@ -475,14 +475,12 @@ Matrix44f calcViewportMatrix()
 	const float ty = ( curViewport.second.y + curViewport.second.y ) / 2.0f;
 	const float tz = 1.0f / 2.0f;
 	
-	float result[16] = {
+	return Matrix44f(
 		a, 0, 0, 0,
 		0, b, 0, 0,
 		0, 0, c, 0,
 		tx, ty, tz, 1
-	};
-	
-	return Matrix44f( result );
+	);
 }
 
 void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees, float nearPlane, float farPlane, bool originUpperLeft )
