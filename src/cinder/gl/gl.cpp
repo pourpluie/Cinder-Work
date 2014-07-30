@@ -455,7 +455,7 @@ Matrix33f calcNormalMatrix()
 	return mv;
 }
 	
-Matrix33f calcModelInverseTranspose()
+Matrix33f calcModelMatrixInverseTranspose()
 {
 	Matrix33f m = getModelMatrix().subMatrix33( 0, 0 );
 	m.invert( FLT_MIN );
