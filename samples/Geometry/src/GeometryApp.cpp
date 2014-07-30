@@ -104,7 +104,7 @@ void GeometryApp::setup()
 	gl::Texture::Format fmt;
 	fmt.setAutoInternalFormat();
 	fmt.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
-	mTexture = gl::Texture::create( loadImage( loadAsset("arealight.png") ), fmt );
+	mTexture = gl::Texture::create( loadImage( loadAsset("stripes.jpg") ), fmt );
 
 	// Setup the camera.
 	mCamera.setEyePoint( Vec3f(3, 3, 6).normalized() * 5.0f );
