@@ -3,8 +3,6 @@
 #include "cinder/Surface.h"
 #include "cinder/gl/Texture.h"
 
-//#include "cinder/qtime/Avf.h"
-#include "cinder/qtime/QuickTime.h"
 #include "cinder/qtime/QuickTimeGl.h"
 
 #include "cinder/Text.h"

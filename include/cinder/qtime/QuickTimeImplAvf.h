@@ -16,18 +16,11 @@
 #if defined( CINDER_MAC ) || defined( CINDER_COCOA_TOUCH )
 	#include <CoreVideo/CoreVideo.h>
 	#include <CoreVideo/CVBase.h>
-	#if defined( CINDER_MAC )
-		#include <CoreVideo/CVOpenGLTextureCache.h>
-		#include <CoreVideo/CVOpenGLTexture.h>
-	#elif defined( CINDER_COCOA_TOUCH )
-	#endif
-
 	#if defined( __OBJC__ )
 		@class AVPlayer, AVPlayerItem, AVPlayerItemTrack, AVPlayerItemVideoOutput, AVPlayerItemOutput;
 		@class AVAsset, AVURLAsset, AVAssetTrack, AVAssetReader;
 		@class MovieDelegate;
 		@class NSURL;
-
 	#else
 		class AVPlayer;
 		class AVPlayerItem;
@@ -202,7 +195,7 @@ class MovieBase {
 
 typedef std::shared_ptr<class MovieSurface> MovieSurfaceRef;
 class MovieSurface : public MovieBase {
- public:
+  public:
 	MovieSurface() : MovieBase() {}
 	MovieSurface( const Url& url );
 	MovieSurface( const fs::path& path );
@@ -220,7 +213,7 @@ class MovieSurface : public MovieBase {
 	//! Returns the Surface8u representing the Movie's current frame
 	Surface		getSurface();
 
- protected:
+  protected:
 	virtual void		allocateVisualContext() override { /* no-op */ }
 	virtual void		deallocateVisualContext() override { /* no-op */ }
 	virtual void		newFrame( CVImageBufferRef cvImage ) override;
@@ -229,52 +222,8 @@ class MovieSurface : public MovieBase {
 	Surface				mSurface;
 };
 
-typedef std::shared_ptr<class MovieGl>	MovieGlRef;
-/** \brief QuickTime movie playback as OpenGL textures
- *	Textures are always bound to the \c GL_TEXTURE_RECTANGLE_ARB target
- *	\remarks On Mac OS X, the destination CGLContext must be the current context when the MovieGl is constructed. If that doesn't mean anything to you, you should be fine. A call to app::restoreWindowContext() can be used to force this to be the case.
-**/
-class MovieGl : public MovieBase {
-  public:
-	MovieGl() : MovieBase(), mVideoTextureRef(NULL), mVideoTextureCacheRef(NULL) {}
-	MovieGl( const Url& url );
-	MovieGl( const fs::path& path );
-	MovieGl( const MovieLoader& loader );
-	
-	virtual ~MovieGl();
-
-	static MovieGlRef create( const Url& url ) { return MovieGlRef( new MovieGl( url ) ); }
-	static MovieGlRef create( const fs::path& path ) { return MovieGlRef( new MovieGl( path ) ); }
-	static MovieGlRef create( const MovieLoaderRef loader ) { return MovieGlRef( new MovieGl( *loader ) ); }
-	
-	//! \inherit
-	virtual bool hasAlpha() const;
-	
-	//! Returns the gl::Texture representing the Movie's current frame, bound to the \c GL_TEXTURE_RECTANGLE_ARB target
-	gl::TextureRef	getTexture();
-
-  protected:
-	virtual void		allocateVisualContext() override;
-	virtual void		deallocateVisualContext() override;
-	virtual void		newFrame( CVImageBufferRef cvImage ) override;
-	virtual void		releaseFrame() override;
-	
-#if defined( CINDER_COCOA )
-	#if defined( CINDER_COCOA_TOUCH )
-		CVOpenGLESTextureCacheRef mVideoTextureCacheRef;
-		CVOpenGLESTextureRef mVideoTextureRef;
-	#else
-		CVOpenGLTextureCacheRef mVideoTextureCacheRef;
-		CVOpenGLTextureRef mVideoTextureRef;
-	#endif
-#endif
-	
-	gl::TextureRef		mTexture;
-};
-	
-
 class MovieResponder {
-public:
+  public:
 	MovieResponder(MovieBase* parent = 0) : mParent(parent) {}
 	~MovieResponder() {}
 	

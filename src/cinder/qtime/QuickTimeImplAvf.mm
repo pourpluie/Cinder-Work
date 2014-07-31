@@ -18,7 +18,7 @@
 	#endif
 #endif
 
-#include "cinder/qtime/Avf.h"
+#include "cinder/qtime/QuickTimeImplAvf.h"
 #include "cinder/qtime/AvfUtils.h"
 
 ////////////////////////////////////////////////////////////////////////
@@ -847,181 +847,6 @@ void MovieSurface::releaseFrame()
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-// MovieGl
-MovieGl::MovieGl( const Url& url ) : MovieBase(), mVideoTextureRef(NULL), mVideoTextureCacheRef(NULL)
-{
-	MovieBase::initFromUrl( url );
-}
-
-MovieGl::MovieGl( const fs::path& path ) : MovieBase(), mVideoTextureRef(NULL), mVideoTextureCacheRef(NULL)
-{
-	MovieBase::initFromPath( path );
-}
-	
-MovieGl::MovieGl( const MovieLoader& loader ) : MovieBase(), mVideoTextureRef(NULL), mVideoTextureCacheRef(NULL)
-{
-	MovieBase::initFromLoader(loader);
-}
-		
-MovieGl::~MovieGl()
-{
-	deallocateVisualContext();
-}
-	
-bool MovieGl::hasAlpha() const
-{
-	if (!mVideoTextureRef) return false;
-	
-	CVPixelBufferLockBaseAddress( mVideoTextureRef, 0 );
-	OSType type = CVPixelBufferGetPixelFormatType(mVideoTextureRef);
-	CVPixelBufferUnlockBaseAddress( mVideoTextureRef, 0 );
-#if defined ( CINDER_COCOA_TOUCH)
-	return (type == kCVPixelFormatType_32ARGB ||
-			type == kCVPixelFormatType_32BGRA ||
-			type == kCVPixelFormatType_32ABGR ||
-			type == kCVPixelFormatType_32RGBA ||
-			type == kCVPixelFormatType_64ARGB);
-#elif defined ( CINDER_COCOA )
-	return (type == k32ARGBPixelFormat || type == k32BGRAPixelFormat);
-#endif
-	
-	/*
-	CGColorSpaceRef color_space = CVImageBufferGetColorSpace(mVideoTextureRef);
-	size_t components = CGColorSpaceGetNumberOfComponents(color_space);
-	return components > 3;
-	*/
-}
-
-gl::TextureRef MovieGl::getTexture()
-{
-	updateFrame();
-	
-	lock();
-	gl::TextureRef result = mTexture;
-	unlock();
-	
-	return result;
-}
-	
-void MovieGl::allocateVisualContext()
-{
-	if(mVideoTextureCacheRef == NULL) {
-		CVReturn err = nil;
-#if defined( CINDER_COCOA_TOUCH )
-		app::RendererGl *renderer = dynamic_cast<app::RendererGl*>( app::App::get()->getRenderer().get() );
-		if( renderer ) {
-			EAGLContext* context = renderer->getEaglContext();
-			err = CVOpenGLESTextureCacheCreate( kCFAllocatorDefault, NULL, context, NULL, &mVideoTextureCacheRef );
-		}
-		else {
-			throw AvfTextureErrorExc();
-		}
-		
-#elif defined( CINDER_COCOA )
-		CGLContextObj context = app::App::get()->getRenderer()->getCglContext();
-		CGLPixelFormatObj pixelFormat = app::App::get()->getRenderer()->getCglPixelFormat();
-		err = CVOpenGLTextureCacheCreate(kCFAllocatorDefault, NULL, context, pixelFormat, NULL, &mVideoTextureCacheRef);
-		CVOpenGLTextureCacheRetain(mVideoTextureCacheRef);
-		
-#endif
-		if( err )
-			throw AvfTextureErrorExc();
-	}
-}
-
-void MovieGl::deallocateVisualContext()
-{
-	if(mVideoTextureRef) {
-		CFRelease(mVideoTextureRef);
-		mVideoTextureRef = NULL;
-	}
-	
-	if(mVideoTextureCacheRef) {
-#if defined( CINDER_COCOA_TOUCH )
-		CVOpenGLESTextureCacheFlush(mVideoTextureCacheRef, 0);
-#elif defined( CINDER_COCOA )
-		CVOpenGLTextureCacheFlush(mVideoTextureCacheRef, 0);
-#endif
-		CFRelease(mVideoTextureCacheRef);
-		mVideoTextureCacheRef = NULL;
-	}
-}
-
-void MovieGl::newFrame( CVImageBufferRef cvImage )
-{
-	CVPixelBufferLockBaseAddress(cvImage, kCVPixelBufferLock_ReadOnly);
-	
-	if (mVideoTextureRef) {
-		CFRelease(mVideoTextureRef);
-		mVideoTextureRef = NULL;
-	}
-#if defined( CINDER_COCOA_TOUCH )
-	CVOpenGLESTextureCacheFlush(mVideoTextureCacheRef, 0); // Periodic texture cache flush every frame
-#elif defined( CINDER_COCOA )
-	CVOpenGLTextureCacheFlush(mVideoTextureCacheRef, 0); // Periodic texture cache flush every frame
-#endif
-	
-	CVReturn err = nil;
-	
-#if defined( CINDER_COCOA_TOUCH )
-	err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault,     // CFAllocatorRef allocator
-													   mVideoTextureCacheRef,   // CVOpenGLESTextureCacheRef textureCache
-													   cvImage,                 // CVImageBufferRef sourceImage
-													   NULL,                    // CFDictionaryRef textureAttributes
-													   GL_TEXTURE_2D,           // GLenum target
-													   GL_RGBA,                 // GLint internalFormat
-													   mWidth,                  // GLsizei width
-													   mHeight,                 // GLsizei height
-													   GL_BGRA,                 // GLenum format
-													   GL_UNSIGNED_BYTE,        // GLenum type
-													   0,                       // size_t planeIndex
-													   &mVideoTextureRef);      // CVOpenGLESTextureRef *textureOut
-	
-#elif defined( CINDER_MAC )
-	err = CVOpenGLTextureCacheCreateTextureFromImage(kCFAllocatorDefault,       // CFAllocatorRef allocator
-													 mVideoTextureCacheRef,     // CVOpenGLESTextureCacheRef textureCache
-													 cvImage,                   // CVImageBufferRef sourceImage
-													 NULL,                      // CFDictionaryRef textureAttributes
-													 &mVideoTextureRef);        // CVOpenGLTextureRef *textureOut
-#endif
-	
-	if (err) {
-		throw AvfTextureErrorExc();
-		return;
-	}
-	
-#if defined( CINDER_COCOA_TOUCH )
-	GLenum target = CVOpenGLESTextureGetTarget( mVideoTextureRef );
-	GLuint name = CVOpenGLESTextureGetName( mVideoTextureRef );
-	bool flipped = !CVOpenGLESTextureIsFlipped( mVideoTextureRef );
-	mTexture = gl::Texture::create( target, name, mWidth, mHeight, true );
-	Vec2f t0, lowerRight, t2, upperLeft;
-	::CVOpenGLESTextureGetCleanTexCoords( mVideoTextureRef, &t0.x, &lowerRight.x, &t2.x, &upperLeft.x );
-//	mTexture.setCleanTexCoords( std::max( upperLeft.x, lowerRight.x ), std::max( upperLeft.y, lowerRight.y ) );
-//	mTexture.setFlipped( flipped );
-#elif defined( CINDER_MAC )	
-	GLenum target = CVOpenGLTextureGetTarget( mVideoTextureRef );
-	GLuint name = CVOpenGLTextureGetName( mVideoTextureRef );
-	bool flipped = ! CVOpenGLTextureIsFlipped( mVideoTextureRef );
-	mTexture = gl::Texture::create( target, name, mWidth, mHeight, true );
-	Vec2f t0, lowerRight, t2, upperLeft;
-	::CVOpenGLTextureGetCleanTexCoords( mVideoTextureRef, &t0.x, &lowerRight.x, &t2.x, &upperLeft.x );
-//	mTexture.setCleanTexCoords( std::max( upperLeft.x, lowerRight.x ), std::max( upperLeft.y, lowerRight.y ) );
-//	mTexture.setFlipped( flipped );
-	//mTexture.setDeallocator( CVPixelBufferDealloc, mVideoTextureRef );	// do we want to do this?
-	
-#endif
-
-	::CVPixelBufferUnlockBaseAddress( cvImage, kCVPixelBufferLock_ReadOnly );
-	::CVPixelBufferRelease( cvImage );
-}
-
-void MovieGl::releaseFrame()
-{
-	mTexture.reset();
-}
-
-/////////////////////////////////////////////////////////////////////////////////
 // MovieLoader
 MovieLoader::MovieLoader( const Url &url )
 	:mUrl(url), mBufferFull(false), mBufferEmpty(false), mLoaded(false),
@@ -1045,7 +870,7 @@ MovieLoader::~MovieLoader()
 	
 bool MovieLoader::checkLoaded() const
 {
-	if( !mLoaded )
+	if( ! mLoaded )
 		updateLoadState();
 	
 	return mLoaded;
@@ -1053,7 +878,7 @@ bool MovieLoader::checkLoaded() const
 
 bool MovieLoader::checkPlayable() const
 {
-	if( !mPlayable )
+	if( ! mPlayable )
 		updateLoadState();
 	
 	return mPlayable;
@@ -1061,7 +886,7 @@ bool MovieLoader::checkPlayable() const
 
 bool MovieLoader::checkPlayThroughOk() const
 {
-	if( !mPlayThroughOK )
+	if( ! mPlayThroughOK )
 		updateLoadState();
 	
 	return mPlayThroughOK;
@@ -1083,7 +908,7 @@ void MovieLoader::waitForLoaded() const
 
 void MovieLoader::waitForPlayable() const
 {
-	while( !mPlayable ) {
+	while( ! mPlayable ) {
 		cinder::sleep( 250 );
 		updateLoadState();
 	}
@@ -1091,7 +916,7 @@ void MovieLoader::waitForPlayable() const
 
 void MovieLoader::waitForPlayThroughOk() const
 {
-	while( !mPlayThroughOK ) {
+	while( ! mPlayThroughOK ) {
 		cinder::sleep( 250 );
 		updateLoadState();
 	}

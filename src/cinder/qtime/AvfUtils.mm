@@ -5,7 +5,7 @@
 
 #include "cinder/gl/gl.h"
 
-#include "cinder/qtime/Avf.h"
+#include "cinder/qtime/QuickTimeImplAvf.h"
 #include "cinder/qtime/AvfUtils.h"
 
 #if defined( CINDER_COCOA )
@@ -259,13 +259,13 @@ static void CVPixelBufferDealloc( void* refcon )
 
 Surface8u convertCvPixelBufferToSurface( CVPixelBufferRef pixelBufferRef )
 {
-	CVPixelBufferLockBaseAddress( pixelBufferRef, 0 );
-	uint8_t *ptr = reinterpret_cast<uint8_t*>( CVPixelBufferGetBaseAddress( pixelBufferRef ) );
-	int32_t rowBytes = CVPixelBufferGetBytesPerRow( pixelBufferRef );
-	OSType type = CVPixelBufferGetPixelFormatType( pixelBufferRef );
-	size_t width = CVPixelBufferGetWidth( pixelBufferRef );
-	size_t height = CVPixelBufferGetHeight( pixelBufferRef );
-	CVPixelBufferUnlockBaseAddress(pixelBufferRef, 0);
+	::CVPixelBufferLockBaseAddress( pixelBufferRef, 0 );
+	uint8_t *ptr = reinterpret_cast<uint8_t*>( ::CVPixelBufferGetBaseAddress( pixelBufferRef ) );
+	int32_t rowBytes = ::CVPixelBufferGetBytesPerRow( pixelBufferRef );
+	OSType type = ::CVPixelBufferGetPixelFormatType( pixelBufferRef );
+	size_t width = ::CVPixelBufferGetWidth( pixelBufferRef );
+	size_t height = ::CVPixelBufferGetHeight( pixelBufferRef );
+	::CVPixelBufferUnlockBaseAddress(pixelBufferRef, 0);
 	
 	SurfaceChannelOrder sco;
 #if defined( CINDER_COCOA_TOUCH )

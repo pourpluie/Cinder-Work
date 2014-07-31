@@ -25,7 +25,7 @@
 
 #if ( defined( CINDER_MAC ) && ( ! defined( __LP64__ ) ) && ( MAC_OS_X_VERSION_MIN_REQUIRED < 1080 ) ) || ( defined( CINDER_MSW ) && ( ! defined( _WIN64 ) ) )
 
-#include "cinder/qtime/QuickTimeGl.h"
+#include "cinder/qtime/QuickTimeGlImplLegacy.h"
 #include "cinder/qtime/QuickTimeUtils.h"
 
 #if defined( CINDER_MSW )
