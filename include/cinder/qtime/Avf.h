@@ -173,7 +173,8 @@ class MovieBase {
 	int32_t						mFrameCount;
 	float						mFrameRate;
 	float						mDuration;
-	bool						mLoaded, mPlayThroughOk, mPlayable, mProtected;
+	std::atomic<bool>			mLoaded;
+	bool						mPlayThroughOk, mPlayable, mProtected;
 	bool						mPlayingForward, mLoop, mPalindrome;
 	bool						mHasAudio, mHasVideo;
 	bool						mPlaying;	// required to auto-start the movie

@@ -21,8 +21,7 @@
  */
 
 // This path is not used on 64-bit Mac or Windows. On the Mac we only use this path for <=Mac OS 10.7
-#if ( defined( CINDER_MAC ) && ( ! defined( __LP64__ ) ) && ( MAC_OS_X_VERSION_MAX_ALLOWED <= 1070 ) )
-	|| ( defined( CINDER_MSW ) && ( ! defined( _LP64__ ) ) )
+#if ( defined( CINDER_MAC ) && ( ! defined( __LP64__ ) ) && ( MAC_OS_X_VERSION_MIN_REQUIRED < 1080 ) ) || ( defined( CINDER_MSW ) && ( ! defined( _WIN64 ) ) )
 
 #if defined( CINDER_COCOA ) && ( ! defined( __OBJC__ ) )
 	#error "This file must be compiled as Objective-C++ on the Mac"

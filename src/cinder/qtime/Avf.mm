@@ -6,6 +6,7 @@
 
 #include "cinder/gl/gl.h"
 #include "cinder/app/App.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/Url.h"
 
 #if defined( CINDER_COCOA )
@@ -171,12 +172,12 @@ MovieBase::~MovieBase()
 	removeObservers();
 	
 	// release resources for AVF objects.
-	if (mPlayer) {
+	if( mPlayer ) {
 		[mPlayer cancelPendingPrerolls];
 		[mPlayer release];
 	}
 	
-	if (mAsset) {
+	if( mAsset ) {
 		[mAsset cancelLoading];
 		[mAsset release];
 	}
@@ -186,10 +187,11 @@ float MovieBase::getPixelAspectRatio() const
 {
 	float pixelAspectRatio = 1.0;
 	
-	if (!mAsset) return pixelAspectRatio;
+	if( ! mAsset )
+		return pixelAspectRatio;
 	
 	NSArray* video_tracks = [mAsset tracksWithMediaType:AVMediaTypeVideo];
-	if (video_tracks) {
+	if( video_tracks ) {
 		CMFormatDescriptionRef format_desc = NULL;
 		NSArray* descriptions_arr = [[video_tracks objectAtIndex:0] formatDescriptions];
 		if ([descriptions_arr count] > 0)
@@ -228,7 +230,7 @@ bool MovieBase::checkPlayThroughOk()
 
 int32_t MovieBase::getNumFrames()
 {
-	if (mFrameCount <= 0)
+	if( mFrameCount <= 0 )
 		mFrameCount = countFrames();
 	
 	return mFrameCount;
@@ -236,7 +238,8 @@ int32_t MovieBase::getNumFrames()
 
 bool MovieBase::checkNewFrame()
 {
-	if (!mPlayer || !mPlayerVideoOutput) return false;
+	if( ! mPlayer || ! mPlayerVideoOutput )
+		return false;
 	
 	bool result;
 	
@@ -254,14 +257,16 @@ bool MovieBase::checkNewFrame()
 
 float MovieBase::getCurrentTime() const
 {
-	if (!mPlayer) return -1;
+	if( ! mPlayer )
+		return -1.0f;
 	
 	return CMTimeGetSeconds([mPlayer currentTime]);
 }
 
 void MovieBase::seekToTime( float seconds )
 {
-	if (!mPlayer) return;
+	if( ! mPlayer )
+		return;
 	
 	CMTime seek_time = CMTimeMakeWithSeconds(seconds, [mPlayer currentTime].timescale);
 	[mPlayer seekToTime:seek_time toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
@@ -269,7 +274,8 @@ void MovieBase::seekToTime( float seconds )
 
 void MovieBase::seekToFrame( int frame )
 {
-	if (!mPlayer) return;
+	if( ! mPlayer )
+		return;
 	
 	CMTime currentTime = [mPlayer currentTime];
 	CMTime oneFrame = CMTimeMakeWithSeconds(1.0 / mFrameRate, currentTime.timescale);
@@ -282,16 +288,18 @@ void MovieBase::seekToFrame( int frame )
 
 void MovieBase::seekToStart()
 {
-	if (!mPlayer) return;
+	if( ! mPlayer )
+		return;
 	
 	[mPlayer seekToTime:kCMTimeZero];
 }
 
 void MovieBase::seekToEnd()
 {
-	if (!mPlayer || !mPlayerItem) return;
+	if( ! mPlayer || ! mPlayerItem )
+		return;
 	
-	if (mPlayingForward) {
+	if( mPlayingForward ) {
 		[mPlayer seekToTime:[mPlayerItem forwardPlaybackEndTime]];
 	}
 	else {
@@ -301,7 +309,8 @@ void MovieBase::seekToEnd()
 
 void MovieBase::setActiveSegment( float startTime, float duration )
 {
-	if (!mPlayer || !mPlayerItem) return;
+	if( ! mPlayer || ! mPlayerItem )
+		return;
 	
 	int32_t scale = [mPlayer currentTime].timescale;
 	CMTime cm_start = CMTimeMakeWithSeconds(startTime, scale);
@@ -319,7 +328,8 @@ void MovieBase::setActiveSegment( float startTime, float duration )
 
 void MovieBase::resetActiveSegment()
 {
-	if (!mPlayer || !mPlayerItem) return;
+	if( ! mPlayer || ! mPlayerItem )
+		return;
 	
 	if (mPlayingForward) {
 		[mPlayer seekToTime:kCMTimeZero];
@@ -339,10 +349,11 @@ void MovieBase::setLoop( bool loop, bool palindrome )
 
 bool MovieBase::stepForward()
 {
-	if (!mPlayerItem) return false;
+	if( ! mPlayerItem )
+		return false;
 	
 	bool can_step_forwards = [mPlayerItem canStepForward];
-	if (can_step_forwards) {
+	if( can_step_forwards ) {
 		[mPlayerItem stepByCount:1];
 	}
 	
@@ -351,7 +362,8 @@ bool MovieBase::stepForward()
 
 bool MovieBase::stepBackward()
 {
-	if (!mPlayerItem) return false;
+	if( ! mPlayerItem)
+		return false;
 	
 	bool can_step_backwards = [mPlayerItem canStepBackward];
 	
@@ -364,7 +376,8 @@ bool MovieBase::stepBackward()
 
 bool MovieBase::setRate( float rate )
 {
-	if (!mPlayer || !mPlayerItem) return false;
+	if( ! mPlayer || ! mPlayerItem )
+		return false;
 	
 	bool success;
 	
@@ -385,7 +398,8 @@ bool MovieBase::setRate( float rate )
 
 void MovieBase::setVolume( float volume )
 {
-	if (!mPlayer) return;
+	if( ! mPlayer )
+		return;
 	
 #if defined( CINDER_COCOA_TOUCH )
 	NSArray* audioTracks = [mAsset tracksWithMediaType:AVMediaTypeAudio];
@@ -429,14 +443,16 @@ float MovieBase::getVolume() const
 
 bool MovieBase::isPlaying() const
 {
-	if (!mPlayer) return false;
+	if( ! mPlayer )
+		return false;
 	
 	return [mPlayer rate] != 0;
 }
 
 bool MovieBase::isDone() const
 {
-	if (!mPlayerItem) return false;
+	if( ! mPlayer )
+		return false;
 	
 	CMTime current_time = [mPlayerItem currentTime];
 	CMTime end_time = (mPlayingForward? [mPlayerItem duration]: kCMTimeZero);
@@ -445,12 +461,12 @@ bool MovieBase::isDone() const
 
 void MovieBase::play(bool toggle)
 {
-	if (!mPlayer) {
+	if( ! mPlayer ) {
 		mPlaying = true;
 		return;
 	}
 	
-	if (toggle) {
+	if( toggle ) {
 		isPlaying()? [mPlayer pause]: [mPlayer play];
 	}
 	else {
@@ -462,7 +478,7 @@ void MovieBase::stop()
 {
 	mPlaying = false;
 	
-	if (!mPlayer)
+	if( ! mPlayer )
 		return;
 	
 	[mPlayer pause];
@@ -483,8 +499,8 @@ void MovieBase::init()
 	
 void MovieBase::initFromUrl( const Url& url )
 {
-	NSURL* asset_url = [NSURL URLWithString:[NSString stringWithCString:url.c_str() encoding:[NSString defaultCStringEncoding]]];
-	if (!asset_url)
+	NSURL* asset_url = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
+	if( ! asset_url )
 		throw AvfUrlInvalidExc();
 	
 	// Create the AVAsset
@@ -499,8 +515,8 @@ void MovieBase::initFromUrl( const Url& url )
 
 void MovieBase::initFromPath( const fs::path& filePath )
 {
-	NSURL* asset_url = [NSURL fileURLWithPath:[NSString stringWithCString:filePath.c_str() encoding:[NSString defaultCStringEncoding]]];
-	if (!asset_url)
+	NSURL* asset_url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:filePath.c_str()]];
+	if( ! asset_url )
 		throw AvfPathInvalidExc();
 	
 	// Create the AVAsset
@@ -511,11 +527,16 @@ void MovieBase::initFromPath( const fs::path& filePath )
 	mPlayerDelegate = [[MovieDelegate alloc] initWithResponder:mResponder];
 	
 	loadAsset();
+	
+	// spin-wait until asset loading is completed
+	while( ! mLoaded ) {
+	}
 }
 
 void MovieBase::initFromLoader( const MovieLoader& loader )
 {
-	if (!loader.ownsMovie()) return;
+	if( ! loader.ownsMovie() )
+		return;
 	
 	loader.waitForLoaded();
 	mPlayer = loader.transferMovieHandle();
@@ -550,48 +571,46 @@ void MovieBase::loadAsset()
 {
 	NSArray* keyArray = [NSArray arrayWithObjects:@"tracks", @"duration", @"playable", @"hasProtectedContent", nil];
 	[mAsset loadValuesAsynchronouslyForKeys:keyArray completionHandler:^{
-		dispatch_async(dispatch_get_main_queue(), ^{
-			mLoaded = true;
-			
-			NSError* error = nil;
-			AVKeyValueStatus status = [mAsset statusOfValueForKey:@"tracks" error:&error];
-			if (status == AVKeyValueStatusLoaded && !error) {
-				processAssetTracks(mAsset);
-			}
-			
-			error = nil;
-			status = [mAsset statusOfValueForKey:@"duration" error:&error];
-			if (status == AVKeyValueStatusLoaded && !error) {
-				mDuration = (float) CMTimeGetSeconds([mAsset duration]);
-			}
-			
-			error = nil;
-			status = [mAsset statusOfValueForKey:@"playable" error:&error];
-			if (status == AVKeyValueStatusLoaded && !error) {
-				mPlayable = [mAsset isPlayable];
-			}
-			
-			error = nil;
-			status = [mAsset statusOfValueForKey:@"hasProtectedContent" error:&error];
-			if (status == AVKeyValueStatusLoaded && !error) {
-				mProtected = [mAsset hasProtectedContent];
-			}
-			
-			// Create a new AVPlayerItem and make it our player's current item.
-			mPlayer = [[AVPlayer alloc] init];
-			mPlayerItem = [AVPlayerItem playerItemWithAsset:mAsset];
-			[mPlayer replaceCurrentItemWithPlayerItem:mPlayerItem];
-			
-			// setup PlayerItemVideoOutput --from which we will obtain direct texture access
-			createPlayerItemOutput(mPlayerItem);
-			
-			// without this the player continues to move the playhead past the asset duration time...
-			[mPlayer setActionAtItemEnd:AVPlayerActionAtItemEndPause];
-			
-			addObservers();
-			
-			allocateVisualContext();
-		});
+		NSError* error = nil;
+		AVKeyValueStatus status = [mAsset statusOfValueForKey:@"tracks" error:&error];
+		if( status == AVKeyValueStatusLoaded && ! error ) {
+			processAssetTracks( mAsset );
+		}
+		
+		error = nil;
+		status = [mAsset statusOfValueForKey:@"duration" error:&error];
+		if( status == AVKeyValueStatusLoaded && ! error ) {
+			mDuration = (float) CMTimeGetSeconds([mAsset duration]);
+		}
+		
+		error = nil;
+		status = [mAsset statusOfValueForKey:@"playable" error:&error];
+		if( status == AVKeyValueStatusLoaded && ! error ) {
+			mPlayable = [mAsset isPlayable];
+		}
+		
+		error = nil;
+		status = [mAsset statusOfValueForKey:@"hasProtectedContent" error:&error];
+		if( status == AVKeyValueStatusLoaded && ! error ) {
+			mProtected = [mAsset hasProtectedContent];
+		}
+		
+		// Create a new AVPlayerItem and make it our player's current item.
+		mPlayer = [[AVPlayer alloc] init];
+		mPlayerItem = [AVPlayerItem playerItemWithAsset:mAsset];
+		[mPlayer replaceCurrentItemWithPlayerItem:mPlayerItem];
+		
+		// setup PlayerItemVideoOutput --from which we will obtain direct texture access
+		createPlayerItemOutput( mPlayerItem );
+		
+		// without this the player continues to move the playhead past the asset duration time...
+		[mPlayer setActionAtItemEnd:AVPlayerActionAtItemEndPause];
+		
+		addObservers();
+		
+		allocateVisualContext();
+	
+		mLoaded = true;
 	}];
 }
 
@@ -615,7 +634,8 @@ void MovieBase::updateFrame()
 
 uint32_t MovieBase::countFrames() const
 {
-	if (!mAsset) return 0;
+	if( ! mAsset )
+		return 0;
 	
 	CMTime dur = [mAsset duration];
 	CMTime one_frame = CMTimeMakeWithSeconds(1.0 / mFrameRate, dur.timescale);
@@ -624,30 +644,31 @@ uint32_t MovieBase::countFrames() const
 	return static_cast<uint32_t>(dur_seconds / one_frame_seconds);
 }
 
-void MovieBase::processAssetTracks(AVAsset* asset)
+void MovieBase::processAssetTracks( AVAsset* asset )
 {
 	// process video tracks
-	NSArray* video_tracks = [asset tracksWithMediaType:AVMediaTypeVideo];
-	mHasVideo = [video_tracks count] > 0;
-	if (mHasVideo) {
-		AVAssetTrack* video_track = [video_tracks objectAtIndex:0];
-		if (video_track) {
+	NSArray* videoTracks = [asset tracksWithMediaType:AVMediaTypeVideo];
+	mHasVideo = [videoTracks count] > 0;
+	if( mHasVideo ) {
+		AVAssetTrack* videoTrack = [videoTracks objectAtIndex:0];
+		if( videoTrack ) {
 			// Grab track dimensions from format description
-			CGSize size = [video_track naturalSize];
-			CGAffineTransform trans = [video_track preferredTransform];
+			CGSize size = [videoTrack naturalSize];
+			CGAffineTransform trans = [videoTrack preferredTransform];
 			size = CGSizeApplyAffineTransform(size, trans);
 			mHeight = static_cast<int32_t>(size.height);
 			mWidth = static_cast<int32_t>(size.width);
-			mFrameRate = [video_track nominalFrameRate];
+			mFrameRate = [videoTrack nominalFrameRate];
 		}
-		else throw AvfFileInvalidExc();
+		else
+			throw AvfFileInvalidExc();
 	}
 	
 	// process audio tracks
-	NSArray* audio_tracks = [asset tracksWithMediaType:AVMediaTypeAudio];
-	mHasAudio = [audio_tracks count] > 0;
+	NSArray* audioTracks = [asset tracksWithMediaType:AVMediaTypeAudio];
+	mHasAudio = [audioTracks count] > 0;
 #if defined( CINDER_COCOA_TOUCH )
-	if (mHasAudio) {
+	if( mHasAudio ) {
 		setAudioSessionModes();
 	}
 #elif defined( CINDER_COCOA )
@@ -693,7 +714,7 @@ void MovieBase::addObservers()
 
 void MovieBase::removeObservers()
 {
-	if (mPlayerDelegate && mPlayerItem) {
+	if( mPlayerDelegate && mPlayerItem ) {
 		NSNotificationCenter* notify_center = [NSNotificationCenter defaultCenter];
 		[notify_center removeObserver:mPlayerDelegate
 								 name:AVPlayerItemFailedToPlayToEndTimeNotification
@@ -716,17 +737,18 @@ void MovieBase::playerReady()
 {
 	mSignalReady();
 	
-	if (mPlaying) play();
+	if( mPlaying )
+		play();
 }
 	
 void MovieBase::playerItemEnded()
 {
-	if (mPalindrome) {
+	if( mPalindrome ) {
 		float rate = -[mPlayer rate];
 		mPlayingForward = (rate >= 0);
-		this->setRate(rate);
+		this->setRate( rate );
 	}
-	else if (mLoop) {
+	else if( mLoop ) {
 		this->seekToStart();
 	}
 	
@@ -743,7 +765,7 @@ void MovieBase::playerItemJumped()
 	mSignalJumped();
 }
 
-void MovieBase::outputWasFlushed(AVPlayerItemOutput* output)
+void MovieBase::outputWasFlushed( AVPlayerItemOutput* output )
 {
 	mSignalOutputWasFlushed();
 }
@@ -886,9 +908,14 @@ void MovieGl::allocateVisualContext()
 	if(mVideoTextureCacheRef == NULL) {
 		CVReturn err = nil;
 #if defined( CINDER_COCOA_TOUCH )
-		ci::app::RendererGlRef renderer;
-		EAGLContext* context = renderer->getEaglContext();
-		err = CVOpenGLESTextureCacheCreate(kCFAllocatorDefault, NULL, context, NULL, &mVideoTextureCacheRef);
+		app::RendererGl *renderer = dynamic_cast<app::RendererGl*>( app::App::get()->getRenderer().get() );
+		if( renderer ) {
+			EAGLContext* context = renderer->getEaglContext();
+			err = CVOpenGLESTextureCacheCreate( kCFAllocatorDefault, NULL, context, NULL, &mVideoTextureCacheRef );
+		}
+		else {
+			throw AvfTextureErrorExc();
+		}
 		
 #elif defined( CINDER_COCOA )
 		CGLContextObj context = app::App::get()->getRenderer()->getCglContext();
@@ -897,7 +924,8 @@ void MovieGl::allocateVisualContext()
 		CVOpenGLTextureCacheRetain(mVideoTextureCacheRef);
 		
 #endif
-		if (err) throw AvfTextureErrorExc();
+		if( err )
+			throw AvfTextureErrorExc();
 	}
 }
 
@@ -969,24 +997,23 @@ void MovieGl::newFrame( CVImageBufferRef cvImage )
 	mTexture = gl::Texture::create( target, name, mWidth, mHeight, true );
 	Vec2f t0, lowerRight, t2, upperLeft;
 	::CVOpenGLESTextureGetCleanTexCoords( mVideoTextureRef, &t0.x, &lowerRight.x, &t2.x, &upperLeft.x );
-	mTexture.setCleanTexCoords( std::max( upperLeft.x, lowerRight.x ), std::max( upperLeft.y, lowerRight.y ) );
-	mTexture.setFlipped( flipped );
-	
+//	mTexture.setCleanTexCoords( std::max( upperLeft.x, lowerRight.x ), std::max( upperLeft.y, lowerRight.y ) );
+//	mTexture.setFlipped( flipped );
 #elif defined( CINDER_MAC )	
 	GLenum target = CVOpenGLTextureGetTarget( mVideoTextureRef );
 	GLuint name = CVOpenGLTextureGetName( mVideoTextureRef );
 	bool flipped = ! CVOpenGLTextureIsFlipped( mVideoTextureRef );
 	mTexture = gl::Texture::create( target, name, mWidth, mHeight, true );
 	Vec2f t0, lowerRight, t2, upperLeft;
-	CVOpenGLTextureGetCleanTexCoords( mVideoTextureRef, &t0.x, &lowerRight.x, &t2.x, &upperLeft.x );
+	::CVOpenGLTextureGetCleanTexCoords( mVideoTextureRef, &t0.x, &lowerRight.x, &t2.x, &upperLeft.x );
 //	mTexture.setCleanTexCoords( std::max( upperLeft.x, lowerRight.x ), std::max( upperLeft.y, lowerRight.y ) );
 //	mTexture.setFlipped( flipped );
 	//mTexture.setDeallocator( CVPixelBufferDealloc, mVideoTextureRef );	// do we want to do this?
 	
 #endif
 
-	CVPixelBufferUnlockBaseAddress(cvImage, kCVPixelBufferLock_ReadOnly);
-	CVPixelBufferRelease(cvImage);
+	::CVPixelBufferUnlockBaseAddress( cvImage, kCVPixelBufferLock_ReadOnly );
+	::CVPixelBufferRelease( cvImage );
 }
 
 void MovieGl::releaseFrame()

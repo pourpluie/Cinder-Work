@@ -94,8 +94,8 @@ class Renderer {
 		virtual CGLContextObj			getCglContext() { throw; } // the default behavior is failure
 		virtual CGLPixelFormatObj		getCglPixelFormat() { throw; } // the default behavior is failure
 	#elif defined( CINDER_COCOA_TOUCH )
-		virtual void	setup( App *aApp, const Area &frame, UIView *cinderView, RendererRef sharedRenderer ) = 0;
-		virtual bool	isEaglLayer() const { return false; }
+		virtual void		setup( App *aApp, const Area &frame, UIView *cinderView, RendererRef sharedRenderer ) = 0;
+		virtual bool		isEaglLayer() const { return false; }
 	#endif
 
 
