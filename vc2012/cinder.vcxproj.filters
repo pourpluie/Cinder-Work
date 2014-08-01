@@ -432,7 +432,7 @@
     <ClCompile Include="..\src\cinder\qtime\MovieWriter.cpp">
       <Filter>Source Files\qtime</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\qtime\QuickTime.cpp">
+    <ClCompile Include="..\src\cinder\qtime\QuickTimeImplLegacy.cpp">
       <Filter>Source Files\qtime</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cinder\qtime\QuickTimeUtils.cpp">
@@ -537,7 +537,7 @@
     <ClCompile Include="..\src\AntTweakBar\TwOpenGLCore.cpp">
       <Filter>Source Files\AntTweakBar</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cinder\qtime\QuickTimeGl.cpp">
+    <ClCompile Include="..\src\cinder\qtime\QuickTimeGlImplLegacy.cpp">
       <Filter>Source Files\qtime</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cinder\gl\TransformFeedbackObj.cpp">
@@ -1017,6 +1017,12 @@
       <Filter>Header Files\qtime</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cinder\qtime\QuickTime.h">
+      <Filter>Header Files\qtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\qtime\QuickTimeImplLegacy.h">
+      <Filter>Header Files\qtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cinder\qtime\QuickTimeGlImplLegacy.h">
       <Filter>Header Files\qtime</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cinder\qtime\QuickTimeUtils.h">
