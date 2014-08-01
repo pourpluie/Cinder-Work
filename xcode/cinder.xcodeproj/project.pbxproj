@@ -166,6 +166,19 @@
 		0053819A15A8CDF90019BA91 /* Event.h in Headers */ = {isa = PBXBuildFile; fileRef = 0053819915A8CDF90019BA91 /* Event.h */; };
 		0053819B15A8CDF90019BA91 /* Event.h in Headers */ = {isa = PBXBuildFile; fileRef = 0053819915A8CDF90019BA91 /* Event.h */; };
 		0053819C15A8CDF90019BA91 /* Event.h in Headers */ = {isa = PBXBuildFile; fileRef = 0053819915A8CDF90019BA91 /* Event.h */; };
+		00566CF81986DDC70069F252 /* QuickTimeImplAvf.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF61986DDC70069F252 /* QuickTimeImplAvf.mm */; };
+		00566CF91986DDC70069F252 /* QuickTimeImplAvf.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF61986DDC70069F252 /* QuickTimeImplAvf.mm */; };
+		00566CFA1986DDC70069F252 /* QuickTimeImplAvf.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF61986DDC70069F252 /* QuickTimeImplAvf.mm */; };
+		00566CFB1986DDC70069F252 /* AvfUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF71986DDC70069F252 /* AvfUtils.mm */; };
+		00566CFC1986DDC70069F252 /* AvfUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF71986DDC70069F252 /* AvfUtils.mm */; };
+		00566CFD1986DDC70069F252 /* AvfUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00566CF71986DDC70069F252 /* AvfUtils.mm */; };
+		00566D001986DDE20069F252 /* QuickTimeImplAvf.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFE1986DDE20069F252 /* QuickTimeImplAvf.h */; };
+		00566D011986DDE20069F252 /* QuickTimeImplAvf.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFE1986DDE20069F252 /* QuickTimeImplAvf.h */; };
+		00566D021986DDE20069F252 /* QuickTimeImplAvf.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFE1986DDE20069F252 /* QuickTimeImplAvf.h */; };
+		00566D031986DDE20069F252 /* AvfUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFF1986DDE20069F252 /* AvfUtils.h */; };
+		00566D041986DDE20069F252 /* AvfUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFF1986DDE20069F252 /* AvfUtils.h */; };
+		00566D051986DDE20069F252 /* AvfUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00566CFF1986DDE20069F252 /* AvfUtils.h */; };
+		00566D061986E1270069F252 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7B9305B121C94E900093AFE /* AVFoundation.framework */; };
 		005783E3189CBB1600D6FB4C /* TextureFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783E2189CBB1600D6FB4C /* TextureFont.cpp */; };
 		005783E4189CBB1600D6FB4C /* TextureFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783E2189CBB1600D6FB4C /* TextureFont.cpp */; };
 		005783E5189CBB1600D6FB4C /* TextureFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 005783E2189CBB1600D6FB4C /* TextureFont.cpp */; };
@@ -211,7 +224,7 @@
 		00611D58174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */; };
 		00611D59174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */; };
 		00611D5A174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */; };
-		00611D5C174AD2C400BE54C2 /* QuickTimeGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D5B174AD2C400BE54C2 /* QuickTimeGl.h */; };
+		00611D5C174AD2C400BE54C2 /* QuickTimeGlImplLegacy.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D5B174AD2C400BE54C2 /* QuickTimeGlImplLegacy.h */; };
 		00611D69174AD72700BE54C2 /* RendererGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D68174AD72700BE54C2 /* RendererGl.h */; };
 		00611D6A174AD72700BE54C2 /* RendererGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D68174AD72700BE54C2 /* RendererGl.h */; };
 		00611D6B174AD72700BE54C2 /* RendererGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00611D68174AD72700BE54C2 /* RendererGl.h */; };
@@ -411,7 +424,7 @@
 		0091D8F10E81B9110029341E /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0091D8F00E81B9110029341E /* OpenGL.framework */; };
 		0094F3460F6A120800EBED1B /* ScreenSaver.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0094F3450F6A120800EBED1B /* ScreenSaver.framework */; };
 		00954491167D2A3E008ECA02 /* MovieWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0095448E167D2A3E008ECA02 /* MovieWriter.cpp */; };
-		00954492167D2A3E008ECA02 /* QuickTime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0095448F167D2A3E008ECA02 /* QuickTime.cpp */; };
+		00954492167D2A3E008ECA02 /* QuickTimeImplLegacy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0095448F167D2A3E008ECA02 /* QuickTimeImplLegacy.cpp */; };
 		00954493167D2A3E008ECA02 /* QuickTimeUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00954490167D2A3E008ECA02 /* QuickTimeUtils.cpp */; };
 		009987160F79CFE20042F211 /* CinderCocoa.h in Headers */ = {isa = PBXBuildFile; fileRef = 009987150F79CFE20042F211 /* CinderCocoa.h */; };
 		0099871A0F79D0750042F211 /* CinderCocoa.mm in Sources */ = {isa = PBXBuildFile; fileRef = 009987190F79D0750042F211 /* CinderCocoa.mm */; };
@@ -604,6 +617,18 @@
 		00BC898D10D2BEA200D6DC59 /* DataTarget.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BC898C10D2BEA200D6DC59 /* DataTarget.h */; };
 		00BC89F210D2EA2200D6DC59 /* ImageTargetFileQuartz.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BC89F110D2EA2200D6DC59 /* ImageTargetFileQuartz.h */; };
 		00BC8A0910D2EE2000D6DC59 /* ImageTargetFileQuartz.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00BC8A0810D2EE2000D6DC59 /* ImageTargetFileQuartz.cpp */; };
+		00BD5C8E198AE462003A69DE /* QuickTimeImplLegacy.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BD5C8D198AE462003A69DE /* QuickTimeImplLegacy.h */; };
+		00BD5C8F198AE462003A69DE /* QuickTimeImplLegacy.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BD5C8D198AE462003A69DE /* QuickTimeImplLegacy.h */; };
+		00BD5C90198AE462003A69DE /* QuickTimeImplLegacy.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BD5C8D198AE462003A69DE /* QuickTimeImplLegacy.h */; };
+		00BD5C92198AE699003A69DE /* QuickTimeGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BD5C91198AE699003A69DE /* QuickTimeGl.h */; };
+		00BD5C93198AE699003A69DE /* QuickTimeGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BD5C91198AE699003A69DE /* QuickTimeGl.h */; };
+		00BD5C94198AE699003A69DE /* QuickTimeGl.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BD5C91198AE699003A69DE /* QuickTimeGl.h */; };
+		00BD5C96198AE6D6003A69DE /* QuickTimeGlImplAvf.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BD5C95198AE6D6003A69DE /* QuickTimeGlImplAvf.h */; };
+		00BD5C97198AE6D6003A69DE /* QuickTimeGlImplAvf.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BD5C95198AE6D6003A69DE /* QuickTimeGlImplAvf.h */; };
+		00BD5C98198AE6D6003A69DE /* QuickTimeGlImplAvf.h in Headers */ = {isa = PBXBuildFile; fileRef = 00BD5C95198AE6D6003A69DE /* QuickTimeGlImplAvf.h */; };
+		00BD5C9E198AEA60003A69DE /* QuickTimeGlImplAvf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00BD5C9D198AEA60003A69DE /* QuickTimeGlImplAvf.cpp */; };
+		00BD5C9F198AEA60003A69DE /* QuickTimeGlImplAvf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00BD5C9D198AEA60003A69DE /* QuickTimeGlImplAvf.cpp */; };
+		00BD5CA0198AEA60003A69DE /* QuickTimeGlImplAvf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00BD5C9D198AEA60003A69DE /* QuickTimeGlImplAvf.cpp */; };
 		00C05B980F4A03660046CC99 /* CinderView.h in Headers */ = {isa = PBXBuildFile; fileRef = 00C05B970F4A03660046CC99 /* CinderView.h */; };
 		00C071B00FF16244004801EA /* Font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00C071AF0FF16244004801EA /* Font.cpp */; };
 		00C071B30FF16261004801EA /* Font.h in Headers */ = {isa = PBXBuildFile; fileRef = 00C071B20FF16261004801EA /* Font.h */; };
@@ -733,7 +758,7 @@
 		00E0B49F0F604FCF002C8FBD /* AppImplCocoaRendererQuartz.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E0B49E0F604FCF002C8FBD /* AppImplCocoaRendererQuartz.h */; };
 		00E0B4B20F605D64002C8FBD /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E0B4B10F605D64002C8FBD /* CoreGraphics.framework */; };
 		00E0B60D0F60DE8B002C8FBD /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00E0B60C0F60DE8B002C8FBD /* ApplicationServices.framework */; };
-		00E3914217A327BF00952CA0 /* QuickTimeGl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00E3914117A327BF00952CA0 /* QuickTimeGl.cpp */; };
+		00E3914217A327BF00952CA0 /* QuickTimeGlImplLegacy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00E3914117A327BF00952CA0 /* QuickTimeGlImplLegacy.cpp */; };
 		00E5A41A163F45AF00AACB3A /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007438400EA7924F005DD3E6 /* Capture.cpp */; };
 		00E5A41C163F5A2B00AACB3A /* CaptureImplCocoaDummy.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E5A41B163F5A2B00AACB3A /* CaptureImplCocoaDummy.h */; };
 		00E5A41F163F5AC600AACB3A /* CaptureImplCocoaDummy.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00E5A41D163F5AC500AACB3A /* CaptureImplCocoaDummy.mm */; };
@@ -956,6 +981,10 @@
 		004B15651937971C00BD5CA1 /* Sync.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sync.cpp; path = gl/Sync.cpp; sourceTree = "<group>"; };
 		004B15691937973000BD5CA1 /* Sync.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sync.h; path = gl/Sync.h; sourceTree = "<group>"; };
 		0053819915A8CDF90019BA91 /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = app/Event.h; sourceTree = "<group>"; };
+		00566CF61986DDC70069F252 /* QuickTimeImplAvf.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = QuickTimeImplAvf.mm; path = qtime/QuickTimeImplAvf.mm; sourceTree = "<group>"; };
+		00566CF71986DDC70069F252 /* AvfUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AvfUtils.mm; path = qtime/AvfUtils.mm; sourceTree = "<group>"; };
+		00566CFE1986DDE20069F252 /* QuickTimeImplAvf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeImplAvf.h; path = qtime/QuickTimeImplAvf.h; sourceTree = "<group>"; };
+		00566CFF1986DDE20069F252 /* AvfUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AvfUtils.h; path = qtime/AvfUtils.h; sourceTree = "<group>"; };
 		005783E2189CBB1600D6FB4C /* TextureFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureFont.cpp; path = gl/TextureFont.cpp; sourceTree = "<group>"; };
 		005783E6189CBB4300D6FB4C /* TextureFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureFont.h; path = gl/TextureFont.h; sourceTree = "<group>"; };
 		005783F218A5627600D6FB4C /* ConstantStrings.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = ConstantStrings.h; path = gl/ConstantStrings.h; sourceTree = "<group>"; };
@@ -971,7 +1000,7 @@
 		00611D4F174AD29D00BE54C2 /* MovieWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MovieWriter.h; path = qtime/MovieWriter.h; sourceTree = "<group>"; };
 		00611D50174AD29D00BE54C2 /* QuickTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTime.h; path = qtime/QuickTime.h; sourceTree = "<group>"; };
 		00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeUtils.h; path = qtime/QuickTimeUtils.h; sourceTree = "<group>"; };
-		00611D5B174AD2C400BE54C2 /* QuickTimeGl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeGl.h; path = qtime/QuickTimeGl.h; sourceTree = "<group>"; };
+		00611D5B174AD2C400BE54C2 /* QuickTimeGlImplLegacy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeGlImplLegacy.h; path = qtime/QuickTimeGlImplLegacy.h; sourceTree = "<group>"; };
 		00611D68174AD72700BE54C2 /* RendererGl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RendererGl.h; path = app/RendererGl.h; sourceTree = "<group>"; };
 		00611D6C174AD7F800BE54C2 /* RendererGl.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = RendererGl.cpp; path = app/RendererGl.cpp; sourceTree = "<group>"; };
 		006228E110C8248800A8191C /* DataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataSource.h; sourceTree = "<group>"; };
@@ -1021,7 +1050,7 @@
 		0091D8F00E81B9110029341E /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		0094F3450F6A120800EBED1B /* ScreenSaver.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenSaver.framework; path = /System/Library/Frameworks/ScreenSaver.framework; sourceTree = "<absolute>"; };
 		0095448E167D2A3E008ECA02 /* MovieWriter.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = MovieWriter.cpp; path = qtime/MovieWriter.cpp; sourceTree = "<group>"; };
-		0095448F167D2A3E008ECA02 /* QuickTime.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = QuickTime.cpp; path = qtime/QuickTime.cpp; sourceTree = "<group>"; };
+		0095448F167D2A3E008ECA02 /* QuickTimeImplLegacy.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = QuickTimeImplLegacy.cpp; path = qtime/QuickTimeImplLegacy.cpp; sourceTree = "<group>"; };
 		00954490167D2A3E008ECA02 /* QuickTimeUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = QuickTimeUtils.cpp; path = qtime/QuickTimeUtils.cpp; sourceTree = "<group>"; };
 		009987150F79CFE20042F211 /* CinderCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CinderCocoa.h; path = cocoa/CinderCocoa.h; sourceTree = "<group>"; };
 		009987190F79D0750042F211 /* CinderCocoa.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = CinderCocoa.mm; path = cocoa/CinderCocoa.mm; sourceTree = "<group>"; };
@@ -1109,6 +1138,10 @@
 		00BC898C10D2BEA200D6DC59 /* DataTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataTarget.h; sourceTree = "<group>"; };
 		00BC89F110D2EA2200D6DC59 /* ImageTargetFileQuartz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageTargetFileQuartz.h; sourceTree = "<group>"; };
 		00BC8A0810D2EE2000D6DC59 /* ImageTargetFileQuartz.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ImageTargetFileQuartz.cpp; sourceTree = "<group>"; };
+		00BD5C8D198AE462003A69DE /* QuickTimeImplLegacy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeImplLegacy.h; path = qtime/QuickTimeImplLegacy.h; sourceTree = "<group>"; };
+		00BD5C91198AE699003A69DE /* QuickTimeGl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeGl.h; path = qtime/QuickTimeGl.h; sourceTree = "<group>"; };
+		00BD5C95198AE6D6003A69DE /* QuickTimeGlImplAvf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = QuickTimeGlImplAvf.h; path = qtime/QuickTimeGlImplAvf.h; sourceTree = "<group>"; };
+		00BD5C9D198AEA60003A69DE /* QuickTimeGlImplAvf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = QuickTimeGlImplAvf.cpp; path = qtime/QuickTimeGlImplAvf.cpp; sourceTree = "<group>"; };
 		00C05B970F4A03660046CC99 /* CinderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CinderView.h; path = app/CinderView.h; sourceTree = "<group>"; };
 		00C071AF0FF16244004801EA /* Font.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = Font.cpp; sourceTree = "<group>"; };
 		00C071B20FF16261004801EA /* Font.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Font.h; sourceTree = "<group>"; };
@@ -1129,7 +1162,7 @@
 		00E0B49E0F604FCF002C8FBD /* AppImplCocoaRendererQuartz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppImplCocoaRendererQuartz.h; path = app/AppImplCocoaRendererQuartz.h; sourceTree = "<group>"; };
 		00E0B4B10F605D64002C8FBD /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		00E0B60C0F60DE8B002C8FBD /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
-		00E3914117A327BF00952CA0 /* QuickTimeGl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = QuickTimeGl.cpp; path = qtime/QuickTimeGl.cpp; sourceTree = "<group>"; };
+		00E3914117A327BF00952CA0 /* QuickTimeGlImplLegacy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = QuickTimeGlImplLegacy.cpp; path = qtime/QuickTimeGlImplLegacy.cpp; sourceTree = "<group>"; };
 		00E5A41B163F5A2B00AACB3A /* CaptureImplCocoaDummy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CaptureImplCocoaDummy.h; sourceTree = "<group>"; };
 		00E5A41D163F5AC500AACB3A /* CaptureImplCocoaDummy.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CaptureImplCocoaDummy.mm; sourceTree = "<group>"; };
 		00E7ECA5188F93B00029139A /* TransformFeedbackObjImplHardware.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformFeedbackObjImplHardware.cpp; path = gl/TransformFeedbackObjImplHardware.cpp; sourceTree = "<group>"; };
@@ -1244,6 +1277,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00566D061986E1270069F252 /* AVFoundation.framework in Frameworks */,
 				5391FE660E95CB01002A13D5 /* AppKit.framework in Frameworks */,
 				D2AAC088055469A000DB518D /* Cocoa.framework in Frameworks */,
 				0091D8F10E81B9110029341E /* OpenGL.framework in Frameworks */,
@@ -1412,10 +1446,15 @@
 		00611D4E174AD27700BE54C2 /* qtime */ = {
 			isa = PBXGroup;
 			children = (
-				00611D4F174AD29D00BE54C2 /* MovieWriter.h */,
 				00611D50174AD29D00BE54C2 /* QuickTime.h */,
+				00BD5C91198AE699003A69DE /* QuickTimeGl.h */,
+				00566CFE1986DDE20069F252 /* QuickTimeImplAvf.h */,
+				00BD5C8D198AE462003A69DE /* QuickTimeImplLegacy.h */,
+				00BD5C95198AE6D6003A69DE /* QuickTimeGlImplAvf.h */,
+				00611D5B174AD2C400BE54C2 /* QuickTimeGlImplLegacy.h */,
 				00611D51174AD29D00BE54C2 /* QuickTimeUtils.h */,
-				00611D5B174AD2C400BE54C2 /* QuickTimeGl.h */,
+				00611D4F174AD29D00BE54C2 /* MovieWriter.h */,
+				00566CFF1986DDE20069F252 /* AvfUtils.h */,
 			);
 			name = qtime;
 			sourceTree = "<group>";
@@ -1449,10 +1488,13 @@
 		00954472167CF92E008ECA02 /* qtime */ = {
 			isa = PBXGroup;
 			children = (
-				00E3914117A327BF00952CA0 /* QuickTimeGl.cpp */,
+				00566CF61986DDC70069F252 /* QuickTimeImplAvf.mm */,
+				0095448F167D2A3E008ECA02 /* QuickTimeImplLegacy.cpp */,
+				00BD5C9D198AEA60003A69DE /* QuickTimeGlImplAvf.cpp */,
+				00E3914117A327BF00952CA0 /* QuickTimeGlImplLegacy.cpp */,
 				0095448E167D2A3E008ECA02 /* MovieWriter.cpp */,
-				0095448F167D2A3E008ECA02 /* QuickTime.cpp */,
 				00954490167D2A3E008ECA02 /* QuickTimeUtils.cpp */,
+				00566CF71986DDC70069F252 /* AvfUtils.mm */,
 			);
 			name = qtime;
 			sourceTree = "<group>";
@@ -1910,6 +1952,7 @@
 				00704FDF1114F93F003FCAE4 /* KeyEvent.h in Headers */,
 				00704FE01114F93F003FCAE4 /* Stream.h in Headers */,
 				00704FE21114F93F003FCAE4 /* Capture.h in Headers */,
+				00566D011986DDE20069F252 /* QuickTimeImplAvf.h in Headers */,
 				00704FE41114F93F003FCAE4 /* Color.h in Headers */,
 				00704FE51114F93F003FCAE4 /* Filter.h in Headers */,
 				00704FE61114F93F003FCAE4 /* Rect.h in Headers */,
@@ -1925,7 +1968,9 @@
 				0070500B1114F93F003FCAE4 /* BSplineFit.h in Headers */,
 				0070500C1114F93F003FCAE4 /* BSpline.h in Headers */,
 				0070500D1114F93F003FCAE4 /* BandedMatrix.h in Headers */,
+				00BD5C8F198AE462003A69DE /* QuickTimeImplLegacy.h in Headers */,
 				0070500E1114F93F003FCAE4 /* Perlin.h in Headers */,
+				00BD5C93198AE699003A69DE /* QuickTimeGl.h in Headers */,
 				0070500F1114F93F003FCAE4 /* Ray.h in Headers */,
 				007050101114F93F003FCAE4 /* Sphere.h in Headers */,
 				007050121114F93F003FCAE4 /* Arcball.h in Headers */,
@@ -1963,6 +2008,7 @@
 				009D6B021157FCA60037C77C /* CinderViewCocoaTouch.h in Headers */,
 				009D6B181157FCFB0037C77C /* AppCocoaTouch.h in Headers */,
 				0039FD26115B125400BA0BAD /* CinderCocoaTouch.h in Headers */,
+				00566D041986DDE20069F252 /* AvfUtils.h in Headers */,
 				001E3563115D5F14000C228C /* Xml.h in Headers */,
 				00B729E9115DAC2B00CD71B9 /* Timer.h in Headers */,
 				0049A34E116EE675007DDFB0 /* AxisAlignedBox.h in Headers */,
@@ -2000,6 +2046,7 @@
 				43F78EF71516DAE200EB63B5 /* Json.h in Headers */,
 				0059BD34151CF5540063F095 /* ConcurrentCircularBuffer.h in Headers */,
 				008B435E14EF426100B55B07 /* MatrixAffine2.h in Headers */,
+				00BD5C97198AE6D6003A69DE /* QuickTimeGlImplAvf.h in Headers */,
 				008B439E14F5F39100B55B07 /* Svg.h in Headers */,
 				008B43A414F5F39100B55B07 /* SvgGl.h in Headers */,
 				0034C325151A5B9F003F2E30 /* linebreak.h in Headers */,
@@ -2046,6 +2093,7 @@
 				00CFD9351135C3520091E310 /* Quaternion.h in Headers */,
 				00CFD9361135C3520091E310 /* Rand.h in Headers */,
 				00CFD9371135C3520091E310 /* Vector.h in Headers */,
+				00566D051986DDE20069F252 /* AvfUtils.h in Headers */,
 				00CFD9381135C3520091E310 /* MouseEvent.h in Headers */,
 				00CFD93B1135C3520091E310 /* Channel.h in Headers */,
 				00CFD93C1135C3520091E310 /* Surface.h in Headers */,
@@ -2099,12 +2147,16 @@
 				00CFD9981135C3520091E310 /* Premultiply.h in Headers */,
 				00CFD9991135C3520091E310 /* Resize.h in Headers */,
 				00CFD99A1135C3520091E310 /* Threshold.h in Headers */,
+				00566D021986DDE20069F252 /* QuickTimeImplAvf.h in Headers */,
 				00CFD99B1135C3520091E310 /* Trim.h in Headers */,
 				0005630811513B1D00ECFD91 /* AppImplCocoaTouchRendererQuartz.h in Headers */,
 				009D6AEE1157FB340037C77C /* AppImplCocoaTouchRendererGl.h in Headers */,
 				009D6B011157FCA60037C77C /* CinderViewCocoaTouch.h in Headers */,
 				009D6B171157FCFB0037C77C /* AppCocoaTouch.h in Headers */,
+				00BD5C94198AE699003A69DE /* QuickTimeGl.h in Headers */,
 				0039FD25115B125400BA0BAD /* CinderCocoaTouch.h in Headers */,
+				00BD5C98198AE6D6003A69DE /* QuickTimeGlImplAvf.h in Headers */,
+				00BD5C90198AE462003A69DE /* QuickTimeImplLegacy.h in Headers */,
 				001E3564115D5F14000C228C /* Xml.h in Headers */,
 				00B729EA115DAC2B00CD71B9 /* Timer.h in Headers */,
 				0049A34F116EE675007DDFB0 /* AxisAlignedBox.h in Headers */,
@@ -2222,11 +2274,14 @@
 				002DFD540FA5602900E45AE0 /* ObjLoader.h in Headers */,
 				0071BD050FB9F4AD0092E7D6 /* Display.h in Headers */,
 				00C071B30FF16261004801EA /* Font.h in Headers */,
+				00BD5C8E198AE462003A69DE /* QuickTimeImplLegacy.h in Headers */,
 				005783E7189CBB4300D6FB4C /* TextureFont.h in Headers */,
 				000529010FFBE14900F19492 /* Text.h in Headers */,
 				0049C1B41010E5A40015B4B9 /* Renderer.h in Headers */,
+				00566D031986DDE20069F252 /* AvfUtils.h in Headers */,
 				EAC3D1A91011F2E700FFBC9E /* Serial.h in Headers */,
 				003ADB621038846A00ACF6F2 /* Params.h in Headers */,
+				00BD5C92198AE699003A69DE /* QuickTimeGl.h in Headers */,
 				003ADB7F1038973700ACF6F2 /* TwBar.h in Headers */,
 				003ADB801038973700ACF6F2 /* AntPerfTimer.h in Headers */,
 				003ADB811038973700ACF6F2 /* TwGraph.h in Headers */,
@@ -2272,6 +2327,7 @@
 				C7FA5FC912124B2C0065683B /* CaptureImplQtKit.h in Headers */,
 				43ED0FE31220949A003AEB0B /* UrlImplCocoa.h in Headers */,
 				0062484F122F607500039A7A /* Filesystem.h in Headers */,
+				00BD5C96198AE6D6003A69DE /* QuickTimeGlImplAvf.h in Headers */,
 				00624850122F607500039A7A /* Function.h in Headers */,
 				C7FB1BB3124BE31E0045AFD2 /* CircularBuffer.h in Headers */,
 				C7FB1BB4124BE31E0045AFD2 /* FftProcessor.h in Headers */,
@@ -2301,6 +2357,7 @@
 				277C2CF01366632B00178A29 /* Matrix22.h in Headers */,
 				005783F318A5627600D6FB4C /* ConstantStrings.h in Headers */,
 				277C2CF11366632B00178A29 /* Matrix33.h in Headers */,
+				00566D001986DDE20069F252 /* QuickTimeImplAvf.h in Headers */,
 				277C2CF21366632B00178A29 /* Matrix44.h in Headers */,
 				11C0947B18B80D9E00276534 /* CurrentFunction.h in Headers */,
 				277C2CF31366632B00178A29 /* MatrixAlgo.h in Headers */,
@@ -2326,7 +2383,7 @@
 				00611D52174AD29D00BE54C2 /* MovieWriter.h in Headers */,
 				00611D55174AD29D00BE54C2 /* QuickTime.h in Headers */,
 				00611D58174AD29D00BE54C2 /* QuickTimeUtils.h in Headers */,
-				00611D5C174AD2C400BE54C2 /* QuickTimeGl.h in Headers */,
+				00611D5C174AD2C400BE54C2 /* QuickTimeGlImplLegacy.h in Headers */,
 				00611D69174AD72700BE54C2 /* RendererGl.h in Headers */,
 				00A06FBF1760EFC500D8BE17 /* BufferObj.h in Headers */,
 				00A06FC21760EFC500D8BE17 /* Context.h in Headers */,
@@ -2452,6 +2509,7 @@
 				007050781114F93F003FCAE4 /* CinderCocoa.mm in Sources */,
 				007050791114F93F003FCAE4 /* PolyLine.cpp in Sources */,
 				0070507A1114F93F003FCAE4 /* BandedMatrix.cpp in Sources */,
+				00BD5C9F198AEA60003A69DE /* QuickTimeGlImplAvf.cpp in Sources */,
 				0070507B1114F93F003FCAE4 /* BSplineFit.cpp in Sources */,
 				0070507C1114F93F003FCAE4 /* BSpline.cpp in Sources */,
 				0070507F1114F93F003FCAE4 /* Perlin.cpp in Sources */,
@@ -2540,7 +2598,9 @@
 				00A06F801760EFAD00D8BE17 /* BufferObj.cpp in Sources */,
 				00A06F831760EFAD00D8BE17 /* Context.cpp in Sources */,
 				00A06F861760EFAD00D8BE17 /* Environment.cpp in Sources */,
+				00566CF91986DDC70069F252 /* QuickTimeImplAvf.mm in Sources */,
 				00A06F891760EFAD00D8BE17 /* Fbo.cpp in Sources */,
+				00566CFC1986DDC70069F252 /* AvfUtils.mm in Sources */,
 				00A06F8F1760EFAD00D8BE17 /* gl.cpp in Sources */,
 				00A06F951760EFAD00D8BE17 /* GlslProg.cpp in Sources */,
 				00A06F9E1760EFAD00D8BE17 /* Pbo.cpp in Sources */,
@@ -2577,6 +2637,7 @@
 				00CFD9B91135C3520091E310 /* CinderCocoa.mm in Sources */,
 				00CFD9BA1135C3520091E310 /* PolyLine.cpp in Sources */,
 				00CFD9BB1135C3520091E310 /* BandedMatrix.cpp in Sources */,
+				00BD5CA0198AEA60003A69DE /* QuickTimeGlImplAvf.cpp in Sources */,
 				00CFD9BC1135C3520091E310 /* BSplineFit.cpp in Sources */,
 				00CFD9BD1135C3520091E310 /* BSpline.cpp in Sources */,
 				00CFD9BE1135C3520091E310 /* Perlin.cpp in Sources */,
@@ -2665,7 +2726,9 @@
 				00A06F811760EFAD00D8BE17 /* BufferObj.cpp in Sources */,
 				00A06F841760EFAD00D8BE17 /* Context.cpp in Sources */,
 				00A06F871760EFAD00D8BE17 /* Environment.cpp in Sources */,
+				00566CFA1986DDC70069F252 /* QuickTimeImplAvf.mm in Sources */,
 				00A06F8A1760EFAD00D8BE17 /* Fbo.cpp in Sources */,
+				00566CFD1986DDC70069F252 /* AvfUtils.mm in Sources */,
 				00A06F901760EFAD00D8BE17 /* gl.cpp in Sources */,
 				00A06F961760EFAD00D8BE17 /* GlslProg.cpp in Sources */,
 				00A06F9F1760EFAD00D8BE17 /* Pbo.cpp in Sources */,
@@ -2792,6 +2855,7 @@
 				0034C321151A5B9F003F2E30 /* linebreak.c in Sources */,
 				0034C327151A5B9F003F2E30 /* linebreakdata.c in Sources */,
 				0034C32A151A5B9F003F2E30 /* linebreakdef.c in Sources */,
+				00566CF81986DDC70069F252 /* QuickTimeImplAvf.mm in Sources */,
 				B38243A7189DC328008B94AC /* BufferTexture.cpp in Sources */,
 				005B02FE152CD16E00F2C237 /* json_reader.cpp in Sources */,
 				005B0304152CD16E00F2C237 /* json_value.cpp in Sources */,
@@ -2799,7 +2863,7 @@
 				007A7B13158D098D00BEAD18 /* Window.cpp in Sources */,
 				00BBBDF915A34F49006B9BBE /* AppCocoaView.mm in Sources */,
 				00954491167D2A3E008ECA02 /* MovieWriter.cpp in Sources */,
-				00954492167D2A3E008ECA02 /* QuickTime.cpp in Sources */,
+				00954492167D2A3E008ECA02 /* QuickTimeImplLegacy.cpp in Sources */,
 				00954493167D2A3E008ECA02 /* QuickTimeUtils.cpp in Sources */,
 				00782619171CD9D800B47F9C /* ConvexHull.cpp in Sources */,
 				00611D6E174AD7F800BE54C2 /* RendererGl.cpp in Sources */,
@@ -2819,11 +2883,13 @@
 				003C69F4178C8FE3008C1643 /* gl_load.c in Sources */,
 				003C69F8178C9FED008C1643 /* gl_load_cpp.cpp in Sources */,
 				0087340E17958FBA00BC2063 /* Batch.cpp in Sources */,
+				00566CFB1986DDC70069F252 /* AvfUtils.mm in Sources */,
 				0087343217A4769E00BC2063 /* VaoImplCore.cpp in Sources */,
 				005783E3189CBB1600D6FB4C /* TextureFont.cpp in Sources */,
 				0087343A17A4C17600BC2063 /* VaoImplSoftware.cpp in Sources */,
-				00E3914217A327BF00952CA0 /* QuickTimeGl.cpp in Sources */,
+				00E3914217A327BF00952CA0 /* QuickTimeGlImplLegacy.cpp in Sources */,
 				0087344D17B4702500BC2063 /* EnvironmentCore.cpp in Sources */,
+				00BD5C9E198AEA60003A69DE /* QuickTimeGlImplAvf.cpp in Sources */,
 				0087346217BB120600BC2063 /* GeomIo.cpp in Sources */,
 				00F6BBAB181AC48700C1FFD7 /* TwOpenGLCore.cpp in Sources */,
 				00F6BBAF181AC82600C1FFD7 /* LoadOGLCore.cpp in Sources */,
@@ -2969,8 +3035,8 @@
 				GENERATE_MASTER_OBJECT_FILE = YES;
 				INSTALL_PATH = /usr/local/lib;
 				LINK_WITH_STANDARD_LIBRARIES = NO;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					../lib/macosx/libboost_filesystem.a,
 					../lib/macosx/libz.a,
@@ -3001,8 +3067,8 @@
 				GENERATE_MASTER_OBJECT_FILE = YES;
 				INSTALL_PATH = /usr/local/lib;
 				LINK_WITH_STANDARD_LIBRARIES = NO;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					../lib/macosx/libboost_filesystem.a,

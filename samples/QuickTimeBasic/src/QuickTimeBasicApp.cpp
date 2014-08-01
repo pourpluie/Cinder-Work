@@ -2,8 +2,9 @@
 #include "cinder/app/RendererGl.h"
 #include "cinder/Surface.h"
 #include "cinder/gl/Texture.h"
-#include "cinder/qtime/QuickTime.h"
+
 #include "cinder/qtime/QuickTimeGl.h"
+
 #include "cinder/Text.h"
 #include "cinder/Utilities.h"
 #include "cinder/ImageIo.h"
@@ -73,7 +74,7 @@ void QuickTimeSampleApp::loadMovieFile( const fs::path &moviePath )
 	}
 	catch( ... ) {
 		console() << "Unable to load the movie." << std::endl;
-		mMovie->reset();
+		mMovie.reset();
 		mInfoTexture.reset();
 	}
 
