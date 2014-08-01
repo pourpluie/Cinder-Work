@@ -21,9 +21,9 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-// This path is not used on 64-bit Mac or Windows. On the Mac we only use this path for <=Mac OS 10.7
 #include "cinder/Cinder.h"
 
+// This path is not used on 64-bit Mac or Windows. On the Mac we only use this path for >=Mac OS 10.8
 #if ( defined( CINDER_MAC ) && ( MAC_OS_X_VERSION_MIN_REQUIRED >= 1080 ) ) || ( defined( CINDER_MSW ) && ( ! defined( _WIN64 ) ) )
 
 #include "cinder/qtime/QuickTimeGlImplAvf.h"

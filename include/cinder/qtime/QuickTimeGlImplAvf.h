@@ -21,10 +21,10 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "cinder/Cinder.h"
-
+// This file is only meant to be included by QuickTimeGl.h
 #pragma once
 
+#include "cinder/Cinder.h"
 #include "cinder/qtime/QuickTimeImplAvf.h"
 #include "cinder/gl/gl.h"
 

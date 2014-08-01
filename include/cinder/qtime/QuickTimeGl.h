@@ -21,16 +21,16 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "cinder/Cinder.h"
-
 #pragma once
 
+#include "cinder/Cinder.h"
 #include "cinder/qtime/QuickTime.h"
 
-// This path is not used on 64-bit Mac or Windows. On the Mac we only use this path for <=Mac OS 10.7
+// The "Legacy" path is used for Mac Deployment Target 10.7+ 32-bit and Windows (32-bit only).
 #if ( defined( CINDER_MAC ) && ( ! defined( __LP64__ ) ) && ( MAC_OS_X_VERSION_MIN_REQUIRED < 1080 ) ) || ( defined( CINDER_MSW ) && ( ! defined( _WIN64 ) ) )
 	#include "cinder/qtime/QuickTimeGlImplLegacy.h"
-#else
+#elif defined( CINDER_MAC ) && ( MAC_OS_X_VERSION_MIN_REQUIRED >= 1080 ) )
 	#include "cinder/qtime/QuickTimeGlImplAvf.h"
+#else
+	// QuickTime is not supported on 10.7 64-bit or Windows 64-bit
 #endif
-
