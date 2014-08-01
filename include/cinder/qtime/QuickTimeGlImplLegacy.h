@@ -84,5 +84,3 @@ class MovieGl : public MovieBase {
 };
 
 } } // namespace cinder::qtime
-
-#endif // end of 64-bit / 10.8+ test

@@ -337,5 +337,3 @@ namespace cinder { namespace qtime {
 	};
 	
 } } // namespace qtime::cinder
-
-#endif // end of 64-bit / 10.8+ test
