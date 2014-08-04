@@ -95,6 +95,8 @@ class TextureBase {
 	void			setCompareFunc( GLenum compareFunc );	
 	//! Returns the appropriate parameter to glGetIntegerv() for a specific target; ie GL_TEXTURE_2D -> GL_TEXTURE_BINDING_2D. Returns 0 on failure.
 	static GLenum	getBindingConstantForTarget( GLenum target );
+	//! Returns whether a Surface of \a width, \a rowBytes and \a surfaceChannelOrder would require an intermediate Surface in order to be copied into a GL Texture.
+	static bool		surfaceRequiresIntermediate( int32_t width, int32_t rowBytes, SurfaceChannelOrder surfaceChannelOrder );
 	//! Converts a SurfaceChannelOrder into an appropriate OpenGL dataFormat and type
 	static void		SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type );
 	//! calculate the size of mipMap for the corresponding level

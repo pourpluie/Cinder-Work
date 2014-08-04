@@ -820,10 +820,10 @@ MovieSurface::~MovieSurface()
 		
 bool MovieSurface::hasAlpha() const
 {
-	if (mPlayerVideoOutput && mPlayer && [mPlayerVideoOutput hasNewPixelBufferForItemTime:[mPlayer currentTime]]) {
+	if( mPlayerVideoOutput && mPlayer && [mPlayerVideoOutput hasNewPixelBufferForItemTime:[mPlayer currentTime]] ) {
 		CVImageBufferRef pixel_buffer = nil;
 		pixel_buffer = [mPlayerVideoOutput copyPixelBufferForItemTime:[mPlayerItem currentTime] itemTimeForDisplay:nil];
-		if ( pixel_buffer != nil ) {
+		if( pixel_buffer != nil ) {
 			CVPixelBufferLockBaseAddress( pixel_buffer, 0 );
 			OSType type = CVPixelBufferGetPixelFormatType(pixel_buffer);
 			CVPixelBufferUnlockBaseAddress( pixel_buffer, 0 );
@@ -836,7 +836,6 @@ bool MovieSurface::hasAlpha() const
 #elif defined ( CINDER_COCOA )
 			return (type == k32ARGBPixelFormat || type == k32BGRAPixelFormat);
 #endif
-			
 		}
 	}
 	
@@ -857,9 +856,8 @@ Surface MovieSurface::getSurface()
 void MovieSurface::newFrame( CVImageBufferRef cvImage )
 {
 	CVPixelBufferRef imgRef = reinterpret_cast<CVPixelBufferRef>( cvImage );
-	if( imgRef ) {
+	if( imgRef )
 		mSurface = convertCvPixelBufferToSurface( imgRef );
-	}
 	else
 		mSurface.reset();
 }

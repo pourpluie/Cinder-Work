@@ -317,6 +317,25 @@ void TextureBase::setCompareFunc( GLenum compareFunc )
 	}
 #endif
 }
+
+bool TextureBase::surfaceRequiresIntermediate( int32_t width, int32_t rowBytes, SurfaceChannelOrder surfaceChannelOrder )
+{
+	if( width * surfaceChannelOrder.getPixelInc() != rowBytes )
+		return true;
+	
+	switch( surfaceChannelOrder.getCode() ) {
+		case SurfaceChannelOrder::RGB:
+		case SurfaceChannelOrder::RGBA:
+		case SurfaceChannelOrder::RGBX:
+		case SurfaceChannelOrder::BGRA:
+		case SurfaceChannelOrder::BGRX:
+			return false;
+		break;
+		default:
+			return true;
+	}
+}
+
 void TextureBase::SurfaceChannelOrderToDataFormatAndType( const SurfaceChannelOrder &sco, GLint *dataFormat, GLenum *type )
 {
 	switch( sco.getCode() ) {
@@ -510,7 +529,16 @@ Texture::Texture( const Surface8u &surface, Format format )
 	GLenum type;
 	SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
 	
-	initData( surface.getData(), surface.getRowBytes() / surface.getChannelOrder().getPixelInc(), dataFormat, type, format );
+	// we need an intermediate format for certain channel orders, and rowBytes != numChannels * width
+	if( surfaceRequiresIntermediate( surface.getWidth(), surface.getRowBytes(), surface.getChannelOrder() ) ) {
+		CI_LOG_V( "Surface rowBytes or ChannelOrder will prevent full efficiency in gl::Texture upload." );
+		Surface8u intermediateSurface( surface.getWidth(), surface.getHeight(), surface.hasAlpha(), surface.hasAlpha() ? SurfaceChannelOrder::RGBA : SurfaceChannelOrder::RGBA );
+		intermediateSurface.copyFrom( surface, surface.getBounds() );
+		initData( intermediateSurface.getData(), intermediateSurface.getRowBytes() / intermediateSurface.getChannelOrder().getPixelInc(),
+			dataFormat, type, format );
+	}
+	else
+		initData( surface.getData(), surface.getRowBytes() / surface.getChannelOrder().getPixelInc(), dataFormat, type, format );
 }
 
 Texture::Texture( const Surface32f &surface, Format format )
@@ -826,13 +854,23 @@ void Texture::update( const Surface &surface, int mipLevel )
 	GLint dataFormat;
 	GLenum type;
 	if( mipLevel == 0 ) {
-		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
-		if( ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) )
-			throw TextureResizeExc( "Invalid Texture::update() surface dimensions", surface.getSize(), getSize() );
+		// we need an intermediate format for certain channel orders, and rowBytes != numChannels * width
+		Surface8u sourceSurface;
+		if( surfaceRequiresIntermediate( surface.getWidth(), surface.getRowBytes(), surface.getChannelOrder() ) 
+			|| ( surface.getWidth() != getWidth() ) || ( surface.getHeight() != getHeight() ) )
+		{
+			CI_LOG_V( "Surface size, rowBytes or ChannelOrder will prevent full efficiency in gl::Texture upload." );
+			sourceSurface = Surface8u( getWidth(), getHeight(), surface.hasAlpha(), surface.hasAlpha() ? SurfaceChannelOrder::RGBA : SurfaceChannelOrder::RGBA );
+			sourceSurface.copyFrom( surface, sourceSurface.getBounds() );
+		}
+		else
+			sourceSurface = surface;
+
+		SurfaceChannelOrderToDataFormatAndType( sourceSurface.getChannelOrder(), &dataFormat, &type );
 
 		ScopedTextureBind tbs( mTarget, mTextureId );
 		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-		glTexSubImage2D( mTarget, mipLevel, 0, 0, getWidth(), getHeight(), dataFormat, type, surface.getData() );
+		glTexSubImage2D( mTarget, mipLevel, 0, 0, getWidth(), getHeight(), dataFormat, type, sourceSurface.getData() );
 	}
 	else {
 		SurfaceChannelOrderToDataFormatAndType( surface.getChannelOrder(), &dataFormat, &type );
