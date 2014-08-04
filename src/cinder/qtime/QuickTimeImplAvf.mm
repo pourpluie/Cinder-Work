@@ -512,7 +512,8 @@ void MovieBase::init()
 {
 	mHasAudio = mHasVideo = false;
 	mPlayThroughOk = mPlayable = mProtected = false;
-	mPlaying = mPlayingForward = true;
+	mPlaying = false;
+	mPlayingForward = true;
 	mLoop = mPalindrome = false;
 	mFrameRate = -1;
 	mWidth = -1;
