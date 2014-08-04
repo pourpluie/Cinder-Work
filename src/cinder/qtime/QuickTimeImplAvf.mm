@@ -179,12 +179,13 @@ namespace cinder {
 namespace cinder { namespace qtime {
 	
 MovieBase::MovieBase()
-:	mPlayer(NULL),
-	mPlayerItem(NULL),
-	mAsset(NULL),
-	mPlayerVideoOutput(NULL),
-	mPlayerDelegate(NULL),
-	mResponder(NULL)
+:	mPlayer( nil ),
+	mPlayerItem( nil ),
+	mAsset( nil ),
+	mPlayerVideoOutput( nil ),
+	mPlayerDelegate( nil ),
+	mResponder( nullptr ),
+	mAssetLoaded( false )
 {
 	init();
 }
@@ -530,7 +531,7 @@ void MovieBase::initFromUrl( const Url& url )
 	NSDictionary* asset_options = @{(id)AVURLAssetPreferPreciseDurationAndTimingKey: @(YES)};
 	mAsset = [[AVURLAsset alloc] initWithURL:asset_url options:asset_options];
 	
-	mResponder = new MovieResponder(this);
+	mResponder = new MovieResponder( this );
 	mPlayerDelegate = [[MovieDelegate alloc] initWithResponder:mResponder];
 	
 	loadAsset();
@@ -552,7 +553,7 @@ void MovieBase::initFromPath( const fs::path& filePath )
 	loadAsset();
 	
 	// spin-wait until asset loading is completed
-	while( ! mLoaded ) {
+	while( ! mAssetLoaded ) {
 	}
 }
 
@@ -633,7 +634,7 @@ void MovieBase::loadAsset()
 		
 		allocateVisualContext();
 	
-		mLoaded = true;
+		mAssetLoaded = true;
 	}];
 }
 
